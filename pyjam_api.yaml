@@ -1,0 +1,193 @@
+swagger: "2.0"
+
+info:
+  title: Pyjam-test API
+  description: Pyjam-test backend API description.
+  version: 1.0.0
+
+schemes:
+  - https
+
+securityDefinitions:
+  ApiKeyAuth:
+    type: apiKey
+    in: header
+    name: PRIVATE-TOKEN
+
+security:
+  - APIKeyHeader: []
+
+paths:
+  /projects:
+    get:
+      summary: Returns a list of projects.
+      operationId: 'getProjects'
+      produces:
+        - application/json
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Project'
+        401:
+          description: Unathorized
+        400:
+          description: Invalid operation
+
+  /projects/{id}:
+    get:
+      summary: Returns a project by ID.
+      operationId: 'getProjectById'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Project ID
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/Project'
+        404:
+          description: Not found
+        401:
+          description: Unathorized
+        400:
+          description: Invalid operation
+
+  /projects/{id}/testcases:
+    get:
+      summary: Returns test cases by project ID.
+      operationId: 'getTestCasesByProjectId'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Project ID
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/TestCase'
+        404:
+          description: Not found
+        401:
+          description: Unathorized
+        400:
+          description: Invalid operation
+
+  /projects/{id}/testplans:
+    get:
+      summary: Returns test cases by project ID.
+      operationId: 'getTestCasesByProjectId'
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Project ID
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/TestPlan'
+        404:
+          description: Not found
+        401:
+          description: Unathorized
+        400:
+          description: Invalid operation
+
+definitions:
+  Project:
+    type: object
+    properties:
+      project:
+        type: object
+        properties:
+          id:
+            type: integer
+            description: Project ID
+          name:
+            type: string
+            description: Project name
+
+  Projects:
+    type: array
+    items:
+      $ref: '#/definitions/Project'
+
+  TestCase:
+    type: object
+    properties:
+      test_case:
+        type: object
+        properties:
+          id:
+            type: integer
+          project_id:
+            type: integer
+          suite_id:
+            type: integer
+          title:
+            type: string
+          description:
+            type: string
+          content:
+            type: string
+
+  TestSuite:
+    type: object
+    properties:
+      test_suite:
+        type: object
+        properties:
+          id:
+            type: integer
+          title:
+            type: string
+          description:
+            type: string
+          parent_suite_id:
+            type: integer
+          test_suite_ids:
+            type: array
+            items:
+              type: integer
+          test_case_ids:
+            type: array
+            items:
+              type: integer
+
+  TestPlan:
+    type: object
+    properties:
+      test_plan:
+        type: object
+        properties:
+          id:
+            type: integer
+          title:
+            type: string
+          description:
+            type: string
