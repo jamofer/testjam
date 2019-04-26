@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <meta charset="UTF-8">
+    <head>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    </head>
+
+    <body>
+        <!-- Header Nav -->
+        <nav>
+            <div class="nav-wrapper">
+                <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+                <a href="#" class="brand-logo"><i class="material-icons">whatshot</i>TestJam</a>
+                <ul id="nav-mobile" class="right hide-on-med-and-down">
+                    <li><a href="#">Sign up</a></li>
+                    <li><a href="#">Sign in</a></li>
+                </ul>
+            </div>
+        </nav>
+        <!-- Side Nav -->
+        <style>
+        .sidenav {
+            top: 65px;
+            width: 250px;
+        }
+        </style>
+        <ul id="slide-out" class="sidenav sidenav-fixed">
+            <li><a class="waves-effect" href="#!"><i class="material-icons">home</i>Projects</a></li>
+            <li><div class="divider"></div></li>
+            <li><a class="waves-effect" href="#!"><i class="material-icons">group</i>Users</a></li>
+            <li><a class="waves-effect" href="#!"><i class="material-icons">settings</i>Settings</a></li>
+        </ul>
+        <!-- Content -->
+
+        <!-- Footer -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+        <script>
+         document.addEventListener('DOMContentLoaded', function() {
+            var options = {
+                edge: "left",
+                draggable: true,
+            }
+
+            var elems = document.querySelectorAll('.sidenav');
+            var instances = M.Sidenav.init(elems, options);
+        });
+        </script>
+    </body>
+</html>
