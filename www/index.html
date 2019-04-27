@@ -4,7 +4,14 @@
     <head>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-
+    <link rel="stylesheet" href="style/main.css">
+    <script src="https://code.jquery.com/jquery-3.4.0.min.js"
+            integrity="sha256-BJeo0qm959uMBGb65z40ejJYGSgR7REI4+CW1fNKwOg="
+            crossorigin="anonymous">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="lib/main.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     </head>
 
@@ -13,7 +20,7 @@
         <nav>
             <div class="nav-wrapper">
                 <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-                <a href="#" class="brand-logo"><i class="material-icons">whatshot</i>TestJam</a>
+                <a href="#" class="brand-logo">Testjam<i class="logo-icon material-icons">playlist_add_check</i></a>
                 <ul id="nav-mobile" class="right hide-on-med-and-down">
                     <li><a href="#">Sign up</a></li>
                     <li><a href="#">Sign in</a></li>
@@ -21,12 +28,6 @@
             </div>
         </nav>
         <!-- Side Nav -->
-        <style>
-        .sidenav {
-            top: 65px;
-            width: 250px;
-        }
-        </style>
         <ul id="slide-out" class="sidenav sidenav-fixed">
             <li><a class="waves-effect" href="#!"><i class="material-icons">home</i>Projects</a></li>
             <li><div class="divider"></div></li>
@@ -34,19 +35,34 @@
             <li><a class="waves-effect" href="#!"><i class="material-icons">settings</i>Settings</a></li>
         </ul>
         <!-- Content -->
-
-        <!-- Footer -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-        <script>
-         document.addEventListener('DOMContentLoaded', function() {
-            var options = {
-                edge: "left",
-                draggable: true,
-            }
-
-            var elems = document.querySelectorAll('.sidenav');
-            var instances = M.Sidenav.init(elems, options);
-        });
-        </script>
+        <div id="dashboard_panel" class="content">
+            <ul id="projects_panel" class="collection project_list">
+                <li class="collection-item avatar">
+                    <i class="material-icons circle">folder</i>
+                    <a class="title black-text" href="#!">Project 1</a> <i class="material-icons tiny">public</i> <span class="role new badge" data-badge-caption="">Maintainer</span>
+                    <p>Project description</p>
+                </li>
+                <li class="collection-item avatar">
+                    <i class="material-icons circle">folder</i>
+                    <a class="title black-text" href="#!">Project 2</a> <i class="material-icons tiny">lock_outline</i> <span class="role new badge" data-badge-caption="">Test developer</span>
+                    <p>Project description</p>
+                </li>
+                <li class="collection-item avatar">
+                    <i class="material-icons circle">folder</i>
+                    <a class="title black-text" href="#!">Project 3</a> <i class="material-icons tiny">lock_outline</i> <span class="role new badge" data-badge-caption="">Tester</span>
+                    <p>Project description</p>
+                </li>
+                <li class="collection-item avatar ">
+                    <i class="material-icons circle">folder</i>
+                    <a class="title black-text" href="#!">Project 4</a> <i class="material-icons tiny">public</i> <span class="role new badge" data-badge-caption="">Tester</span>
+                    <p>Project description</p>
+                </li>
+                <li class="collection-item avatar">
+                    <i class="material-icons circle">folder</i>
+                    <a class="title black-text" href="#!">Project 5</a> <i class="material-icons tiny">public</i> <span class="role new badge" data-badge-caption="">Tester</span>
+                    <p>Project description</p>
+                </li>
+            </ul>
+        </div>
     </body>
 </html>
