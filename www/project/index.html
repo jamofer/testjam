@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Testjam - << PROJECT_TITLE >></title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="../style/main.css">
+    <script src="https://code.jquery.com/jquery-3.4.0.min.js"
+            integrity="sha256-BJeo0qm959uMBGb65z40ejJYGSgR7REI4+CW1fNKwOg="
+            crossorigin="anonymous">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="../lib/project.js"></script>
+    <script src="../lib/main.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+
+<body>
+<!-- Header Nav -->
+<nav>
+    <div class="nav-wrapper">
+        <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+        <a href="../index.html" class="brand-logo">Testjam<i class="logo-icon material-icons">playlist_add_check</i></a>
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+            <li><a href="#">Sign up</a></li>
+            <li><a href="#">Sign in</a></li>
+        </ul>
+    </div>
+</nav>
+<!-- Side Nav -->
+<ul id="slide-out" class="sidenav sidenav-fixed">
+    <li><a class="waves-effect" href="#!"><i class="material-icons">group</i>Test plans</a></li>
+    <li><a class="waves-effect" href="#!"><i class="material-icons">group</i>Test cases</a></li>
+    <li><a class="waves-effect" href="#!"><i class="material-icons">group</i>Issues</a></li>
+    <li><div class="divider"></div></li>
+    <li><a class="waves-effect" href="#!"><i class="material-icons">group</i>Members</a></li>
+    <li><a class="waves-effect" href="#!"><i class="material-icons">settings</i>Settings</a></li>
+</ul>
+<!-- Content -->
+<div id="dashboard_panel" class="content">
+    <h2> Project Title </h2>
+    <p>
+        Project description.<br>
+        Project metrics.
+    </p>
+    <ul id="test_plan_list" class="collection project_list">
+        <li class="collection-item avatar">
+            <i class="circle">TP</i>
+            <a class="title black-text" href="#">Test Plan 1</a>
+            <p>Current build: Build Title</p>
+            <span class="role new badge" data-badge-caption="Passed">120</span>
+            <span class="role new badge" data-badge-caption="Failed">20</span>
+            <span class="role new badge" data-badge-caption="Not run">0</span>
+            <span class="badge" data-badge-caption="">Last update: 4 days</span>
+        </li>
+        <li class="collection-item avatar">
+            <i class="circle">TP</i>
+            <a class="title black-text" href="#">Test Plan 3</a>
+            <p>Current build: Build Title</p>
+            <span class="role new badge" data-badge-caption="Passed">120</span>
+            <span class="role new badge" data-badge-caption="Failed">20</span>
+            <span class="role new badge" data-badge-caption="Not run">0</span>
+            <span class="badge" data-badge-caption="">Last update: 2 hours</span>
+        </li>
+        <li class="collection-item avatar">
+            <i class="circle">TP</i>
+            <a class="title black-text" href="#">Test Plan 4</a>
+            <p>Current build: Build Title</p>
+            <span class="role new badge" data-badge-caption="Passed">120</span>
+            <span class="role new badge" data-badge-caption="Failed">20</span>
+            <span class="role new badge" data-badge-caption="Not run">0</span>
+            <span class="badge" data-badge-caption="">Last update: 30 minutes</span>
+
+        </li>
+    </ul>
+</div>
+</body>
+</html>
