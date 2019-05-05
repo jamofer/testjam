@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
+<head>
     <meta charset="UTF-8">
-    <head>
+    <title>Testjam</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link rel="stylesheet" href="style/main.css">
@@ -10,10 +11,11 @@
             crossorigin="anonymous">
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="lib/project.js"></script>
     <script src="lib/main.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    </head>
+</head>
 
     <body>
         <!-- Header Nav -->
@@ -29,39 +31,12 @@
         </nav>
         <!-- Side Nav -->
         <ul id="slide-out" class="sidenav sidenav-fixed">
-            <li><a class="waves-effect" href="#!"><i class="material-icons">home</i>Projects</a></li>
-            <li><div class="divider"></div></li>
             <li><a class="waves-effect" href="#!"><i class="material-icons">group</i>Users</a></li>
             <li><a class="waves-effect" href="#!"><i class="material-icons">settings</i>Settings</a></li>
         </ul>
         <!-- Content -->
         <div id="dashboard_panel" class="content">
             <ul id="projects_panel" class="collection project_list">
-                <li class="collection-item avatar">
-                    <i class="material-icons circle">folder</i>
-                    <a class="title black-text" href="#!">Project 1</a> <i class="material-icons tiny">public</i> <span class="role new badge" data-badge-caption="">Maintainer</span>
-                    <p>Project description</p>
-                </li>
-                <li class="collection-item avatar">
-                    <i class="material-icons circle">folder</i>
-                    <a class="title black-text" href="#!">Project 2</a> <i class="material-icons tiny">lock_outline</i> <span class="role new badge" data-badge-caption="">Test developer</span>
-                    <p>Project description</p>
-                </li>
-                <li class="collection-item avatar">
-                    <i class="material-icons circle">folder</i>
-                    <a class="title black-text" href="#!">Project 3</a> <i class="material-icons tiny">lock_outline</i> <span class="role new badge" data-badge-caption="">Tester</span>
-                    <p>Project description</p>
-                </li>
-                <li class="collection-item avatar ">
-                    <i class="material-icons circle">folder</i>
-                    <a class="title black-text" href="#!">Project 4</a> <i class="material-icons tiny">public</i> <span class="role new badge" data-badge-caption="">Tester</span>
-                    <p>Project description</p>
-                </li>
-                <li class="collection-item avatar">
-                    <i class="material-icons circle">folder</i>
-                    <a class="title black-text" href="#!">Project 5</a> <i class="material-icons tiny">public</i> <span class="role new badge" data-badge-caption="">Tester</span>
-                    <p>Project description</p>
-                </li>
             </ul>
         </div>
     </body>
