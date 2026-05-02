@@ -1,0 +1,82 @@
+import pytest
+from fastapi.testclient import TestClient
+from testjam.auth.security import hash_password
+from testjam.models.user import User
+
+
+@pytest.fixture
+def auth_client(client: TestClient, setup_db):
+    from tests.conftest import TestingSession
+    with TestingSession() as db:
+        db.add(User(username="u", email="u@x.com", hashed_password=hash_password("pw"), is_active=True))
+        db.commit()
+    token = client.post("/api/v1/auth/login", data={"username": "u", "password": "pw"}).json()["access_token"]
+    client.headers["Authorization"] = f"Bearer {token}"
+    return client
+
+
+@pytest.fixture
+def project_with_cases(auth_client):
+    project_id = auth_client.post("/api/v1/projects", json={"name": "P"}).json()["id"]
+    suite_id = auth_client.post(f"/api/v1/projects/{project_id}/suites", json={"title": "S"}).json()["id"]
+    case_ids = []
+    for i in range(3):
+        case_id = auth_client.post(
+            f"/api/v1/suites/{suite_id}/cases", json={"title": f"TC-{i}", "suite_id": suite_id}
+        ).json()["id"]
+        case_ids.append(case_id)
+    return project_id, case_ids
+
+
+def test_create_manual_execution(auth_client, project_with_cases):
+    project_id, case_ids = project_with_cases
+    resp = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
+        "title": "Sprint 1",
+        "type": "manual",
+        "version": "1.0.0",
+        "environment": "staging",
+        "test_case_ids": case_ids,
+    })
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["type"] == "manual"
+    assert data["status"] == "pending"
+    assert data["summary"]["total"] == 3
+    assert data["summary"]["not_run"] == 3
+
+
+def test_register_result(auth_client, project_with_cases):
+    project_id, case_ids = project_with_cases
+    exec_id = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
+        "title": "Run", "type": "manual", "test_case_ids": case_ids,
+    }).json()["id"]
+
+    resp = auth_client.post(f"/api/v1/executions/{exec_id}/results", json={
+        "test_case_id": case_ids[0],
+        "status": "passed",
+        "comment": "All good",
+    })
+    assert resp.status_code == 201
+    assert resp.json()["status"] == "passed"
+
+    execution = auth_client.get(f"/api/v1/executions/{exec_id}").json()
+    assert execution["summary"]["passed"] == 1
+
+
+def test_bulk_results(auth_client, project_with_cases):
+    project_id, case_ids = project_with_cases
+    exec_id = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
+        "title": "CI Run", "type": "automatic", "triggered_by": "github-actions", "test_case_ids": case_ids,
+    }).json()["id"]
+
+    resp = auth_client.post(f"/api/v1/executions/{exec_id}/results/bulk", json={
+        "results": [
+            {"test_case_id": case_ids[0], "status": "passed"},
+            {"test_case_id": case_ids[1], "status": "failed", "comment": "Assertion error"},
+            {"test_case_id": case_ids[2], "status": "not_run"},
+        ]
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["created"] == 3
+    assert data["errors"] == []

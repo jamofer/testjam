@@ -1,193 +1,1691 @@
-swagger: "2.0"
+openapi: "3.0.3"
 
 info:
-  title: Pyjam-test API
-  description: Pyjam-test backend API description.
+  title: Testjam API
+  description: Testjam backend API — test management platform.
   version: 1.0.0
 
-schemes:
-  - https
+servers:
+  - url: http://localhost:8000/api/v1
 
-securityDefinitions:
-  ApiKeyAuth:
-    type: apiKey
-    in: header
-    name: PRIVATE-TOKEN
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  parameters:
+    PathId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+
+  schemas:
+
+    # ─── Pagination ───────────────────────────────────────────────
+    PaginatedMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        per_page:
+          type: integer
+
+    # ─── Users ────────────────────────────────────────────────────
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        full_name:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    UserCreate:
+      type: object
+      required: [username, email, password]
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        full_name:
+          type: string
+        password:
+          type: string
+          format: password
+
+    UserUpdate:
+      type: object
+      properties:
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+        is_active:
+          type: boolean
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          example: bearer
+        expires_in:
+          type: integer
+          description: Seconds until expiry
+
+    # ─── Groups ───────────────────────────────────────────────────
+    Group:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupMember'
+
+    GroupCreate:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
+    GroupMember:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        username:
+          type: string
+        role:
+          $ref: '#/components/schemas/ProjectRole'
+
+    GroupMemberUpdate:
+      type: object
+      required: [role]
+      properties:
+        role:
+          $ref: '#/components/schemas/ProjectRole'
+
+    # ─── RBAC ─────────────────────────────────────────────────────
+    ProjectRole:
+      type: string
+      enum: [owner, manager, tester, reporter]
+      description: |
+        - owner: full control including deletion and permission management
+        - manager: create/edit all resources, manage members
+        - tester: create/edit executions and results
+        - reporter: read-only access
+
+    ProjectMember:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        username:
+          type: string
+        role:
+          $ref: '#/components/schemas/ProjectRole'
+        added_at:
+          type: string
+          format: date-time
+
+    ProjectMemberUpdate:
+      type: object
+      required: [role]
+      properties:
+        role:
+          $ref: '#/components/schemas/ProjectRole'
+
+    # ─── Projects ─────────────────────────────────────────────────
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProjectCreate:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
+    ProjectUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
+    # ─── Test Suites ──────────────────────────────────────────────
+    TestSuite:
+      type: object
+      properties:
+        id:
+          type: integer
+        project_id:
+          type: integer
+        parent_suite_id:
+          type: integer
+          nullable: true
+        title:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        child_suite_ids:
+          type: array
+          items:
+            type: integer
+        test_case_ids:
+          type: array
+          items:
+            type: integer
+
+    TestSuiteCreate:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        parent_suite_id:
+          type: integer
+          nullable: true
+
+    TestSuiteUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        parent_suite_id:
+          type: integer
+          nullable: true
+
+    # ─── Test Cases ───────────────────────────────────────────────
+    TestCase:
+      type: object
+      properties:
+        id:
+          type: integer
+        project_id:
+          type: integer
+        suite_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+          description: Markdown
+        preconditions:
+          type: string
+          description: Markdown
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestStep'
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attachment'
+
+    TestCaseCreate:
+      type: object
+      required: [title, suite_id]
+      properties:
+        suite_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        preconditions:
+          type: string
+
+    TestCaseUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        preconditions:
+          type: string
+        suite_id:
+          type: integer
+
+    # ─── Test Steps ───────────────────────────────────────────────
+    TestStep:
+      type: object
+      properties:
+        id:
+          type: integer
+        test_case_id:
+          type: integer
+        order:
+          type: integer
+          description: Display order within the test case
+        content:
+          type: string
+          description: Step description in Markdown (can reference attached images)
+        expected_result:
+          type: string
+          description: Markdown
+
+    TestStepCreate:
+      type: object
+      required: [content, order]
+      properties:
+        content:
+          type: string
+        expected_result:
+          type: string
+        order:
+          type: integer
+
+    TestStepUpdate:
+      type: object
+      properties:
+        content:
+          type: string
+        expected_result:
+          type: string
+        order:
+          type: integer
+
+    # ─── Attachments ──────────────────────────────────────────────
+    Attachment:
+      type: object
+      properties:
+        id:
+          type: integer
+        filename:
+          type: string
+        content_type:
+          type: string
+        size_bytes:
+          type: integer
+        url:
+          type: string
+          description: Presigned URL for download
+        uploaded_at:
+          type: string
+          format: date-time
+        uploaded_by:
+          type: string
+
+    # ─── Test Executions ──────────────────────────────────────────
+    ExecutionType:
+      type: string
+      enum: [manual, automatic]
+
+    ExecutionStatus:
+      type: string
+      enum: [pending, in_progress, completed, aborted]
+
+    TestExecution:
+      type: object
+      properties:
+        id:
+          type: integer
+        project_id:
+          type: integer
+        test_plan_id:
+          type: integer
+          nullable: true
+        title:
+          type: string
+        description:
+          type: string
+          description: Markdown
+        type:
+          $ref: '#/components/schemas/ExecutionType'
+        status:
+          $ref: '#/components/schemas/ExecutionStatus'
+        version:
+          type: string
+          description: Software version under test (e.g. 1.4.2)
+        environment:
+          type: string
+          description: Target environment (e.g. staging, production)
+        assigned_to:
+          $ref: '#/components/schemas/User'
+        triggered_by:
+          type: string
+          description: Username or CI system name
+        started_at:
+          type: string
+          format: date-time
+        finished_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        summary:
+          $ref: '#/components/schemas/ExecutionSummary'
+
+    ExecutionSummary:
+      type: object
+      properties:
+        total:
+          type: integer
+        passed:
+          type: integer
+        failed:
+          type: integer
+        blocked:
+          type: integer
+        not_run:
+          type: integer
+
+    TestExecutionCreate:
+      type: object
+      required: [title, type]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        type:
+          $ref: '#/components/schemas/ExecutionType'
+        version:
+          type: string
+        environment:
+          type: string
+        assigned_to_id:
+          type: integer
+          description: User ID responsible for manual execution
+        triggered_by:
+          type: string
+          description: Required for automatic executions
+        test_plan_id:
+          type: integer
+          nullable: true
+        test_case_ids:
+          type: array
+          items:
+            type: integer
+          description: Explicit test case list (ignored when test_plan_id is set)
+
+    TestExecutionUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/ExecutionStatus'
+        version:
+          type: string
+        environment:
+          type: string
+        assigned_to_id:
+          type: integer
+        finished_at:
+          type: string
+          format: date-time
+
+    # ─── Test Results ─────────────────────────────────────────────
+    ResultStatus:
+      type: string
+      enum: [passed, failed, blocked, not_run]
+
+    TestResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        execution_id:
+          type: integer
+        test_case_id:
+          type: integer
+        test_case_title:
+          type: string
+        status:
+          $ref: '#/components/schemas/ResultStatus'
+        comment:
+          type: string
+          description: Markdown — tester notes or failure details
+        executed_by:
+          type: string
+        executed_at:
+          type: string
+          format: date-time
+        duration_ms:
+          type: integer
+        step_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestStepResult'
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attachment'
+
+    TestResultCreate:
+      type: object
+      required: [test_case_id, status]
+      properties:
+        test_case_id:
+          type: integer
+        status:
+          $ref: '#/components/schemas/ResultStatus'
+        comment:
+          type: string
+        executed_by:
+          type: string
+        executed_at:
+          type: string
+          format: date-time
+        duration_ms:
+          type: integer
+        step_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestStepResultCreate'
+
+    TestResultUpdate:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/ResultStatus'
+        comment:
+          type: string
+        executed_by:
+          type: string
+        executed_at:
+          type: string
+          format: date-time
+        duration_ms:
+          type: integer
+
+    # ─── Test Step Results ────────────────────────────────────────
+    StepResultStatus:
+      type: string
+      enum: [passed, failed, blocked, not_run]
+
+    TestStepResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        test_result_id:
+          type: integer
+        step_id:
+          type: integer
+        step_order:
+          type: integer
+        status:
+          $ref: '#/components/schemas/StepResultStatus'
+        comment:
+          type: string
+          description: Markdown
+
+    TestStepResultCreate:
+      type: object
+      required: [step_id, status]
+      properties:
+        step_id:
+          type: integer
+        status:
+          $ref: '#/components/schemas/StepResultStatus'
+        comment:
+          type: string
+
+    TestStepResultUpdate:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/StepResultStatus'
+        comment:
+          type: string
+
+    # ─── Bulk (CI/CD) ─────────────────────────────────────────────
+    BulkResultItem:
+      type: object
+      required: [test_case_id, status]
+      properties:
+        test_case_id:
+          type: integer
+        status:
+          $ref: '#/components/schemas/ResultStatus'
+        comment:
+          type: string
+        executed_by:
+          type: string
+        executed_at:
+          type: string
+          format: date-time
+        duration_ms:
+          type: integer
+        step_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestStepResultCreate'
+
+    BulkResultCreate:
+      type: object
+      required: [results]
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkResultItem'
+          minItems: 1
+
+    BulkResultResponse:
+      type: object
+      properties:
+        created:
+          type: integer
+        updated:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              test_case_id:
+                type: integer
+              error:
+                type: string
+
+    # ─── Errors ───────────────────────────────────────────────────
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
 
 security:
-  - APIKeyHeader: []
+  - BearerAuth: []
+  - ApiKeyAuth: []
 
 paths:
+
+  # ════════════════════════════════════════════════════════════════
+  # AUTH
+  # ════════════════════════════════════════════════════════════════
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Obtain a JWT access token
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        401:
+          description: Invalid credentials
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh JWT token
+      operationId: refreshToken
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        401:
+          description: Unauthorized
+
+  # ════════════════════════════════════════════════════════════════
+  # USERS
+  # ════════════════════════════════════════════════════════════════
+  /users:
+    get:
+      tags: [Users]
+      summary: List users
+      operationId: listUsers
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  meta:
+                    $ref: '#/components/schemas/PaginatedMeta'
+        401:
+          description: Unauthorized
+
+    post:
+      tags: [Users]
+      summary: Create a user (admin only)
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          description: Validation error
+        401:
+          description: Unauthorized
+
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Get current authenticated user
+      operationId: getCurrentUser
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        401:
+          description: Unauthorized
+
+  /users/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [Users]
+      summary: Get user by ID
+      operationId: getUserById
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        404:
+          description: Not found
+    put:
+      tags: [Users]
+      summary: Update user
+      operationId: updateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        404:
+          description: Not found
+    delete:
+      tags: [Users]
+      summary: Delete user (admin only)
+      operationId: deleteUser
+      responses:
+        204:
+          description: No content
+        404:
+          description: Not found
+
+  # ════════════════════════════════════════════════════════════════
+  # GROUPS
+  # ════════════════════════════════════════════════════════════════
+  /groups:
+    get:
+      tags: [Groups]
+      summary: List groups
+      operationId: listGroups
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+        401:
+          description: Unauthorized
+    post:
+      tags: [Groups]
+      summary: Create group
+      operationId: createGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupCreate'
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+
+  /groups/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [Groups]
+      summary: Get group by ID
+      operationId: getGroupById
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        404:
+          description: Not found
+    put:
+      tags: [Groups]
+      summary: Update group
+      operationId: updateGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupCreate'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+    delete:
+      tags: [Groups]
+      summary: Delete group
+      operationId: deleteGroup
+      responses:
+        204:
+          description: No content
+
+  /groups/{id}/members:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [Groups]
+      summary: List group members
+      operationId: listGroupMembers
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupMember'
+    post:
+      tags: [Groups]
+      summary: Add user to group
+      operationId: addGroupMember
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id, role]
+              properties:
+                user_id:
+                  type: integer
+                role:
+                  $ref: '#/components/schemas/ProjectRole'
+      responses:
+        201:
+          description: Created
+
+  /groups/{id}/members/{user_id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags: [Groups]
+      summary: Update member role in group
+      operationId: updateGroupMember
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupMemberUpdate'
+      responses:
+        200:
+          description: OK
+    delete:
+      tags: [Groups]
+      summary: Remove user from group
+      operationId: removeGroupMember
+      responses:
+        204:
+          description: No content
+
+  # ════════════════════════════════════════════════════════════════
+  # PROJECTS
+  # ════════════════════════════════════════════════════════════════
   /projects:
     get:
-      summary: Returns a list of projects.
-      operationId: 'getProjects'
-      produces:
-        - application/json
+      tags: [Projects]
+      summary: List projects accessible to the current user
+      operationId: listProjects
       responses:
         200:
           description: OK
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/Project'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
         401:
-          description: Unathorized
-        400:
-          description: Invalid operation
+          description: Unauthorized
+    post:
+      tags: [Projects]
+      summary: Create project
+      operationId: createProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreate'
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
 
   /projects/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
     get:
-      summary: Returns a project by ID.
-      operationId: 'getProjectById'
-      produces:
-        - application/json
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            minimum: 1
-          description: Project ID
+      tags: [Projects]
+      summary: Get project by ID
+      operationId: getProjectById
       responses:
         200:
           description: OK
-          schema:
-            $ref: '#/definitions/Project'
-        404:
-          description: Not found
-        401:
-          description: Unathorized
-        400:
-          description: Invalid operation
-
-  /projects/{id}/testcases:
-    get:
-      summary: Returns test cases by project ID.
-      operationId: 'getTestCasesByProjectId'
-      produces:
-        - application/json
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            minimum: 1
-          description: Project ID
-      responses:
-        200:
-          description: OK
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/TestCase'
-        404:
-          description: Not found
-        401:
-          description: Unathorized
-        400:
-          description: Invalid operation
-
-  /projects/{id}/testplans:
-    get:
-      summary: Returns test cases by project ID.
-      operationId: 'getTestCasesByProjectId'
-      produces:
-        - application/json
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            minimum: 1
-          description: Project ID
-      responses:
-        200:
-          description: OK
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/TestPlan'
-        404:
-          description: Not found
-        401:
-          description: Unathorized
-        400:
-          description: Invalid operation
-
-definitions:
-  Project:
-    type: object
-    properties:
-      project:
-        type: object
-        properties:
-          id:
-            type: integer
-            description: Project ID
-          name:
-            type: string
-            description: Project name
-
-  Projects:
-    type: array
-    items:
-      $ref: '#/definitions/Project'
-
-  TestCase:
-    type: object
-    properties:
-      test_case:
-        type: object
-        properties:
-          id:
-            type: integer
-          project_id:
-            type: integer
-          suite_id:
-            type: integer
-          title:
-            type: string
-          description:
-            type: string
           content:
-            type: string
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        404:
+          description: Not found
+    put:
+      tags: [Projects]
+      summary: Update project
+      operationId: updateProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdate'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+    delete:
+      tags: [Projects]
+      summary: Delete project (owner only)
+      operationId: deleteProject
+      responses:
+        204:
+          description: No content
 
-  TestSuite:
-    type: object
-    properties:
-      test_suite:
-        type: object
-        properties:
-          id:
-            type: integer
-          title:
-            type: string
-          description:
-            type: string
-          parent_suite_id:
-            type: integer
-          test_suite_ids:
-            type: array
-            items:
-              type: integer
-          test_case_ids:
-            type: array
-            items:
-              type: integer
+  /projects/{id}/members:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [Projects]
+      summary: List project members
+      operationId: listProjectMembers
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectMember'
+    post:
+      tags: [Projects]
+      summary: Add member to project (owner/manager only)
+      operationId: addProjectMember
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id, role]
+              properties:
+                user_id:
+                  type: integer
+                role:
+                  $ref: '#/components/schemas/ProjectRole'
+      responses:
+        201:
+          description: Created
 
-  TestPlan:
-    type: object
-    properties:
-      test_plan:
-        type: object
-        properties:
-          id:
+  /projects/{id}/members/{user_id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags: [Projects]
+      summary: Update member role in project
+      operationId: updateProjectMember
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectMemberUpdate'
+      responses:
+        200:
+          description: OK
+    delete:
+      tags: [Projects]
+      summary: Remove member from project
+      operationId: removeProjectMember
+      responses:
+        204:
+          description: No content
+
+  # ════════════════════════════════════════════════════════════════
+  # TEST SUITES
+  # ════════════════════════════════════════════════════════════════
+  /projects/{id}/suites:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [TestSuites]
+      summary: List top-level suites for a project
+      operationId: listTestSuites
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TestSuite'
+        404:
+          description: Project not found
+    post:
+      tags: [TestSuites]
+      summary: Create test suite in project
+      operationId: createTestSuite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestSuiteCreate'
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestSuite'
+
+  /suites/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [TestSuites]
+      summary: Get test suite by ID
+      operationId: getTestSuiteById
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestSuite'
+        404:
+          description: Not found
+    put:
+      tags: [TestSuites]
+      summary: Update test suite
+      operationId: updateTestSuite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestSuiteUpdate'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestSuite'
+    delete:
+      tags: [TestSuites]
+      summary: Delete test suite
+      operationId: deleteTestSuite
+      responses:
+        204:
+          description: No content
+
+  # ════════════════════════════════════════════════════════════════
+  # TEST CASES
+  # ════════════════════════════════════════════════════════════════
+  /suites/{id}/cases:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [TestCases]
+      summary: List test cases in a suite
+      operationId: listTestCases
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TestCase'
+        404:
+          description: Not found
+    post:
+      tags: [TestCases]
+      summary: Create test case in suite
+      operationId: createTestCase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestCaseCreate'
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestCase'
+
+  /cases/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [TestCases]
+      summary: Get test case by ID
+      operationId: getTestCaseById
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestCase'
+        404:
+          description: Not found
+    put:
+      tags: [TestCases]
+      summary: Update test case
+      operationId: updateTestCase
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestCaseUpdate'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestCase'
+    delete:
+      tags: [TestCases]
+      summary: Delete test case
+      operationId: deleteTestCase
+      responses:
+        204:
+          description: No content
+
+  # ─── Steps ────────────────────────────────────────────────────
+  /cases/{id}/steps:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [TestCases]
+      summary: List steps for a test case
+      operationId: listTestSteps
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TestStep'
+    post:
+      tags: [TestCases]
+      summary: Add step to test case
+      operationId: createTestStep
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestStepCreate'
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestStep'
+
+  /cases/{id}/steps/{step_id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+      - name: step_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags: [TestCases]
+      summary: Update a step
+      operationId: updateTestStep
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestStepUpdate'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestStep'
+    delete:
+      tags: [TestCases]
+      summary: Delete a step
+      operationId: deleteTestStep
+      responses:
+        204:
+          description: No content
+
+  # ─── Attachments on test cases ────────────────────────────────
+  /cases/{id}/attachments:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [TestCases]
+      summary: List attachments for a test case
+      operationId: listCaseAttachments
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attachment'
+    post:
+      tags: [TestCases]
+      summary: Upload attachment to test case
+      operationId: uploadCaseAttachment
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+
+  /cases/{id}/attachments/{attachment_id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+      - name: attachment_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags: [TestCases]
+      summary: Delete attachment from test case
+      operationId: deleteCaseAttachment
+      responses:
+        204:
+          description: No content
+
+  # ════════════════════════════════════════════════════════════════
+  # TEST EXECUTIONS
+  # ════════════════════════════════════════════════════════════════
+  /projects/{id}/executions:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [TestExecutions]
+      summary: List executions for a project
+      operationId: listExecutions
+      parameters:
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/ExecutionType'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ExecutionStatus'
+        - name: page
+          in: query
+          schema:
             type: integer
-          title:
-            type: string
-          description:
-            type: string
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TestExecution'
+                  meta:
+                    $ref: '#/components/schemas/PaginatedMeta'
+        404:
+          description: Project not found
+    post:
+      tags: [TestExecutions]
+      summary: Create a new test execution
+      operationId: createExecution
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestExecutionCreate'
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestExecution'
+
+  /executions/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [TestExecutions]
+      summary: Get execution by ID
+      operationId: getExecutionById
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestExecution'
+        404:
+          description: Not found
+    put:
+      tags: [TestExecutions]
+      summary: Update execution metadata or status
+      operationId: updateExecution
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestExecutionUpdate'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestExecution'
+    delete:
+      tags: [TestExecutions]
+      summary: Delete execution
+      operationId: deleteExecution
+      responses:
+        204:
+          description: No content
+
+  # ════════════════════════════════════════════════════════════════
+  # TEST RESULTS
+  # ════════════════════════════════════════════════════════════════
+  /executions/{id}/results:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [TestResults]
+      summary: List results for an execution
+      operationId: listResults
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ResultStatus'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TestResult'
+        404:
+          description: Execution not found
+    post:
+      tags: [TestResults]
+      summary: Submit result for a single test case
+      operationId: createResult
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestResultCreate'
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResult'
+
+  /executions/{id}/results/bulk:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    post:
+      tags: [TestResults]
+      summary: Submit results for multiple test cases at once (CI/CD)
+      operationId: createResultsBulk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkResultCreate'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkResultResponse'
+
+  /results/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [TestResults]
+      summary: Get result by ID
+      operationId: getResultById
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResult'
+        404:
+          description: Not found
+    put:
+      tags: [TestResults]
+      summary: Update a result
+      operationId: updateResult
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestResultUpdate'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResult'
+
+  # ─── Step results ─────────────────────────────────────────────
+  /results/{id}/step-results/{step_result_id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+      - name: step_result_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags: [TestResults]
+      summary: Update the result of a single step
+      operationId: updateStepResult
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestStepResultUpdate'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestStepResult'
+
+  # ─── Attachments on results ───────────────────────────────────
+  /results/{id}/attachments:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+    get:
+      tags: [TestResults]
+      summary: List attachments for a result
+      operationId: listResultAttachments
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attachment'
+    post:
+      tags: [TestResults]
+      summary: Upload attachment to a result (screenshot, log, etc.)
+      operationId: uploadResultAttachment
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                comment:
+                  type: string
+      responses:
+        201:
+          description: Uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+
+  /results/{id}/attachments/{attachment_id}:
+    parameters:
+      - $ref: '#/components/parameters/PathId'
+      - name: attachment_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      tags: [TestResults]
+      summary: Delete attachment from result
+      operationId: deleteResultAttachment
+      responses:
+        204:
+          description: No content

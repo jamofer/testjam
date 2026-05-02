@@ -1,0 +1,42 @@
+from datetime import datetime
+from pydantic import BaseModel
+from testjam.schemas.user import UserOut
+
+
+class ProjectBase(BaseModel):
+    name: str
+    description: str | None = None
+
+
+class ProjectCreate(ProjectBase):
+    pass
+
+
+class ProjectUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+
+
+class ProjectOut(ProjectBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    suite_count: int = 0
+    case_count: int = 0
+    execution_count: int = 0
+    last_execution_at: datetime | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class ProjectMemberOut(BaseModel):
+    user_id: int
+    username: str
+    role: str
+    added_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class ProjectMemberUpdate(BaseModel):
+    role: str

@@ -1,3 +1,20 @@
 venv
 .idea
 .git
+
+# Python
+__pycache__/
+*.pyc
+.env
+backend/test.db
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Uploads
+backend/uploads/
+
+# Alembic generated versions (keep the folder)
+backend/alembic/versions/*.py
+!backend/alembic/versions/.gitkeep
