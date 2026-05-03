@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from testjam.core.config import settings
-from testjam.routers import auth, users, groups, projects, suites, cases, testplans, executions
+from testjam.routers import auth, users, groups, projects, suites, cases, testplans, executions, versions
 
 app = FastAPI(title=settings.APP_NAME, docs_url="/api/docs", redoc_url="/api/redoc")
 
@@ -30,6 +30,8 @@ app.include_router(testplans.plans_router, prefix=settings.API_V1_PREFIX)
 app.include_router(executions.projects_router, prefix=settings.API_V1_PREFIX)
 app.include_router(executions.executions_router, prefix=settings.API_V1_PREFIX)
 app.include_router(executions.results_router, prefix=settings.API_V1_PREFIX)
+app.include_router(versions.projects_router, prefix=settings.API_V1_PREFIX)
+app.include_router(versions.versions_router, prefix=settings.API_V1_PREFIX)
 
 os.makedirs("/app/uploads", exist_ok=True)
 app.mount("/files", StaticFiles(directory="/app/uploads"), name="uploads")

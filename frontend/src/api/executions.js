@@ -21,4 +21,15 @@ export const executionsApi = {
   },
   deleteResultAttachment: (resultId, attachmentId) =>
     api.delete(`/results/${resultId}/attachments/${attachmentId}`),
+
+  importJunit: (executionId, file) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post(`/executions/${executionId}/results/import/junit`, form).then(r => r.data)
+  },
+  importRobotFramework: (executionId, file) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post(`/executions/${executionId}/results/import/robotframework`, form).then(r => r.data)
+  },
 }

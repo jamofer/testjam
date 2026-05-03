@@ -31,6 +31,12 @@ services:
         condition: service_healthy
     command: >
       sh -c "alembic upgrade head && uvicorn testjam.main:app --host 0.0.0.0 --port 8000 --reload"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/docs')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
 
   frontend:
     build: ./frontend
@@ -41,6 +47,23 @@ services:
       - /app/node_modules
     depends_on:
       - api
+
+  e2e:
+    build: ./tests/e2e
+    profiles: ["e2e"]
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      TESTJAM_BASE_URL: http://api:8000/api/v1
+      TESTJAM_ADMIN_USER: ${TESTJAM_ADMIN_USER:-admin}
+      TESTJAM_ADMIN_PASS: ${TESTJAM_ADMIN_PASS:-admin123}
+      TESTJAM_E2E_PROJECT: ${TESTJAM_E2E_PROJECT:-Testjam E2E}
+    volumes:
+      - ./tests/e2e:/tests/e2e
+    working_dir: /tests/e2e
+    command: >
+      robot --listener testjam_e2e.e2e_listener.TestjamE2EListener suites/
 
 volumes:
   postgres_data:

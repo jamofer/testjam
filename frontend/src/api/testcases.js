@@ -6,6 +6,11 @@ export const suitesApi = {
   create: (projectId, data) => api.post(`/projects/${projectId}/suites`, data).then(r => r.data),
   update: (id, data) => api.put(`/suites/${id}`, data).then(r => r.data),
   delete: (id) => api.delete(`/suites/${id}`),
+
+  createStep: (suiteId, data) => api.post(`/suites/${suiteId}/steps`, data).then(r => r.data),
+  updateStep: (suiteId, stepId, data) => api.put(`/suites/${suiteId}/steps/${stepId}`, data).then(r => r.data),
+  deleteStep: (suiteId, stepId) => api.delete(`/suites/${suiteId}/steps/${stepId}`),
+  deleteStepsByType: (suiteId, stepType) => api.delete(`/suites/${suiteId}/steps`, { params: { step_type: stepType } }),
 }
 
 export const casesApi = {

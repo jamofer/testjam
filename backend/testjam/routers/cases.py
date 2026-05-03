@@ -19,12 +19,23 @@ cases_router = APIRouter(prefix="/cases", tags=["TestCases"])
 
 
 @suites_router.get("/{id}/cases", response_model=list[TestCaseOut])
-def list_cases(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
-    return db.query(TestCase).filter(TestCase.suite_id == id).all()
+def list_cases(
+    id: int,
+    name: str | None = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    q = db.query(TestCase).filter(TestCase.suite_id == id)
+    if name is not None:
+        q = q.filter(TestCase.name == name)
+    return q.all()
 
 
 @suites_router.post("/{id}/cases", response_model=TestCaseOut, status_code=status.HTTP_201_CREATED)
 def create_case(id: int, body: TestCaseCreate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    duplicate = db.query(TestCase).filter(TestCase.suite_id == id, TestCase.name == body.name).first()
+    if duplicate:
+        raise HTTPException(status_code=409, detail=f"Test case '{body.name}' already exists")
     case = TestCase(suite_id=id, **body.model_dump(exclude={"suite_id"}))
     db.add(case)
     db.commit()
@@ -68,9 +79,19 @@ def list_steps(id: int, db: Session = Depends(get_db), _: User = Depends(get_cur
     return db.query(TestStep).filter(TestStep.test_case_id == id).order_by(TestStep.order).all()
 
 
+@cases_router.delete("/{id}/steps", status_code=status.HTTP_204_NO_CONTENT)
+def delete_all_steps(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    db.query(TestStep).filter(TestStep.test_case_id == id).delete()
+    db.commit()
+
+
 @cases_router.post("/{id}/steps", response_model=TestStepOut, status_code=status.HTTP_201_CREATED)
 def create_step(id: int, body: TestStepCreate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
-    step = TestStep(test_case_id=id, **body.model_dump())
+    order = body.order
+    if order is None:
+        max_order = db.query(TestStep).filter(TestStep.test_case_id == id).count()
+        order = max_order + 1
+    step = TestStep(test_case_id=id, **{**body.model_dump(exclude={"order"}), "order": order})
     db.add(step)
     db.commit()
     db.refresh(step)

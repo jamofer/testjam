@@ -1,18 +1,40 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, computed_field
+from urllib.parse import quote
 from testjam.schemas.testcase import AttachmentOut
 from testjam.schemas.user import UserOut
+
+
+class ExecutionAttachmentOut(BaseModel):
+    id: int
+    filename: str
+    content_type: str | None
+    size_bytes: int | None
+    uploaded_at: datetime
+    file_path: str | None = Field(default=None, exclude=True)
+
+    @computed_field
+    @property
+    def url(self) -> str:
+        path = self.file_path or ""
+        relative = path.replace("/app/uploads", "", 1)
+        segments = [quote(s, safe="") for s in relative.strip("/").split("/")]
+        return "/files/" + "/".join(segments) if segments and segments[0] else ""
+
+    model_config = {"from_attributes": True}
 
 
 class TestStepResultCreate(BaseModel):
     step_id: int
     status: str
     comment: str | None = None
+    log_output: str | None = None
 
 
 class TestStepResultUpdate(BaseModel):
     status: str | None = None
     comment: str | None = None
+    log_output: str | None = None
 
 
 class TestStepResultOut(BaseModel):
@@ -21,13 +43,14 @@ class TestStepResultOut(BaseModel):
     step_id: int
     status: str
     comment: str | None
+    log_output: str | None = None
 
     model_config = {"from_attributes": True}
 
 
 class TestResultCreate(BaseModel):
     test_case_id: int
-    status: str
+    status: str = "not_run"
     comment: str | None = None
     executed_by: str | None = None
     executed_at: datetime | None = None
@@ -86,6 +109,7 @@ class TestExecutionCreate(BaseModel):
     description: str | None = None
     type: str
     version: str | None = None
+    version_id: int | None = None
     environment: str | None = None
     assigned_to_id: int | None = None
     triggered_by: str | None = None
@@ -97,6 +121,7 @@ class TestExecutionUpdate(BaseModel):
     description: str | None = None
     status: str | None = None
     version: str | None = None
+    version_id: int | None = None
     environment: str | None = None
     assigned_to_id: int | None = None
     finished_at: datetime | None = None
@@ -110,6 +135,7 @@ class TestExecutionOut(BaseModel):
     type: str
     status: str
     version: str | None
+    version_id: int | None = None
     environment: str | None
     assigned_to: UserOut | None = None
     triggered_by: str | None
@@ -117,5 +143,6 @@ class TestExecutionOut(BaseModel):
     finished_at: datetime | None
     created_at: datetime
     summary: ExecutionSummary = ExecutionSummary()
+    attachments: list[ExecutionAttachmentOut] = []
 
     model_config = {"from_attributes": True}

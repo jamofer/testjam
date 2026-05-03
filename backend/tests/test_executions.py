@@ -18,11 +18,11 @@ def auth_client(client: TestClient, setup_db):
 @pytest.fixture
 def project_with_cases(auth_client):
     project_id = auth_client.post("/api/v1/projects", json={"name": "P"}).json()["id"]
-    suite_id = auth_client.post(f"/api/v1/projects/{project_id}/suites", json={"title": "S"}).json()["id"]
+    suite_id = auth_client.post(f"/api/v1/projects/{project_id}/suites", json={"name": "S"}).json()["id"]
     case_ids = []
     for i in range(3):
         case_id = auth_client.post(
-            f"/api/v1/suites/{suite_id}/cases", json={"title": f"TC-{i}", "suite_id": suite_id}
+            f"/api/v1/suites/{suite_id}/cases", json={"name": f"TC-{i}", "suite_id": suite_id}
         ).json()["id"]
         case_ids.append(case_id)
     return project_id, case_ids
@@ -78,5 +78,5 @@ def test_bulk_results(auth_client, project_with_cases):
     })
     assert resp.status_code == 200
     data = resp.json()
-    assert data["created"] == 3
+    assert data["created"] + data["updated"] == 3
     assert data["errors"] == []

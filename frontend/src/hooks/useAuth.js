@@ -28,3 +28,15 @@ export function useLogout() {
     window.location.href = '/login'
   }
 }
+
+export function useUpdateMe() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: authApi.updateMe,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['me'] }),
+  })
+}
+
+export function useChangePassword() {
+  return useMutation({ mutationFn: authApi.changePassword })
+}

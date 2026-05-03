@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import DateTime, ForeignKey, Integer, JSON, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from testjam.database import Base
@@ -15,8 +15,9 @@ class TestSuite(Base):
     parent_suite_id: Mapped[int | None] = mapped_column(
         ForeignKey("test_suites.id", ondelete="SET NULL"), nullable=True
     )
-    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tags: Mapped[list | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -26,6 +27,11 @@ class TestSuite(Base):
         back_populates="children", remote_side="TestSuite.id"
     )
     cases: Mapped[list[TestCase]] = relationship(back_populates="suite", cascade="all, delete-orphan")
+    steps: Mapped[list[SuiteStep]] = relationship(
+        back_populates="suite",
+        cascade="all, delete-orphan",
+        order_by="SuiteStep.order",
+    )
 
 
 class TestCase(Base):
@@ -33,9 +39,14 @@ class TestCase(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     suite_id: Mapped[int] = mapped_column(ForeignKey("test_suites.id", ondelete="CASCADE"))
-    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     preconditions: Mapped[str | None] = mapped_column(Text, nullable=True)
+    setup: Mapped[str | None] = mapped_column(Text, nullable=True)
+    teardown: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tags: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    # used to match automated results (e.g. "tests/login.py::test_login" or "Suite.Test Name")
+    external_id: Mapped[str | None] = mapped_column(String(512), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -56,10 +67,25 @@ class TestStep(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     test_case_id: Mapped[int] = mapped_column(ForeignKey("test_cases.id", ondelete="CASCADE"))
     order: Mapped[int] = mapped_column(Integer, nullable=False)
-    content: Mapped[str] = mapped_column(Text, nullable=False)
+    # "setup" | "action" | "teardown"
+    step_type: Mapped[str] = mapped_column(String(16), nullable=False, default="action")
+    action: Mapped[str] = mapped_column(Text, nullable=False)
     expected_result: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     test_case: Mapped[TestCase] = relationship(back_populates="steps")
+
+
+class SuiteStep(Base):
+    __tablename__ = "suite_steps"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    suite_id: Mapped[int] = mapped_column(ForeignKey("test_suites.id", ondelete="CASCADE"))
+    order: Mapped[int] = mapped_column(Integer, nullable=False)
+    # "setup" | "teardown"
+    step_type: Mapped[str] = mapped_column(String(16), nullable=False)
+    action: Mapped[str] = mapped_column(Text, nullable=False)
+
+    suite: Mapped[TestSuite] = relationship(back_populates="steps")
 
 
 class Attachment(Base):

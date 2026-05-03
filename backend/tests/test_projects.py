@@ -30,13 +30,13 @@ def test_create_and_list_project(auth_client):
 def test_create_suite_and_case(auth_client):
     project_id = auth_client.post("/api/v1/projects", json={"name": "P"}).json()["id"]
 
-    suite = auth_client.post(f"/api/v1/projects/{project_id}/suites", json={"title": "Suite A"})
+    suite = auth_client.post(f"/api/v1/projects/{project_id}/suites", json={"name": "Suite A"})
     assert suite.status_code == 201
     suite_id = suite.json()["id"]
 
-    case = auth_client.post(f"/api/v1/suites/{suite_id}/cases", json={"title": "TC-001", "suite_id": suite_id})
+    case = auth_client.post(f"/api/v1/suites/{suite_id}/cases", json={"name": "TC-001", "suite_id": suite_id})
     assert case.status_code == 201
-    assert case.json()["title"] == "TC-001"
+    assert case.json()["name"] == "TC-001"
 
 
 def test_delete_project(auth_client):

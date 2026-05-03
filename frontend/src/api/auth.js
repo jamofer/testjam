@@ -8,4 +8,6 @@ export const authApi = {
     }).then(r => r.data)
   },
   me: () => api.get('/users/me').then(r => r.data),
+  updateMe: (data) => api.put('/users/me', data).then(r => r.data),
+  changePassword: (data) => api.put('/users/me/password', data),
 }

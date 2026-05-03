@@ -1,8 +1,14 @@
 import { useParams, Link } from "react-router-dom"
-import { PlayCircle, CheckCircle2, XCircle, MinusCircle, Plus, ArrowLeft } from "lucide-react"
+import { PlayCircle, CheckCircle2, XCircle, MinusCircle, Plus, ArrowLeft, Clock } from "lucide-react"
 import { useExecutions } from "../hooks/useExecutions"
 import { Button } from "../components/ui/button"
 import { Badge } from "../components/ui/badge"
+
+function fmtDate(iso) {
+  if (!iso) return null
+  const d = new Date(iso)
+  return d.toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })
+}
 
 const statusIcon = {
   completed:  <CheckCircle2 size={15} className="text-green-500" />,
@@ -47,12 +53,18 @@ export function ExecutionsPage() {
               </Link>
               <Badge variant={typeBadge[ex.type]}>{ex.type}</Badge>
             </div>
-            {(ex.version || ex.environment) && (
-              <p className="text-xs text-gray-400 mt-1">
-                {ex.version && `v${ex.version}`}{ex.version && ex.environment && " · "}{ex.environment}
-              </p>
-            )}
-            <div className="flex gap-3 mt-2 text-xs">
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-400">
+              {ex.version && <span>v{ex.version}</span>}
+              {ex.environment && <span>{ex.environment}</span>}
+              {ex.triggered_by && <span>by {ex.triggered_by}</span>}
+              {(ex.started_at || ex.created_at) && (
+                <span className="flex items-center gap-1">
+                  <Clock size={10} /> {fmtDate(ex.started_at ?? ex.created_at)}
+                </span>
+              )}
+              {ex.finished_at && <span>→ {fmtDate(ex.finished_at)}</span>}
+            </div>
+            <div className="flex gap-3 mt-1.5 text-xs">
               <span className="text-green-600">✓ {ex.summary?.passed ?? 0}</span>
               <span className="text-red-500">✗ {ex.summary?.failed ?? 0}</span>
               <span className="text-yellow-600">⚠ {ex.summary?.blocked ?? 0}</span>

@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useCreateExecution } from "../hooks/useExecutions"
 import { useSuites, useCases } from "../hooks/useSuites"
+import { useVersions } from "../hooks/useVersions"
 import { useQuery } from "@tanstack/react-query"
 import { plansApi } from "../api/testplans"
 import { Button } from "../components/ui/button"
@@ -29,12 +30,12 @@ function CasePicker({ projectId, selectedCases, onChange }) {
     <div className="border rounded-lg max-h-56 overflow-y-auto divide-y text-sm">
       {suites.map(suite => (
         <details key={suite.id} onToggle={() => loadCases(suite.id)}>
-          <summary className="px-3 py-2 cursor-pointer font-medium bg-gray-50 hover:bg-gray-100">{suite.title}</summary>
+          <summary className="px-3 py-2 cursor-pointer font-medium bg-gray-50 hover:bg-gray-100">{suite.name}</summary>
           <div className="px-4 py-1 space-y-1">
             {(casesBySuite[suite.id] ?? []).map(tc => (
               <label key={tc.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
                 <input type="checkbox" checked={selectedCases.includes(tc.id)} onChange={() => toggle(tc.id)} />
-                {tc.title}
+                {tc.name}
               </label>
             ))}
           </div>
@@ -48,11 +49,13 @@ export function NewExecutionPage() {
   const { id: projectId } = useParams()
   const navigate = useNavigate()
   const createExecution = useCreateExecution(projectId)
+  const { data: versions = [] } = useVersions(projectId)
 
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [type, setType] = useState("manual")
-  const [version, setVersion] = useState("")
+  const [versionId, setVersionId] = useState("")
+  const [versionFreeText, setVersionFreeText] = useState("")
   const [environment, setEnvironment] = useState("")
   const [triggeredBy, setTriggeredBy] = useState("")
   const [source, setSource] = useState("cases")
@@ -73,7 +76,8 @@ export function NewExecutionPage() {
       title: title.trim(),
       description,
       type,
-      version: version || undefined,
+      version_id: versionId ? parseInt(versionId) : undefined,
+      version: !versionId && versionFreeText ? versionFreeText : undefined,
       environment: environment || undefined,
       triggered_by: type === "automatic" ? triggeredBy || undefined : undefined,
       test_case_ids: source === "cases" ? selectedCases : [],
@@ -88,6 +92,8 @@ export function NewExecutionPage() {
       toast.error("Failed to create execution")
     }
   }
+
+  const selectedVersion = versions.find(v => String(v.id) === versionId)
 
   return (
     <div className="max-w-xl space-y-6">
@@ -114,9 +120,33 @@ export function NewExecutionPage() {
               </SelectContent>
             </Select>
           </div>
+
           <div className="space-y-1.5">
             <Label>Version</Label>
-            <Input value={version} onChange={e => setVersion(e.target.value)} placeholder="1.4.2" />
+            {versions.length > 0 ? (
+              <div className="space-y-1.5">
+                <Select value={versionId} onValueChange={v => { setVersionId(v); setVersionFreeText("") }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select version…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">— Free text —</SelectItem>
+                    {versions.map(v => (
+                      <SelectItem key={v.id} value={String(v.id)}>
+                        {v.name}{v.vcs_tag ? ` (${v.vcs_tag})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {!versionId && (
+                  <Input value={versionFreeText} onChange={e => setVersionFreeText(e.target.value)}
+                    placeholder="or type a version string…" className="text-sm" />
+                )}
+              </div>
+            ) : (
+              <Input value={versionFreeText} onChange={e => setVersionFreeText(e.target.value)}
+                placeholder="1.4.2" />
+            )}
           </div>
         </div>
 

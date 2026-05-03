@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.LoginTest" tests="2" failures="1" errors="0" time="1.234">
+    <testcase classname="com.example.LoginTest" name="testHappyPath" time="0.500"/>
+    <testcase classname="com.example.LoginTest" name="testWrongPassword" time="0.734">
+        <failure message="AssertionError: Expected 401, got 200">AssertionError: Expected 401, got 200</failure>
+    </testcase>
+</testsuite>

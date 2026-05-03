@@ -20,6 +20,7 @@ class Project(Base):
     suites: Mapped[list[TestSuite]] = relationship(back_populates="project", cascade="all, delete-orphan")
     plans: Mapped[list[TestPlan]] = relationship(back_populates="project", cascade="all, delete-orphan")
     executions: Mapped[list[TestExecution]] = relationship(back_populates="project", cascade="all, delete-orphan")
+    versions: Mapped[list[ProjectVersion]] = relationship(back_populates="project", cascade="all, delete-orphan")
 
 
 class ProjectMember(Base):

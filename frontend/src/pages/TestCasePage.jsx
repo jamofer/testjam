@@ -10,30 +10,41 @@ import { Input } from "../components/ui/input"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs"
 import { toast } from "sonner"
 
+const STEP_TYPE_STYLE = {
+  setup:    "bg-blue-50 text-blue-600 border-blue-200",
+  action:   "bg-gray-50 text-gray-500 border-gray-200",
+  teardown: "bg-orange-50 text-orange-600 border-orange-200",
+}
+
 function StepRow({ step, caseId, onDelete }) {
   const [editing, setEditing] = useState(false)
-  const [content, setContent] = useState(step.content)
+  const [action, setAction] = useState(step.action)
   const [expected, setExpected] = useState(step.expected_result ?? "")
   const qc = useQueryClient()
 
   const save = async () => {
-    await casesApi.updateStep(caseId, step.id, { content, expected_result: expected, order: step.order })
-    qc.invalidateQueries({ queryKey: ["cases", caseId] })
+    await casesApi.updateStep(caseId, step.id, { action, expected_result: expected, order: step.order })
+    qc.invalidateQueries({ queryKey: ["case", caseId] })
     setEditing(false)
     toast.success("Step saved")
   }
+
+  const typeStyle = STEP_TYPE_STYLE[step.step_type] ?? STEP_TYPE_STYLE.action
 
   return (
     <div className="border rounded-lg p-3 space-y-2 bg-white">
       <div className="flex items-start gap-2">
         <GripVertical size={14} className="text-gray-300 mt-1 cursor-grab" />
         <span className="text-xs font-mono text-gray-400 mt-1 w-6">{step.order}.</span>
+        <span className={`text-xs px-1.5 py-0.5 rounded border mt-0.5 shrink-0 ${typeStyle}`}>
+          {step.step_type}
+        </span>
         <div className="flex-1">
           {editing ? (
             <div className="space-y-2">
               <div>
                 <p className="text-xs text-gray-500 mb-1">Step</p>
-                <MdEditor value={content} onChange={setContent} height={120} />
+                <MdEditor value={action} onChange={setAction} height={120} />
               </div>
               <div>
                 <p className="text-xs text-gray-500 mb-1">Expected result</p>
@@ -46,7 +57,7 @@ function StepRow({ step, caseId, onDelete }) {
             </div>
           ) : (
             <div className="cursor-pointer" onClick={() => setEditing(true)}>
-              <div className="prose prose-sm text-gray-800"><MdViewer value={step.content} /></div>
+              <div className="prose prose-sm text-gray-800"><MdViewer value={step.action} /></div>
               {step.expected_result && (
                 <div className="mt-1 text-xs text-gray-400 italic">
                   Expected: <MdViewer value={step.expected_result} />
@@ -70,14 +81,14 @@ function AttachmentList({ caseId, attachments }) {
     const file = e.target.files[0]
     if (!file) return
     await casesApi.uploadAttachment(caseId, file)
-    qc.invalidateQueries({ queryKey: ["cases", caseId] })
+    qc.invalidateQueries({ queryKey: ["case", caseId] })
     toast.success(`${file.name} uploaded`)
     e.target.value = ""
   }
 
   const handleDelete = async (attachmentId) => {
     await casesApi.deleteAttachment(caseId, attachmentId)
-    qc.invalidateQueries({ queryKey: ["cases", caseId] })
+    qc.invalidateQueries({ queryKey: ["case", caseId] })
     toast.success("Attachment deleted")
   }
 
@@ -152,14 +163,14 @@ export function TestCasePage() {
   if (!tc) return null
 
   const startEditMeta = () => {
-    setTitle(tc.title)
+    setTitle(tc.name)
     setDescription(tc.description ?? "")
     setPreconditions(tc.preconditions ?? "")
     setEditingTitle(true)
   }
 
   const saveMeta = async () => {
-    await updateCase.mutateAsync({ title, description, preconditions })
+    await updateCase.mutateAsync({ name: title, description, preconditions })
     toast.success("Saved")
     setEditingTitle(false)
   }
@@ -167,15 +178,15 @@ export function TestCasePage() {
   const addStep = async () => {
     if (!newStepContent.trim()) return
     const order = (tc.steps?.length ?? 0) + 1
-    await casesApi.createStep(id, { content: newStepContent, order })
-    qc.invalidateQueries({ queryKey: ["cases", id] })
+    await casesApi.createStep(id, { action: newStepContent, order })
+    qc.invalidateQueries({ queryKey: ["case", id] })
     setNewStepContent("")
     toast.success("Step added")
   }
 
   const deleteStep = async (stepId) => {
     await casesApi.deleteStep(id, stepId)
-    qc.invalidateQueries({ queryKey: ["cases", id] })
+    qc.invalidateQueries({ queryKey: ["case", id] })
     toast.success("Step deleted")
   }
 
@@ -203,7 +214,7 @@ export function TestCasePage() {
         </div>
       ) : (
         <div className="cursor-pointer group" onClick={startEditMeta}>
-          <h1 className="text-2xl font-bold text-gray-800 group-hover:text-gray-600">{tc.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-800 group-hover:text-gray-600">{tc.name}</h1>
           {tc.preconditions && (
             <div className="mt-2">
               <p className="text-xs text-gray-400 uppercase tracking-wide">Preconditions</p>

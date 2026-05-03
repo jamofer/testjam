@@ -15,6 +15,9 @@ frontend/dist/
 # Uploads
 backend/uploads/
 
+# E2E test results
+tests/e2e/results/
+
 # Alembic generated versions (keep the folder)
 backend/alembic/versions/*.py
 !backend/alembic/versions/.gitkeep

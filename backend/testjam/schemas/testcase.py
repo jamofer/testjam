@@ -24,9 +24,10 @@ class AttachmentOut(BaseModel):
 
 
 class TestStepBase(BaseModel):
-    content: str
+    action: str
     expected_result: str | None = None
-    order: int
+    order: int | None = None
+    step_type: str = "action"
 
 
 class TestStepCreate(TestStepBase):
@@ -34,9 +35,10 @@ class TestStepCreate(TestStepBase):
 
 
 class TestStepUpdate(BaseModel):
-    content: str | None = None
+    action: str | None = None
     expected_result: str | None = None
     order: int | None = None
+    step_type: str | None = None
 
 
 class TestStepOut(TestStepBase):
@@ -47,9 +49,13 @@ class TestStepOut(TestStepBase):
 
 
 class TestCaseBase(BaseModel):
-    title: str
+    name: str
     description: str | None = None
+    tags: list[str] = []
     preconditions: str | None = None
+    setup: str | None = None
+    teardown: str | None = None
+    external_id: str | None = None
 
 
 class TestCaseCreate(TestCaseBase):
@@ -57,9 +63,13 @@ class TestCaseCreate(TestCaseBase):
 
 
 class TestCaseUpdate(BaseModel):
-    title: str | None = None
+    name: str | None = None
     description: str | None = None
+    tags: list[str] | None = None
     preconditions: str | None = None
+    setup: str | None = None
+    teardown: str | None = None
+    external_id: str | None = None
     suite_id: int | None = None
 
 
@@ -74,9 +84,31 @@ class TestCaseOut(TestCaseBase):
     model_config = {"from_attributes": True}
 
 
+class SuiteStepCreate(BaseModel):
+    action: str
+    step_type: str  # "setup" | "teardown"
+    order: int
+
+
+class SuiteStepUpdate(BaseModel):
+    action: str | None = None
+    order: int | None = None
+
+
+class SuiteStepOut(BaseModel):
+    id: int
+    suite_id: int
+    step_type: str
+    action: str
+    order: int
+
+    model_config = {"from_attributes": True}
+
+
 class TestSuiteBase(BaseModel):
-    title: str
+    name: str
     description: str | None = None
+    tags: list[str] = []
     parent_suite_id: int | None = None
 
 
@@ -85,8 +117,9 @@ class TestSuiteCreate(TestSuiteBase):
 
 
 class TestSuiteUpdate(BaseModel):
-    title: str | None = None
+    name: str | None = None
     description: str | None = None
+    tags: list[str] | None = None
     parent_suite_id: int | None = None
 
 
@@ -97,5 +130,6 @@ class TestSuiteOut(TestSuiteBase):
     updated_at: datetime
     child_suite_ids: list[int] = []
     test_case_ids: list[int] = []
+    steps: list[SuiteStepOut] = []
 
     model_config = {"from_attributes": True}

@@ -15,6 +15,9 @@ class TestExecution(Base):
     test_plan_id: Mapped[int | None] = mapped_column(
         ForeignKey("test_plans.id", ondelete="SET NULL"), nullable=True
     )
+    version_id: Mapped[int | None] = mapped_column(
+        ForeignKey("project_versions.id", ondelete="SET NULL"), nullable=True
+    )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     type: Mapped[str] = mapped_column(String(16), nullable=False)
@@ -31,8 +34,12 @@ class TestExecution(Base):
 
     project: Mapped[Project] = relationship(back_populates="executions")
     test_plan: Mapped[TestPlan | None] = relationship(back_populates="executions")
+    project_version: Mapped[ProjectVersion | None] = relationship(back_populates="executions")
     assigned_to: Mapped[User | None] = relationship()
     results: Mapped[list[TestResult]] = relationship(
+        back_populates="execution", cascade="all, delete-orphan"
+    )
+    attachments: Mapped[list[ExecutionAttachment]] = relationship(
         back_populates="execution", cascade="all, delete-orphan"
     )
 
@@ -67,6 +74,8 @@ class TestStepResult(Base):
     step_id: Mapped[int] = mapped_column(ForeignKey("test_steps.id", ondelete="CASCADE"))
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="not_run")
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # markdown execution log — populated by automated runners (Robot Framework, CI)
+    log_output: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     test_result: Mapped[TestResult] = relationship(back_populates="step_results")
     step: Mapped[TestStep] = relationship()
@@ -86,3 +95,18 @@ class ResultAttachment(Base):
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     result: Mapped[TestResult] = relationship(back_populates="attachments")
+
+
+class ExecutionAttachment(Base):
+    __tablename__ = "execution_attachments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    execution_id: Mapped[int] = mapped_column(ForeignKey("test_executions.id", ondelete="CASCADE"))
+    filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    content_type: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    size_bytes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    file_path: Mapped[str] = mapped_column(String(512), nullable=False)
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    uploaded_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
+
+    execution: Mapped[TestExecution] = relationship(back_populates="attachments")

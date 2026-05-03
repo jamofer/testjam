@@ -14,6 +14,7 @@ import { ExecutionDetailPage } from "./pages/ExecutionDetailPage"
 import { ExecutionRunPage } from "./pages/ExecutionRunPage"
 import { NewExecutionPage } from "./pages/NewExecutionPage"
 import { UsersPage } from "./pages/UsersPage"
+import { ProfilePage } from "./pages/ProfilePage"
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="/executions/:id" element={<ExecutionDetailPage />} />
             <Route path="/executions/:id/run" element={<ExecutionRunPage />} />
             <Route path="/users" element={<UsersPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Routes>
       </BrowserRouter>

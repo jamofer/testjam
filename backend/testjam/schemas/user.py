@@ -18,6 +18,11 @@ class UserUpdate(BaseModel):
     is_active: bool | None = None
 
 
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
+
 class UserOut(UserBase):
     id: int
     is_active: bool
