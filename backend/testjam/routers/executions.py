@@ -7,7 +7,7 @@ from unicodedata import normalize
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user
+from testjam.auth.dependencies import get_current_user, require_project_access
 from testjam.database import get_db
 from testjam.models.execution import ExecutionAttachment, ResultAttachment, TestExecution, TestResult, TestStepResult
 from testjam.models.user import User
@@ -51,7 +51,7 @@ def list_executions(
     type: str | None = None,
     status: str | None = None,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_project_access),
 ):
     q = db.query(TestExecution).filter(TestExecution.project_id == id)
     if type:
@@ -66,7 +66,7 @@ def create_execution(
     id: int,
     body: TestExecutionCreate,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(require_project_access),
 ):
     data = body.model_dump(exclude={"test_case_ids"})
     data["project_id"] = id

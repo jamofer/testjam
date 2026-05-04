@@ -148,7 +148,7 @@ def test_rf_import_sets_pass_fail_statuses(auth_client, project_id, suite_id):
 def test_rf_import_populates_step_log_output(auth_client, project_id, suite_id):
     case_ids = _setup_rf_cases(auth_client, project_id, suite_id)
     step_id = auth_client.post(f"/api/v1/cases/{case_ids[0]}/steps", json={
-        "content": "Open Browser", "order": 1, "step_type": "setup",
+        "action": "Open Browser", "order": 1, "step_type": "setup",
     }).json()["id"]
     exec_id = _create_execution(auth_client, project_id, case_ids)
     auth_client.post(

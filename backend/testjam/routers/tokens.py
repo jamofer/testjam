@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user
+from testjam.auth.dependencies import get_current_user, require_project_access
 from testjam.database import get_db
 from testjam.models.project import Project, ProjectMember
 from testjam.models.token import ApiToken
@@ -58,7 +58,7 @@ def revoke_user_token(token_id: int, db: Session = Depends(get_db), current: Use
 def list_project_tokens(
     id: int,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(require_project_access),
 ):
     project = db.get(Project, id)
     if not project:
@@ -72,7 +72,7 @@ def create_project_token(
     id: int,
     body: ApiTokenCreate,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(require_project_access),
 ):
     project = db.get(Project, id)
     if not project:
@@ -91,7 +91,7 @@ def revoke_project_token(
     id: int,
     token_id: int,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(require_project_access),
 ):
     project = db.get(Project, id)
     if not project:

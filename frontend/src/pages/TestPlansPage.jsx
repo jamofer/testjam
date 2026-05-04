@@ -1,13 +1,16 @@
 import { useState } from "react"
 import { useParams, Link } from "react-router-dom"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { Plus, Trash2, ClipboardList, ArrowLeft } from "lucide-react"
+import { Plus, Trash2, ClipboardList } from "lucide-react"
 import { plansApi } from "../api/testplans"
 import { suitesApi, casesApi } from "../api/testcases"
 import { useSuites } from "../hooks/useSuites"
+import { useProject } from "../hooks/useProjects"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog"
+import { Breadcrumbs } from "../components/ui/breadcrumbs"
+import { EmptyState } from "../components/ui/empty-state"
 import { toast } from "sonner"
 
 function usePlans(projectId) {
@@ -93,15 +96,21 @@ export function TestPlansPage() {
     },
   })
 
+  const { data: project } = useProject(projectId)
+
   if (isLoading) return <p className="text-gray-500">Loading…</p>
 
   return (
     <div className="max-w-2xl space-y-6">
+      <Breadcrumbs
+        crumbs={[
+          { label: "Projects", to: "/projects" },
+          { label: project?.name ?? "…", to: `/projects/${projectId}` },
+          { label: "Test Plans" },
+        ]}
+      />
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link to={`/projects/${projectId}`} className="text-gray-400 hover:text-gray-700"><ArrowLeft size={16} /></Link>
-          <h1 className="text-2xl font-bold text-gray-800">Test Plans</h1>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-800">Test Plans</h1>
         <CreatePlanDialog projectId={projectId} />
       </div>
 
@@ -118,7 +127,13 @@ export function TestPlansPage() {
             </Button>
           </li>
         ))}
-        {plans.length === 0 && <p className="text-sm text-gray-400">No test plans yet.</p>}
+        {plans.length === 0 && (
+          <EmptyState
+            icon={ClipboardList}
+            title="No test plans yet"
+            description="Test plans group cases for a release or milestone. Create one above to start orchestrating test runs."
+          />
+        )}
       </ul>
     </div>
   )

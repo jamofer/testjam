@@ -69,7 +69,7 @@ def test_update_result(auth_client, project_id, case_ids):
 
 def test_step_result_with_log_output(auth_client, project_id, suite_id, case_ids):
     step_id = auth_client.post(f"/api/v1/cases/{case_ids[0]}/steps", json={
-        "content": "Click login", "order": 1, "step_type": "action",
+        "action": "Click login", "order": 1, "step_type": "action",
     }).json()["id"]
     exec_id = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
         "title": "R", "type": "automatic", "test_case_ids": case_ids,
@@ -90,7 +90,7 @@ def test_step_result_with_log_output(auth_client, project_id, suite_id, case_ids
 
 def test_update_step_result_log_output(auth_client, project_id, suite_id, case_ids):
     step_id = auth_client.post(f"/api/v1/cases/{case_ids[0]}/steps", json={
-        "content": "Step", "order": 1,
+        "action": "Step", "order": 1,
     }).json()["id"]
     exec_id = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
         "title": "R", "type": "automatic", "test_case_ids": case_ids,

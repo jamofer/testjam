@@ -8,6 +8,7 @@ import { MdEditor, MdViewer } from "../components/MdEditor"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs"
+import { EmptyState } from "../components/ui/empty-state"
 import { toast } from "sonner"
 
 const STEP_TYPE_STYLE = {
@@ -115,7 +116,14 @@ function AttachmentList({ caseId, attachments }) {
           <span><Upload size={13} /> Upload file</span>
         </Button>
       </label>
-      {attachments.length === 0 && <p className="text-sm text-gray-400">No attachments.</p>}
+      {attachments.length === 0 && (
+        <EmptyState
+          icon={Upload}
+          title="No attachments"
+          description="Attach screenshots, logs or other supporting files."
+          compact
+        />
+      )}
       <ul className="space-y-1.5">
         {attachments.map(att => (
           <li key={att.id} className="flex items-center gap-2 text-sm bg-gray-50 rounded-lg px-3 py-2">

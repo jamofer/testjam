@@ -129,6 +129,37 @@ def test_revoke_project_token(admin_client, project_id):
     assert admin_client.get("/api/v1/users/me").status_code == 401
 
 
+def test_project_token_blocked_from_other_projects(admin_client):
+    """A project-scoped token must not access endpoints of other projects."""
+    project_a = admin_client.post("/api/v1/projects", json={"name": "A"}).json()["id"]
+    project_b = admin_client.post("/api/v1/projects", json={"name": "B"}).json()["id"]
+    raw = admin_client.post(f"/api/v1/projects/{project_a}/tokens", json={"name": "scope"}).json()["token"]
+
+    del admin_client.headers["Authorization"]
+    admin_client.headers["X-API-Key"] = raw
+
+    # Same project: 200
+    assert admin_client.get(f"/api/v1/projects/{project_a}/suites").status_code == 200
+    assert admin_client.get(f"/api/v1/projects/{project_a}/executions").status_code == 200
+    # Other project: 403
+    assert admin_client.get(f"/api/v1/projects/{project_b}/suites").status_code == 403
+    assert admin_client.get(f"/api/v1/projects/{project_b}").status_code == 403
+    assert admin_client.get(f"/api/v1/projects/{project_b}/members").status_code == 403
+
+
+def test_user_token_works_across_projects(admin_client):
+    """A non-scoped user token should retain full access (regression check)."""
+    project_a = admin_client.post("/api/v1/projects", json={"name": "A"}).json()["id"]
+    project_b = admin_client.post("/api/v1/projects", json={"name": "B"}).json()["id"]
+    raw = admin_client.post("/api/v1/users/me/tokens", json={"name": "user"}).json()["token"]
+
+    del admin_client.headers["Authorization"]
+    admin_client.headers["X-API-Key"] = raw
+
+    assert admin_client.get(f"/api/v1/projects/{project_a}/suites").status_code == 200
+    assert admin_client.get(f"/api/v1/projects/{project_b}/suites").status_code == 200
+
+
 def test_non_owner_cannot_create_project_token(admin_client, project_id):
     from tests.conftest import TestingSession
     with TestingSession() as db:

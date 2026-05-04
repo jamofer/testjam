@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user
+from testjam.auth.dependencies import get_current_user, require_project_access
 from testjam.database import get_db
 from testjam.models.version import ProjectVersion
 from testjam.models.user import User
@@ -12,12 +12,12 @@ versions_router = APIRouter(prefix="/versions", tags=["Versions"])
 
 
 @projects_router.get("/{id}/versions", response_model=list[ProjectVersionOut])
-def list_versions(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def list_versions(id: int, db: Session = Depends(get_db), _: User = Depends(require_project_access)):
     return db.query(ProjectVersion).filter(ProjectVersion.project_id == id).order_by(ProjectVersion.created_at.desc()).all()
 
 
 @projects_router.post("/{id}/versions", response_model=ProjectVersionOut, status_code=status.HTTP_201_CREATED)
-def create_version(id: int, body: ProjectVersionCreate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def create_version(id: int, body: ProjectVersionCreate, db: Session = Depends(get_db), _: User = Depends(require_project_access)):
     version = ProjectVersion(project_id=id, **body.model_dump())
     db.add(version)
     db.commit()

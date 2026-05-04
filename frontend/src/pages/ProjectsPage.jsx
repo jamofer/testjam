@@ -1,8 +1,12 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Trash2, FolderOpen, PlayCircle } from 'lucide-react'
+import { Plus, Trash2, FolderOpen, PlayCircle, Search } from 'lucide-react'
 import { useProjects, useCreateProject, useDeleteProject } from '../hooks/useProjects'
+import { useDebounced } from '../hooks/useDebounced'
 import { Button } from '../components/ui/button'
+import { SearchInput } from '../components/ui/search-input'
+import { EmptyState } from '../components/ui/empty-state'
+import { SkeletonList } from '../components/ui/skeleton'
 
 function formatDate(iso) {
   if (!iso) return null
@@ -14,6 +18,17 @@ export function ProjectsPage() {
   const createProject = useCreateProject()
   const deleteProject = useDeleteProject()
   const [newName, setNewName] = useState('')
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounced(search, 150)
+
+  const filteredProjects = useMemo(() => {
+    if (!debouncedSearch.trim()) return projects
+    const q = debouncedSearch.trim().toLowerCase()
+    return projects.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      (p.description ?? '').toLowerCase().includes(q)
+    )
+  }, [projects, debouncedSearch])
 
   const handleCreate = async (e) => {
     e.preventDefault()
@@ -22,11 +37,11 @@ export function ProjectsPage() {
     setNewName('')
   }
 
-  if (isLoading) return <p className="text-gray-500">Loading…</p>
-
   return (
     <div className="max-w-2xl">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Projects</h1>
+
+      {isLoading && <SkeletonList count={4} itemClassName="h-20" />}
 
       <form onSubmit={handleCreate} className="flex gap-2 mb-6">
         <input
@@ -41,7 +56,7 @@ export function ProjectsPage() {
       </form>
 
       <ul className="space-y-3">
-        {projects.map(p => (
+        {filteredProjects.map(p => (
           <li key={p.id} className="bg-white border rounded-xl px-4 py-4 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
@@ -73,8 +88,22 @@ export function ProjectsPage() {
             </div>
           </li>
         ))}
-        {projects.length === 0 && <p className="text-sm text-gray-400">No projects yet.</p>}
       </ul>
+      {!isLoading && projects.length === 0 && (
+        <EmptyState
+          icon={FolderOpen}
+          title="No projects yet"
+          description="Projects group your test suites, cases and executions. Create one above to get started."
+        />
+      )}
+      {!isLoading && projects.length > 0 && filteredProjects.length === 0 && (
+        <EmptyState
+          icon={Search}
+          title="No matches"
+          description={`No projects match "${debouncedSearch}". Try a different search.`}
+          compact
+        />
+      )}
     </div>
   )
 }

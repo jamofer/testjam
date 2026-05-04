@@ -6,16 +6,9 @@ import { useExecution, useExecutionResults, useUpdateResult } from '../hooks/use
 import { executionsApi } from '../api/executions'
 import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '../components/ui/button'
+import { Skeleton, SkeletonList } from '../components/ui/skeleton'
+import { STATUS_KEYS, STATUS_CONFIG } from '../lib/statusConfig'
 import { toast } from 'sonner'
-
-const STATUS_OPTIONS = ['passed', 'failed', 'blocked', 'not_run']
-
-const statusColor = {
-  passed:  'bg-green-100 text-green-700',
-  failed:  'bg-red-100 text-red-600',
-  blocked: 'bg-yellow-100 text-yellow-700',
-  not_run: 'bg-gray-100 text-gray-500',
-}
 
 function ImportResultsButton({ executionId }) {
   const junitRef = useRef()
@@ -75,7 +68,15 @@ export function ExecutionDetailPage() {
   const { data: results = [] } = useExecutionResults(id)
   const updateResult = useUpdateResult(id)
 
-  if (!execution) return <p className="text-gray-500">Loading…</p>
+  if (!execution) {
+    return (
+      <div className="max-w-3xl space-y-4">
+        <Skeleton className="h-7 w-1/2" />
+        <Skeleton className="h-4 w-2/3" />
+        <SkeletonList count={4} itemClassName="h-12" />
+      </div>
+    )
+  }
 
   const versionLabel = execution.version ?? null
 
@@ -153,9 +154,9 @@ export function ExecutionDetailPage() {
                   <select
                     value={result.status}
                     onChange={e => updateResult.mutate({ id: result.id, data: { status: e.target.value } })}
-                    className={`text-xs rounded-full px-2 py-1 font-medium border-0 cursor-pointer ${statusColor[result.status]}`}
+                    className={`text-xs rounded-full px-2 py-1 font-medium border-0 cursor-pointer ${STATUS_CONFIG[result.status]?.pill ?? ""}`}
                   >
-                    {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                    {STATUS_KEYS.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
                   </select>
                 </td>
                 <td className="px-4 py-3 text-gray-500">{result.executed_by ?? '—'}</td>

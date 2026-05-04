@@ -4,6 +4,7 @@ import { useUserTokens, useCreateUserToken, useRevokeUserToken } from "../hooks/
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
+import { EmptyState } from "../components/ui/empty-state"
 import { Trash2, Plus, Key, Copy, Eye, EyeOff, Clock } from "lucide-react"
 import { toast } from "sonner"
 
@@ -102,7 +103,12 @@ function UserTokensSection() {
         </table>
       )}
       {tokens.length === 0 && !newToken && (
-        <p className="text-sm text-gray-400">No tokens yet.</p>
+        <EmptyState
+          icon={Key}
+          title="No personal tokens"
+          description="Create one to authenticate from CI scripts or the listener."
+          compact
+        />
       )}
     </div>
   )

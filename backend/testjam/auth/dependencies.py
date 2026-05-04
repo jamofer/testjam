@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from fastapi import Depends, HTTPException, Security, status
@@ -13,17 +14,25 @@ bearer_scheme = HTTPBearer(auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
-def get_current_user(
+@dataclass
+class AuthContext:
+    user: User
+    # If set, the active credential is a project-scoped API token and
+    # should only be allowed to access this specific project.
+    project_scope: int | None = None
+
+
+def get_auth_context(
     credentials: HTTPAuthorizationCredentials | None = Security(bearer_scheme),
     api_key: str | None = Security(api_key_header),
     db: Session = Depends(get_db),
-) -> User:
+) -> AuthContext:
     if credentials:
         username = decode_token(credentials.credentials)
         if username:
             user = db.query(User).filter(User.username == username, User.is_active == True).first()
             if user:
-                return user
+                return AuthContext(user=user)
 
     if api_key:
         token_hash = ApiToken.hash(api_key)
@@ -34,10 +43,26 @@ def get_current_user(
             uid = token.user_id if token.user_id else token.created_by
             user = db.get(User, uid)
             if user and user.is_active:
-                return user
+                return AuthContext(user=user, project_scope=token.project_id)
         # Fallback: legacy api_key field on User
         user = db.query(User).filter(User.api_key == api_key, User.is_active == True).first()
         if user:
-            return user
+            return AuthContext(user=user)
 
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+
+
+def get_current_user(ctx: AuthContext = Depends(get_auth_context)) -> User:
+    return ctx.user
+
+
+def require_project_access(id: int, ctx: AuthContext = Depends(get_auth_context)) -> User:
+    """Returns the user only if the active credential can access the given project.
+    Project-scoped API tokens may only access their own project. The path parameter
+    must be named `id` (consistent with how project routes declare it)."""
+    if ctx.project_scope is not None and ctx.project_scope != id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="API token is not authorized for this project",
+        )
+    return ctx.user

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user
+from testjam.auth.dependencies import get_current_user, require_project_access
 from testjam.database import get_db
 from testjam.models.testcase import SuiteStep, TestSuite
 from testjam.models.user import User
@@ -29,7 +29,7 @@ def list_suites(
     name: str | None = None,
     parent_suite_id: int | None = None,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_project_access),
 ):
     q = db.query(TestSuite).filter(TestSuite.project_id == id)
     if parent_suite_id is not None:
@@ -42,7 +42,7 @@ def list_suites(
 
 
 @projects_router.post("/{id}/suites", response_model=TestSuiteOut, status_code=status.HTTP_201_CREATED)
-def create_suite(id: int, body: TestSuiteCreate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def create_suite(id: int, body: TestSuiteCreate, db: Session = Depends(get_db), _: User = Depends(require_project_access)):
     duplicate = (
         db.query(TestSuite)
         .filter(

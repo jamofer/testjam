@@ -3,6 +3,12 @@
 @tailwind utilities;
 
 /* Outside @layer — wins over Tailwind preflight (base layer) and library CSS */
+/* @uiw/react-md-editor sets a white bg on .wmde-markdown via CSS vars — let it inherit from the parent */
+.md, .md .wmde-markdown, .md.wmde-markdown {
+  background-color: transparent;
+  --color-canvas-default: transparent;
+  --md-editor-background-color: transparent;
+}
 .md { font-size: 0.875rem; line-height: 1.625; color: #1f2937; }
 .md > * + * { margin-top: 0.75rem; }
 .md h1 { font-size: 1.5rem; font-weight: 700; color: #111827; margin-top: 1.5rem; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #e5e7eb; }

@@ -54,12 +54,16 @@ def delete_group(id: int, db: Session = Depends(get_db), _: User = Depends(get_c
     db.commit()
 
 
+def _member_out(m: GroupMember) -> GroupMemberOut:
+    return GroupMemberOut(user_id=m.user_id, username=m.user.username, role=m.role)
+
+
 @router.get("/{id}/members", response_model=list[GroupMemberOut])
 def list_members(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
     group = db.get(Group, id)
     if not group:
         raise HTTPException(status_code=404, detail="Not found")
-    return group.members
+    return [_member_out(m) for m in group.members]
 
 
 @router.post("/{id}/members", status_code=status.HTTP_201_CREATED)

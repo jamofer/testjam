@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user
+from testjam.auth.dependencies import get_current_user, require_project_access
 from testjam.database import get_db
 from testjam.models.execution import TestExecution
 from testjam.models.project import Project, ProjectMember
@@ -59,7 +59,7 @@ def create_project(body: ProjectCreate, db: Session = Depends(get_db), current: 
 
 
 @router.get("/{id}", response_model=ProjectOut)
-def get_project(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def get_project(id: int, db: Session = Depends(get_db), _: User = Depends(require_project_access)):
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Not found")
@@ -67,7 +67,7 @@ def get_project(id: int, db: Session = Depends(get_db), _: User = Depends(get_cu
 
 
 @router.put("/{id}", response_model=ProjectOut)
-def update_project(id: int, body: ProjectUpdate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def update_project(id: int, body: ProjectUpdate, db: Session = Depends(get_db), _: User = Depends(require_project_access)):
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Not found")
@@ -79,7 +79,7 @@ def update_project(id: int, body: ProjectUpdate, db: Session = Depends(get_db), 
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_project(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def delete_project(id: int, db: Session = Depends(get_db), _: User = Depends(require_project_access)):
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Not found")

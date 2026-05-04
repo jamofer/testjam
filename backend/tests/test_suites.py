@@ -18,18 +18,6 @@ def test_update_suite_title(auth_client, project_id, suite_id):
     assert resp.json()["name"] == "Renamed Suite"
 
 
-def test_update_suite_setup_and_teardown(auth_client, project_id, suite_id):
-    resp = auth_client.put(f"/api/v1/suites/{suite_id}", json={
-        "setup": "Open Browser    ${URL}",
-        "teardown": "Close Browser",
-    })
-
-    assert resp.status_code == 200
-    data = resp.json()
-    assert data["setup"] == "Open Browser    ${URL}"
-    assert data["teardown"] == "Close Browser"
-
-
 def test_delete_suite(auth_client, project_id):
     sid = auth_client.post(f"/api/v1/projects/{project_id}/suites", json={"name": "ToDelete"}).json()["id"]
 

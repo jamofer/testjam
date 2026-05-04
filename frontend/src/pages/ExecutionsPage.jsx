@@ -1,8 +1,15 @@
+import { useState, useMemo } from "react"
 import { useParams, Link } from "react-router-dom"
-import { PlayCircle, CheckCircle2, XCircle, MinusCircle, Plus, ArrowLeft, Clock } from "lucide-react"
+import { PlayCircle, CheckCircle2, XCircle, MinusCircle, Plus, Clock, Search } from "lucide-react"
 import { useExecutions } from "../hooks/useExecutions"
+import { useProject } from "../hooks/useProjects"
+import { useDebounced } from "../hooks/useDebounced"
 import { Button } from "../components/ui/button"
 import { Badge } from "../components/ui/badge"
+import { Breadcrumbs } from "../components/ui/breadcrumbs"
+import { SearchInput } from "../components/ui/search-input"
+import { EmptyState } from "../components/ui/empty-state"
+import { SkeletonList } from "../components/ui/skeleton"
 
 function fmtDate(iso) {
   if (!iso) return null
@@ -22,28 +29,63 @@ const typeBadge = {
   automatic: "default",
 }
 
+const STATUS_FILTERS = ["all", "pending", "in_progress", "completed", "aborted"]
+
 export function ExecutionsPage() {
   const { id: projectId } = useParams()
   const { data: executions = [], isLoading } = useExecutions(projectId)
+  const { data: project } = useProject(projectId)
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const debouncedSearch = useDebounced(search, 150)
 
-  if (isLoading) return <p className="text-gray-500">Loading…</p>
+  const filtered = useMemo(() => {
+    const q = debouncedSearch.trim().toLowerCase()
+    return executions.filter(ex => {
+      if (statusFilter !== "all" && ex.status !== statusFilter) return false
+      if (q && !ex.title.toLowerCase().includes(q)) return false
+      return true
+    })
+  }, [executions, debouncedSearch, statusFilter])
 
   return (
     <div className="max-w-3xl space-y-6">
+      <Breadcrumbs
+        crumbs={[
+          { label: "Projects", to: "/projects" },
+          { label: project?.name ?? "…", to: `/projects/${projectId}` },
+          { label: "Executions" },
+        ]}
+      />
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link to={`/projects/${projectId}`} className="text-gray-400 hover:text-gray-700">
-            <ArrowLeft size={16} />
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-800">Executions</h1>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-800">Executions</h1>
         <Link to={`/projects/${projectId}/executions/new`}>
           <Button size="sm"><Plus size={14} /> New execution</Button>
         </Link>
       </div>
 
+      {!isLoading && executions.length > 0 && (
+        <div className="flex flex-wrap gap-2 items-center">
+          <SearchInput value={search} onChange={setSearch} placeholder="Search by title…" className="flex-1 min-w-[180px]" />
+          <div className="flex gap-1">
+            {STATUS_FILTERS.map(s => (
+              <Button
+                key={s}
+                size="sm"
+                variant={statusFilter === s ? "default" : "outline"}
+                onClick={() => setStatusFilter(s)}
+              >
+                {s === "all" ? "All" : s.replace("_", " ")}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {isLoading && <SkeletonList count={3} />}
+
       <ul className="space-y-2">
-        {executions.map(ex => (
+        {filtered.map(ex => (
           <li key={ex.id} className="bg-white border rounded-lg px-4 py-3 shadow-sm">
             <div className="flex items-center justify-between">
               <Link to={`/executions/${ex.id}/run`}
@@ -72,8 +114,27 @@ export function ExecutionsPage() {
             </div>
           </li>
         ))}
-        {executions.length === 0 && <p className="text-sm text-gray-400">No executions yet.</p>}
       </ul>
+      {!isLoading && executions.length === 0 && (
+        <EmptyState
+          icon={PlayCircle}
+          title="No executions yet"
+          description="Run a test plan or import results from JUnit / Robot Framework to track your test runs over time."
+          action={
+            <Link to={`/projects/${projectId}/executions/new`}>
+              <Button size="sm"><Plus size={14} /> New execution</Button>
+            </Link>
+          }
+        />
+      )}
+      {!isLoading && executions.length > 0 && filtered.length === 0 && (
+        <EmptyState
+          icon={Search}
+          title="No matches"
+          description="No executions match the current filters."
+          compact
+        />
+      )}
     </div>
   )
 }

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user
+from testjam.auth.dependencies import require_project_access
 from testjam.database import get_db
 from testjam.models.project import Project, ProjectMember
 from testjam.models.user import User
@@ -30,7 +30,7 @@ def _require_owner(project: Project, current: User, db: Session) -> None:
 
 
 @router.get("", response_model=list[ProjectMemberOut])
-def list_members(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def list_members(id: int, db: Session = Depends(get_db), _: User = Depends(require_project_access)):
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -42,7 +42,7 @@ def add_member(
     id: int,
     body: ProjectMemberAdd,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(require_project_access),
 ):
     project = db.get(Project, id)
     if not project:
@@ -68,7 +68,7 @@ def update_member(
     user_id: int,
     body: ProjectMemberUpdate,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(require_project_access),
 ):
     project = db.get(Project, id)
     if not project:
@@ -90,7 +90,7 @@ def remove_member(
     id: int,
     user_id: int,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(require_project_access),
 ):
     project = db.get(Project, id)
     if not project:

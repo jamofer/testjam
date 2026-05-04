@@ -3,10 +3,13 @@ import { useParams } from "react-router-dom"
 import { Shield, Trash2, Plus, Key, Copy, Eye, EyeOff, Clock } from "lucide-react"
 import { useMembers, useAddMember, useUpdateMember, useRemoveMember } from "../hooks/useMembers"
 import { useProjectTokens, useCreateProjectToken, useRevokeProjectToken } from "../hooks/useTokens"
+import { useProject } from "../hooks/useProjects"
+import { Breadcrumbs } from "../components/ui/breadcrumbs"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "../api/client"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
+import { EmptyState } from "../components/ui/empty-state"
 import { toast } from "sonner"
 
 const ROLES = ["owner", "tester", "viewer"]
@@ -122,7 +125,12 @@ function TokensSection({ projectId }) {
           </table>
         )}
         {tokens.length === 0 && !newToken && (
-          <p className="text-sm text-gray-400">No project tokens yet.</p>
+          <EmptyState
+            icon={Key}
+            title="No project tokens"
+            description="Create a token to let CI run executions or import results for this project."
+            compact
+          />
         )}
       </div>
     </section>
@@ -132,6 +140,7 @@ function TokensSection({ projectId }) {
 export function MembersPage() {
   const { id: projectId } = useParams()
   const { data: members = [], isLoading } = useMembers(projectId)
+  const { data: project } = useProject(projectId)
   const addMember = useAddMember(projectId)
   const updateMember = useUpdateMember(projectId)
   const removeMember = useRemoveMember(projectId)
@@ -180,6 +189,13 @@ export function MembersPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
+      <Breadcrumbs
+        crumbs={[
+          { label: "Projects", to: "/projects" },
+          { label: project?.name ?? "…", to: `/projects/${projectId}` },
+          { label: "Members" },
+        ]}
+      />
       <h1 className="text-2xl font-bold text-gray-800">Members & Access</h1>
 
       {/* Members */}
@@ -213,7 +229,14 @@ export function MembersPage() {
             </div>
           ))}
           {members.length === 0 && (
-            <p className="px-5 py-4 text-sm text-gray-400">No members yet.</p>
+            <div className="px-5 py-4">
+              <EmptyState
+                icon={Shield}
+                title="No members yet"
+                description="Add testers or viewers to give them access to this project."
+                compact
+              />
+            </div>
           )}
         </div>
 

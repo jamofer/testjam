@@ -1,441 +1,16 @@
-import { useState, useEffect } from "react"
-import { useParams, Link } from "react-router-dom"
-import { CheckCircle2, XCircle, MinusCircle, AlertTriangle, Upload, ChevronDown, ChevronRight, Trash2, Copy, ExternalLink, ArrowLeft, Clock } from "lucide-react"
-import { useExecution, useExecutionResults, useUpdateResult } from "../hooks/useExecutions"
-import { executionsApi } from "../api/executions"
-import { useCase } from "../hooks/useSuites"
+import { useState } from "react"
+import { useParams } from "react-router-dom"
+import { ExternalLink, Clock } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
-import { MdEditor, MdViewer } from "../components/MdEditor"
+import { useExecution, useExecutionResults } from "../hooks/useExecutions"
+import { executionsApi } from "../api/executions"
+import { useProject } from "../hooks/useProjects"
+import { Breadcrumbs } from "../components/ui/breadcrumbs"
 import { Button } from "../components/ui/button"
-import { Badge } from "../components/ui/badge"
+import { Skeleton, SkeletonList } from "../components/ui/skeleton"
+import { ResultCard } from "../components/execution/ResultCard"
+import { fmtDuration } from "../lib/format"
 import { toast } from "sonner"
-
-const STATUS_CONFIG = {
-  passed:  { label: "Pass",    icon: CheckCircle2,  color: "success",     bg: "bg-green-100  border-green-300" },
-  failed:  { label: "Fail",    icon: XCircle,        color: "destructive", bg: "bg-red-100    border-red-300"   },
-  blocked: { label: "Blocked", icon: AlertTriangle,  color: "warning",     bg: "bg-yellow-100 border-yellow-300"},
-  not_run: { label: "Not run", icon: MinusCircle,    color: "secondary",   bg: "bg-gray-50    border-gray-200"  },
-}
-
-const STEP_TYPE_LABEL = { setup: "Setup", action: null, teardown: "Teardown" }
-const STEP_TYPE_HEADER_COLOR = { setup: "text-blue-600 bg-blue-50", teardown: "text-orange-600 bg-orange-50" }
-
-const STATUS_ICON_COLOR = {
-  passed: "text-green-600", failed: "text-red-500", blocked: "text-yellow-600", not_run: "text-gray-400",
-}
-
-function fmtDuration(ms) {
-  if (ms == null) return null
-  if (ms < 1000) return `${ms}ms`
-  if (ms < 60000) return `${(ms / 1000).toFixed(2)}s`
-  const m = Math.floor(ms / 60000)
-  const s = ((ms % 60000) / 1000).toFixed(0)
-  return `${m}m ${s}s`
-}
-
-function fmtTime(iso) {
-  if (!iso) return null
-  return new Date(iso).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })
-}
-
-function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAutomated }) {
-  const [localStatus, setLocalStatus] = useState(stepResult?.status ?? "not_run")
-  const [comment, setComment] = useState(stepResult?.comment ?? "")
-  const [editComment, setEditComment] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [showLog, setShowLog] = useState(false)
-
-  useEffect(() => {
-    setLocalStatus(stepResult?.status ?? "not_run")
-    setComment(stepResult?.comment ?? "")
-  }, [stepResult?.status, stepResult?.comment])
-
-  const config = STATUS_CONFIG[localStatus]
-
-  const handleStatus = async (status) => {
-    setLocalStatus(status)
-    await onUpdate(step.id, status)
-  }
-
-  const handleSaveComment = async () => {
-    setSaving(true)
-    try {
-      await onSaveComment(step.id, comment)
-      setEditComment(false)
-    } catch {
-      // error handled upstream
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <div className={`border rounded-lg overflow-hidden ${config.bg}`}>
-      <div className="flex items-start gap-3 p-3">
-        <span className="text-xs font-mono text-gray-400 mt-0.5 w-5 shrink-0">{step.order}.</span>
-        <div className="flex-1 min-w-0">
-          <div className="prose prose-sm"><MdViewer value={step.action} /></div>
-          {step.expected_result && (
-            <p className="text-xs text-gray-500 mt-1 italic">Expected: <MdViewer value={step.expected_result} /></p>
-          )}
-          {stepResult?.duration_ms != null && (
-            <span className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-              <Clock size={9} /> {fmtDuration(stepResult.duration_ms)}
-            </span>
-          )}
-
-          {!isAutomated && (
-            <div className="mt-2">
-              {editComment ? (
-                <div className="space-y-1">
-                  <textarea
-                    value={comment}
-                    onChange={e => setComment(e.target.value)}
-                    placeholder="Actual result / notes…"
-                    rows={2}
-                    autoFocus
-                    className="w-full text-xs border border-gray-300 rounded px-2 py-1 resize-none focus:outline-none focus:ring-1 focus:ring-primary-400 bg-white"
-                  />
-                  <div className="flex gap-1">
-                    <button onClick={handleSaveComment} disabled={saving}
-                      className="text-xs px-2 py-0.5 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50">
-                      {saving ? "Saving…" : "Save"}
-                    </button>
-                    <button onClick={() => { setEditComment(false); setComment(stepResult?.comment ?? "") }}
-                      className="text-xs px-2 py-0.5 text-gray-500 hover:text-gray-800">
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : comment ? (
-                <button onClick={() => setEditComment(true)} className="text-left w-full group">
-                  <p className="text-xs text-gray-600 bg-white/70 rounded px-2 py-1 border border-gray-100 group-hover:border-gray-300 transition-colors">
-                    {comment}
-                  </p>
-                </button>
-              ) : (
-                <button onClick={() => setEditComment(true)}
-                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
-                  + Add note
-                </button>
-              )}
-            </div>
-          )}
-
-          {stepResult?.log_output && (
-            <button onClick={() => setShowLog(l => !l)}
-              className="text-xs text-gray-400 hover:text-gray-700 mt-1 underline block">
-              {showLog ? "Hide log" : "Show log"}
-            </button>
-          )}
-        </div>
-
-        {!isAutomated && (
-          <div className="flex gap-1 shrink-0">
-            {Object.entries(STATUS_CONFIG).map(([status, cfg]) => {
-              const Ic = cfg.icon
-              return (
-                <button key={status}
-                  onClick={() => handleStatus(status)}
-                  title={cfg.label}
-                  className={`p-1 rounded transition-opacity ${localStatus === status ? "opacity-100" : "opacity-25 hover:opacity-70"}`}>
-                  <Ic size={16} className={STATUS_ICON_COLOR[status]} />
-                </button>
-              )
-            })}
-          </div>
-        )}
-        {isAutomated && (
-          <div className="shrink-0">
-            {(() => { const Ic = STATUS_CONFIG[localStatus].icon; return <Ic size={16} className={STATUS_ICON_COLOR[localStatus]} /> })()}
-          </div>
-        )}
-      </div>
-
-      {showLog && stepResult?.log_output && (
-        <div className="px-4 pb-3 border-t border-gray-100 bg-gray-900 text-gray-100 text-xs font-mono whitespace-pre-wrap rounded-b-lg max-h-48 overflow-y-auto">
-          {stepResult.log_output}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function StepsSection({ steps, stepResults, onUpdate, onSaveComment, isAutomated }) {
-  const byType = { setup: [], action: [], teardown: [] }
-  steps.forEach(s => { (byType[s.step_type] ?? byType.action).push(s) })
-
-  return (
-    <div className="space-y-3">
-      {["setup", "action", "teardown"].map(type => {
-        if (!byType[type].length) return null
-        const label = STEP_TYPE_LABEL[type]
-        const headerColor = STEP_TYPE_HEADER_COLOR[type]
-        return (
-          <div key={type}>
-            {label && (
-              <p className={`text-xs font-semibold uppercase tracking-wide px-2 py-1 rounded mb-1 w-fit ${headerColor}`}>
-                {label}
-              </p>
-            )}
-            <div className="space-y-2">
-              {byType[type].map(step => {
-                const sr = stepResults.find(r => r.step_id === step.id)
-                return (
-                  <StepResultRow key={step.id} step={step} stepResult={sr}
-                    onUpdate={onUpdate} onSaveComment={onSaveComment} isAutomated={isAutomated} />
-                )
-              })}
-            </div>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-function ResultCard({ result, executionId, index, total, isAutomated }) {
-  const { data: tc } = useCase(result.test_case_id)
-  const [open, setOpen] = useState(index === 0)
-  const [comment, setComment] = useState(result.comment ?? "")
-  const [editComment, setEditComment] = useState(false)
-  const [localStatus, setLocalStatus] = useState(result.status)
-  const qc = useQueryClient()
-  const updateResult = useUpdateResult(executionId)
-
-  useEffect(() => {
-    setLocalStatus(result.status)
-    setComment(result.comment ?? "")
-  }, [result.status, result.comment])
-
-  const config = STATUS_CONFIG[localStatus]
-  const Icon = config.icon
-
-  const setStatus = async (status) => {
-    setLocalStatus(status)
-    try {
-      await updateResult.mutateAsync({ id: result.id, data: { status } })
-      qc.invalidateQueries({ queryKey: ["executions", executionId] })
-    } catch {
-      setLocalStatus(result.status)
-      toast.error("Failed to update status")
-    }
-  }
-
-  const updateStepResult = async (stepId, status) => {
-    try {
-      const existingSr = (result.step_results ?? []).find(sr => sr.step_id === stepId)
-      if (existingSr) {
-        await executionsApi.updateStepResult(result.id, existingSr.id, { status })
-      } else {
-        await executionsApi.createResult(executionId, {
-          test_case_id: result.test_case_id,
-          status: result.status,
-          step_results: [{ step_id: stepId, status }],
-        })
-      }
-      qc.invalidateQueries({ queryKey: ["results", executionId] })
-      qc.invalidateQueries({ queryKey: ["executions", executionId] })
-    } catch {
-      toast.error("Failed to update step")
-    }
-  }
-
-  const saveStepComment = async (stepId, comment) => {
-    try {
-      const existingSr = (result.step_results ?? []).find(sr => sr.step_id === stepId)
-      if (existingSr) {
-        await executionsApi.updateStepResult(result.id, existingSr.id, { comment })
-      } else {
-        await executionsApi.createResult(executionId, {
-          test_case_id: result.test_case_id,
-          status: result.status,
-          step_results: [{ step_id: stepId, status: "not_run", comment }],
-        })
-      }
-      qc.invalidateQueries({ queryKey: ["results", executionId] })
-    } catch {
-      toast.error("Failed to save note")
-    }
-  }
-
-  const saveComment = async () => {
-    try {
-      await updateResult.mutateAsync({ id: result.id, data: { comment } })
-      setEditComment(false)
-    } catch {
-      toast.error("Failed to save comment")
-    }
-  }
-
-  const uploadAttachment = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-    try {
-      await executionsApi.uploadResultAttachment(result.id, file)
-      qc.invalidateQueries({ queryKey: ["results", executionId] })
-      toast.success(`${file.name} attached`)
-    } catch {
-      toast.error("Upload failed")
-    }
-    e.target.value = ""
-  }
-
-  const deleteAttachment = async (attachmentId) => {
-    try {
-      await executionsApi.deleteResultAttachment(result.id, attachmentId)
-      qc.invalidateQueries({ queryKey: ["results", executionId] })
-      toast.success("Attachment deleted")
-    } catch {
-      toast.error("Failed to delete attachment")
-    }
-  }
-
-  const copyUrl = (att) => {
-    navigator.clipboard.writeText(`${window.location.origin}${att.url}`)
-    toast.success("URL copied")
-  }
-
-  const copyMarkdown = (att) => {
-    const url = `${window.location.origin}${att.url}`
-    const md = att.content_type?.startsWith("image/")
-      ? `![${att.filename}](${url})`
-      : `[${att.filename}](${url})`
-    navigator.clipboard.writeText(md)
-    toast.success("Markdown copied")
-  }
-
-  return (
-    <div className="border rounded-xl overflow-hidden shadow-sm">
-      <div className={`flex items-center justify-between px-4 py-3 cursor-pointer ${config.bg} border-b`}
-        onClick={() => setOpen(o => !o)}>
-        <div className="flex items-center gap-3 min-w-0">
-          {open ? <ChevronDown size={14} className="shrink-0" /> : <ChevronRight size={14} className="shrink-0" />}
-          <span className="text-xs text-gray-400 shrink-0">{index + 1}/{total}</span>
-          <span className="font-medium text-gray-800 truncate">{result.test_case_title ?? tc?.name ?? "…"}</span>
-        </div>
-        <div className="flex items-center gap-2 shrink-0 ml-3">
-          {result.duration_ms != null && (
-            <span className="text-xs text-gray-400 flex items-center gap-1">
-              <Clock size={10} />{fmtDuration(result.duration_ms)}
-            </span>
-          )}
-          {result.executed_at && (
-            <span className="text-xs text-gray-400 hidden sm:block">{fmtTime(result.executed_at)}</span>
-          )}
-          <Badge variant={config.color}><Icon size={11} className="mr-1" />{config.label}</Badge>
-        </div>
-      </div>
-
-      {open && (
-        <div className="p-4 space-y-4 bg-white">
-          {tc?.steps?.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Steps</p>
-              <StepsSection
-                steps={tc.steps}
-                stepResults={result.step_results ?? []}
-                onUpdate={updateStepResult}
-                onSaveComment={saveStepComment}
-                isAutomated={isAutomated}
-              />
-            </div>
-          )}
-
-          {!isAutomated && (
-            <>
-              <div className="space-y-1.5">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Overall result</p>
-                <div className="flex gap-2 flex-wrap">
-                  {Object.entries(STATUS_CONFIG).map(([status, cfg]) => {
-                    const Ic = cfg.icon
-                    return (
-                      <Button key={status} size="sm"
-                        variant={localStatus === status ? "default" : "outline"}
-                        onClick={() => setStatus(status)}>
-                        <Ic size={13} /> {cfg.label}
-                      </Button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Comment</p>
-                {editComment ? (
-                  <div className="space-y-1.5">
-                    <MdEditor value={comment} onChange={setComment} height={80} />
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={saveComment} loading={updateResult.isPending}>
-                        Save
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => { setEditComment(false); setComment(result.comment ?? "") }}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                ) : comment ? (
-                  <button onClick={() => setEditComment(true)} className="text-left w-full group">
-                    <div className="text-sm text-gray-600 italic border-l-2 border-gray-200 pl-3 group-hover:border-gray-400 transition-colors">
-                      <MdViewer value={comment} />
-                    </div>
-                  </button>
-                ) : (
-                  <button onClick={() => setEditComment(true)}
-                    className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
-                    + Add comment
-                  </button>
-                )}
-              </div>
-            </>
-          )}
-
-          {isAutomated && result.comment && (
-            <div className="text-xs font-mono bg-red-50 border border-red-200 text-red-800 rounded-lg px-3 py-2 whitespace-pre-wrap">
-              {result.comment}
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 cursor-pointer w-fit">
-              <input type="file" className="hidden" onChange={uploadAttachment} />
-              <Button size="sm" variant="ghost" asChild>
-                <span><Upload size={13} /> Attach file</span>
-              </Button>
-            </label>
-            {(result.attachments ?? []).length > 0 && (
-              <ul className="space-y-1.5">
-                {(result.attachments ?? []).map(a => (
-                  <li key={a.id} className="flex items-center gap-2 text-sm bg-gray-50 rounded-lg px-3 py-2">
-                    <span className="text-xs bg-white border px-1.5 py-0.5 rounded text-gray-500 shrink-0">
-                      {a.content_type ?? "file"}
-                    </span>
-                    <a href={a.url} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-gray-700 hover:text-primary-600 min-w-0 flex-1 truncate">
-                      {a.filename}<ExternalLink size={11} className="shrink-0" />
-                    </a>
-                    <span className="text-xs text-gray-400 shrink-0">
-                      {a.size_bytes ? `${Math.round(a.size_bytes / 1024)} KB` : ""}
-                    </span>
-                    <button onClick={() => copyUrl(a)} title="Copy URL" className="text-gray-400 hover:text-gray-700 shrink-0">
-                      <Copy size={13} />
-                    </button>
-                    <button onClick={() => copyMarkdown(a)} title="Copy as Markdown"
-                      className="text-xs text-gray-400 hover:text-gray-700 font-mono shrink-0">MD</button>
-                    <button onClick={() => deleteAttachment(a.id)} title="Delete"
-                      className="text-gray-300 hover:text-red-500 shrink-0">
-                      <Trash2 size={13} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
 
 export function ExecutionRunPage() {
   const { id } = useParams()
@@ -456,7 +31,16 @@ export function ExecutionRunPage() {
     }
   }
 
-  if (!execution) return <p className="text-gray-500">Loading…</p>
+  if (!execution) {
+    return (
+      <div className="max-w-2xl space-y-4">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-7 w-1/2" />
+        <Skeleton className="h-4 w-2/3" />
+        <SkeletonList count={3} itemClassName="h-24" />
+      </div>
+    )
+  }
 
   const summary = execution.summary ?? {}
   const done = (summary.passed ?? 0) + (summary.failed ?? 0) + (summary.blocked ?? 0)
@@ -464,14 +48,22 @@ export function ExecutionRunPage() {
     ? new Date(execution.finished_at) - new Date(execution.started_at)
     : null
 
+  return <ExecutionRunBody {...{ execution, results, id, summary, done, totalMs, finishExecution, finishing }} />
+}
+
+function ExecutionRunBody({ execution, results, id, summary, done, totalMs, finishExecution, finishing }) {
+  const { data: project } = useProject(execution.project_id)
+
   return (
     <div className="max-w-2xl space-y-4">
-      <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Link to={`/projects/${execution.project_id}/executions`}
-          className="flex items-center gap-1 hover:text-gray-800 transition-colors">
-          <ArrowLeft size={14} /> Executions
-        </Link>
-      </div>
+      <Breadcrumbs
+        crumbs={[
+          { label: "Projects", to: "/projects" },
+          { label: project?.name ?? "…", to: `/projects/${execution.project_id}` },
+          { label: "Executions", to: `/projects/${execution.project_id}/executions` },
+          { label: execution.title },
+        ]}
+      />
 
       <div className="flex items-start justify-between gap-4">
         <div>
