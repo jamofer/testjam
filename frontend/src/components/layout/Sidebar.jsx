@@ -1,5 +1,5 @@
 import { NavLink, Link, useMatch } from "react-router-dom"
-import { FolderKanban, Users, LogOut, UserCircle, FolderOpen, PlayCircle, ClipboardList, ChevronLeft, Settings } from "lucide-react"
+import { FolderKanban, Users, LogOut, UserCircle, FolderOpen, PlayCircle, ClipboardList, ChevronLeft, Shield } from "lucide-react"
 import { useLogout } from "../../hooks/useAuth"
 import { useProject } from "../../hooks/useProjects"
 import { useExecution } from "../../hooks/useExecutions"
@@ -11,6 +11,7 @@ const PROJECT_NAV = [
   { to: (id) => `/projects/${id}`,            icon: FolderOpen,    label: "Test Cases",  end: true },
   { to: (id) => `/projects/${id}/plans`,       icon: ClipboardList, label: "Test Plans"            },
   { to: (id) => `/projects/${id}/executions`,  icon: PlayCircle,    label: "Executions"            },
+  { to: (id) => `/projects/${id}/members`,     icon: Shield,        label: "Members"               },
 ]
 
 const GLOBAL_NAV = [

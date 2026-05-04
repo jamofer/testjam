@@ -43,6 +43,7 @@ class TestStepResultOut(BaseModel):
     step_id: int
     status: str
     comment: str | None
+    duration_ms: int | None = None
     log_output: str | None = None
 
     model_config = {"from_attributes": True}

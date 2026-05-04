@@ -1,705 +1,1037 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<robot generator="Robot 7.4.2 (Python 3.12.13 on linux)" generated="2026-05-03T22:26:01.002491" rpa="false" schemaversion="5">
+<robot generator="Robot 7.4.2 (Python 3.12.13 on linux)" generated="2026-05-04T16:13:57.841296" rpa="false" schemaversion="5">
 <suite id="s1" name="Suites" source="/tests/e2e/suites">
 <suite id="s1-s1" name="01 Auth" source="/tests/e2e/suites/01_auth.robot">
 <test id="s1-s1-t1" name="Successful admin login" line="6">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:01.635490" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:01.415619" elapsed="0.220050"/>
+<msg time="2026-05-04T16:13:58.463021" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:13:58.247115" elapsed="0.215997"/>
 </kw>
 <kw name="The current user should be admin" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the current user should be ${username}">
-<status status="PASS" start="2026-05-03T22:26:01.635982" elapsed="0.003229"/>
+<status status="PASS" start="2026-05-04T16:13:58.463408" elapsed="0.002888"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:01.377201" elapsed="0.262210"/>
+<status status="PASS" start="2026-05-04T16:13:58.212178" elapsed="0.254344"/>
 </test>
 <test id="s1-s1-t2" name="Login with wrong password returns 401" line="13">
 <kw name="I try to log in as admin with password wrongpassword" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I try to log in as ${username} with password ${password}">
 <doc>Attempts login without asserting success — use assertion keywords after.</doc>
-<status status="PASS" start="2026-05-03T22:26:01.687678" elapsed="0.220861"/>
+<status status="PASS" start="2026-05-04T16:13:58.541714" elapsed="0.231448"/>
 </kw>
 <kw name="The response status should be 401" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the response status should be ${expected_status}">
-<status status="PASS" start="2026-05-03T22:26:01.908825" elapsed="0.000113"/>
+<status status="PASS" start="2026-05-04T16:13:58.773543" elapsed="0.000119"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:01.656372" elapsed="0.252676"/>
+<status status="PASS" start="2026-05-04T16:13:58.500311" elapsed="0.273482"/>
 </test>
 <test id="s1-s1-t3" name="Login with unknown user returns 401" line="19">
 <kw name="I try to log in as ghost with password ghost123" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I try to log in as ${username} with password ${password}">
 <doc>Attempts login without asserting success — use assertion keywords after.</doc>
-<status status="PASS" start="2026-05-03T22:26:01.955424" elapsed="0.002827"/>
+<status status="PASS" start="2026-05-04T16:13:58.834686" elapsed="0.004399"/>
 </kw>
 <kw name="The response status should be 401" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the response status should be ${expected_status}">
-<status status="PASS" start="2026-05-03T22:26:01.958499" elapsed="0.000100"/>
+<status status="PASS" start="2026-05-04T16:13:58.840468" elapsed="0.000586"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:01.924619" elapsed="0.034085"/>
+<status status="PASS" start="2026-05-04T16:13:58.801143" elapsed="0.040327"/>
 </test>
 <test id="s1-s1-t4" name="Valid credentials give access to protected resource" line="25">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:02.214160" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:01.994004" elapsed="0.220268"/>
+<msg time="2026-05-04T16:13:59.115814" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:13:58.892401" elapsed="0.223505"/>
 </kw>
 <kw name="The current user should be admin" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the current user should be ${username}">
-<status status="PASS" start="2026-05-03T22:26:02.214575" elapsed="0.002941"/>
+<status status="PASS" start="2026-05-04T16:13:59.116178" elapsed="0.002827"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:01.965823" elapsed="0.251856"/>
+<status status="PASS" start="2026-05-04T16:13:58.858973" elapsed="0.260229"/>
 </test>
-<status status="PASS" start="2026-05-03T22:26:01.362445" elapsed="0.862630"/>
+<status status="PASS" start="2026-05-04T16:13:58.192446" elapsed="0.960618"/>
 </suite>
 <suite id="s1-s2" name="02 Projects" source="/tests/e2e/suites/02_projects.robot">
 <test id="s1-s2-t1" name="Create and read a project" line="6">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:02.505880" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:02.269536" elapsed="0.236426"/>
+<msg time="2026-05-04T16:13:59.421124" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:13:59.207361" elapsed="0.213846"/>
 </kw>
 <kw name="I create a project named Acme App" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:02.524064" level="INFO">Created project 'Acme App' → id=90</msg>
-<status status="PASS" start="2026-05-03T22:26:02.506239" elapsed="0.017913"/>
+<msg time="2026-05-04T16:13:59.441004" level="INFO">Created project 'Acme App' → id=311</msg>
+<status status="PASS" start="2026-05-04T16:13:59.421491" elapsed="0.019974"/>
 </kw>
 <kw name="The project name should be Acme App" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the project name should be ${name}">
-<status status="PASS" start="2026-05-03T22:26:02.524478" elapsed="0.006019"/>
+<status status="PASS" start="2026-05-04T16:13:59.442653" elapsed="0.004998"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:02.530749" elapsed="0.015890"/>
+<status status="PASS" start="2026-05-04T16:13:59.447883" elapsed="0.019274"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:02.229870" elapsed="0.316872"/>
+<status status="PASS" start="2026-05-04T16:13:59.162586" elapsed="0.304670"/>
 </test>
 <test id="s1-s2-t2" name="Rename a project" line="15">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:02.849530" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:02.613368" elapsed="0.236271"/>
+<msg time="2026-05-04T16:13:59.751862" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:13:59.534221" elapsed="0.217725"/>
 </kw>
 <kw name="I create a project named Old Name" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:02.868461" level="INFO">Created project 'Old Name' → id=91</msg>
-<status status="PASS" start="2026-05-03T22:26:02.849984" elapsed="0.018648"/>
+<msg time="2026-05-04T16:13:59.768205" level="INFO">Created project 'Old Name' → id=312</msg>
+<status status="PASS" start="2026-05-04T16:13:59.752226" elapsed="0.016069"/>
 </kw>
 <kw name="I rename the project to New Name" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I rename the project to ${name}">
-<status status="PASS" start="2026-05-03T22:26:02.869114" elapsed="0.010739"/>
+<status status="PASS" start="2026-05-04T16:13:59.768587" elapsed="0.013502"/>
 </kw>
 <kw name="The project name should be New Name" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the project name should be ${name}">
-<status status="PASS" start="2026-05-03T22:26:02.880104" elapsed="0.004384"/>
+<status status="PASS" start="2026-05-04T16:13:59.782381" elapsed="0.004088"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:02.884717" elapsed="0.008625"/>
+<status status="PASS" start="2026-05-04T16:13:59.786729" elapsed="0.012630"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:02.555693" elapsed="0.337741"/>
+<status status="PASS" start="2026-05-04T16:13:59.486519" elapsed="0.312929"/>
 </test>
 <test id="s1-s2-t3" name="Delete a project" line="25">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:03.179224" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:02.946717" elapsed="0.232595"/>
+<msg time="2026-05-04T16:14:00.099275" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:13:59.870382" elapsed="0.228970"/>
 </kw>
 <kw name="I create a project named To Be Deleted" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:03.195747" level="INFO">Created project 'To Be Deleted' → id=92</msg>
-<status status="PASS" start="2026-05-03T22:26:03.179601" elapsed="0.016228"/>
+<msg time="2026-05-04T16:14:00.114582" level="INFO">Created project 'To Be Deleted' → id=313</msg>
+<status status="PASS" start="2026-05-04T16:14:00.099629" elapsed="0.015033"/>
 </kw>
 <kw name="I delete the project" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<status status="PASS" start="2026-05-03T22:26:03.195995" elapsed="0.010868"/>
+<status status="PASS" start="2026-05-04T16:14:00.114793" elapsed="0.005558"/>
 </kw>
 <kw name="the project should no longer exist" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<status status="PASS" start="2026-05-03T22:26:03.207134" elapsed="0.003545"/>
+<status status="PASS" start="2026-05-04T16:14:00.120556" elapsed="0.007733"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:03.210878" elapsed="0.003977"/>
+<status status="PASS" start="2026-05-04T16:14:00.128577" elapsed="0.003429"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:02.899036" elapsed="0.315916"/>
+<status status="PASS" start="2026-05-04T16:13:59.820238" elapsed="0.311861"/>
 </test>
-<status status="PASS" start="2026-05-03T22:26:02.225377" elapsed="1.001587"/>
+<status status="PASS" start="2026-05-04T16:13:59.153411" elapsed="0.996650"/>
 </suite>
 <suite id="s1-s3" name="03 Test Cases" source="/tests/e2e/suites/03_test_cases.robot">
 <test id="s1-s3-t1" name="Create a test case inside a suite" line="6">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:03.534721" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:03.307078" elapsed="0.227770"/>
+<msg time="2026-05-04T16:14:00.435625" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:00.218419" elapsed="0.217296"/>
 </kw>
 <kw name="I create a project named Case Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:03.545514" level="INFO">Created project 'Case Project' → id=93</msg>
-<status status="PASS" start="2026-05-03T22:26:03.535232" elapsed="0.010405"/>
+<msg time="2026-05-04T16:14:00.451979" level="INFO">Created project 'Case Project' → id=314</msg>
+<status status="PASS" start="2026-05-04T16:14:00.436075" elapsed="0.015993"/>
 </kw>
 <kw name="I create a suite named Login Suite" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a suite named ${name}">
-<msg time="2026-05-03T22:26:03.559056" level="INFO">Created suite 'Login Suite' → id=47</msg>
-<status status="PASS" start="2026-05-03T22:26:03.546014" elapsed="0.013313"/>
+<msg time="2026-05-04T16:14:00.463434" level="INFO">Created suite 'Login Suite' → id=172</msg>
+<status status="PASS" start="2026-05-04T16:14:00.452445" elapsed="0.011107"/>
 </kw>
 <kw name="I create a test case named Happy Path Login" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a test case named ${name}">
-<msg time="2026-05-03T22:26:03.568637" level="INFO">Created case 'Happy Path Login' → id=75</msg>
-<status status="PASS" start="2026-05-03T22:26:03.559981" elapsed="0.008786"/>
+<msg time="2026-05-04T16:14:00.470378" level="INFO">Created case 'Happy Path Login' → id=153</msg>
+<status status="PASS" start="2026-05-04T16:14:00.464090" elapsed="0.006374"/>
 </kw>
 <kw name="The suite should have 1 test cases" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the suite should have ${count} test cases">
-<status status="PASS" start="2026-05-03T22:26:03.569159" elapsed="0.009186"/>
+<status status="PASS" start="2026-05-04T16:14:00.470785" elapsed="0.008216"/>
 </kw>
 <kw name="The test case name should be Happy Path Login" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the test case name should be ${name}">
-<status status="PASS" start="2026-05-03T22:26:03.578760" elapsed="0.005106"/>
+<status status="PASS" start="2026-05-04T16:14:00.479908" elapsed="0.003908"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:03.584173" elapsed="0.015974"/>
+<status status="PASS" start="2026-05-04T16:14:00.484026" elapsed="0.012637"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:03.237001" elapsed="0.363281"/>
+<status status="PASS" start="2026-05-04T16:14:00.158524" elapsed="0.338227"/>
 </test>
 <test id="s1-s3-t2" name="Rename a test case" line="18">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:03.916533" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:03.692140" elapsed="0.224521"/>
+<msg time="2026-05-04T16:14:00.798093" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:00.581727" elapsed="0.216448"/>
 </kw>
 <kw name="I create a project named Rename Case Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:03.936454" level="INFO">Created project 'Rename Case Project' → id=94</msg>
-<status status="PASS" start="2026-05-03T22:26:03.917037" elapsed="0.019512"/>
+<msg time="2026-05-04T16:14:00.814158" level="INFO">Created project 'Rename Case Project' → id=315</msg>
+<status status="PASS" start="2026-05-04T16:14:00.798453" elapsed="0.015785"/>
 </kw>
 <kw name="I create a suite named Suite A" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a suite named ${name}">
-<msg time="2026-05-03T22:26:03.946725" level="INFO">Created suite 'Suite A' → id=48</msg>
-<status status="PASS" start="2026-05-03T22:26:03.936973" elapsed="0.009860"/>
+<msg time="2026-05-04T16:14:00.828932" level="INFO">Created suite 'Suite A' → id=173</msg>
+<status status="PASS" start="2026-05-04T16:14:00.814503" elapsed="0.014509"/>
 </kw>
 <kw name="I create a test case named Original Name" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a test case named ${name}">
-<msg time="2026-05-03T22:26:03.956502" level="INFO">Created case 'Original Name' → id=76</msg>
-<status status="PASS" start="2026-05-03T22:26:03.947185" elapsed="0.009449"/>
+<msg time="2026-05-04T16:14:00.838567" level="INFO">Created case 'Original Name' → id=154</msg>
+<status status="PASS" start="2026-05-04T16:14:00.829303" elapsed="0.009752"/>
 </kw>
 <kw name="I rename the test case to Refactored Name" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I rename the test case to ${name}">
-<status status="PASS" start="2026-05-03T22:26:03.957035" elapsed="0.007387"/>
+<status status="PASS" start="2026-05-04T16:14:00.840209" elapsed="0.009007"/>
 </kw>
 <kw name="The test case name should be Refactored Name" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the test case name should be ${name}">
-<status status="PASS" start="2026-05-03T22:26:03.964794" elapsed="0.004170"/>
+<status status="PASS" start="2026-05-04T16:14:00.849605" elapsed="0.004278"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:03.969295" elapsed="0.014377"/>
+<status status="PASS" start="2026-05-04T16:14:00.854195" elapsed="0.010736"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:03.614085" elapsed="0.369713"/>
+<status status="PASS" start="2026-05-04T16:14:00.515593" elapsed="0.349423"/>
 </test>
 <test id="s1-s3-t3" name="Delete a test case" line="30">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:04.274105" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:04.051076" elapsed="0.223109"/>
+<msg time="2026-05-04T16:14:01.158317" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:00.945053" elapsed="0.213348"/>
 </kw>
 <kw name="I create a project named Delete Case Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:04.289700" level="INFO">Created project 'Delete Case Project' → id=95</msg>
-<status status="PASS" start="2026-05-03T22:26:04.274501" elapsed="0.015284"/>
+<msg time="2026-05-04T16:14:01.178190" level="INFO">Created project 'Delete Case Project' → id=316</msg>
+<status status="PASS" start="2026-05-04T16:14:01.158709" elapsed="0.019566"/>
 </kw>
 <kw name="I create a suite named Suite B" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a suite named ${name}">
-<msg time="2026-05-03T22:26:04.296147" level="INFO">Created suite 'Suite B' → id=49</msg>
-<status status="PASS" start="2026-05-03T22:26:04.290078" elapsed="0.006158"/>
+<msg time="2026-05-04T16:14:01.184790" level="INFO">Created suite 'Suite B' → id=174</msg>
+<status status="PASS" start="2026-05-04T16:14:01.178586" elapsed="0.006282"/>
 </kw>
 <kw name="I create a test case named Disposable Case" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a test case named ${name}">
-<msg time="2026-05-03T22:26:04.302577" level="INFO">Created case 'Disposable Case' → id=77</msg>
-<status status="PASS" start="2026-05-03T22:26:04.296471" elapsed="0.006200"/>
+<msg time="2026-05-04T16:14:01.192860" level="INFO">Created case 'Disposable Case' → id=155</msg>
+<status status="PASS" start="2026-05-04T16:14:01.185145" elapsed="0.008125"/>
 </kw>
 <kw name="I delete the test case" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<status status="PASS" start="2026-05-03T22:26:04.302830" elapsed="0.005369"/>
+<status status="PASS" start="2026-05-04T16:14:01.193779" elapsed="0.006538"/>
 </kw>
 <kw name="the test case should no longer exist" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<status status="PASS" start="2026-05-03T22:26:04.308337" elapsed="0.003253"/>
+<status status="PASS" start="2026-05-04T16:14:01.200523" elapsed="0.002764"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:04.311791" elapsed="0.007623"/>
+<status status="PASS" start="2026-05-04T16:14:01.203468" elapsed="0.010169"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:03.993793" elapsed="0.325714"/>
+<status status="PASS" start="2026-05-04T16:14:00.885341" elapsed="0.328400"/>
 </test>
 <test id="s1-s3-t4" name="Test case with action steps" line="42">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:04.609366" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:04.390743" elapsed="0.218727"/>
+<msg time="2026-05-04T16:14:01.514077" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:01.298672" elapsed="0.215482"/>
 </kw>
 <kw name="I create a project named Steps Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:04.625037" level="INFO">Created project 'Steps Project' → id=96</msg>
-<status status="PASS" start="2026-05-03T22:26:04.609768" elapsed="0.015350"/>
+<msg time="2026-05-04T16:14:01.530956" level="INFO">Created project 'Steps Project' → id=317</msg>
+<status status="PASS" start="2026-05-04T16:14:01.514438" elapsed="0.016614"/>
 </kw>
 <kw name="I create a suite named Steps Suite" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a suite named ${name}">
-<msg time="2026-05-03T22:26:04.632476" level="INFO">Created suite 'Steps Suite' → id=50</msg>
-<status status="PASS" start="2026-05-03T22:26:04.625381" elapsed="0.007261"/>
+<msg time="2026-05-04T16:14:01.536842" level="INFO">Created suite 'Steps Suite' → id=175</msg>
+<status status="PASS" start="2026-05-04T16:14:01.531337" elapsed="0.005583"/>
 </kw>
 <kw name="I create a test case named Multi-Step Case" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a test case named ${name}">
-<msg time="2026-05-03T22:26:04.640499" level="INFO">Created case 'Multi-Step Case' → id=78</msg>
-<status status="PASS" start="2026-05-03T22:26:04.633175" elapsed="0.007433"/>
+<msg time="2026-05-04T16:14:01.545703" level="INFO">Created case 'Multi-Step Case' → id=156</msg>
+<status status="PASS" start="2026-05-04T16:14:01.537171" elapsed="0.008610"/>
 </kw>
 <kw name="I add a step Open the login page to the test case" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I add a step ${action} to the test case">
-<msg time="2026-05-03T22:26:04.648691" level="INFO">Added action step 'Open the login page' → id=733</msg>
-<status status="PASS" start="2026-05-03T22:26:04.640946" elapsed="0.007859"/>
+<msg time="2026-05-04T16:14:01.550708" level="INFO">Added action step 'Open the login page' → id=1881</msg>
+<status status="PASS" start="2026-05-04T16:14:01.546110" elapsed="0.004674"/>
 </kw>
 <kw name="I add a step Enter valid credentials to the test case" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I add a step ${action} to the test case">
-<msg time="2026-05-03T22:26:04.655485" level="INFO">Added action step 'Enter valid credentials' → id=734</msg>
-<status status="PASS" start="2026-05-03T22:26:04.649327" elapsed="0.006253"/>
+<msg time="2026-05-04T16:14:01.559490" level="INFO">Added action step 'Enter valid credentials' → id=1882</msg>
+<status status="PASS" start="2026-05-04T16:14:01.551080" elapsed="0.008910"/>
 </kw>
 <kw name="I add a step Submit the form to the test case" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I add a step ${action} to the test case">
-<msg time="2026-05-03T22:26:04.661266" level="INFO">Added action step 'Submit the form' → id=735</msg>
-<status status="PASS" start="2026-05-03T22:26:04.655900" elapsed="0.005442"/>
+<msg time="2026-05-04T16:14:01.566125" level="INFO">Added action step 'Submit the form' → id=1883</msg>
+<status status="PASS" start="2026-05-04T16:14:01.560976" elapsed="0.005216"/>
 </kw>
 <kw name="The test case should have 3 steps" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the test case should have ${count} steps">
-<status status="PASS" start="2026-05-03T22:26:04.661644" elapsed="0.003885"/>
+<status status="PASS" start="2026-05-04T16:14:01.566434" elapsed="0.003013"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:04.665991" elapsed="0.011578"/>
+<status status="PASS" start="2026-05-04T16:14:01.569834" elapsed="0.011029"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:04.328233" elapsed="0.349475"/>
+<status status="PASS" start="2026-05-04T16:14:01.232134" elapsed="0.348848"/>
 </test>
 <test id="s1-s3-t5" name="Test case with setup and teardown steps" line="56">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:04.963736" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:04.746087" elapsed="0.217731"/>
+<msg time="2026-05-04T16:14:01.885500" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:01.669430" elapsed="0.216152"/>
 </kw>
 <kw name="I create a project named Lifecycle Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:04.981037" level="INFO">Created project 'Lifecycle Project' → id=97</msg>
-<status status="PASS" start="2026-05-03T22:26:04.964087" elapsed="0.017037"/>
+<msg time="2026-05-04T16:14:01.902997" level="INFO">Created project 'Lifecycle Project' → id=318</msg>
+<status status="PASS" start="2026-05-04T16:14:01.885930" elapsed="0.017247"/>
 </kw>
 <kw name="I create a suite named Lifecycle Suite" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a suite named ${name}">
-<msg time="2026-05-03T22:26:04.999461" level="INFO">Created suite 'Lifecycle Suite' → id=51</msg>
-<status status="PASS" start="2026-05-03T22:26:04.981513" elapsed="0.018041"/>
+<msg time="2026-05-04T16:14:01.918119" level="INFO">Created suite 'Lifecycle Suite' → id=176</msg>
+<status status="PASS" start="2026-05-04T16:14:01.903641" elapsed="0.014559"/>
 </kw>
 <kw name="I create a test case named Lifecycle Case" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a test case named ${name}">
-<msg time="2026-05-03T22:26:05.010351" level="INFO">Created case 'Lifecycle Case' → id=79</msg>
-<status status="PASS" start="2026-05-03T22:26:04.999890" elapsed="0.010542"/>
+<msg time="2026-05-04T16:14:01.930120" level="INFO">Created case 'Lifecycle Case' → id=157</msg>
+<status status="PASS" start="2026-05-04T16:14:01.918490" elapsed="0.011708"/>
 </kw>
 <kw name="I add setup step Prepare test data to the test case" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I add ${step_type} step ${action} to the test case">
-<msg time="2026-05-03T22:26:05.015792" level="INFO">Added setup step 'Prepare test data' → id=745</msg>
-<status status="PASS" start="2026-05-03T22:26:05.010668" elapsed="0.005208"/>
+<msg time="2026-05-04T16:14:01.935076" level="INFO">Added setup step 'Prepare test data' → id=1893</msg>
+<status status="PASS" start="2026-05-04T16:14:01.930488" elapsed="0.004681"/>
 </kw>
 <kw name="I add action step Execute the main flow to the test case" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I add ${step_type} step ${action} to the test case">
-<msg time="2026-05-03T22:26:05.024971" level="INFO">Added action step 'Execute the main flow' → id=746</msg>
-<status status="PASS" start="2026-05-03T22:26:05.016178" elapsed="0.008890"/>
+<msg time="2026-05-04T16:14:01.944344" level="INFO">Added action step 'Execute the main flow' → id=1894</msg>
+<status status="PASS" start="2026-05-04T16:14:01.935528" elapsed="0.008925"/>
 </kw>
 <kw name="I add teardown step Clean up test data to the test case" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I add ${step_type} step ${action} to the test case">
-<msg time="2026-05-03T22:26:05.030219" level="INFO">Added teardown step 'Clean up test data' → id=747</msg>
-<status status="PASS" start="2026-05-03T22:26:05.025354" elapsed="0.004945"/>
+<msg time="2026-05-04T16:14:01.949830" level="INFO">Added teardown step 'Clean up test data' → id=1895</msg>
+<status status="PASS" start="2026-05-04T16:14:01.944902" elapsed="0.005017"/>
 </kw>
 <kw name="The test case should have 3 steps" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the test case should have ${count} steps">
-<status status="PASS" start="2026-05-03T22:26:05.030554" elapsed="0.003851"/>
+<status status="PASS" start="2026-05-04T16:14:01.950229" elapsed="0.003451"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:05.034904" elapsed="0.013156"/>
+<status status="PASS" start="2026-05-04T16:14:01.953894" elapsed="0.012314"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:04.683983" elapsed="0.364213"/>
+<status status="PASS" start="2026-05-04T16:14:01.602564" elapsed="0.363752"/>
 </test>
 <test id="s1-s3-t6" name="Test case with external ID for automation matching" line="70">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:05.336251" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:05.112319" elapsed="0.224051"/>
+<msg time="2026-05-04T16:14:02.258213" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:02.043364" elapsed="0.214929"/>
 </kw>
 <kw name="I create a project named Automation Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:05.352244" level="INFO">Created project 'Automation Project' → id=98</msg>
-<status status="PASS" start="2026-05-03T22:26:05.336728" elapsed="0.015597"/>
+<msg time="2026-05-04T16:14:02.278261" level="INFO">Created project 'Automation Project' → id=319</msg>
+<status status="PASS" start="2026-05-04T16:14:02.258574" elapsed="0.019804"/>
 </kw>
 <kw name="I create a suite named Automation Suite" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a suite named ${name}">
-<msg time="2026-05-03T22:26:05.360856" level="INFO">Created suite 'Automation Suite' → id=52</msg>
-<status status="PASS" start="2026-05-03T22:26:05.352566" elapsed="0.008371"/>
+<msg time="2026-05-04T16:14:02.284835" level="INFO">Created suite 'Automation Suite' → id=177</msg>
+<status status="PASS" start="2026-05-04T16:14:02.278856" elapsed="0.006069"/>
 </kw>
 <kw name="I create a test case named Automated Login with external id com.example.LoginTest.testHappyPath" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a test case named ${name} with external id ${external_id}">
-<msg time="2026-05-03T22:26:05.366519" level="INFO">Created case 'Automated Login' (external_id=com.example.LoginTest.testHappyPath) → id=80</msg>
-<status status="PASS" start="2026-05-03T22:26:05.361252" elapsed="0.005352"/>
+<msg time="2026-05-04T16:14:02.291721" level="INFO">Created case 'Automated Login' (external_id=com.example.LoginTest.testHappyPath) → id=158</msg>
+<status status="PASS" start="2026-05-04T16:14:02.285235" elapsed="0.006891"/>
 </kw>
 <kw name="The test case name should be Automated Login" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the test case name should be ${name}">
-<status status="PASS" start="2026-05-03T22:26:05.366847" elapsed="0.003880"/>
+<status status="PASS" start="2026-05-04T16:14:02.293409" elapsed="0.005852"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:05.371922" elapsed="0.010416"/>
+<status status="PASS" start="2026-05-04T16:14:02.299535" elapsed="0.012128"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:05.058855" elapsed="0.323564"/>
+<status status="PASS" start="2026-05-04T16:14:01.990323" elapsed="0.321482"/>
 </test>
-<status status="PASS" start="2026-05-03T22:26:03.227527" elapsed="2.164691"/>
+<status status="PASS" start="2026-05-04T16:14:00.150323" elapsed="2.182371"/>
 </suite>
 <suite id="s1-s4" name="04 Executions" source="/tests/e2e/suites/04_executions.robot">
 <test id="s1-s4-t1" name="Create and complete an execution" line="6">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:05.695494" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:05.468915" elapsed="0.226667"/>
+<msg time="2026-05-04T16:14:02.624418" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:02.401953" elapsed="0.222548"/>
 </kw>
 <kw name="I create a project named Exec Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:05.711952" level="INFO">Created project 'Exec Project' → id=99</msg>
-<status status="PASS" start="2026-05-03T22:26:05.695907" elapsed="0.016124"/>
+<msg time="2026-05-04T16:14:02.643887" level="INFO">Created project 'Exec Project' → id=320</msg>
+<status status="PASS" start="2026-05-04T16:14:02.624830" elapsed="0.019517"/>
 </kw>
 <kw name="I create a suite named Exec Suite" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a suite named ${name}">
-<msg time="2026-05-03T22:26:05.719498" level="INFO">Created suite 'Exec Suite' → id=53</msg>
-<status status="PASS" start="2026-05-03T22:26:05.712289" elapsed="0.007288"/>
+<msg time="2026-05-04T16:14:02.651973" level="INFO">Created suite 'Exec Suite' → id=178</msg>
+<status status="PASS" start="2026-05-04T16:14:02.645438" elapsed="0.006607"/>
 </kw>
 <kw name="I create a test case named Login Test" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a test case named ${name}">
-<msg time="2026-05-03T22:26:05.729062" level="INFO">Created case 'Login Test' → id=81</msg>
-<msg time="2026-05-03T22:26:05.729214" level="INFO">${case_id} = 81</msg>
+<msg time="2026-05-04T16:14:02.659418" level="INFO">Created case 'Login Test' → id=159</msg>
+<msg time="2026-05-04T16:14:02.660022" level="INFO">${case_id} = 159</msg>
 <var>${case_id}</var>
-<status status="PASS" start="2026-05-03T22:26:05.719848" elapsed="0.009398"/>
+<status status="PASS" start="2026-05-04T16:14:02.652310" elapsed="0.007761"/>
 </kw>
 <kw name="I start an execution titled Sprint 1 Run" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I start an execution titled ${title}">
-<msg time="2026-05-03T22:26:05.736651" level="INFO">Started execution 'Sprint 1 Run' → id=34</msg>
-<status status="PASS" start="2026-05-03T22:26:05.729539" elapsed="0.007199"/>
+<msg time="2026-05-04T16:14:02.668551" level="INFO">Started execution 'Sprint 1 Run' → id=75</msg>
+<status status="PASS" start="2026-05-04T16:14:02.661214" elapsed="0.007414"/>
 </kw>
 <kw name="I report case ${case_id} as passed" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I report case ${case_id} as ${status}">
-<msg time="2026-05-03T22:26:05.746386" level="INFO">Reported case 81 as 'passed' → result id=92</msg>
-<status status="PASS" start="2026-05-03T22:26:05.737122" elapsed="0.009356"/>
+<msg time="2026-05-04T16:14:02.678311" level="INFO">Reported case 159 as 'passed' → result id=303</msg>
+<status status="PASS" start="2026-05-04T16:14:02.669069" elapsed="0.009347"/>
 </kw>
 <kw name="I complete the execution" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<status status="PASS" start="2026-05-03T22:26:05.746663" elapsed="0.011242"/>
+<status status="PASS" start="2026-05-04T16:14:02.678629" elapsed="0.007109"/>
 </kw>
 <kw name="The execution status should be completed" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the execution status should be ${status}">
-<status status="PASS" start="2026-05-03T22:26:05.758329" elapsed="0.004388"/>
+<status status="PASS" start="2026-05-04T16:14:02.686023" elapsed="0.003163"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:05.762962" elapsed="0.014484"/>
+<status status="PASS" start="2026-05-04T16:14:02.689380" elapsed="0.014438"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:05.398884" elapsed="0.378687"/>
+<status status="PASS" start="2026-05-04T16:14:02.337519" elapsed="0.366435"/>
 </test>
 <test id="s1-s4-t2" name="Execution tracks result count" line="20">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:06.092728" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:05.865665" elapsed="0.227159"/>
+<msg time="2026-05-04T16:14:03.014128" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:02.797999" elapsed="0.216215"/>
 </kw>
 <kw name="I create a project named Result Count Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:06.100665" level="INFO">Created project 'Result Count Project' → id=100</msg>
-<status status="PASS" start="2026-05-03T22:26:06.093126" elapsed="0.007615"/>
+<msg time="2026-05-04T16:14:03.033839" level="INFO">Created project 'Result Count Project' → id=321</msg>
+<status status="PASS" start="2026-05-04T16:14:03.014501" elapsed="0.019446"/>
 </kw>
 <kw name="I create a suite named Result Count Suite" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a suite named ${name}">
-<msg time="2026-05-03T22:26:06.108227" level="INFO">Created suite 'Result Count Suite' → id=54</msg>
-<status status="PASS" start="2026-05-03T22:26:06.100986" elapsed="0.007321"/>
+<msg time="2026-05-04T16:14:03.043171" level="INFO">Created suite 'Result Count Suite' → id=179</msg>
+<status status="PASS" start="2026-05-04T16:14:03.034277" elapsed="0.009514"/>
 </kw>
 <kw name="I create a test case named Test A" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a test case named ${name}">
-<msg time="2026-05-03T22:26:06.114098" level="INFO">Created case 'Test A' → id=82</msg>
-<msg time="2026-05-03T22:26:06.114352" level="INFO">${case_a} = 82</msg>
+<msg time="2026-05-04T16:14:03.062299" level="INFO">Created case 'Test A' → id=160</msg>
+<msg time="2026-05-04T16:14:03.063680" level="INFO">${case_a} = 160</msg>
 <var>${case_a}</var>
-<status status="PASS" start="2026-05-03T22:26:06.108550" elapsed="0.005826"/>
+<status status="PASS" start="2026-05-04T16:14:03.045980" elapsed="0.017844"/>
 </kw>
 <kw name="I create a test case named Test B" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a test case named ${name}">
-<msg time="2026-05-03T22:26:06.120579" level="INFO">Created case 'Test B' → id=83</msg>
-<msg time="2026-05-03T22:26:06.120743" level="INFO">${case_b} = 83</msg>
+<msg time="2026-05-04T16:14:03.072341" level="INFO">Created case 'Test B' → id=161</msg>
+<msg time="2026-05-04T16:14:03.072458" level="INFO">${case_b} = 161</msg>
 <var>${case_b}</var>
-<status status="PASS" start="2026-05-03T22:26:06.114782" elapsed="0.005993"/>
+<status status="PASS" start="2026-05-04T16:14:03.064669" elapsed="0.007807"/>
 </kw>
 <kw name="I start an execution titled Count Check Run" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I start an execution titled ${title}">
-<msg time="2026-05-03T22:26:06.129269" level="INFO">Started execution 'Count Check Run' → id=35</msg>
-<status status="PASS" start="2026-05-03T22:26:06.121103" elapsed="0.008245"/>
+<msg time="2026-05-04T16:14:03.086254" level="INFO">Started execution 'Count Check Run' → id=76</msg>
+<status status="PASS" start="2026-05-04T16:14:03.072797" elapsed="0.013541"/>
 </kw>
 <kw name="I report case ${case_a} as passed" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I report case ${case_id} as ${status}">
-<msg time="2026-05-03T22:26:06.135925" level="INFO">Reported case 82 as 'passed' → result id=94</msg>
-<status status="PASS" start="2026-05-03T22:26:06.129777" elapsed="0.006219"/>
+<msg time="2026-05-04T16:14:03.099115" level="INFO">Reported case 160 as 'passed' → result id=305</msg>
+<status status="PASS" start="2026-05-04T16:14:03.086801" elapsed="0.012398"/>
 </kw>
 <kw name="I report case ${case_b} as failed" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I report case ${case_id} as ${status}">
-<msg time="2026-05-03T22:26:06.144450" level="INFO">Reported case 83 as 'failed' → result id=95</msg>
-<status status="PASS" start="2026-05-03T22:26:06.136338" elapsed="0.008205"/>
+<msg time="2026-05-04T16:14:03.107007" level="INFO">Reported case 161 as 'failed' → result id=306</msg>
+<status status="PASS" start="2026-05-04T16:14:03.099789" elapsed="0.007339"/>
 </kw>
 <kw name="The execution should have 2 results" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the execution should have ${count} results">
-<status status="PASS" start="2026-05-03T22:26:06.144831" elapsed="0.005289"/>
+<status status="PASS" start="2026-05-04T16:14:03.107671" elapsed="0.009680"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:06.150383" elapsed="0.013842"/>
+<status status="PASS" start="2026-05-04T16:14:03.117592" elapsed="0.016781"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:05.786836" elapsed="0.377500"/>
+<status status="PASS" start="2026-05-04T16:14:02.725611" elapsed="0.408856"/>
 </test>
 <test id="s1-s4-t3" name="Abort an execution" line="35">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:06.428407" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:06.218072" elapsed="0.210409"/>
+<msg time="2026-05-04T16:14:03.441735" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:03.220354" elapsed="0.221460"/>
 </kw>
 <kw name="I create a project named Abort Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:06.446351" level="INFO">Created project 'Abort Project' → id=101</msg>
-<status status="PASS" start="2026-05-03T22:26:06.428738" elapsed="0.017715"/>
+<msg time="2026-05-04T16:14:03.460784" level="INFO">Created project 'Abort Project' → id=322</msg>
+<status status="PASS" start="2026-05-04T16:14:03.442136" elapsed="0.019386"/>
 </kw>
 <kw name="I start an execution titled Run To Abort" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I start an execution titled ${title}">
-<msg time="2026-05-03T22:26:06.456143" level="INFO">Started execution 'Run To Abort' → id=36</msg>
-<status status="PASS" start="2026-05-03T22:26:06.446762" elapsed="0.009462"/>
+<msg time="2026-05-04T16:14:03.467525" level="INFO">Started execution 'Run To Abort' → id=77</msg>
+<status status="PASS" start="2026-05-04T16:14:03.462093" elapsed="0.005504"/>
 </kw>
 <kw name="I abort the execution" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<status status="PASS" start="2026-05-03T22:26:06.456397" elapsed="0.005634"/>
+<status status="PASS" start="2026-05-04T16:14:03.467725" elapsed="0.004845"/>
 </kw>
 <kw name="The execution status should be aborted" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the execution status should be ${status}">
-<status status="PASS" start="2026-05-03T22:26:06.462303" elapsed="0.007249"/>
+<status status="PASS" start="2026-05-04T16:14:03.472831" elapsed="0.003118"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:06.469861" elapsed="0.006567"/>
+<status status="PASS" start="2026-05-04T16:14:03.476136" elapsed="0.010799"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:06.170381" elapsed="0.306136"/>
+<status status="PASS" start="2026-05-04T16:14:03.163188" elapsed="0.323837"/>
 </test>
 <test id="s1-s4-t4" name="Delete an execution" line="46">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:06.746527" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:06.538406" elapsed="0.208200"/>
+<msg time="2026-05-04T16:14:03.774148" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:03.558196" elapsed="0.216028"/>
 </kw>
 <kw name="I create a project named Cleanup Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:06.764267" level="INFO">Created project 'Cleanup Project' → id=102</msg>
-<status status="PASS" start="2026-05-03T22:26:06.746866" elapsed="0.017497"/>
+<msg time="2026-05-04T16:14:03.798879" level="INFO">Created project 'Cleanup Project' → id=323</msg>
+<status status="PASS" start="2026-05-04T16:14:03.774485" elapsed="0.024477"/>
 </kw>
 <kw name="I start an execution titled To Delete" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I start an execution titled ${title}">
-<msg time="2026-05-03T22:26:06.773555" level="INFO">Started execution 'To Delete' → id=37</msg>
-<status status="PASS" start="2026-05-03T22:26:06.764652" elapsed="0.008974"/>
+<msg time="2026-05-04T16:14:03.804488" level="INFO">Started execution 'To Delete' → id=78</msg>
+<status status="PASS" start="2026-05-04T16:14:03.799238" elapsed="0.005325"/>
 </kw>
 <kw name="I complete the execution" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<status status="PASS" start="2026-05-03T22:26:06.773759" elapsed="0.004834"/>
+<status status="PASS" start="2026-05-04T16:14:03.804683" elapsed="0.010417"/>
 </kw>
 <kw name="I delete the execution" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<status status="PASS" start="2026-05-03T22:26:06.778716" elapsed="0.004796"/>
+<status status="PASS" start="2026-05-04T16:14:03.815642" elapsed="0.005126"/>
 </kw>
 <kw name="the execution should no longer exist" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<status status="PASS" start="2026-05-03T22:26:06.783888" elapsed="0.006478"/>
+<status status="PASS" start="2026-05-04T16:14:03.820915" elapsed="0.002598"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:06.790571" elapsed="0.005821"/>
+<status status="PASS" start="2026-05-04T16:14:03.823717" elapsed="0.012446"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:06.486483" elapsed="0.310003"/>
+<status status="PASS" start="2026-05-04T16:14:03.505260" elapsed="0.330987"/>
 </test>
-<status status="PASS" start="2026-05-03T22:26:05.392553" elapsed="1.413411"/>
+<status status="PASS" start="2026-05-04T16:14:02.332978" elapsed="1.527779"/>
 </suite>
 <suite id="s1-s5" name="05 Versions" source="/tests/e2e/suites/05_versions.robot">
 <test id="s1-s5-t1" name="Create and read a version" line="6">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:07.064483" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:06.854895" elapsed="0.209686"/>
+<msg time="2026-05-04T16:14:04.136522" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:03.918732" elapsed="0.218253"/>
 </kw>
 <kw name="I create a project named Versioned App" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:07.080937" level="INFO">Created project 'Versioned App' → id=103</msg>
-<status status="PASS" start="2026-05-03T22:26:07.064836" elapsed="0.016178"/>
+<msg time="2026-05-04T16:14:04.164967" level="INFO">Created project 'Versioned App' → id=324</msg>
+<status status="PASS" start="2026-05-04T16:14:04.137660" elapsed="0.027925"/>
 </kw>
 <kw name="I create version 1.0.0" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create version ${name}">
-<msg time="2026-05-03T22:26:07.091508" level="INFO">Created version '1.0.0' → id=37</msg>
-<status status="PASS" start="2026-05-03T22:26:07.081275" elapsed="0.010311"/>
+<msg time="2026-05-04T16:14:04.179587" level="INFO">Created version '1.0.0' → id=84</msg>
+<status status="PASS" start="2026-05-04T16:14:04.166249" elapsed="0.013929"/>
 </kw>
 <kw name="The version status should be active" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the version status should be ${status}">
-<status status="PASS" start="2026-05-03T22:26:07.091820" elapsed="0.004654"/>
+<status status="PASS" start="2026-05-04T16:14:04.181406" elapsed="0.003539"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:07.096769" elapsed="0.014147"/>
+<status status="PASS" start="2026-05-04T16:14:04.185165" elapsed="0.009194"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:06.810918" elapsed="0.300082"/>
+<status status="PASS" start="2026-05-04T16:14:03.868513" elapsed="0.326353"/>
 </test>
 <test id="s1-s5-t2" name="Release a version" line="16">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:07.378389" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:07.166060" elapsed="0.212468"/>
+<msg time="2026-05-04T16:14:04.504180" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:04.287392" elapsed="0.216927"/>
 </kw>
 <kw name="I create a project named Release App" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:07.397719" level="INFO">Created project 'Release App' → id=104</msg>
-<status status="PASS" start="2026-05-03T22:26:07.378865" elapsed="0.019424"/>
+<msg time="2026-05-04T16:14:04.521806" level="INFO">Created project 'Release App' → id=325</msg>
+<status status="PASS" start="2026-05-04T16:14:04.504626" elapsed="0.017281"/>
 </kw>
 <kw name="I create version 2.0.0" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create version ${name}">
-<msg time="2026-05-03T22:26:07.405240" level="INFO">Created version '2.0.0' → id=38</msg>
-<status status="PASS" start="2026-05-03T22:26:07.399652" elapsed="0.005659"/>
+<msg time="2026-05-04T16:14:04.526497" level="INFO">Created version '2.0.0' → id=85</msg>
+<status status="PASS" start="2026-05-04T16:14:04.522183" elapsed="0.004378"/>
 </kw>
 <kw name="I release the version" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<status status="PASS" start="2026-05-03T22:26:07.405435" elapsed="0.005538"/>
+<status status="PASS" start="2026-05-04T16:14:04.526677" elapsed="0.003917"/>
 </kw>
 <kw name="The version status should be released" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the version status should be ${status}">
-<status status="PASS" start="2026-05-03T22:26:07.411200" elapsed="0.002680"/>
+<status status="PASS" start="2026-05-04T16:14:04.530837" elapsed="0.002328"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:07.414110" elapsed="0.010179"/>
+<status status="PASS" start="2026-05-04T16:14:04.533338" elapsed="0.005182"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:07.116720" elapsed="0.307647"/>
+<status status="PASS" start="2026-05-04T16:14:04.217383" elapsed="0.321215"/>
 </test>
 <test id="s1-s5-t3" name="Archive a version" line="27">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:07.692598" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:07.482255" elapsed="0.210446"/>
+<msg time="2026-05-04T16:14:04.827476" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:04.611990" elapsed="0.215580"/>
 </kw>
 <kw name="I create a project named Archive App" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:07.713181" level="INFO">Created project 'Archive App' → id=105</msg>
-<status status="PASS" start="2026-05-03T22:26:07.693040" elapsed="0.020737"/>
+<msg time="2026-05-04T16:14:04.844467" level="INFO">Created project 'Archive App' → id=326</msg>
+<status status="PASS" start="2026-05-04T16:14:04.827891" elapsed="0.016688"/>
 </kw>
 <kw name="I create version 3.0.0" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create version ${name}">
-<msg time="2026-05-03T22:26:07.719167" level="INFO">Created version '3.0.0' → id=39</msg>
-<status status="PASS" start="2026-05-03T22:26:07.714267" elapsed="0.004979"/>
+<msg time="2026-05-04T16:14:04.851754" level="INFO">Created version '3.0.0' → id=86</msg>
+<status status="PASS" start="2026-05-04T16:14:04.845001" elapsed="0.006830"/>
 </kw>
 <kw name="I release the version" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<status status="PASS" start="2026-05-03T22:26:07.719372" elapsed="0.004218"/>
+<status status="PASS" start="2026-05-04T16:14:04.851982" elapsed="0.004095"/>
 </kw>
 <kw name="I archive the version" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<status status="PASS" start="2026-05-03T22:26:07.723707" elapsed="0.003805"/>
+<status status="PASS" start="2026-05-04T16:14:04.856207" elapsed="0.007835"/>
 </kw>
 <kw name="The version status should be archived" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the version status should be ${status}">
-<status status="PASS" start="2026-05-03T22:26:07.727769" elapsed="0.006551"/>
+<status status="PASS" start="2026-05-04T16:14:04.864377" elapsed="0.003867"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:07.734503" elapsed="0.005701"/>
+<status status="PASS" start="2026-05-04T16:14:04.868465" elapsed="0.005658"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:07.430229" elapsed="0.310045"/>
+<status status="PASS" start="2026-05-04T16:14:04.564666" elapsed="0.309525"/>
 </test>
 <test id="s1-s5-t4" name="Delete a version" line="39">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:08.007477" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:07.797505" elapsed="0.210045"/>
+<msg time="2026-05-04T16:14:05.162963" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:04.950076" elapsed="0.212968"/>
 </kw>
 <kw name="I create a project named Delete Version App" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:08.023279" level="INFO">Created project 'Delete Version App' → id=106</msg>
-<status status="PASS" start="2026-05-03T22:26:08.007792" elapsed="0.015564"/>
+<msg time="2026-05-04T16:14:05.181212" level="INFO">Created project 'Delete Version App' → id=327</msg>
+<status status="PASS" start="2026-05-04T16:14:05.163311" elapsed="0.017977"/>
 </kw>
 <kw name="I create version 0.1.0" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create version ${name}">
-<msg time="2026-05-03T22:26:08.028501" level="INFO">Created version '0.1.0' → id=40</msg>
-<status status="PASS" start="2026-05-03T22:26:08.023613" elapsed="0.004972"/>
+<msg time="2026-05-04T16:14:05.185597" level="INFO">Created version '0.1.0' → id=87</msg>
+<status status="PASS" start="2026-05-04T16:14:05.181555" elapsed="0.004107"/>
 </kw>
 <kw name="I delete the version" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<status status="PASS" start="2026-05-03T22:26:08.028748" elapsed="0.008901"/>
+<status status="PASS" start="2026-05-04T16:14:05.185789" elapsed="0.003559"/>
 </kw>
 <kw name="the version should no longer exist" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<status status="PASS" start="2026-05-03T22:26:08.037815" elapsed="0.002626"/>
+<status status="PASS" start="2026-05-04T16:14:05.189461" elapsed="0.002405"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:08.040613" elapsed="0.007108"/>
+<status status="PASS" start="2026-05-04T16:14:05.192047" elapsed="0.004709"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:07.749564" elapsed="0.298413"/>
+<status status="PASS" start="2026-05-04T16:14:04.897820" elapsed="0.298998"/>
 </test>
 <test id="s1-s5-t5" name="Project accumulates multiple versions" line="50">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:08.318466" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:08.108963" elapsed="0.209581"/>
+<msg time="2026-05-04T16:14:05.477824" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:05.268075" elapsed="0.209848"/>
 </kw>
 <kw name="I create a project named Multi Version App" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:08.336705" level="INFO">Created project 'Multi Version App' → id=107</msg>
-<status status="PASS" start="2026-05-03T22:26:08.318800" elapsed="0.018107"/>
+<msg time="2026-05-04T16:14:05.498268" level="INFO">Created project 'Multi Version App' → id=328</msg>
+<status status="PASS" start="2026-05-04T16:14:05.478240" elapsed="0.020103"/>
 </kw>
 <kw name="I create version 1.0.0" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create version ${name}">
-<msg time="2026-05-03T22:26:08.345070" level="INFO">Created version '1.0.0' → id=41</msg>
-<status status="PASS" start="2026-05-03T22:26:08.337842" elapsed="0.007299"/>
+<msg time="2026-05-04T16:14:05.502988" level="INFO">Created version '1.0.0' → id=88</msg>
+<status status="PASS" start="2026-05-04T16:14:05.498616" elapsed="0.004435"/>
 </kw>
 <kw name="I create version 2.0.0" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create version ${name}">
-<msg time="2026-05-03T22:26:08.349507" level="INFO">Created version '2.0.0' → id=42</msg>
-<status status="PASS" start="2026-05-03T22:26:08.345387" elapsed="0.004205"/>
+<msg time="2026-05-04T16:14:05.506985" level="INFO">Created version '2.0.0' → id=89</msg>
+<status status="PASS" start="2026-05-04T16:14:05.503294" elapsed="0.003754"/>
 </kw>
 <kw name="I create version 3.0.0" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create version ${name}">
-<msg time="2026-05-03T22:26:08.354452" level="INFO">Created version '3.0.0' → id=43</msg>
-<status status="PASS" start="2026-05-03T22:26:08.349852" elapsed="0.004703"/>
+<msg time="2026-05-04T16:14:05.510996" level="INFO">Created version '3.0.0' → id=90</msg>
+<status status="PASS" start="2026-05-04T16:14:05.507307" elapsed="0.003747"/>
 </kw>
 <kw name="The project should have 3 versions" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the project should have ${count} versions">
-<status status="PASS" start="2026-05-03T22:26:08.354823" elapsed="0.009608"/>
+<status status="PASS" start="2026-05-04T16:14:05.511298" elapsed="0.002439"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:08.364671" elapsed="0.012377"/>
+<status status="PASS" start="2026-05-04T16:14:05.514104" elapsed="0.011579"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:08.056268" elapsed="0.320948"/>
+<status status="PASS" start="2026-05-04T16:14:05.221949" elapsed="0.303830"/>
 </test>
 <test id="s1-s5-t6" name="Execution linked to a version" line="62">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:08.638865" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:08.429804" elapsed="0.209177"/>
+<msg time="2026-05-04T16:14:05.799795" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:05.590876" elapsed="0.209006"/>
 </kw>
 <kw name="I create a project named Linked App" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:08.656824" level="INFO">Created project 'Linked App' → id=108</msg>
-<status status="PASS" start="2026-05-03T22:26:08.639371" elapsed="0.017609"/>
+<msg time="2026-05-04T16:14:05.819277" level="INFO">Created project 'Linked App' → id=329</msg>
+<status status="PASS" start="2026-05-04T16:14:05.800163" elapsed="0.019187"/>
 </kw>
 <kw name="I create version v1.2.3" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create version ${name}">
-<msg time="2026-05-03T22:26:08.665012" level="INFO">Created version 'v1.2.3' → id=44</msg>
-<status status="PASS" start="2026-05-03T22:26:08.657739" elapsed="0.007340"/>
+<msg time="2026-05-04T16:14:05.823792" level="INFO">Created version 'v1.2.3' → id=91</msg>
+<status status="PASS" start="2026-05-04T16:14:05.819606" elapsed="0.004252"/>
 </kw>
 <kw name="I start a versioned execution titled Regression Run" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I start a versioned execution titled ${title}">
-<msg time="2026-05-03T22:26:08.670212" level="INFO">Started versioned execution 'Regression Run' → id=38</msg>
-<status status="PASS" start="2026-05-03T22:26:08.665303" elapsed="0.004973"/>
+<msg time="2026-05-04T16:14:05.828763" level="INFO">Started versioned execution 'Regression Run' → id=79</msg>
+<status status="PASS" start="2026-05-04T16:14:05.824133" elapsed="0.004685"/>
 </kw>
 <kw name="the execution version should be set" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<status status="PASS" start="2026-05-03T22:26:08.670431" elapsed="0.003420"/>
+<status status="PASS" start="2026-05-04T16:14:05.828966" elapsed="0.002851"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:08.674092" elapsed="0.011583"/>
+<status status="PASS" start="2026-05-04T16:14:05.831988" elapsed="0.011214"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:08.382827" elapsed="0.302931"/>
+<status status="PASS" start="2026-05-04T16:14:05.550145" elapsed="0.293145"/>
 </test>
 <test id="s1-s5-t7" name="Version with VCS tag" line="73">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:08.943406" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:08.736277" elapsed="0.207215"/>
+<msg time="2026-05-04T16:14:06.107095" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:05.899046" elapsed="0.208121"/>
 </kw>
 <kw name="I create a project named Tagged App" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:08.961109" level="INFO">Created project 'Tagged App' → id=109</msg>
-<status status="PASS" start="2026-05-03T22:26:08.943793" elapsed="0.017413"/>
+<msg time="2026-05-04T16:14:06.125882" level="INFO">Created project 'Tagged App' → id=330</msg>
+<status status="PASS" start="2026-05-04T16:14:06.107422" elapsed="0.018544"/>
 </kw>
 <kw name="I create version 1.0.0 tagged v1.0.0" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create version ${name} tagged ${vcs_tag}">
-<msg time="2026-05-03T22:26:08.969672" level="INFO">Created version '1.0.0' → id=45</msg>
-<status status="PASS" start="2026-05-03T22:26:08.961649" elapsed="0.008104"/>
+<msg time="2026-05-04T16:14:06.130698" level="INFO">Created version '1.0.0' → id=92</msg>
+<status status="PASS" start="2026-05-04T16:14:06.126311" elapsed="0.004455"/>
 </kw>
 <kw name="The version status should be active" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the version status should be ${status}">
-<status status="PASS" start="2026-05-03T22:26:08.970008" elapsed="0.002796"/>
+<status status="PASS" start="2026-05-04T16:14:06.131013" elapsed="0.002494"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:08.972975" elapsed="0.005695"/>
+<status status="PASS" start="2026-05-04T16:14:06.133675" elapsed="0.005369"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:08.691261" elapsed="0.287506"/>
+<status status="PASS" start="2026-05-04T16:14:05.862791" elapsed="0.276324"/>
 </test>
-<status status="PASS" start="2026-05-03T22:26:06.806241" elapsed="2.182218"/>
+<status status="PASS" start="2026-05-04T16:14:03.862102" elapsed="2.294948"/>
 </suite>
 <suite id="s1-s6" name="06 Imports" source="/tests/e2e/suites/06_imports.robot">
 <test id="s1-s6-t1" name="Import JUnit results and match by external ID" line="11">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:09.265921" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:09.056154" elapsed="0.209849"/>
+<msg time="2026-05-04T16:14:06.434164" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:06.219192" elapsed="0.215050"/>
 </kw>
 <kw name="I create a project named JUnit Import Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:09.283786" level="INFO">Created project 'JUnit Import Project' → id=110</msg>
-<status status="PASS" start="2026-05-03T22:26:09.266260" elapsed="0.017605"/>
+<msg time="2026-05-04T16:14:06.453196" level="INFO">Created project 'JUnit Import Project' → id=331</msg>
+<status status="PASS" start="2026-05-04T16:14:06.434506" elapsed="0.018768"/>
 </kw>
 <kw name="I create a suite named Login Test Suite" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a suite named ${name}">
-<msg time="2026-05-03T22:26:09.298137" level="INFO">Created suite 'Login Test Suite' → id=55</msg>
-<status status="PASS" start="2026-05-03T22:26:09.284132" elapsed="0.014104"/>
+<msg time="2026-05-04T16:14:06.458775" level="INFO">Created suite 'Login Test Suite' → id=180</msg>
+<status status="PASS" start="2026-05-04T16:14:06.453572" elapsed="0.005268"/>
 </kw>
 <kw name="I create a test case named Happy Path Login with external id com.example.LoginTest.testHappyPath" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a test case named ${name} with external id ${external_id}">
-<msg time="2026-05-03T22:26:09.308045" level="INFO">Created case 'Happy Path Login' (external_id=com.example.LoginTest.testHappyPath) → id=84</msg>
-<status status="PASS" start="2026-05-03T22:26:09.298616" elapsed="0.009536"/>
+<msg time="2026-05-04T16:14:06.464218" level="INFO">Created case 'Happy Path Login' (external_id=com.example.LoginTest.testHappyPath) → id=162</msg>
+<status status="PASS" start="2026-05-04T16:14:06.459192" elapsed="0.005089"/>
 </kw>
 <kw name="I create a test case named Wrong Password with external id com.example.LoginTest.testWrongPassword" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a test case named ${name} with external id ${external_id}">
-<msg time="2026-05-03T22:26:09.313971" level="INFO">Created case 'Wrong Password' (external_id=com.example.LoginTest.testWrongPassword) → id=85</msg>
-<status status="PASS" start="2026-05-03T22:26:09.308589" elapsed="0.005448"/>
+<msg time="2026-05-04T16:14:06.469295" level="INFO">Created case 'Wrong Password' (external_id=com.example.LoginTest.testWrongPassword) → id=163</msg>
+<status status="PASS" start="2026-05-04T16:14:06.464573" elapsed="0.004790"/>
 </kw>
 <kw name="I start an execution titled JUnit Run for the current suite" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I start an execution titled ${title} for the current suite">
-<status status="PASS" start="2026-05-03T22:26:09.314292" elapsed="0.014885"/>
+<status status="PASS" start="2026-05-04T16:14:06.469687" elapsed="0.015931"/>
 </kw>
 <kw name="I import JUnit results from ${JUNIT_FILE} and store the summary" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I import JUnit results from ${file_path} and store the summary">
-<msg time="2026-05-03T22:26:09.336135" level="INFO">JUnit import: 0 updated, [] errors</msg>
-<status status="PASS" start="2026-05-03T22:26:09.329611" elapsed="0.006758"/>
+<msg time="2026-05-04T16:14:06.497557" level="INFO">JUnit import: 0 updated, [] errors</msg>
+<status status="PASS" start="2026-05-04T16:14:06.486134" elapsed="0.011501"/>
 </kw>
 <kw name="The import should have updated 2 results" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the import should have updated ${count} results">
-<status status="PASS" start="2026-05-03T22:26:09.336806" elapsed="0.000182"/>
+<status status="PASS" start="2026-05-04T16:14:06.497935" elapsed="0.000106"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:09.337221" elapsed="0.015761"/>
+<status status="PASS" start="2026-05-04T16:14:06.498203" elapsed="0.015478"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:08.993560" elapsed="0.359705"/>
+<status status="PASS" start="2026-05-04T16:14:06.163512" elapsed="0.350277"/>
 </test>
 <test id="s1-s6-t2" name="Import Robot Framework results and match by title" line="25">
 <kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
-<msg time="2026-05-03T22:26:09.638682" level="INFO">Authenticated as 'admin'</msg>
-<status status="PASS" start="2026-05-03T22:26:09.429864" elapsed="0.208894"/>
+<msg time="2026-05-04T16:14:06.801494" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:06.593018" elapsed="0.208552"/>
 </kw>
 <kw name="I create a project named RF Import Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
-<msg time="2026-05-03T22:26:09.656518" level="INFO">Created project 'RF Import Project' → id=111</msg>
-<status status="PASS" start="2026-05-03T22:26:09.639021" elapsed="0.017609"/>
+<msg time="2026-05-04T16:14:06.822298" level="INFO">Created project 'RF Import Project' → id=332</msg>
+<status status="PASS" start="2026-05-04T16:14:06.801879" elapsed="0.020496"/>
 </kw>
 <kw name="I create a suite named Login Suite" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a suite named ${name}">
-<msg time="2026-05-03T22:26:09.665830" level="INFO">Created suite 'Login Suite' → id=56</msg>
-<status status="PASS" start="2026-05-03T22:26:09.656978" elapsed="0.008926"/>
+<msg time="2026-05-04T16:14:06.828426" level="INFO">Created suite 'Login Suite' → id=181</msg>
+<status status="PASS" start="2026-05-04T16:14:06.822655" elapsed="0.005837"/>
 </kw>
 <kw name="I create a test case named Happy Path Login" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a test case named ${name}">
-<msg time="2026-05-03T22:26:09.671262" level="INFO">Created case 'Happy Path Login' → id=86</msg>
-<status status="PASS" start="2026-05-03T22:26:09.666133" elapsed="0.005198"/>
+<msg time="2026-05-04T16:14:06.833324" level="INFO">Created case 'Happy Path Login' → id=164</msg>
+<status status="PASS" start="2026-05-04T16:14:06.828726" elapsed="0.004657"/>
 </kw>
 <kw name="I add a step Open The Login Page to the test case" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I add a step ${action} to the test case">
-<msg time="2026-05-03T22:26:09.680307" level="INFO">Added action step 'Open The Login Page' → id=848</msg>
-<status status="PASS" start="2026-05-03T22:26:09.671599" elapsed="0.008790"/>
+<msg time="2026-05-04T16:14:06.837671" level="INFO">Added action step 'Open The Login Page' → id=1996</msg>
+<status status="PASS" start="2026-05-04T16:14:06.833642" elapsed="0.004099"/>
 </kw>
 <kw name="I add a step Enter Valid Credentials to the test case" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I add a step ${action} to the test case">
-<msg time="2026-05-03T22:26:09.685116" level="INFO">Added action step 'Enter Valid Credentials' → id=849</msg>
-<status status="PASS" start="2026-05-03T22:26:09.680691" elapsed="0.004488"/>
+<msg time="2026-05-04T16:14:06.847959" level="INFO">Added action step 'Enter Valid Credentials' → id=1997</msg>
+<status status="PASS" start="2026-05-04T16:14:06.838036" elapsed="0.009999"/>
 </kw>
 <kw name="I add a step Submit The Form to the test case" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I add a step ${action} to the test case">
-<msg time="2026-05-03T22:26:09.689460" level="INFO">Added action step 'Submit The Form' → id=850</msg>
-<status status="PASS" start="2026-05-03T22:26:09.685437" elapsed="0.004087"/>
+<msg time="2026-05-04T16:14:06.852624" level="INFO">Added action step 'Submit The Form' → id=1998</msg>
+<status status="PASS" start="2026-05-04T16:14:06.848347" elapsed="0.004343"/>
 </kw>
 <kw name="I start an execution titled RF Run for the current suite" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I start an execution titled ${title} for the current suite">
-<status status="PASS" start="2026-05-03T22:26:09.689811" elapsed="0.012950"/>
+<status status="PASS" start="2026-05-04T16:14:06.852964" elapsed="0.013649"/>
 </kw>
 <kw name="I import Robot Framework results from ${RF_FILE} and store the summary" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I import Robot Framework results from ${file_path} and store the summary">
-<msg time="2026-05-03T22:26:09.718615" level="INFO">RF import: 0 updated, [] errors</msg>
-<status status="PASS" start="2026-05-03T22:26:09.703140" elapsed="0.015551"/>
+<msg time="2026-05-04T16:14:06.879638" level="INFO">RF import: 0 updated, [] errors</msg>
+<status status="PASS" start="2026-05-04T16:14:06.867097" elapsed="0.012646"/>
 </kw>
 <kw name="The import should have updated 1 results" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the import should have updated ${count} results">
-<status status="PASS" start="2026-05-03T22:26:09.718930" elapsed="0.000098"/>
+<status status="PASS" start="2026-05-04T16:14:06.880111" elapsed="0.000124"/>
 </kw>
 <kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
-<status status="PASS" start="2026-05-03T22:26:09.719152" elapsed="0.014642"/>
+<status status="PASS" start="2026-05-04T16:14:06.880426" elapsed="0.015619"/>
 </kw>
-<status status="PASS" start="2026-05-03T22:26:09.362502" elapsed="0.371377"/>
+<status status="PASS" start="2026-05-04T16:14:06.534416" elapsed="0.361754"/>
 </test>
-<status status="PASS" start="2026-05-03T22:26:08.988740" elapsed="0.750633"/>
+<status status="PASS" start="2026-05-04T16:14:06.157317" elapsed="0.759018"/>
 </suite>
-<status status="PASS" start="2026-05-03T22:26:01.344845" elapsed="8.394938"/>
+<suite id="s1-s7" name="07 Members" source="/tests/e2e/suites/07_members.robot">
+<test id="s1-s7-t1" name="Add and list project members" line="6">
+<kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
+<msg time="2026-05-04T16:14:07.178033" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:06.971889" elapsed="0.206220"/>
+</kw>
+<kw name="I create a project named Member Test Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
+<msg time="2026-05-04T16:14:07.196883" level="INFO">Created project 'Member Test Project' → id=333</msg>
+<status status="PASS" start="2026-05-04T16:14:07.178433" elapsed="0.018530"/>
+</kw>
+<kw name="I create a user named tester1 with password pw123" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a user named ${username} with password ${password}">
+<msg time="2026-05-04T16:14:07.202698" level="INFO">User 'tester1' already exists → id=3</msg>
+<status status="PASS" start="2026-05-04T16:14:07.197279" elapsed="0.005488"/>
+</kw>
+<kw name="I add tester1 as tester to the project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I add ${username} as ${role} to the project">
+<msg time="2026-05-04T16:14:07.234308" level="INFO">Added 'tester1' as tester</msg>
+<status status="PASS" start="2026-05-04T16:14:07.203033" elapsed="0.031395"/>
+</kw>
+<kw name="the project should have 2 members" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the project should have ${count} members">
+<status status="PASS" start="2026-05-04T16:14:07.234837" elapsed="0.007564"/>
+</kw>
+<kw name="tester1 should have role tester in the project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="${username} should have role ${role} in the project">
+<status status="PASS" start="2026-05-04T16:14:07.242842" elapsed="0.017477"/>
+</kw>
+<kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
+<status status="PASS" start="2026-05-04T16:14:07.260625" elapsed="0.013396"/>
+</kw>
+<status status="PASS" start="2026-05-04T16:14:06.921426" elapsed="0.352743"/>
+</test>
+<test id="s1-s7-t2" name="Update member role" line="15">
+<kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
+<msg time="2026-05-04T16:14:07.569411" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:07.354996" elapsed="0.214492"/>
+</kw>
+<kw name="I create a project named Role Update Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
+<msg time="2026-05-04T16:14:07.589689" level="INFO">Created project 'Role Update Project' → id=334</msg>
+<status status="PASS" start="2026-05-04T16:14:07.569798" elapsed="0.019974"/>
+</kw>
+<kw name="I create a user named roleuser with password pw123" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a user named ${username} with password ${password}">
+<msg time="2026-05-04T16:14:07.596066" level="INFO">User 'roleuser' already exists → id=4</msg>
+<status status="PASS" start="2026-05-04T16:14:07.590100" elapsed="0.006033"/>
+</kw>
+<kw name="I add roleuser as viewer to the project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I add ${username} as ${role} to the project">
+<msg time="2026-05-04T16:14:07.604102" level="INFO">Added 'roleuser' as viewer</msg>
+<status status="PASS" start="2026-05-04T16:14:07.596381" elapsed="0.007813"/>
+</kw>
+<kw name="roleuser should have role viewer in the project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="${username} should have role ${role} in the project">
+<status status="PASS" start="2026-05-04T16:14:07.604540" elapsed="0.009348"/>
+</kw>
+<kw name="I update roleuser role to tester" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I update ${username} role to ${role}">
+<status status="PASS" start="2026-05-04T16:14:07.614179" elapsed="0.008101"/>
+</kw>
+<kw name="roleuser should have role tester in the project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="${username} should have role ${role} in the project">
+<status status="PASS" start="2026-05-04T16:14:07.622718" elapsed="0.008753"/>
+</kw>
+<kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
+<status status="PASS" start="2026-05-04T16:14:07.631664" elapsed="0.005135"/>
+</kw>
+<status status="PASS" start="2026-05-04T16:14:07.305409" elapsed="0.331466"/>
+</test>
+<test id="s1-s7-t3" name="Remove member from project" line="25">
+<kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
+<msg time="2026-05-04T16:14:07.914751" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:07.704747" elapsed="0.210083"/>
+</kw>
+<kw name="I create a project named Remove Member Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
+<msg time="2026-05-04T16:14:07.935214" level="INFO">Created project 'Remove Member Project' → id=335</msg>
+<status status="PASS" start="2026-05-04T16:14:07.915147" elapsed="0.020145"/>
+</kw>
+<kw name="I create a user named removeme with password pw123" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a user named ${username} with password ${password}">
+<msg time="2026-05-04T16:14:07.940962" level="INFO">User 'removeme' already exists → id=5</msg>
+<status status="PASS" start="2026-05-04T16:14:07.935562" elapsed="0.005466"/>
+</kw>
+<kw name="I add removeme as viewer to the project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I add ${username} as ${role} to the project">
+<msg time="2026-05-04T16:14:07.959303" level="INFO">Added 'removeme' as viewer</msg>
+<status status="PASS" start="2026-05-04T16:14:07.941289" elapsed="0.018090"/>
+</kw>
+<kw name="the project should have 2 members" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the project should have ${count} members">
+<status status="PASS" start="2026-05-04T16:14:07.959659" elapsed="0.003473"/>
+</kw>
+<kw name="I remove removeme from the project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I remove ${username} from the project">
+<status status="PASS" start="2026-05-04T16:14:07.963435" elapsed="0.011523"/>
+</kw>
+<kw name="the project should have 1 members" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the project should have ${count} members">
+<status status="PASS" start="2026-05-04T16:14:07.975259" elapsed="0.003131"/>
+</kw>
+<kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
+<status status="PASS" start="2026-05-04T16:14:07.978577" elapsed="0.004974"/>
+</kw>
+<status status="PASS" start="2026-05-04T16:14:07.657066" elapsed="0.326563"/>
+</test>
+<test id="s1-s7-t4" name="Invalid role is rejected" line="35">
+<kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
+<msg time="2026-05-04T16:14:08.255733" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:08.049191" elapsed="0.206616"/>
+</kw>
+<kw name="I create a project named Invalid Role Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
+<msg time="2026-05-04T16:14:08.276863" level="INFO">Created project 'Invalid Role Project' → id=336</msg>
+<status status="PASS" start="2026-05-04T16:14:08.256084" elapsed="0.020878"/>
+</kw>
+<kw name="I create a user named roletest with password pw123" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a user named ${username} with password ${password}">
+<msg time="2026-05-04T16:14:08.283080" level="INFO">User 'roletest' already exists → id=6</msg>
+<status status="PASS" start="2026-05-04T16:14:08.277321" elapsed="0.005822"/>
+</kw>
+<kw name="I try to add roletest as superadmin to the project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I try to add ${username} as ${role} to the project">
+<status status="PASS" start="2026-05-04T16:14:08.283414" elapsed="0.005841"/>
+</kw>
+<kw name="The response status should be 400" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the response status should be ${expected_status}">
+<status status="PASS" start="2026-05-04T16:14:08.289522" elapsed="0.000092"/>
+</kw>
+<kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
+<status status="PASS" start="2026-05-04T16:14:08.289764" elapsed="0.010370"/>
+</kw>
+<status status="PASS" start="2026-05-04T16:14:08.008607" elapsed="0.291618"/>
+</test>
+<status status="PASS" start="2026-05-04T16:14:06.916618" elapsed="1.401836"/>
+</suite>
+<suite id="s1-s8" name="08 Tokens" source="/tests/e2e/suites/08_tokens.robot">
+<test id="s1-s8-t1" name="Create and use a user token" line="6">
+<kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
+<msg time="2026-05-04T16:14:08.570233" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:08.363378" elapsed="0.206924"/>
+</kw>
+<kw name="I create a user token named CI Pipeline" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a user token named ${name}">
+<msg time="2026-05-04T16:14:08.587332" level="INFO">Created user token 'CI Pipeline': tj_0W6wYgPtQ…</msg>
+<msg time="2026-05-04T16:14:08.587453" level="INFO">${token} = tj_0W6wYgPtQe1ymYQWvSVayUO56vgxEdWza4UeHB2uNg4</msg>
+<var>${token}</var>
+<status status="PASS" start="2026-05-04T16:14:08.570562" elapsed="0.016910"/>
+</kw>
+<kw name="I authenticate using token ${token}" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I authenticate using token ${token}">
+<status status="PASS" start="2026-05-04T16:14:08.587930" elapsed="0.000183"/>
+</kw>
+<kw name="The current user should be admin" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the current user should be ${username}">
+<status status="PASS" start="2026-05-04T16:14:08.588381" elapsed="0.009307"/>
+</kw>
+<status status="PASS" start="2026-05-04T16:14:08.323308" elapsed="0.274509"/>
+</test>
+<test id="s1-s8-t2" name="User token is listed with prefix only" line="12">
+<kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
+<msg time="2026-05-04T16:14:08.868005" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:08.652692" elapsed="0.215401"/>
+</kw>
+<kw name="I create a user token named Listed Token" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a user token named ${name}">
+<msg time="2026-05-04T16:14:08.886621" level="INFO">Created user token 'Listed Token': tj_6N820ywdg…</msg>
+<status status="PASS" start="2026-05-04T16:14:08.868400" elapsed="0.018319"/>
+</kw>
+<kw name="I list my user tokens" owner="testjam_e2e.testjam_library.TestjamLibrary">
+<msg time="2026-05-04T16:14:08.890149" level="INFO">${tokens} = [{'id': 1, 'name': 'CI Pipeline', 'prefix': 'tj_CteILwbXt', 'user_id': 1, 'project_id': None, 'created_at': '2026-05-04T08:29:32.312072', 'last_used_at': '2026-05-04T08:29:32.336691'}, {'id': 2, 'name...</msg>
+<var>${tokens}</var>
+<status status="PASS" start="2026-05-04T16:14:08.886889" elapsed="0.003286"/>
+</kw>
+<kw name="Should Be True" owner="BuiltIn">
+<arg>len($tokens) &gt;= 1</arg>
+<doc>Fails if the given condition is not true.</doc>
+<status status="PASS" start="2026-05-04T16:14:08.890365" elapsed="0.000342"/>
+</kw>
+<status status="PASS" start="2026-05-04T16:14:08.615314" elapsed="0.275494"/>
+</test>
+<test id="s1-s8-t3" name="Create and use a project token" line="18">
+<kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
+<msg time="2026-05-04T16:14:09.177931" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:08.968455" elapsed="0.209572"/>
+</kw>
+<kw name="I create a project named Project Token Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
+<msg time="2026-05-04T16:14:09.198336" level="INFO">Created project 'Project Token Project' → id=337</msg>
+<status status="PASS" start="2026-05-04T16:14:09.178326" elapsed="0.020088"/>
+</kw>
+<kw name="I create a project token named Listener" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project token named ${name}">
+<msg time="2026-05-04T16:14:09.204061" level="INFO">Created project token 'Listener': tj_l0g8XWvqI…</msg>
+<msg time="2026-05-04T16:14:09.204164" level="INFO">${token} = tj_l0g8XWvqIriKZjd3o2dcWm9wSsf9Uxy4lBxhx--GOQY</msg>
+<var>${token}</var>
+<status status="PASS" start="2026-05-04T16:14:09.198723" elapsed="0.005458"/>
+</kw>
+<kw name="the project should have 1 api tokens" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the project should have ${count} api tokens">
+<status status="PASS" start="2026-05-04T16:14:09.204431" elapsed="0.003676"/>
+</kw>
+<kw name="I authenticate using token ${token}" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I authenticate using token ${token}">
+<status status="PASS" start="2026-05-04T16:14:09.208494" elapsed="0.000115"/>
+</kw>
+<kw name="The current user should be admin" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the current user should be ${username}">
+<status status="PASS" start="2026-05-04T16:14:09.208779" elapsed="0.003586"/>
+</kw>
+<kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
+<status status="PASS" start="2026-05-04T16:14:09.212517" elapsed="0.011928"/>
+</kw>
+<status status="PASS" start="2026-05-04T16:14:08.920587" elapsed="0.303940"/>
+</test>
+<test id="s1-s8-t4" name="Revoke a project token blocks further access" line="27">
+<kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
+<msg time="2026-05-04T16:14:09.499979" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:09.292625" elapsed="0.207434"/>
+</kw>
+<kw name="I create a project named Revoke Token Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
+<msg time="2026-05-04T16:14:09.520385" level="INFO">Created project 'Revoke Token Project' → id=338</msg>
+<status status="PASS" start="2026-05-04T16:14:09.500342" elapsed="0.020122"/>
+</kw>
+<kw name="I create a project token named Temp Token" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project token named ${name}">
+<msg time="2026-05-04T16:14:09.526874" level="INFO">Created project token 'Temp Token': tj_Dq_VmhFdV…</msg>
+<status status="PASS" start="2026-05-04T16:14:09.520752" elapsed="0.006202"/>
+</kw>
+<kw name="the project should have 1 api tokens" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the project should have ${count} api tokens">
+<status status="PASS" start="2026-05-04T16:14:09.527218" elapsed="0.003330"/>
+</kw>
+<kw name="I revoke the project token named Temp Token" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I revoke the project token named ${name}">
+<status status="PASS" start="2026-05-04T16:14:09.530772" elapsed="0.012251"/>
+</kw>
+<kw name="the project should have 0 api tokens" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the project should have ${count} api tokens">
+<status status="PASS" start="2026-05-04T16:14:09.543378" elapsed="0.004036"/>
+</kw>
+<kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
+<status status="PASS" start="2026-05-04T16:14:09.547662" elapsed="0.005117"/>
+</kw>
+<status status="PASS" start="2026-05-04T16:14:09.248466" elapsed="0.304399"/>
+</test>
+<test id="s1-s8-t5" name="Non-owner cannot create project token" line="36">
+<kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
+<msg time="2026-05-04T16:14:09.830593" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:09.623373" elapsed="0.207296"/>
+</kw>
+<kw name="I create a project named Protected Token Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
+<msg time="2026-05-04T16:14:09.851410" level="INFO">Created project 'Protected Token Project' → id=339</msg>
+<status status="PASS" start="2026-05-04T16:14:09.830966" elapsed="0.020531"/>
+</kw>
+<kw name="I create a user named nontokenuser with password pw123" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a user named ${username} with password ${password}">
+<msg time="2026-05-04T16:14:09.858276" level="INFO">User 'nontokenuser' already exists → id=7</msg>
+<status status="PASS" start="2026-05-04T16:14:09.851756" elapsed="0.006591"/>
+</kw>
+<kw name="I log in as nontokenuser with password pw123" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I log in as ${username} with password ${password}">
+<msg time="2026-05-04T16:14:10.067159" level="INFO">Authenticated as 'nontokenuser'</msg>
+<status status="PASS" start="2026-05-04T16:14:09.858586" elapsed="0.208647"/>
+</kw>
+<kw name="I try to create a project token named Forbidden" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I try to create a project token named ${name}">
+<status status="PASS" start="2026-05-04T16:14:10.067469" elapsed="0.008728"/>
+</kw>
+<kw name="The response status should be 403" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the response status should be ${expected_status}">
+<status status="PASS" start="2026-05-04T16:14:10.076554" elapsed="0.000124"/>
+</kw>
+<kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
+<status status="PASS" start="2026-05-04T16:14:10.076863" elapsed="0.016396"/>
+</kw>
+<status status="PASS" start="2026-05-04T16:14:09.577622" elapsed="0.515752"/>
+</test>
+<status status="PASS" start="2026-05-04T16:14:08.318740" elapsed="1.794817"/>
+</suite>
+<suite id="s1-s9" name="09 Nested Suites" source="/tests/e2e/suites/09_nested_suites.robot">
+<test id="s1-s9-t1" name="Create a sub-suite inside a parent suite" line="6">
+<kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
+<msg time="2026-05-04T16:14:10.375888" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:10.168353" elapsed="0.207615"/>
+</kw>
+<kw name="I create a project named Nested Suite Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
+<msg time="2026-05-04T16:14:10.395597" level="INFO">Created project 'Nested Suite Project' → id=340</msg>
+<status status="PASS" start="2026-05-04T16:14:10.376270" elapsed="0.019407"/>
+</kw>
+<kw name="I create a suite named Parent Suite" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a suite named ${name}">
+<msg time="2026-05-04T16:14:10.401761" level="INFO">Created suite 'Parent Suite' → id=182</msg>
+<status status="PASS" start="2026-05-04T16:14:10.395978" elapsed="0.005849"/>
+</kw>
+<kw name="I create a sub-suite named Child Suite inside the current suite" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a sub-suite named ${name} inside the current suite">
+<msg time="2026-05-04T16:14:10.407548" level="INFO">Created sub-suite 'Child Suite' → id=183</msg>
+<status status="PASS" start="2026-05-04T16:14:10.402103" elapsed="0.005509"/>
+</kw>
+<kw name="The current suite should have 1 child suites" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the current suite should have ${count} child suites">
+<status status="PASS" start="2026-05-04T16:14:10.407863" elapsed="0.003183"/>
+</kw>
+<kw name="the child suites list should contain the sub-suite" owner="testjam_e2e.testjam_library.TestjamLibrary">
+<status status="PASS" start="2026-05-04T16:14:10.411207" elapsed="0.008360"/>
+</kw>
+<kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
+<status status="PASS" start="2026-05-04T16:14:10.419825" elapsed="0.007150"/>
+</kw>
+<status status="PASS" start="2026-05-04T16:14:10.118482" elapsed="0.308569"/>
+</test>
+<test id="s1-s9-t2" name="Root suite list does not include child suites" line="15">
+<kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
+<msg time="2026-05-04T16:14:10.698227" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:10.488560" elapsed="0.209739"/>
+</kw>
+<kw name="I create a project named Root List Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
+<msg time="2026-05-04T16:14:10.719046" level="INFO">Created project 'Root List Project' → id=341</msg>
+<status status="PASS" start="2026-05-04T16:14:10.698581" elapsed="0.020541"/>
+</kw>
+<kw name="I create a suite named Top Level Suite" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a suite named ${name}">
+<msg time="2026-05-04T16:14:10.725344" level="INFO">Created suite 'Top Level Suite' → id=184</msg>
+<status status="PASS" start="2026-05-04T16:14:10.719432" elapsed="0.005976"/>
+</kw>
+<kw name="I create a sub-suite named Nested Suite inside the current suite" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a sub-suite named ${name} inside the current suite">
+<msg time="2026-05-04T16:14:10.730757" level="INFO">Created sub-suite 'Nested Suite' → id=185</msg>
+<status status="PASS" start="2026-05-04T16:14:10.725668" elapsed="0.005152"/>
+</kw>
+<kw name="The project should have 1 suites" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the project should have ${count} suites">
+<status status="PASS" start="2026-05-04T16:14:10.731062" elapsed="0.003251"/>
+</kw>
+<kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
+<status status="PASS" start="2026-05-04T16:14:10.734522" elapsed="0.012948"/>
+</kw>
+<status status="PASS" start="2026-05-04T16:14:10.446544" elapsed="0.301020"/>
+</test>
+<test id="s1-s9-t3" name="Multiple child suites under one parent" line="23">
+<kw name="I am authenticated as admin" owner="testjam_e2e.testjam_library.TestjamLibrary">
+<msg time="2026-05-04T16:14:11.019337" level="INFO">Authenticated as 'admin'</msg>
+<status status="PASS" start="2026-05-04T16:14:10.811518" elapsed="0.207895"/>
+</kw>
+<kw name="I create a project named Multi Child Project" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a project named ${name}">
+<msg time="2026-05-04T16:14:11.040816" level="INFO">Created project 'Multi Child Project' → id=342</msg>
+<status status="PASS" start="2026-05-04T16:14:11.019693" elapsed="0.021216"/>
+</kw>
+<kw name="I create a suite named Parent" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a suite named ${name}">
+<msg time="2026-05-04T16:14:11.048387" level="INFO">Created suite 'Parent' → id=186</msg>
+<status status="PASS" start="2026-05-04T16:14:11.041205" elapsed="0.007246"/>
+</kw>
+<kw name="I create a sub-suite named Child A inside the current suite" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a sub-suite named ${name} inside the current suite">
+<msg time="2026-05-04T16:14:11.053543" level="INFO">Created sub-suite 'Child A' → id=187</msg>
+<status status="PASS" start="2026-05-04T16:14:11.048705" elapsed="0.004901"/>
+</kw>
+<kw name="I create a sub-suite named Child B inside the current suite" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="I create a sub-suite named ${name} inside the current suite">
+<msg time="2026-05-04T16:14:11.065097" level="INFO">Created sub-suite 'Child B' → id=188</msg>
+<status status="PASS" start="2026-05-04T16:14:11.053838" elapsed="0.011336"/>
+</kw>
+<kw name="The current suite should have 2 child suites" owner="testjam_e2e.testjam_library.TestjamLibrary" source_name="the current suite should have ${count} child suites">
+<status status="PASS" start="2026-05-04T16:14:11.065435" elapsed="0.003372"/>
+</kw>
+<kw name="I clean up the current project" owner="testjam_e2e.testjam_library.TestjamLibrary" type="TEARDOWN">
+<status status="PASS" start="2026-05-04T16:14:11.069001" elapsed="0.012216"/>
+</kw>
+<status status="PASS" start="2026-05-04T16:14:10.767360" elapsed="0.313951"/>
+</test>
+<status status="PASS" start="2026-05-04T16:14:10.113834" elapsed="0.985717"/>
+</suite>
+<status status="PASS" start="2026-05-04T16:13:58.175089" elapsed="12.924841"/>
 </suite>
 <statistics>
 <total>
-<stat pass="26" fail="0" skip="0">All Tests</stat>
+<stat pass="38" fail="0" skip="0">All Tests</stat>
 </total>
 <tag>
 </tag>
 <suite>
-<stat name="Suites" id="s1" pass="26" fail="0" skip="0">Suites</stat>
+<stat name="Suites" id="s1" pass="38" fail="0" skip="0">Suites</stat>
 <stat name="01 Auth" id="s1-s1" pass="4" fail="0" skip="0">Suites.01 Auth</stat>
 <stat name="02 Projects" id="s1-s2" pass="3" fail="0" skip="0">Suites.02 Projects</stat>
 <stat name="03 Test Cases" id="s1-s3" pass="6" fail="0" skip="0">Suites.03 Test Cases</stat>
 <stat name="04 Executions" id="s1-s4" pass="4" fail="0" skip="0">Suites.04 Executions</stat>
 <stat name="05 Versions" id="s1-s5" pass="7" fail="0" skip="0">Suites.05 Versions</stat>
 <stat name="06 Imports" id="s1-s6" pass="2" fail="0" skip="0">Suites.06 Imports</stat>
+<stat name="07 Members" id="s1-s7" pass="4" fail="0" skip="0">Suites.07 Members</stat>
+<stat name="08 Tokens" id="s1-s8" pass="5" fail="0" skip="0">Suites.08 Tokens</stat>
+<stat name="09 Nested Suites" id="s1-s9" pass="3" fail="0" skip="0">Suites.09 Nested Suites</stat>
 </suite>
 </statistics>
 <errors>

@@ -15,6 +15,7 @@ import { ExecutionRunPage } from "./pages/ExecutionRunPage"
 import { NewExecutionPage } from "./pages/NewExecutionPage"
 import { UsersPage } from "./pages/UsersPage"
 import { ProfilePage } from "./pages/ProfilePage"
+import { MembersPage } from "./pages/MembersPage"
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +42,7 @@ export default function App() {
             <Route path="/projects/:id/plans" element={<TestPlansPage />} />
             <Route path="/projects/:id/executions" element={<ExecutionsPage />} />
             <Route path="/projects/:id/executions/new" element={<NewExecutionPage />} />
+            <Route path="/projects/:id/members" element={<MembersPage />} />
             <Route path="/cases/:id" element={<TestCasePage />} />
             <Route path="/executions/:id" element={<ExecutionDetailPage />} />
             <Route path="/executions/:id/run" element={<ExecutionRunPage />} />

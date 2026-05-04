@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { useParams, useNavigate, Link } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { useParams, Link } from "react-router-dom"
 import { CheckCircle2, XCircle, MinusCircle, AlertTriangle, Upload, ChevronDown, ChevronRight, Trash2, Copy, ExternalLink, ArrowLeft, Clock } from "lucide-react"
 import { useExecution, useExecutionResults, useUpdateResult } from "../hooks/useExecutions"
 import { executionsApi } from "../api/executions"
@@ -11,10 +11,10 @@ import { Badge } from "../components/ui/badge"
 import { toast } from "sonner"
 
 const STATUS_CONFIG = {
-  passed:  { label: "Pass",    icon: CheckCircle2,  color: "success",     bg: "bg-green-50  border-green-200" },
-  failed:  { label: "Fail",    icon: XCircle,        color: "destructive", bg: "bg-red-50    border-red-200"   },
-  blocked: { label: "Blocked", icon: AlertTriangle,  color: "warning",     bg: "bg-yellow-50 border-yellow-200"},
-  not_run: { label: "Not run", icon: MinusCircle,    color: "secondary",   bg: "bg-gray-50   border-gray-200"  },
+  passed:  { label: "Pass",    icon: CheckCircle2,  color: "success",     bg: "bg-green-100  border-green-300" },
+  failed:  { label: "Fail",    icon: XCircle,        color: "destructive", bg: "bg-red-100    border-red-300"   },
+  blocked: { label: "Blocked", icon: AlertTriangle,  color: "warning",     bg: "bg-yellow-100 border-yellow-300"},
+  not_run: { label: "Not run", icon: MinusCircle,    color: "secondary",   bg: "bg-gray-50    border-gray-200"  },
 }
 
 const STEP_TYPE_LABEL = { setup: "Setup", action: null, teardown: "Teardown" }
@@ -38,41 +38,107 @@ function fmtTime(iso) {
   return new Date(iso).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })
 }
 
-function StepResultRow({ step, stepResult, onUpdate, isAutomated }) {
-  const config = STATUS_CONFIG[stepResult?.status ?? "not_run"]
+function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAutomated }) {
+  const [localStatus, setLocalStatus] = useState(stepResult?.status ?? "not_run")
+  const [comment, setComment] = useState(stepResult?.comment ?? "")
+  const [editComment, setEditComment] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [showLog, setShowLog] = useState(false)
-  const statusKey = stepResult?.status ?? "not_run"
+
+  useEffect(() => {
+    setLocalStatus(stepResult?.status ?? "not_run")
+    setComment(stepResult?.comment ?? "")
+  }, [stepResult?.status, stepResult?.comment])
+
+  const config = STATUS_CONFIG[localStatus]
+
+  const handleStatus = async (status) => {
+    setLocalStatus(status)
+    await onUpdate(step.id, status)
+  }
+
+  const handleSaveComment = async () => {
+    setSaving(true)
+    try {
+      await onSaveComment(step.id, comment)
+      setEditComment(false)
+    } catch {
+      // error handled upstream
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div className={`border rounded-lg overflow-hidden ${config.bg}`}>
       <div className="flex items-start gap-3 p-3">
-        <span className="text-xs font-mono text-gray-400 mt-0.5 w-5">{step.order}.</span>
+        <span className="text-xs font-mono text-gray-400 mt-0.5 w-5 shrink-0">{step.order}.</span>
         <div className="flex-1 min-w-0">
           <div className="prose prose-sm"><MdViewer value={step.action} /></div>
           {step.expected_result && (
             <p className="text-xs text-gray-500 mt-1 italic">Expected: <MdViewer value={step.expected_result} /></p>
-          )}
-          {stepResult?.log_output && (
-            <button onClick={() => setShowLog(l => !l)}
-              className="text-xs text-gray-400 hover:text-gray-700 mt-1 underline">
-              {showLog ? "Hide log" : "Show log"}
-            </button>
           )}
           {stepResult?.duration_ms != null && (
             <span className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
               <Clock size={9} /> {fmtDuration(stepResult.duration_ms)}
             </span>
           )}
+
+          {!isAutomated && (
+            <div className="mt-2">
+              {editComment ? (
+                <div className="space-y-1">
+                  <textarea
+                    value={comment}
+                    onChange={e => setComment(e.target.value)}
+                    placeholder="Actual result / notes…"
+                    rows={2}
+                    autoFocus
+                    className="w-full text-xs border border-gray-300 rounded px-2 py-1 resize-none focus:outline-none focus:ring-1 focus:ring-primary-400 bg-white"
+                  />
+                  <div className="flex gap-1">
+                    <button onClick={handleSaveComment} disabled={saving}
+                      className="text-xs px-2 py-0.5 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50">
+                      {saving ? "Saving…" : "Save"}
+                    </button>
+                    <button onClick={() => { setEditComment(false); setComment(stepResult?.comment ?? "") }}
+                      className="text-xs px-2 py-0.5 text-gray-500 hover:text-gray-800">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : comment ? (
+                <button onClick={() => setEditComment(true)} className="text-left w-full group">
+                  <p className="text-xs text-gray-600 bg-white/70 rounded px-2 py-1 border border-gray-100 group-hover:border-gray-300 transition-colors">
+                    {comment}
+                  </p>
+                </button>
+              ) : (
+                <button onClick={() => setEditComment(true)}
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                  + Add note
+                </button>
+              )}
+            </div>
+          )}
+
+          {stepResult?.log_output && (
+            <button onClick={() => setShowLog(l => !l)}
+              className="text-xs text-gray-400 hover:text-gray-700 mt-1 underline block">
+              {showLog ? "Hide log" : "Show log"}
+            </button>
+          )}
         </div>
+
         {!isAutomated && (
           <div className="flex gap-1 shrink-0">
             {Object.entries(STATUS_CONFIG).map(([status, cfg]) => {
               const Ic = cfg.icon
               return (
                 <button key={status}
-                  onClick={() => onUpdate(step.id, status)}
+                  onClick={() => handleStatus(status)}
                   title={cfg.label}
-                  className={`p-1 rounded transition-opacity ${stepResult?.status === status ? "opacity-100" : "opacity-25 hover:opacity-70"}`}>
+                  className={`p-1 rounded transition-opacity ${localStatus === status ? "opacity-100" : "opacity-25 hover:opacity-70"}`}>
                   <Ic size={16} className={STATUS_ICON_COLOR[status]} />
                 </button>
               )
@@ -81,13 +147,11 @@ function StepResultRow({ step, stepResult, onUpdate, isAutomated }) {
         )}
         {isAutomated && (
           <div className="shrink-0">
-            {(() => {
-              const Ic = STATUS_CONFIG[statusKey].icon
-              return <Ic size={16} className={STATUS_ICON_COLOR[statusKey]} />
-            })()}
+            {(() => { const Ic = STATUS_CONFIG[localStatus].icon; return <Ic size={16} className={STATUS_ICON_COLOR[localStatus]} /> })()}
           </div>
         )}
       </div>
+
       {showLog && stepResult?.log_output && (
         <div className="px-4 pb-3 border-t border-gray-100 bg-gray-900 text-gray-100 text-xs font-mono whitespace-pre-wrap rounded-b-lg max-h-48 overflow-y-auto">
           {stepResult.log_output}
@@ -97,7 +161,7 @@ function StepResultRow({ step, stepResult, onUpdate, isAutomated }) {
   )
 }
 
-function StepsSection({ steps, stepResults, onUpdate, isAutomated }) {
+function StepsSection({ steps, stepResults, onUpdate, onSaveComment, isAutomated }) {
   const byType = { setup: [], action: [], teardown: [] }
   steps.forEach(s => { (byType[s.step_type] ?? byType.action).push(s) })
 
@@ -119,7 +183,7 @@ function StepsSection({ steps, stepResults, onUpdate, isAutomated }) {
                 const sr = stepResults.find(r => r.step_id === step.id)
                 return (
                   <StepResultRow key={step.id} step={step} stepResult={sr}
-                    onUpdate={onUpdate} isAutomated={isAutomated} />
+                    onUpdate={onUpdate} onSaveComment={onSaveComment} isAutomated={isAutomated} />
                 )
               })}
             </div>
@@ -130,22 +194,30 @@ function StepsSection({ steps, stepResults, onUpdate, isAutomated }) {
   )
 }
 
-function ResultCard({ result, index, total, isAutomated }) {
+function ResultCard({ result, executionId, index, total, isAutomated }) {
   const { data: tc } = useCase(result.test_case_id)
   const [open, setOpen] = useState(index === 0)
   const [comment, setComment] = useState(result.comment ?? "")
+  const [editComment, setEditComment] = useState(false)
+  const [localStatus, setLocalStatus] = useState(result.status)
   const qc = useQueryClient()
-  const updateResult = useUpdateResult(result.execution_id)
+  const updateResult = useUpdateResult(executionId)
 
-  const overallStatus = result.status
-  const config = STATUS_CONFIG[overallStatus]
+  useEffect(() => {
+    setLocalStatus(result.status)
+    setComment(result.comment ?? "")
+  }, [result.status, result.comment])
+
+  const config = STATUS_CONFIG[localStatus]
   const Icon = config.icon
 
   const setStatus = async (status) => {
+    setLocalStatus(status)
     try {
-      await updateResult.mutateAsync({ id: result.id, data: { status, comment } })
-      toast.success(`Marked as ${status}`)
+      await updateResult.mutateAsync({ id: result.id, data: { status } })
+      qc.invalidateQueries({ queryKey: ["executions", executionId] })
     } catch {
+      setLocalStatus(result.status)
       toast.error("Failed to update status")
     }
   }
@@ -156,22 +228,41 @@ function ResultCard({ result, index, total, isAutomated }) {
       if (existingSr) {
         await executionsApi.updateStepResult(result.id, existingSr.id, { status })
       } else {
-        await executionsApi.createResult(result.execution_id, {
+        await executionsApi.createResult(executionId, {
           test_case_id: result.test_case_id,
           status: result.status,
           step_results: [{ step_id: stepId, status }],
         })
       }
-      qc.invalidateQueries({ queryKey: ["results", result.execution_id] })
+      qc.invalidateQueries({ queryKey: ["results", executionId] })
+      qc.invalidateQueries({ queryKey: ["executions", executionId] })
     } catch {
       toast.error("Failed to update step")
+    }
+  }
+
+  const saveStepComment = async (stepId, comment) => {
+    try {
+      const existingSr = (result.step_results ?? []).find(sr => sr.step_id === stepId)
+      if (existingSr) {
+        await executionsApi.updateStepResult(result.id, existingSr.id, { comment })
+      } else {
+        await executionsApi.createResult(executionId, {
+          test_case_id: result.test_case_id,
+          status: result.status,
+          step_results: [{ step_id: stepId, status: "not_run", comment }],
+        })
+      }
+      qc.invalidateQueries({ queryKey: ["results", executionId] })
+    } catch {
+      toast.error("Failed to save note")
     }
   }
 
   const saveComment = async () => {
     try {
       await updateResult.mutateAsync({ id: result.id, data: { comment } })
-      toast.success("Comment saved")
+      setEditComment(false)
     } catch {
       toast.error("Failed to save comment")
     }
@@ -182,7 +273,7 @@ function ResultCard({ result, index, total, isAutomated }) {
     if (!file) return
     try {
       await executionsApi.uploadResultAttachment(result.id, file)
-      qc.invalidateQueries({ queryKey: ["results", result.execution_id] })
+      qc.invalidateQueries({ queryKey: ["results", executionId] })
       toast.success(`${file.name} attached`)
     } catch {
       toast.error("Upload failed")
@@ -193,7 +284,7 @@ function ResultCard({ result, index, total, isAutomated }) {
   const deleteAttachment = async (attachmentId) => {
     try {
       await executionsApi.deleteResultAttachment(result.id, attachmentId)
-      qc.invalidateQueries({ queryKey: ["results", result.execution_id] })
+      qc.invalidateQueries({ queryKey: ["results", executionId] })
       toast.success("Attachment deleted")
     } catch {
       toast.error("Failed to delete attachment")
@@ -238,15 +329,6 @@ function ResultCard({ result, index, total, isAutomated }) {
 
       {open && (
         <div className="p-4 space-y-4 bg-white">
-          {result.comment && !isAutomated && (
-            <p className="text-sm text-gray-600 italic border-l-2 border-gray-200 pl-3">{result.comment}</p>
-          )}
-          {result.comment && isAutomated && (
-            <div className="text-xs font-mono bg-red-50 border border-red-200 text-red-800 rounded-lg px-3 py-2 whitespace-pre-wrap">
-              {result.comment}
-            </div>
-          )}
-
           {tc?.steps?.length > 0 && (
             <div className="space-y-2">
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Steps</p>
@@ -254,6 +336,7 @@ function ResultCard({ result, index, total, isAutomated }) {
                 steps={tc.steps}
                 stepResults={result.step_results ?? []}
                 onUpdate={updateStepResult}
+                onSaveComment={saveStepComment}
                 isAutomated={isAutomated}
               />
             </div>
@@ -263,12 +346,12 @@ function ResultCard({ result, index, total, isAutomated }) {
             <>
               <div className="space-y-1.5">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Overall result</p>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   {Object.entries(STATUS_CONFIG).map(([status, cfg]) => {
                     const Ic = cfg.icon
                     return (
                       <Button key={status} size="sm"
-                        variant={overallStatus === status ? "default" : "outline"}
+                        variant={localStatus === status ? "default" : "outline"}
                         onClick={() => setStatus(status)}>
                         <Ic size={13} /> {cfg.label}
                       </Button>
@@ -279,11 +362,38 @@ function ResultCard({ result, index, total, isAutomated }) {
 
               <div className="space-y-1.5">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Comment</p>
-                <MdEditor value={comment} onChange={setComment} height={80} />
-                <Button size="sm" variant="outline" onClick={saveComment}
-                  loading={updateResult.isPending}>Save comment</Button>
+                {editComment ? (
+                  <div className="space-y-1.5">
+                    <MdEditor value={comment} onChange={setComment} height={80} />
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={saveComment} loading={updateResult.isPending}>
+                        Save
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => { setEditComment(false); setComment(result.comment ?? "") }}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : comment ? (
+                  <button onClick={() => setEditComment(true)} className="text-left w-full group">
+                    <div className="text-sm text-gray-600 italic border-l-2 border-gray-200 pl-3 group-hover:border-gray-400 transition-colors">
+                      <MdViewer value={comment} />
+                    </div>
+                  </button>
+                ) : (
+                  <button onClick={() => setEditComment(true)}
+                    className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                    + Add comment
+                  </button>
+                )}
               </div>
             </>
+          )}
+
+          {isAutomated && result.comment && (
+            <div className="text-xs font-mono bg-red-50 border border-red-200 text-red-800 rounded-lg px-3 py-2 whitespace-pre-wrap">
+              {result.comment}
+            </div>
           )}
 
           <div className="space-y-2">
@@ -329,7 +439,6 @@ function ResultCard({ result, index, total, isAutomated }) {
 
 export function ExecutionRunPage() {
   const { id } = useParams()
-  const navigate = useNavigate()
   const { data: execution } = useExecution(id)
   const { data: results = [] } = useExecutionResults(id)
   const qc = useQueryClient()
@@ -339,9 +448,8 @@ export function ExecutionRunPage() {
     setFinishing(true)
     try {
       await executionsApi.update(id, { status: "completed", finished_at: new Date().toISOString() })
-      toast.success("Execution completed")
-      navigate(`/executions/${id}`)
       qc.invalidateQueries({ queryKey: ["executions", id] })
+      toast.success("Execution completed")
     } catch {
       toast.error("Failed to finish execution")
       setFinishing(false)
@@ -382,7 +490,7 @@ export function ExecutionRunPage() {
         </div>
         <Button
           onClick={finishExecution}
-          disabled={execution.status === "completed"}
+          disabled={execution.status === "completed" || finishing}
           loading={finishing}
           className="shrink-0"
         >
@@ -411,7 +519,7 @@ export function ExecutionRunPage() {
 
       <div className="space-y-3">
         {results.map((result, i) => (
-          <ResultCard key={result.id} result={result} index={i} total={results.length}
+          <ResultCard key={result.id} result={result} executionId={id} index={i} total={results.length}
             isAutomated={execution.type === "automatic"} />
         ))}
       </div>

@@ -74,6 +74,7 @@ class TestStepResult(Base):
     step_id: Mapped[int] = mapped_column(ForeignKey("test_steps.id", ondelete="CASCADE"))
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="not_run")
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     # markdown execution log — populated by automated runners (Robot Framework, CI)
     log_output: Mapped[str | None] = mapped_column(Text, nullable=True)
 

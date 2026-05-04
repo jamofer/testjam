@@ -55,3 +55,33 @@ class SuiteMixin:
         assert response.status_code == 200
         actual = len(response.json())
         assert actual == int(count), f"Expected {count} suites, got {actual}"
+
+    @keyword("I create a sub-suite named ${name} inside the current suite")
+    def create_sub_suite(self, name: str) -> int:
+        response = self.client.post(
+            f"/projects/{self.current_project_id}/suites",
+            json={"name": name, "parent_suite_id": self.current_suite_id},
+        )
+        assert response.status_code == 201, f"Create sub-suite failed: {response.text}"
+        self.current_sub_suite_id = response.json()["id"]
+        logger.info(f"Created sub-suite '{name}' → id={self.current_sub_suite_id}")
+        return self.current_sub_suite_id
+
+    @keyword("the current suite should have ${count} child suites")
+    def suite_should_have_child_suites(self, count: str) -> None:
+        response = self.client.get(f"/suites/{self.current_suite_id}")
+        assert response.status_code == 200
+        actual = len(response.json()["child_suite_ids"])
+        assert actual == int(count), f"Expected {count} child suites, got {actual}"
+
+    @keyword("the child suites list should contain the sub-suite")
+    def child_suites_list_should_contain_sub_suite(self) -> None:
+        response = self.client.get(
+            f"/projects/{self.current_project_id}/suites",
+            params={"parent_suite_id": self.current_suite_id},
+        )
+        assert response.status_code == 200
+        ids = [s["id"] for s in response.json()]
+        assert self.current_sub_suite_id in ids, (
+            f"Sub-suite {self.current_sub_suite_id} not found in children: {ids}"
+        )

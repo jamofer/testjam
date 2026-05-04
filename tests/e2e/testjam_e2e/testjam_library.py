@@ -11,6 +11,8 @@ from .keywords import (
     CaseMixin,
     ExecutionMixin,
     ImportMixin,
+    MembersMixin,
+    TokensMixin,
 )
 
 
@@ -23,6 +25,8 @@ class TestjamLibrary(
     CaseMixin,
     ExecutionMixin,
     ImportMixin,
+    MembersMixin,
+    TokensMixin,
 ):
     """Robot Framework library for end-to-end testing of the Testjam API."""
 

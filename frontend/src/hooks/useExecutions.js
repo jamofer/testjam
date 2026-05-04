@@ -37,6 +37,9 @@ export function useUpdateResult(executionId) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, data }) => executionsApi.updateResult(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['results', executionId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['results', executionId] })
+      qc.invalidateQueries({ queryKey: ['executions', executionId] })
+    },
   })
 }

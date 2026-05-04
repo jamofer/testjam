@@ -1,9 +1,112 @@
 import { useState, useEffect } from "react"
 import { useMe, useUpdateMe, useChangePassword } from "../hooks/useAuth"
+import { useUserTokens, useCreateUserToken, useRevokeUserToken } from "../hooks/useTokens"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
+import { Trash2, Plus, Key, Copy, Eye, EyeOff, Clock } from "lucide-react"
 import { toast } from "sonner"
+
+function fmtDate(iso) {
+  if (!iso) return "Never"
+  return new Date(iso).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })
+}
+
+function NewTokenBanner({ token, onDone }) {
+  const [visible, setVisible] = useState(false)
+  const copy = () => { navigator.clipboard.writeText(token); toast.success("Token copied") }
+  return (
+    <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
+      <p className="text-sm font-medium text-green-800">Token created — copy it now, it won't be shown again.</p>
+      <div className="flex items-center gap-2">
+        <code className="flex-1 bg-white border rounded px-3 py-1.5 text-sm font-mono text-gray-800 truncate">
+          {visible ? token : token.slice(0, 4) + "•".repeat(token.length - 4)}
+        </code>
+        <button onClick={() => setVisible(v => !v)} className="text-gray-400 hover:text-gray-700 p-1">
+          {visible ? <EyeOff size={15} /> : <Eye size={15} />}
+        </button>
+        <button onClick={copy} className="text-gray-400 hover:text-gray-700 p-1"><Copy size={15} /></button>
+      </div>
+      <Button size="sm" variant="outline" onClick={onDone}>Done</Button>
+    </div>
+  )
+}
+
+function UserTokensSection() {
+  const { data: tokens = [] } = useUserTokens()
+  const create = useCreateUserToken()
+  const revoke = useRevokeUserToken()
+  const [name, setName] = useState("")
+  const [newToken, setNewToken] = useState(null)
+
+  const handleCreate = async (e) => {
+    e.preventDefault()
+    if (!name.trim()) return
+    try {
+      const t = await create.mutateAsync({ name: name.trim() })
+      setNewToken(t.token)
+      setName("")
+    } catch {
+      toast.error("Failed to create token")
+    }
+  }
+
+  const handleRevoke = async (id) => {
+    try {
+      await revoke.mutateAsync(id)
+      toast.success("Token revoked")
+    } catch {
+      toast.error("Failed to revoke token")
+    }
+  }
+
+  return (
+    <div className="bg-white border rounded-xl p-6 space-y-4 shadow-sm">
+      <div className="flex items-center gap-2">
+        <Key size={15} className="text-gray-500" />
+        <h2 className="font-semibold text-gray-700">API Tokens</h2>
+      </div>
+
+      {newToken && <NewTokenBanner token={newToken} onDone={() => setNewToken(null)} />}
+
+      <form onSubmit={handleCreate} className="flex gap-2">
+        <Input value={name} onChange={e => setName(e.target.value)} placeholder="Token name" className="flex-1" />
+        <Button type="submit" size="sm" loading={create.isPending}><Plus size={14} /> New token</Button>
+      </form>
+
+      {tokens.length > 0 && (
+        <table className="w-full text-sm">
+          <thead className="text-xs text-gray-400 uppercase">
+            <tr>
+              <th className="text-left pb-2">Name</th>
+              <th className="text-left pb-2">Prefix</th>
+              <th className="text-left pb-2">Last used</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {tokens.map(t => (
+              <tr key={t.id}>
+                <td className="py-2 font-medium text-gray-800">{t.name}</td>
+                <td className="py-2 font-mono text-gray-500">{t.prefix}…</td>
+                <td className="py-2 text-gray-400 flex items-center gap-1"><Clock size={11} />{fmtDate(t.last_used_at)}</td>
+                <td className="py-2 text-right">
+                  <button onClick={() => handleRevoke(t.id)}
+                    className="text-gray-300 hover:text-red-500 transition-colors p-1">
+                    <Trash2 size={14} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {tokens.length === 0 && !newToken && (
+        <p className="text-sm text-gray-400">No tokens yet.</p>
+      )}
+    </div>
+  )
+}
 
 export function ProfilePage() {
   const { data: user } = useMe()
@@ -82,6 +185,8 @@ export function ProfilePage() {
         </div>
         <Button type="submit" loading={updateMe.isPending}>Save changes</Button>
       </form>
+
+      <UserTokensSection />
 
       <form onSubmit={handleChangePassword} className="bg-white border rounded-xl p-6 space-y-4 shadow-sm">
         <h2 className="font-semibold text-gray-700">Change password</h2>

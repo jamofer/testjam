@@ -58,7 +58,7 @@ def list_executions(
         q = q.filter(TestExecution.type == type)
     if status:
         q = q.filter(TestExecution.status == status)
-    return [_execution_out(ex) for ex in q.all()]
+    return [_execution_out(ex) for ex in q.order_by(TestExecution.created_at.desc()).all()]
 
 
 @projects_router.post("/{id}/executions", response_model=TestExecutionOut, status_code=status.HTTP_201_CREATED)
@@ -543,12 +543,14 @@ def import_robotframework(
                     if existing_sr:
                         existing_sr.status = kw_new_status
                         existing_sr.log_output = log_output or None
+                        existing_sr.duration_ms = kw_duration
                     else:
                         db.add(TestStepResult(
                             test_result_id=result.id,
                             step_id=step.id,
                             status=kw_new_status,
                             log_output=log_output or None,
+                            duration_ms=kw_duration,
                         ))
 
             if is_new:

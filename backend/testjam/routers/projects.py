@@ -8,7 +8,7 @@ from testjam.models.execution import TestExecution
 from testjam.models.project import Project, ProjectMember
 from testjam.models.testcase import TestCase, TestSuite
 from testjam.models.user import User
-from testjam.schemas.project import ProjectCreate, ProjectMemberOut, ProjectMemberUpdate, ProjectOut, ProjectUpdate
+from testjam.schemas.project import ProjectCreate, ProjectOut, ProjectUpdate
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -84,43 +84,4 @@ def delete_project(id: int, db: Session = Depends(get_db), _: User = Depends(get
     if not project:
         raise HTTPException(status_code=404, detail="Not found")
     db.delete(project)
-    db.commit()
-
-
-# ─── Members ──────────────────────────────────────────────────────────────────
-
-@router.get("/{id}/members", response_model=list[ProjectMemberOut])
-def list_members(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
-    project = db.get(Project, id)
-    if not project:
-        raise HTTPException(status_code=404, detail="Not found")
-    return project.members
-
-
-@router.post("/{id}/members", status_code=status.HTTP_201_CREATED)
-def add_member(id: int, user_id: int, role: str, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
-    if not db.get(Project, id):
-        raise HTTPException(status_code=404, detail="Project not found")
-    if not db.get(User, user_id):
-        raise HTTPException(status_code=404, detail="User not found")
-    db.add(ProjectMember(project_id=id, user_id=user_id, role=role))
-    db.commit()
-
-
-@router.put("/{id}/members/{user_id}")
-def update_member(id: int, user_id: int, body: ProjectMemberUpdate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
-    member = db.query(ProjectMember).filter_by(project_id=id, user_id=user_id).first()
-    if not member:
-        raise HTTPException(status_code=404, detail="Member not found")
-    member.role = body.role
-    db.commit()
-    return {"ok": True}
-
-
-@router.delete("/{id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_member(id: int, user_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
-    member = db.query(ProjectMember).filter_by(project_id=id, user_id=user_id).first()
-    if not member:
-        raise HTTPException(status_code=404, detail="Member not found")
-    db.delete(member)
     db.commit()

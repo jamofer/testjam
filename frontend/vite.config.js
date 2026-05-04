@@ -7,14 +7,13 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     proxy: {
-      '/api': {
-        target: 'http://api:8000',
-        changeOrigin: true,
-      },
-      '/files': {
-        target: 'http://api:8000',
-        changeOrigin: true,
-      },
+      '/api': { target: 'http://api:8000', changeOrigin: true },
+      '/files': { target: 'http://api:8000', changeOrigin: true },
     },
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/__tests__/setup.js'],
   },
 })

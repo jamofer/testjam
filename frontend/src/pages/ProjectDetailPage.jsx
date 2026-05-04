@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useParams, Link } from "react-router-dom"
 import { Plus, Trash2, Pencil, ChevronRight, FolderOpen, FileText, PlayCircle, Tag, CheckCircle2, Archive, Circle, Clock } from "lucide-react"
 import { useProject } from "../hooks/useProjects"
-import { useSuites, useCreateSuite, useUpdateSuite, useDeleteSuite, useCases, useCreateCase, useDeleteCase } from "../hooks/useSuites"
+import { useSuites, useChildSuites, useCreateSuite, useUpdateSuite, useDeleteSuite, useCases, useCreateCase, useDeleteCase } from "../hooks/useSuites"
 import { useVersions, useCreateVersion, useDeleteVersion, useUpdateVersion } from "../hooks/useVersions"
 import { useQueryClient } from "@tanstack/react-query"
 import { suitesApi } from "../api/testcases"
@@ -32,6 +32,29 @@ function AddCaseInline({ suiteId, onDone }) {
       <Input autoFocus placeholder="Test case title…" value={title}
         onChange={e => setTitle(e.target.value)} className="h-7 text-xs" />
       <Button size="sm" type="submit" disabled={createCase.isPending}>Add</Button>
+      <Button size="sm" variant="ghost" type="button" onClick={onDone}>Cancel</Button>
+    </form>
+  )
+}
+
+function AddSubSuiteInline({ parentSuiteId, projectId, onDone }) {
+  const [name, setName] = useState("")
+  const createSuite = useCreateSuite(projectId)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!name.trim()) return
+    await createSuite.mutateAsync({ name: name.trim(), parent_suite_id: parentSuiteId })
+    toast.success("Sub-suite created")
+    setName("")
+    onDone()
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex gap-2 px-2 py-1">
+      <Input autoFocus placeholder="Sub-suite name…" value={name}
+        onChange={e => setName(e.target.value)} className="h-7 text-xs" />
+      <Button size="sm" type="submit" disabled={createSuite.isPending}>Add</Button>
       <Button size="sm" variant="ghost" type="button" onClick={onDone}>Cancel</Button>
     </form>
   )
@@ -163,9 +186,22 @@ function SuiteEditPanel({ suite, projectId, onClose, updateSuite }) {
   )
 }
 
+function ChildSuites({ projectId, parentSuiteId }) {
+  const { data: children = [] } = useChildSuites(projectId, parentSuiteId)
+  if (children.length === 0) return null
+  return (
+    <div className="pl-4 mt-2 space-y-2 border-l-2 border-gray-100">
+      {children.map(child => (
+        <SuiteRow key={child.id} suite={child} projectId={projectId} />
+      ))}
+    </div>
+  )
+}
+
 function SuiteRow({ suite, projectId }) {
   const [open, setOpen] = useState(true)
   const [addingCase, setAddingCase] = useState(false)
+  const [addingSuite, setAddingSuite] = useState(false)
   const [editing, setEditing] = useState(false)
   const deleteSuite = useDeleteSuite(projectId)
   const updateSuite = useUpdateSuite(projectId)
@@ -187,7 +223,10 @@ function SuiteRow({ suite, projectId }) {
           <Button size="sm" variant="ghost" onClick={() => setEditing(v => !v)}>
             <Pencil size={13} />
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => setAddingCase(a => !a)}>
+          <Button size="sm" variant="ghost" onClick={() => { setAddingSuite(a => !a); setAddingCase(false) }}>
+            <Plus size={13} /> Suite
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => { setAddingCase(a => !a); setAddingSuite(false) }}>
             <Plus size={13} /> Case
           </Button>
           <Button size="sm" variant="ghost"
@@ -221,7 +260,11 @@ function SuiteRow({ suite, projectId }) {
               })}
             </div>
           )}
+          {addingSuite && (
+            <AddSubSuiteInline parentSuiteId={suite.id} projectId={projectId} onDone={() => setAddingSuite(false)} />
+          )}
           {addingCase && <AddCaseInline suiteId={suite.id} onDone={() => setAddingCase(false)} />}
+          <ChildSuites projectId={projectId} parentSuiteId={suite.id} />
           <CaseList suiteId={suite.id} />
         </div>
       )}

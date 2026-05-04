@@ -26,6 +26,7 @@ def create_admin(username: str, email: str, password: str) -> None:
             email=email,
             hashed_password=hash_password(password),
             is_active=True,
+            is_admin=True,
         )
         db.add(user)
         db.commit()

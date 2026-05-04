@@ -9,6 +9,14 @@ export function useSuites(projectId) {
   })
 }
 
+export function useChildSuites(projectId, parentSuiteId) {
+  return useQuery({
+    queryKey: ["suites-list", projectId, parentSuiteId],
+    queryFn: () => suitesApi.listChildren(projectId, parentSuiteId),
+    enabled: !!projectId && parentSuiteId != null,
+  })
+}
+
 export function useSuite(id) {
   return useQuery({ queryKey: ["suite", id], queryFn: () => suitesApi.get(id), enabled: !!id })
 }
