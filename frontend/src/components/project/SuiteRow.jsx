@@ -1,16 +1,21 @@
-import { useState } from "react"
-import { Link } from "react-router-dom"
-import { Plus, Trash2, Pencil, ChevronRight, FolderOpen, FileText } from "lucide-react"
-import { useQueryClient } from "@tanstack/react-query"
+import { useState, useMemo } from "react"
+import { Link, useParams } from "react-router-dom"
+import { Plus, Trash2, Pencil, ChevronRight, FolderOpen, FileText, ListPlus, X, GripVertical } from "lucide-react"
+import { useQueryClient, useQuery } from "@tanstack/react-query"
 import {
   useChildSuites, useCreateSuite, useUpdateSuite, useDeleteSuite,
-  useCases, useCreateCase, useDeleteCase,
+  useCases, useCreateCase, useDeleteCase, useBulkDeleteCases, useReorderSuiteSteps,
 } from "../../hooks/useSuites"
 import { suitesApi } from "../../api/testcases"
+import { plansApi } from "../../api/testplans"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { MdEditor, MdViewer } from "../MdEditor"
 import { toast } from "sonner"
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
+import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 
 function AddCaseInline({ suiteId, onDone }) {
   const [title, setTitle] = useState("")
@@ -28,7 +33,7 @@ function AddCaseInline({ suiteId, onDone }) {
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 px-2 py-1">
       <Input autoFocus placeholder="Test case title…" value={title}
-        onChange={e => setTitle(e.target.value)} className="h-7 text-xs" />
+        onChange={e => setTitle(e.target.value)} className="h-8 text-xs" />
       <Button size="sm" type="submit" disabled={createCase.isPending}>Add</Button>
       <Button size="sm" variant="ghost" type="button" onClick={onDone}>Cancel</Button>
     </form>
@@ -51,7 +56,7 @@ function AddSubSuiteInline({ parentSuiteId, projectId, onDone }) {
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 px-2 py-1">
       <Input autoFocus placeholder="Sub-suite name…" value={name}
-        onChange={e => setName(e.target.value)} className="h-7 text-xs" />
+        onChange={e => setName(e.target.value)} className="h-8 text-xs" />
       <Button size="sm" type="submit" disabled={createSuite.isPending}>Add</Button>
       <Button size="sm" variant="ghost" type="button" onClick={onDone}>Cancel</Button>
     </form>
@@ -59,29 +64,123 @@ function AddSubSuiteInline({ parentSuiteId, projectId, onDone }) {
 }
 
 function CaseList({ suiteId }) {
+  const { id: projectId } = useParams()
   const { data: cases = [] } = useCases(suiteId)
   const deleteCase = useDeleteCase(suiteId)
+  const bulkDelete = useBulkDeleteCases(suiteId)
+  const [selected, setSelected] = useState(new Set())
+  const [planId, setPlanId] = useState("")
+
+  const { data: plans = [] } = useQuery({
+    queryKey: ["plans", projectId],
+    queryFn: () => plansApi.list(projectId),
+    enabled: !!projectId && selected.size > 0,
+  })
+
+  const allIds = useMemo(() => cases.map(c => c.id), [cases])
+  const allSelected = cases.length > 0 && selected.size === cases.length
+
+  const toggle = (id) => setSelected(s => {
+    const next = new Set(s)
+    next.has(id) ? next.delete(id) : next.add(id)
+    return next
+  })
+  const toggleAll = () => setSelected(allSelected ? new Set() : new Set(allIds))
+  const clear = () => setSelected(new Set())
+
+  const handleBulkDelete = async () => {
+    const ids = [...selected]
+    if (!confirm(`Delete ${ids.length} test case${ids.length === 1 ? "" : "s"}?`)) return
+    try {
+      await bulkDelete.mutateAsync(ids)
+      toast.success(`${ids.length} cases deleted`)
+      clear()
+    } catch {
+      toast.error("Bulk delete failed")
+    }
+  }
+
+  const handleAddToPlan = async () => {
+    if (!planId) return toast.error("Select a plan")
+    try {
+      await plansApi.addCases(parseInt(planId), [...selected])
+      toast.success(`${selected.size} cases added to plan`)
+      setPlanId("")
+      clear()
+    } catch {
+      toast.error("Failed to add to plan")
+    }
+  }
 
   if (cases.length === 0)
     return <p className="text-xs text-gray-400 pl-2 py-1">No test cases</p>
 
   return (
-    <ul className="pl-4 space-y-0.5">
-      {cases.map(tc => (
-        <li key={tc.id} className="flex items-center justify-between rounded px-2 py-1 hover:bg-gray-50 group">
-          <Link to={`/cases/${tc.id}`}
-            className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900">
-            <FileText size={13} className="text-gray-400" />
-            {tc.name}
-          </Link>
-          <button
-            onClick={() => deleteCase.mutate(tc.id, { onSuccess: () => toast.success("Deleted") })}
-            className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500">
-            <Trash2 size={13} />
-          </button>
-        </li>
-      ))}
-    </ul>
+    <div>
+      {cases.length > 1 && (
+        <label className="flex items-center gap-2 pl-4 pr-2 py-1 text-xs text-gray-500 cursor-pointer">
+          <input type="checkbox" checked={allSelected}
+            onChange={toggleAll}
+            ref={el => { if (el) el.indeterminate = selected.size > 0 && !allSelected }} />
+          {selected.size > 0 ? `${selected.size} selected` : "Select all"}
+        </label>
+      )}
+      <ul className="pl-4 space-y-0.5">
+        {cases.map(tc => (
+          <li key={tc.id}
+            className={`flex items-center justify-between rounded px-2 py-1 hover:bg-gray-50 group ${selected.has(tc.id) ? "bg-blue-50" : ""}`}>
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <input type="checkbox" checked={selected.has(tc.id)}
+                onChange={() => toggle(tc.id)}
+                onClick={e => e.stopPropagation()}
+                className="cursor-pointer" />
+              <Link to={`/cases/${tc.id}`}
+                className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 min-w-0">
+                <FileText size={13} className="text-gray-400 shrink-0" />
+                <span className="truncate">{tc.name}</span>
+              </Link>
+            </div>
+            <button
+              onClick={() => deleteCase.mutate(tc.id, { onSuccess: () => toast.success("Deleted") })}
+              className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 shrink-0">
+              <Trash2 size={13} />
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {selected.size > 0 && (
+        <div className="ml-4 mt-2 flex items-center gap-2 p-2 rounded-lg border border-gray-200 bg-gray-50">
+          <span className="text-xs font-medium text-gray-600">
+            {selected.size} selected
+          </span>
+          <Button size="sm" variant="outline" onClick={handleBulkDelete}
+            disabled={bulkDelete.isPending}>
+            <Trash2 size={12} /> Delete
+          </Button>
+          {plans.length > 0 && (
+            <div className="flex items-center gap-1">
+              <Select value={planId} onValueChange={setPlanId}>
+                <SelectTrigger className="h-8 text-xs min-w-[140px]">
+                  <SelectValue placeholder="Add to plan…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {plans.map(p => (
+                    <SelectItem key={p.id} value={String(p.id)}>{p.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button size="sm" variant="outline" onClick={handleAddToPlan} disabled={!planId}>
+                <ListPlus size={12} /> Add
+              </Button>
+            </div>
+          )}
+          <Button size="sm" variant="ghost" onClick={clear} className="ml-auto">
+            <X size={12} />
+          </Button>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -90,8 +189,36 @@ const SUITE_STEP_STYLE = {
   teardown: "bg-orange-50 text-orange-600 border-orange-200",
 }
 
-function SuiteStepList({ suiteId, steps, stepType, onRefresh }) {
+function SortableSuiteStep({ step, stepType, onDelete }) {
+  const style = SUITE_STEP_STYLE[stepType]
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: step.id, activationConstraint: { distance: 5 } })
+
+  const dragStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div ref={setNodeRef} style={dragStyle}
+      className={`flex items-start gap-2 border rounded-lg px-3 py-2 ${style}`}>
+      <button {...attributes} {...listeners}
+        className="text-gray-300 hover:text-gray-500 mt-0.5 cursor-grab touch-none">
+        <GripVertical size={12} />
+      </button>
+      <span className="flex-1 text-sm">{step.action}</span>
+      <button onClick={onDelete} className="text-gray-300 hover:text-red-500 shrink-0 mt-0.5">
+        <Trash2 size={12} />
+      </button>
+    </div>
+  )
+}
+
+function SuiteStepList({ suiteId, projectId, steps, stepType, onRefresh }) {
   const [newAction, setNewAction] = useState("")
+  const reorderSuiteSteps = useReorderSuiteSteps(projectId)
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
   const addStep = async () => {
     if (!newAction.trim()) return
@@ -106,23 +233,32 @@ function SuiteStepList({ suiteId, steps, stepType, onRefresh }) {
     onRefresh()
   }
 
+  const handleDragEnd = ({ active, over }) => {
+    if (!over || active.id === over.id) return
+    const typeSteps = steps.filter(s => s.step_type === stepType)
+    const oldIndex = typeSteps.findIndex(s => s.id === active.id)
+    const newIndex = typeSteps.findIndex(s => s.id === over.id)
+    const reordered = [...typeSteps]
+    const [moved] = reordered.splice(oldIndex, 1)
+    reordered.splice(newIndex, 0, moved)
+    reorderSuiteSteps.mutate({ suiteId, stepIds: reordered.map(s => s.id) })
+  }
+
   const typeSteps = steps.filter(s => s.step_type === stepType)
-  const style = SUITE_STEP_STYLE[stepType]
 
   return (
     <div className="space-y-1.5">
-      {typeSteps.map((step, i) => (
-        <div key={step.id} className={`flex items-start gap-2 border rounded-lg px-3 py-2 ${style}`}>
-          <span className="text-xs font-mono text-gray-400 mt-0.5 w-4">{i + 1}.</span>
-          <span className="flex-1 text-sm">{step.action}</span>
-          <button onClick={() => deleteStep(step.id)} className="text-gray-300 hover:text-red-500 shrink-0 mt-0.5">
-            <Trash2 size={12} />
-          </button>
-        </div>
-      ))}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={typeSteps.map(s => s.id)} strategy={verticalListSortingStrategy}>
+          {typeSteps.map(step => (
+            <SortableSuiteStep key={step.id} step={step} stepType={stepType}
+              onDelete={() => deleteStep(step.id)} />
+          ))}
+        </SortableContext>
+      </DndContext>
       <div className="flex gap-2">
         <Input value={newAction} onChange={e => setNewAction(e.target.value)}
-          placeholder={`Add ${stepType} step…`} className="h-7 text-xs"
+          placeholder={`Add ${stepType} step…`} className="h-8 text-xs"
           onKeyDown={e => e.key === "Enter" && addStep()} />
         <Button size="sm" variant="outline" onClick={addStep} disabled={!newAction.trim()}>
           <Plus size={12} />
@@ -169,11 +305,11 @@ function SuiteEditPanel({ suite, projectId, onClose, updateSuite }) {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide">Suite Setup</p>
-          <SuiteStepList suiteId={suite.id} steps={suite.steps ?? []} stepType="setup" onRefresh={refresh} />
+          <SuiteStepList suiteId={suite.id} projectId={projectId} steps={suite.steps ?? []} stepType="setup" onRefresh={refresh} />
         </div>
         <div className="space-y-1.5">
           <p className="text-xs font-semibold text-orange-600 uppercase tracking-wide">Suite Teardown</p>
-          <SuiteStepList suiteId={suite.id} steps={suite.steps ?? []} stepType="teardown" onRefresh={refresh} />
+          <SuiteStepList suiteId={suite.id} projectId={projectId} steps={suite.steps ?? []} stepType="teardown" onRefresh={refresh} />
         </div>
       </div>
       <div className="flex gap-2">

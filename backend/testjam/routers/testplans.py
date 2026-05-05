@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import get_current_user, require_project_access
@@ -7,6 +8,10 @@ from testjam.models.testcase import TestCase
 from testjam.models.testplan import TestPlan
 from testjam.models.user import User
 from testjam.schemas.testplan import TestPlanCreate, TestPlanOut, TestPlanUpdate
+
+
+class PlanCaseIds(BaseModel):
+    case_ids: list[int]
 
 projects_router = APIRouter(prefix="/projects", tags=["TestPlans"])
 plans_router = APIRouter(prefix="/plans", tags=["TestPlans"])
@@ -73,3 +78,18 @@ def delete_plan(id: int, db: Session = Depends(get_db), _: User = Depends(get_cu
         raise HTTPException(status_code=404, detail="Not found")
     db.delete(plan)
     db.commit()
+
+
+@plans_router.post("/{id}/cases", response_model=TestPlanOut)
+def add_cases_to_plan(id: int, body: PlanCaseIds, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    plan = db.get(TestPlan, id)
+    if not plan:
+        raise HTTPException(status_code=404, detail="Not found")
+    existing_ids = {c.id for c in plan.cases}
+    new_ids = [cid for cid in body.case_ids if cid not in existing_ids]
+    if new_ids:
+        new_cases = db.query(TestCase).filter(TestCase.id.in_(new_ids)).all()
+        plan.cases.extend(new_cases)
+        db.commit()
+        db.refresh(plan)
+    return _plan_out(plan)

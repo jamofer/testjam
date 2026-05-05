@@ -1,16 +1,22 @@
 import { useState } from "react"
 import { useParams } from "react-router-dom"
-import { ExternalLink, Clock } from "lucide-react"
+import { ExternalLink, Clock, Keyboard, User, Download } from "lucide-react"
+import { exportExecutionPdf } from "../lib/exportPdf"
 import { useQueryClient } from "@tanstack/react-query"
-import { useExecution, useExecutionResults } from "../hooks/useExecutions"
+import { useExecution, useExecutionResults, useUpdateResult } from "../hooks/useExecutions"
 import { executionsApi } from "../api/executions"
 import { useProject } from "../hooks/useProjects"
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts"
 import { Breadcrumbs } from "../components/ui/breadcrumbs"
 import { Button } from "../components/ui/button"
 import { Skeleton, SkeletonList } from "../components/ui/skeleton"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components/ui/dialog"
 import { ResultCard } from "../components/execution/ResultCard"
 import { fmtDuration } from "../lib/format"
+import { STATUS_CONFIG } from "../lib/statusConfig"
 import { toast } from "sonner"
+
+const SHORTCUT_TO_STATUS = { p: "passed", f: "failed", b: "blocked", n: "not_run" }
 
 export function ExecutionRunPage() {
   const { id } = useParams()
@@ -53,6 +59,34 @@ export function ExecutionRunPage() {
 
 function ExecutionRunBody({ execution, results, id, summary, done, totalMs, finishExecution, finishing }) {
   const { data: project } = useProject(execution.project_id)
+  const updateResult = useUpdateResult(id)
+  const [focusedIndex, setFocusedIndex] = useState(0)
+  const [helpOpen, setHelpOpen] = useState(false)
+  const isAutomated = execution.type === "automatic"
+
+  const focused = results[focusedIndex]
+
+  useKeyboardShortcuts({
+    j: () => setFocusedIndex(i => Math.min(i + 1, results.length - 1)),
+    ArrowDown: () => setFocusedIndex(i => Math.min(i + 1, results.length - 1)),
+    k: () => setFocusedIndex(i => Math.max(i - 1, 0)),
+    ArrowUp: () => setFocusedIndex(i => Math.max(i - 1, 0)),
+    "?": () => setHelpOpen(o => !o),
+    Escape: () => setHelpOpen(false),
+    ...(isAutomated ? {} : Object.fromEntries(
+      Object.entries(SHORTCUT_TO_STATUS).map(([key, status]) => [
+        key,
+        async () => {
+          if (!focused) return
+          try {
+            await updateResult.mutateAsync({ id: focused.id, data: { status } })
+          } catch {
+            toast.error("Failed to update status")
+          }
+        },
+      ])
+    )),
+  }, { enabled: results.length > 0, allowWhileTyping: ["Escape"] })
 
   return (
     <div className="max-w-2xl space-y-4">
@@ -71,7 +105,17 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
           <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-sm text-gray-500">
             {execution.version && <span>v{execution.version}</span>}
             {execution.environment && <span>{execution.environment}</span>}
-            {execution.triggered_by && <span>by {execution.triggered_by}</span>}
+            {(execution.token_name || execution.created_by || execution.triggered_by) && (
+              <span>{execution.token_name
+                ? `via ${execution.token_name}`
+                : `by ${execution.created_by?.username ?? execution.triggered_by}`}
+              </span>
+            )}
+            {execution.assigned_to && (
+              <span className="flex items-center gap-1">
+                <User size={12} /> {execution.assigned_to.username}
+              </span>
+            )}
             <span>{done}/{summary.total ?? 0} done</span>
             {totalMs != null && (
               <span className="flex items-center gap-1 text-gray-400">
@@ -80,14 +124,24 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
             )}
           </div>
         </div>
-        <Button
-          onClick={finishExecution}
-          disabled={execution.status === "completed" || finishing}
-          loading={finishing}
-          className="shrink-0"
-        >
-          {execution.status === "completed" ? "Completed" : "Finish execution"}
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button variant="ghost" size="sm" onClick={() => setHelpOpen(true)} title="Keyboard shortcuts (?)">
+            <Keyboard size={14} />
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => exportExecutionPdf(execution, results, project?.name)}>
+            <Download size={13} /> PDF
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => executionsApi.exportHtml(id, execution.title)}>
+            <Download size={13} /> HTML
+          </Button>
+          <Button
+            onClick={finishExecution}
+            disabled={execution.status === "completed" || finishing}
+            loading={finishing}
+          >
+            {execution.status === "completed" ? "Completed" : "Finish execution"}
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-center gap-4">
@@ -112,9 +166,48 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
       <div className="space-y-3">
         {results.map((result, i) => (
           <ResultCard key={result.id} result={result} executionId={id} index={i} total={results.length}
-            isAutomated={execution.type === "automatic"} />
+            isAutomated={isAutomated}
+            focused={i === focusedIndex}
+            onFocus={() => setFocusedIndex(i)} />
         ))}
       </div>
+
+      <ShortcutHelpDialog open={helpOpen} onOpenChange={setHelpOpen} isAutomated={isAutomated} />
+    </div>
+  )
+}
+
+function ShortcutHelpDialog({ open, onOpenChange, isAutomated }) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Keyboard shortcuts</DialogTitle>
+          <DialogDescription>Navigate and update results without the mouse.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2 text-sm">
+          <ShortcutRow keys={["j", "↓"]} description="Focus next result" />
+          <ShortcutRow keys={["k", "↑"]} description="Focus previous result" />
+          {!isAutomated && Object.entries(SHORTCUT_TO_STATUS).map(([key, status]) => (
+            <ShortcutRow key={key} keys={[key]} description={`Mark as ${STATUS_CONFIG[status].label}`} />
+          ))}
+          <ShortcutRow keys={["?"]} description="Toggle this help" />
+          <ShortcutRow keys={["Esc"]} description="Close this help" />
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function ShortcutRow({ keys, description }) {
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex gap-1">
+        {keys.map(k => (
+          <kbd key={k} className="px-2 py-0.5 text-xs font-mono bg-gray-100 border border-gray-300 rounded">{k}</kbd>
+        ))}
+      </div>
+      <span className="text-gray-600">{description}</span>
     </div>
   )
 }

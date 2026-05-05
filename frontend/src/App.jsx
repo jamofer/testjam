@@ -9,6 +9,7 @@ import { ProjectsPage } from "./pages/ProjectsPage"
 import { ProjectDetailPage } from "./pages/ProjectDetailPage"
 import { TestCasePage } from "./pages/TestCasePage"
 import { TestPlansPage } from "./pages/TestPlansPage"
+import { PlanDetailPage } from "./pages/PlanDetailPage"
 import { ExecutionsPage } from "./pages/ExecutionsPage"
 import { ExecutionDetailPage } from "./pages/ExecutionDetailPage"
 import { ExecutionRunPage } from "./pages/ExecutionRunPage"
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
             <Route path="/projects/:id/plans" element={<TestPlansPage />} />
+            <Route path="/plans/:id" element={<PlanDetailPage />} />
             <Route path="/projects/:id/executions" element={<ExecutionsPage />} />
             <Route path="/projects/:id/executions/new" element={<NewExecutionPage />} />
             <Route path="/projects/:id/members" element={<MembersPage />} />

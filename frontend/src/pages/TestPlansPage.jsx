@@ -60,14 +60,14 @@ function CreatePlanDialog({ projectId, onCreated }) {
               {suites.map(suite => (
                 <details key={suite.id} onToggle={() => loadCases(suite.id)} className="group">
                   <summary className="flex items-center gap-2 px-3 py-2 cursor-pointer text-sm font-medium bg-gray-50 hover:bg-gray-100">
-                    {suite.title}
+                    {suite.name}
                   </summary>
                   <div className="px-4 py-1 space-y-1">
                     {(casesBySuite[suite.id] ?? []).map(tc => (
                       <label key={tc.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
                         <input type="checkbox" checked={selectedCases.includes(tc.id)}
                           onChange={() => toggleCase(tc.id)} />
-                        {tc.title}
+                        {tc.name}
                       </label>
                     ))}
                   </div>

@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Upload, Tag, Clock } from 'lucide-react'
+import { Upload, Tag, Clock, Download } from 'lucide-react'
 import { MdViewer } from '../components/MdEditor'
 import { useExecution, useExecutionResults, useUpdateResult } from '../hooks/useExecutions'
 import { executionsApi } from '../api/executions'
+import { exportExecutionPdf } from '../lib/exportPdf'
+import { useProject } from '../hooks/useProjects'
 import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '../components/ui/button'
 import { Skeleton, SkeletonList } from '../components/ui/skeleton'
@@ -66,6 +68,7 @@ export function ExecutionDetailPage() {
   const { id } = useParams()
   const { data: execution } = useExecution(id)
   const { data: results = [] } = useExecutionResults(id)
+  const { data: project } = useProject(execution?.project_id)
   const updateResult = useUpdateResult(id)
 
   if (!execution) {
@@ -94,7 +97,12 @@ export function ExecutionDetailPage() {
                 </span>
               )}
               {execution.environment && <span>· {execution.environment}</span>}
-              {execution.triggered_by && <span>· by {execution.triggered_by}</span>}
+              {(execution.token_name || execution.created_by || execution.triggered_by) && (
+                <span>· {execution.token_name
+                  ? `via ${execution.token_name}`
+                  : `by ${execution.created_by?.username ?? execution.triggered_by}`}
+                </span>
+              )}
             </div>
             {(execution.started_at || execution.finished_at) && (
               <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
@@ -105,9 +113,17 @@ export function ExecutionDetailPage() {
               </div>
             )}
           </div>
-          {execution.type === 'automatic' && (
-            <ImportResultsButton executionId={id} />
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            {execution.type === 'automatic' && (
+              <ImportResultsButton executionId={id} />
+            )}
+            <Button size="sm" variant="outline" onClick={() => exportExecutionPdf(execution, results, project?.name)}>
+              <Download size={13} /> PDF
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => executionsApi.exportHtml(id, execution.title)}>
+              <Download size={13} /> HTML
+            </Button>
+          </div>
         </div>
         {execution.description && (
           <div className="mt-3">

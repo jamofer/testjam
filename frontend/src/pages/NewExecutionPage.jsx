@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { useCreateExecution } from "../hooks/useExecutions"
 import { useSuites, useCases } from "../hooks/useSuites"
 import { useVersions } from "../hooks/useVersions"
+import { useMembers } from "../hooks/useMembers"
 import { useQuery } from "@tanstack/react-query"
 import { plansApi } from "../api/testplans"
 import { Button } from "../components/ui/button"
@@ -50,6 +51,7 @@ export function NewExecutionPage() {
   const navigate = useNavigate()
   const createExecution = useCreateExecution(projectId)
   const { data: versions = [] } = useVersions(projectId)
+  const { data: members = [] } = useMembers(projectId)
 
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -58,6 +60,7 @@ export function NewExecutionPage() {
   const [versionFreeText, setVersionFreeText] = useState("")
   const [environment, setEnvironment] = useState("")
   const [triggeredBy, setTriggeredBy] = useState("")
+  const [assigneeId, setAssigneeId] = useState("")
   const [source, setSource] = useState("cases")
   const [planId, setPlanId] = useState("")
   const [selectedCases, setSelectedCases] = useState([])
@@ -80,6 +83,7 @@ export function NewExecutionPage() {
       version: !versionId && versionFreeText ? versionFreeText : undefined,
       environment: environment || undefined,
       triggered_by: type === "automatic" ? triggeredBy || undefined : undefined,
+      assigned_to_id: assigneeId ? parseInt(assigneeId) : undefined,
       test_case_ids: source === "cases" ? selectedCases : [],
       test_plan_id: source === "plan" && planId ? parseInt(planId) : undefined,
     }
@@ -161,6 +165,19 @@ export function NewExecutionPage() {
               <Input value={triggeredBy} onChange={e => setTriggeredBy(e.target.value)} placeholder="github-actions" />
             </div>
           )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label>Assignee</Label>
+          <Select value={assigneeId} onValueChange={setAssigneeId}>
+            <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Unassigned</SelectItem>
+              {members.map(m => (
+                <SelectItem key={m.user_id} value={String(m.user_id)}>{m.username}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">

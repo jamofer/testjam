@@ -69,3 +69,25 @@ def test_create_execution_from_plan(auth_client, project_id, case_ids):
 
     assert resp.status_code == 201
     assert resp.json()["summary"]["total"] == len(case_ids)
+
+
+def test_add_cases_to_plan(auth_client, project_id, case_ids):
+    plan_id = auth_client.post(f"/api/v1/projects/{project_id}/plans", json={
+        "title": "P", "test_case_ids": [case_ids[0]],
+    }).json()["id"]
+
+    resp = auth_client.post(f"/api/v1/plans/{plan_id}/cases",
+                            json={"case_ids": [case_ids[1], case_ids[2]]})
+    assert resp.status_code == 200
+    assert set(resp.json()["test_case_ids"]) == set(case_ids)
+
+
+def test_add_cases_to_plan_dedupes(auth_client, project_id, case_ids):
+    plan_id = auth_client.post(f"/api/v1/projects/{project_id}/plans", json={
+        "title": "P", "test_case_ids": [case_ids[0]],
+    }).json()["id"]
+
+    resp = auth_client.post(f"/api/v1/plans/{plan_id}/cases",
+                            json={"case_ids": [case_ids[0], case_ids[1]]})
+    assert resp.status_code == 200
+    assert sorted(resp.json()["test_case_ids"]) == sorted([case_ids[0], case_ids[1]])

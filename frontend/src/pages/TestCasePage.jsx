@@ -1,14 +1,19 @@
 import { useState } from "react"
-import { useParams, useNavigate } from "react-router-dom"
-import { Plus, Trash2, GripVertical, Upload, ArrowLeft, Copy, ExternalLink } from "lucide-react"
-import { useCase, useUpdateCase } from "../hooks/useSuites"
+import { useParams } from "react-router-dom"
+import { Plus, Trash2, GripVertical, Upload, Copy, ExternalLink } from "lucide-react"
+import { useCase, useUpdateCase, useReorderSteps, useSuite } from "../hooks/useSuites"
+import { useProject } from "../hooks/useProjects"
 import { casesApi } from "../api/testcases"
 import { useQueryClient } from "@tanstack/react-query"
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
+import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 import { MdEditor, MdViewer } from "../components/MdEditor"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs"
 import { EmptyState } from "../components/ui/empty-state"
+import { Breadcrumbs } from "../components/ui/breadcrumbs"
 import { toast } from "sonner"
 
 const STEP_TYPE_STYLE = {
@@ -17,11 +22,20 @@ const STEP_TYPE_STYLE = {
   teardown: "bg-orange-50 text-orange-600 border-orange-200",
 }
 
-function StepRow({ step, caseId, onDelete }) {
+function SortableStepRow({ step, caseId, onDelete }) {
   const [editing, setEditing] = useState(false)
   const [action, setAction] = useState(step.action)
   const [expected, setExpected] = useState(step.expected_result ?? "")
   const qc = useQueryClient()
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: step.id, activationConstraint: { distance: 5 } })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
 
   const save = async () => {
     await casesApi.updateStep(caseId, step.id, { action, expected_result: expected, order: step.order })
@@ -33,9 +47,11 @@ function StepRow({ step, caseId, onDelete }) {
   const typeStyle = STEP_TYPE_STYLE[step.step_type] ?? STEP_TYPE_STYLE.action
 
   return (
-    <div className="border rounded-lg p-3 space-y-2 bg-white">
+    <div ref={setNodeRef} style={style} className="border rounded-lg p-3 space-y-2 bg-white">
       <div className="flex items-start gap-2">
-        <GripVertical size={14} className="text-gray-300 mt-1 cursor-grab" />
+        <button {...attributes} {...listeners} className="text-gray-300 hover:text-gray-500 mt-1 cursor-grab touch-none">
+          <GripVertical size={14} />
+        </button>
         <span className="text-xs font-mono text-gray-400 mt-1 w-6">{step.order}.</span>
         <span className={`text-xs px-1.5 py-0.5 rounded border mt-0.5 shrink-0 ${typeStyle}`}>
           {step.step_type}
@@ -156,10 +172,14 @@ function AttachmentList({ caseId, attachments }) {
 
 export function TestCasePage() {
   const { id } = useParams()
-  const navigate = useNavigate()
   const { data: tc, isLoading } = useCase(id)
+  const { data: suite } = useSuite(tc?.suite_id)
+  const { data: project } = useProject(suite?.project_id)
   const updateCase = useUpdateCase(id)
+  const reorderSteps = useReorderSteps(id)
   const qc = useQueryClient()
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
   const [editingTitle, setEditingTitle] = useState(false)
   const [title, setTitle] = useState("")
@@ -198,11 +218,24 @@ export function TestCasePage() {
     toast.success("Step deleted")
   }
 
+  const handleDragEnd = ({ active, over }) => {
+    if (!over || active.id === over.id) return
+    const steps = tc.steps ?? []
+    const oldIndex = steps.findIndex(s => s.id === active.id)
+    const newIndex = steps.findIndex(s => s.id === over.id)
+    const reordered = [...steps]
+    const [moved] = reordered.splice(oldIndex, 1)
+    reordered.splice(newIndex, 0, moved)
+    reorderSteps.mutate(reordered.map(s => s.id))
+  }
+
   return (
     <div className="max-w-2xl space-y-6">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800">
-        <ArrowLeft size={14} /> Back
-      </button>
+      <Breadcrumbs crumbs={[
+        { label: "Projects", to: "/projects" },
+        { label: project?.name ?? "…", to: `/projects/${suite?.project_id}` },
+        { label: tc?.name },
+      ]} />
 
       {editingTitle ? (
         <div className="space-y-3">
@@ -221,20 +254,22 @@ export function TestCasePage() {
           </div>
         </div>
       ) : (
-        <div className="cursor-pointer group" onClick={startEditMeta}>
-          <h1 className="text-2xl font-bold text-gray-800 group-hover:text-gray-600">{tc.name}</h1>
-          {tc.preconditions && (
-            <div className="mt-2">
-              <p className="text-xs text-gray-400 uppercase tracking-wide">Preconditions</p>
-              <div className="prose prose-sm mt-1"><MdViewer value={tc.preconditions} /></div>
-            </div>
-          )}
-          {tc.description && (
-            <div className="mt-2 prose prose-sm text-gray-600"><MdViewer value={tc.description} /></div>
-          )}
-          {!tc.preconditions && !tc.description && (
-            <p className="text-sm text-gray-400 mt-1">Click to add description…</p>
-          )}
+        <div className="flex items-start justify-between gap-2">
+          <div className="cursor-pointer group flex-1" onClick={startEditMeta}>
+            <h1 className="text-2xl font-bold text-gray-800 group-hover:text-gray-600">{tc.name}</h1>
+            {tc.preconditions && (
+              <div className="mt-2">
+                <p className="text-xs text-gray-400 uppercase tracking-wide">Preconditions</p>
+                <div className="prose prose-sm mt-1"><MdViewer value={tc.preconditions} /></div>
+              </div>
+            )}
+            {tc.description && (
+              <div className="mt-2 prose prose-sm text-gray-600"><MdViewer value={tc.description} /></div>
+            )}
+            {!tc.preconditions && !tc.description && (
+              <p className="text-sm text-gray-400 mt-1">Click to add description…</p>
+            )}
+          </div>
         </div>
       )}
 
@@ -245,18 +280,22 @@ export function TestCasePage() {
         </TabsList>
 
         <TabsContent value="steps">
-          <div className="space-y-2">
-            {tc.steps?.map(step => (
-              <StepRow key={step.id} step={step} caseId={id} onDelete={() => deleteStep(step.id)} />
-            ))}
-            <div className="border rounded-lg p-3 space-y-2">
-              <p className="text-xs text-gray-500">New step</p>
-              <MdEditor value={newStepContent} onChange={setNewStepContent} height={100} />
-              <Button size="sm" onClick={addStep} disabled={!newStepContent.trim()}>
-                <Plus size={13} /> Add step
-              </Button>
-            </div>
-          </div>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={(tc.steps ?? []).map(s => s.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-2">
+                {(tc.steps ?? []).map(step => (
+                  <SortableStepRow key={step.id} step={step} caseId={id} onDelete={() => deleteStep(step.id)} />
+                ))}
+                <div className="border rounded-lg p-3 space-y-2">
+                  <p className="text-xs text-gray-500">New step</p>
+                  <MdEditor value={newStepContent} onChange={setNewStepContent} height={100} />
+                  <Button size="sm" onClick={addStep} disabled={!newStepContent.trim()}>
+                    <Plus size={13} /> Add step
+                  </Button>
+                </div>
+              </div>
+            </SortableContext>
+          </DndContext>
         </TabsContent>
 
         <TabsContent value="attachments">

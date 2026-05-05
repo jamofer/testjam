@@ -82,3 +82,27 @@ export function useDeleteCase(suiteId) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cases-list", suiteId] }),
   })
 }
+
+export function useBulkDeleteCases(suiteId) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: casesApi.bulkDelete,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["cases-list", suiteId] }),
+  })
+}
+
+export function useReorderSteps(caseId) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (stepIds) => casesApi.reorderSteps(caseId, stepIds),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["case", caseId] }),
+  })
+}
+
+export function useReorderSuiteSteps(projectId) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ suiteId, stepIds }) => suitesApi.reorderSteps(suiteId, stepIds),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["suites-list", projectId] }),
+  })
+}

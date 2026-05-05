@@ -1,11 +1,13 @@
 import os
 import shutil
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import get_current_user
 from testjam.database import get_db
 from testjam.models.testcase import Attachment, TestCase, TestStep
+from testjam.models.testplan import TestPlan
 from testjam.models.user import User
 from testjam.schemas.testcase import (
     AttachmentOut, TestCaseCreate, TestCaseOut, TestCaseUpdate,
@@ -70,6 +72,41 @@ def delete_case(id: int, db: Session = Depends(get_db), _: User = Depends(get_cu
         raise HTTPException(status_code=404, detail="Not found")
     db.delete(case)
     db.commit()
+
+
+class BulkIds(BaseModel):
+    ids: list[int]
+
+
+class BulkAddToPlan(BaseModel):
+    case_ids: list[int]
+
+
+@cases_router.post("/bulk-delete", status_code=status.HTTP_200_OK)
+def bulk_delete_cases(body: BulkIds, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    if not body.ids:
+        return {"deleted": 0}
+    deleted = db.query(TestCase).filter(TestCase.id.in_(body.ids)).delete(synchronize_session=False)
+    db.commit()
+    return {"deleted": deleted}
+
+
+class StepReorder(BaseModel):
+    step_ids: list[int]
+
+
+@cases_router.post("/{id}/steps/reorder", response_model=list[TestStepOut])
+def reorder_case_steps(id: int, body: StepReorder, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    if not db.get(TestCase, id):
+        raise HTTPException(status_code=404, detail="Not found")
+    steps = {s.id: s for s in db.query(TestStep).filter(TestStep.test_case_id == id).all()}
+    for new_order, step_id in enumerate(body.step_ids, start=1):
+        step = steps.get(step_id)
+        if step is None:
+            raise HTTPException(status_code=400, detail=f"Step {step_id} not in case {id}")
+        step.order = new_order
+    db.commit()
+    return db.query(TestStep).filter(TestStep.test_case_id == id).order_by(TestStep.order).all()
 
 
 # ─── Steps ────────────────────────────────────────────────────────────────────

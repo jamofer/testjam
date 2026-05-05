@@ -6,4 +6,5 @@ export const plansApi = {
   create: (projectId, data) => api.post(`/projects/${projectId}/plans`, data).then(r => r.data),
   update: (id, data) => api.put(`/plans/${id}`, data).then(r => r.data),
   delete: (id) => api.delete(`/plans/${id}`),
+  addCases: (id, caseIds) => api.post(`/plans/${id}/cases`, { case_ids: caseIds }).then(r => r.data),
 }

@@ -139,6 +139,8 @@ class TestExecutionOut(BaseModel):
     version_id: int | None = None
     environment: str | None
     assigned_to: UserOut | None = None
+    created_by: UserOut | None = None
+    token_name: str | None = None
     triggered_by: str | None
     started_at: datetime | None
     finished_at: datetime | None

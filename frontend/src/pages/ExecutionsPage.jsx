@@ -1,9 +1,12 @@
 import { useState, useMemo } from "react"
 import { useParams, Link } from "react-router-dom"
-import { PlayCircle, CheckCircle2, XCircle, MinusCircle, Plus, Clock, Search } from "lucide-react"
+import { PlayCircle, CheckCircle2, XCircle, MinusCircle, Plus, Clock, Search, User, Download } from "lucide-react"
 import { useExecutions } from "../hooks/useExecutions"
 import { useProject } from "../hooks/useProjects"
+import { useMe } from "../hooks/useAuth"
 import { useDebounced } from "../hooks/useDebounced"
+import { executionsApi } from "../api/executions"
+import { exportExecutionPdf } from "../lib/exportPdf"
 import { Button } from "../components/ui/button"
 import { Badge } from "../components/ui/badge"
 import { Breadcrumbs } from "../components/ui/breadcrumbs"
@@ -35,18 +38,21 @@ export function ExecutionsPage() {
   const { id: projectId } = useParams()
   const { data: executions = [], isLoading } = useExecutions(projectId)
   const { data: project } = useProject(projectId)
+  const { data: me } = useMe()
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [mineOnly, setMineOnly] = useState(false)
   const debouncedSearch = useDebounced(search, 150)
 
   const filtered = useMemo(() => {
     const q = debouncedSearch.trim().toLowerCase()
     return executions.filter(ex => {
       if (statusFilter !== "all" && ex.status !== statusFilter) return false
+      if (mineOnly && ex.assigned_to?.id !== me?.id) return false
       if (q && !ex.title.toLowerCase().includes(q)) return false
       return true
     })
-  }, [executions, debouncedSearch, statusFilter])
+  }, [executions, debouncedSearch, statusFilter, mineOnly, me?.id])
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -79,6 +85,16 @@ export function ExecutionsPage() {
               </Button>
             ))}
           </div>
+          {me && (
+            <Button
+              size="sm"
+              variant={mineOnly ? "default" : "outline"}
+              onClick={() => setMineOnly(v => !v)}
+              title="Show only executions assigned to me"
+            >
+              <User size={13} /> Mine
+            </Button>
+          )}
         </div>
       )}
 
@@ -87,18 +103,37 @@ export function ExecutionsPage() {
       <ul className="space-y-2">
         {filtered.map(ex => (
           <li key={ex.id} className="bg-white border rounded-lg px-4 py-3 shadow-sm">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <Link to={`/executions/${ex.id}/run`}
-                className="font-medium text-gray-800 hover:underline flex items-center gap-2">
+                className="font-medium text-gray-800 hover:underline flex items-center gap-2 min-w-0">
                 {statusIcon[ex.status]}
-                {ex.title}
+                <span className="truncate">{ex.title}</span>
               </Link>
-              <Badge variant={typeBadge[ex.type]}>{ex.type}</Badge>
+              <div className="flex items-center gap-2 shrink-0">
+                <Badge variant={typeBadge[ex.type]}>{ex.type}</Badge>
+                <button
+                  onClick={() => executionsApi.exportHtml(ex.id, ex.title)}
+                  className="text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-100"
+                  title="Download HTML report"
+                >
+                  <Download size={13} />
+                </button>
+              </div>
             </div>
             <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-400">
               {ex.version && <span>v{ex.version}</span>}
               {ex.environment && <span>{ex.environment}</span>}
-              {ex.triggered_by && <span>by {ex.triggered_by}</span>}
+              {(ex.token_name || ex.created_by || ex.triggered_by) && (
+                <span>{ex.token_name
+                  ? `via ${ex.token_name}`
+                  : `by ${ex.created_by?.username ?? ex.triggered_by}`}
+                </span>
+              )}
+              {ex.assigned_to && (
+                <span className="flex items-center gap-1 text-gray-500">
+                  <User size={10} /> {ex.assigned_to.username}
+                </span>
+              )}
               {(ex.started_at || ex.created_at) && (
                 <span className="flex items-center gap-1">
                   <Clock size={10} /> {fmtDate(ex.started_at ?? ex.created_at)}

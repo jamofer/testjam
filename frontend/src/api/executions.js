@@ -1,5 +1,14 @@
 import { api } from './client'
 
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 export const executionsApi = {
   list: (projectId, params) => api.get(`/projects/${projectId}/executions`, { params }).then(r => r.data),
   get: (id) => api.get(`/executions/${id}`).then(r => r.data),
@@ -31,5 +40,21 @@ export const executionsApi = {
     const form = new FormData()
     form.append('file', file)
     return api.post(`/executions/${executionId}/results/import/robotframework`, form).then(r => r.data)
+  },
+
+  exportXlsx: async (executionId) => {
+    const r = await api.get(`/executions/${executionId}/export/xlsx`, { responseType: 'blob' })
+    downloadBlob(r.data, `execution_${executionId}.xlsx`)
+  },
+
+  exportHtml: async (executionId, title = "") => {
+    const r = await api.get(`/executions/${executionId}/export/html`, { responseType: 'blob' })
+    const slug = title.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_-]/g, "") || executionId
+    downloadBlob(r.data, `execution_${executionId}_${slug}.html`)
+  },
+
+  exportCasesXlsx: async (projectId) => {
+    const r = await api.get(`/projects/${projectId}/cases/export/xlsx`, { responseType: 'blob' })
+    downloadBlob(r.data, `project_${projectId}_cases.xlsx`)
   },
 }

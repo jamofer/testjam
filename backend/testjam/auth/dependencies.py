@@ -20,6 +20,7 @@ class AuthContext:
     # If set, the active credential is a project-scoped API token and
     # should only be allowed to access this specific project.
     project_scope: int | None = None
+    token_name: str | None = None
 
 
 def get_auth_context(
@@ -43,7 +44,7 @@ def get_auth_context(
             uid = token.user_id if token.user_id else token.created_by
             user = db.get(User, uid)
             if user and user.is_active:
-                return AuthContext(user=user, project_scope=token.project_id)
+                return AuthContext(user=user, project_scope=token.project_id, token_name=token.name)
         # Fallback: legacy api_key field on User
         user = db.query(User).filter(User.api_key == api_key, User.is_active == True).first()
         if user:
@@ -54,6 +55,16 @@ def get_auth_context(
 
 def get_current_user(ctx: AuthContext = Depends(get_auth_context)) -> User:
     return ctx.user
+
+
+def require_project_access_ctx(id: int, ctx: AuthContext = Depends(get_auth_context)) -> AuthContext:
+    """Like require_project_access but returns the full AuthContext."""
+    if ctx.project_scope is not None and ctx.project_scope != id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="API token is not authorized for this project",
+        )
+    return ctx
 
 
 def require_project_access(id: int, ctx: AuthContext = Depends(get_auth_context)) -> User:

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useParams, Link } from "react-router-dom"
+import { useParams } from "react-router-dom"
 import { Plus, FolderOpen, PlayCircle, Tag, Clock } from "lucide-react"
 import { useProject } from "../hooks/useProjects"
 import { useSuites, useCreateSuite } from "../hooks/useSuites"
@@ -8,6 +8,7 @@ import { Input } from "../components/ui/input"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs"
 import { EmptyState } from "../components/ui/empty-state"
 import { Skeleton, SkeletonList } from "../components/ui/skeleton"
+import { Breadcrumbs } from "../components/ui/breadcrumbs"
 import { SuiteRow } from "../components/project/SuiteRow"
 import { VersionsPanel } from "../components/project/VersionsPanel"
 import { toast } from "sonner"
@@ -39,6 +40,7 @@ export function ProjectDetailPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
+      <Breadcrumbs crumbs={[{ label: "Projects", to: "/projects" }, { label: project?.name ?? "…" }]} />
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">{project?.name}</h1>
@@ -60,9 +62,6 @@ export function ProjectDetailPage() {
             </span>
           </div>
         </div>
-        <Link to={`/projects/${id}/executions`}>
-          <Button variant="outline" size="sm"><PlayCircle size={14} /> Executions</Button>
-        </Link>
       </div>
 
       <Tabs defaultValue="suites">

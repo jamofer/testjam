@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import get_current_user, require_project_access
@@ -104,6 +105,24 @@ def delete_suite(id: int, db: Session = Depends(get_db), _: User = Depends(get_c
 
 
 # ── Suite steps ────────────────────────────────────────────────────────────────
+
+class StepReorder(BaseModel):
+    step_ids: list[int]
+
+
+@suites_router.post("/{id}/steps/reorder", response_model=list[SuiteStepOut])
+def reorder_suite_steps(id: int, body: StepReorder, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    if not db.get(TestSuite, id):
+        raise HTTPException(status_code=404, detail="Not found")
+    steps = {s.id: s for s in db.query(SuiteStep).filter(SuiteStep.suite_id == id).all()}
+    for new_order, step_id in enumerate(body.step_ids, start=1):
+        step = steps.get(step_id)
+        if step is None:
+            raise HTTPException(status_code=400, detail=f"Step {step_id} not in suite {id}")
+        step.order = new_order
+    db.commit()
+    return db.query(SuiteStep).filter(SuiteStep.suite_id == id).order_by(SuiteStep.order).all()
+
 
 @suites_router.post("/{id}/steps", response_model=SuiteStepOut, status_code=status.HTTP_201_CREATED)
 def create_suite_step(id: int, body: SuiteStepCreate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { ChevronDown, ChevronRight, Trash2, Copy, ExternalLink, Upload, Clock } from "lucide-react"
 import { useCase } from "../../hooks/useSuites"
@@ -12,7 +12,7 @@ import { fmtDuration, fmtTime } from "../../lib/format"
 import { StepsSection } from "./StepsSection"
 import { toast } from "sonner"
 
-export function ResultCard({ result, executionId, index, total, isAutomated }) {
+export function ResultCard({ result, executionId, index, total, isAutomated, focused = false, onFocus }) {
   const { data: tc } = useCase(result.test_case_id)
   const [open, setOpen] = useState(index === 0)
   const [comment, setComment] = useState(result.comment ?? "")
@@ -20,11 +20,18 @@ export function ResultCard({ result, executionId, index, total, isAutomated }) {
   const [localStatus, setLocalStatus] = useState(result.status)
   const qc = useQueryClient()
   const updateResult = useUpdateResult(executionId)
+  const cardRef = useRef(null)
 
   useEffect(() => {
     setLocalStatus(result.status)
     setComment(result.comment ?? "")
   }, [result.status, result.comment])
+
+  useEffect(() => {
+    if (focused && cardRef.current) {
+      cardRef.current.scrollIntoView({ block: "nearest", behavior: "smooth" })
+    }
+  }, [focused])
 
   const config = STATUS_CONFIG[localStatus]
   const Icon = config.icon
@@ -124,9 +131,10 @@ export function ResultCard({ result, executionId, index, total, isAutomated }) {
   }
 
   return (
-    <div className="border rounded-xl overflow-hidden shadow-sm">
+    <div ref={cardRef}
+      className={`border rounded-xl overflow-hidden shadow-sm transition-shadow ${focused ? "ring-2 ring-primary-400 shadow-md" : ""}`}>
       <div className={`flex items-center justify-between px-4 py-3 cursor-pointer ${config.bg} border-b`}
-        onClick={() => setOpen(o => !o)}>
+        onClick={() => { setOpen(o => !o); onFocus?.() }}>
         <div className="flex items-center gap-3 min-w-0">
           {open ? <ChevronDown size={14} className="shrink-0" /> : <ChevronRight size={14} className="shrink-0" />}
           <span className="text-xs text-gray-400 shrink-0">{index + 1}/{total}</span>

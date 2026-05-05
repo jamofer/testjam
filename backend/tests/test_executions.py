@@ -63,6 +63,52 @@ def test_register_result(auth_client, project_with_cases):
     assert execution["summary"]["passed"] == 1
 
 
+def test_create_execution_with_assignee(auth_client, project_with_cases):
+    project_id, case_ids = project_with_cases
+    me = auth_client.get("/api/v1/users/me").json()
+    resp = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
+        "title": "Assigned run", "type": "manual",
+        "assigned_to_id": me["id"], "test_case_ids": case_ids,
+    })
+    assert resp.status_code == 201
+    assert resp.json()["assigned_to"]["id"] == me["id"]
+    assert resp.json()["assigned_to"]["username"] == "u"
+
+
+def test_filter_executions_by_assignee(auth_client, project_with_cases):
+    from tests.conftest import TestingSession
+    project_id, case_ids = project_with_cases
+    me = auth_client.get("/api/v1/users/me").json()
+
+    with TestingSession() as db:
+        db.add(User(username="other", email="other@x.com",
+                    hashed_password=hash_password("pw"), is_active=True))
+        db.commit()
+        other_id = db.query(User).filter_by(username="other").first().id
+
+    auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
+        "title": "Mine", "type": "manual",
+        "assigned_to_id": me["id"], "test_case_ids": case_ids,
+    })
+    auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
+        "title": "Theirs", "type": "manual",
+        "assigned_to_id": other_id, "test_case_ids": case_ids,
+    })
+    auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
+        "title": "Unassigned", "type": "manual", "test_case_ids": case_ids,
+    })
+
+    resp = auth_client.get(f"/api/v1/projects/{project_id}/executions",
+                           params={"assigned_to_id": me["id"]}).json()
+    assert len(resp) == 1
+    assert resp[0]["title"] == "Mine"
+
+    resp = auth_client.get(f"/api/v1/projects/{project_id}/executions",
+                           params={"assigned_to_id": other_id}).json()
+    assert len(resp) == 1
+    assert resp[0]["title"] == "Theirs"
+
+
 def test_bulk_results(auth_client, project_with_cases):
     project_id, case_ids = project_with_cases
     exec_id = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={

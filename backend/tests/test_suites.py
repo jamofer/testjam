@@ -72,3 +72,37 @@ def test_duplicate_child_suite_rejected(auth_client, project_id, suite_id):
         "name": "Child", "parent_suite_id": suite_id,
     })
     assert resp.status_code == 409
+
+
+def test_reorder_suite_steps(auth_client, suite_id):
+    step_ids = []
+    for i in range(3):
+        sid = auth_client.post(f"/api/v1/suites/{suite_id}/steps", json={
+            "action": f"Setup {i}", "step_type": "setup", "order": i + 1,
+        }).json()["id"]
+        step_ids.append(sid)
+
+    new_order = [step_ids[2], step_ids[0], step_ids[1]]
+    resp = auth_client.post(f"/api/v1/suites/{suite_id}/steps/reorder",
+                            json={"step_ids": new_order})
+    assert resp.status_code == 200
+    returned_ids = [s["id"] for s in resp.json() if s["step_type"] == "setup"]
+    assert returned_ids == new_order
+    assert [s["order"] for s in resp.json() if s["step_type"] == "setup"] == [1, 2, 3]
+
+
+def test_reorder_suite_steps_rejects_foreign_step(auth_client, project_id, suite_id):
+    other_suite_id = auth_client.post(f"/api/v1/projects/{project_id}/suites",
+                                      json={"name": "Other"}).json()["id"]
+    foreign_step = auth_client.post(f"/api/v1/suites/{other_suite_id}/steps", json={
+        "action": "Foreign", "step_type": "setup", "order": 1,
+    }).json()["id"]
+
+    resp = auth_client.post(f"/api/v1/suites/{suite_id}/steps/reorder",
+                            json={"step_ids": [foreign_step]})
+    assert resp.status_code == 400
+
+
+def test_reorder_suite_steps_unknown_suite(auth_client):
+    resp = auth_client.post("/api/v1/suites/99999/steps/reorder", json={"step_ids": []})
+    assert resp.status_code == 404

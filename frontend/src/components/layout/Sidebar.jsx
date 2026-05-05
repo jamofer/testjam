@@ -4,6 +4,8 @@ import { useLogout } from "../../hooks/useAuth"
 import { useProject } from "../../hooks/useProjects"
 import { useExecution } from "../../hooks/useExecutions"
 import { useCase, useSuite } from "../../hooks/useSuites"
+import { useQuery } from "@tanstack/react-query"
+import { plansApi } from "../../api/testplans"
 
 // ── Project-scoped nav items ───────────────────────────────────────────────────
 
@@ -33,14 +35,24 @@ function useActiveProjectId() {
   const executionId = (em1 ?? em2)?.params?.eid
   const { data: execution } = useExecution(projectId ? undefined : executionId)
 
+  // Plan routes — fetch plan to get project_id
+  const planM = useMatch("/plans/:pid")
+  const planId = (projectId || executionId) ? undefined : planM?.params?.pid
+  const { data: plan } = useQuery({
+    queryKey: ["plan", parseInt(planId)],
+    queryFn: () => plansApi.get(planId),
+    enabled: !!planId,
+  })
+
   // Case routes — fetch case → suite → project_id (hits cache if already visited)
   const cm = useMatch("/cases/:cid")
-  const caseId = (projectId || executionId) ? undefined : cm?.params?.cid
+  const caseId = (projectId || executionId || planId) ? undefined : cm?.params?.cid
   const { data: caseData } = useCase(caseId)
   const { data: suite } = useSuite(caseData?.suite_id)
 
   if (projectId) return projectId
   if (execution?.project_id) return String(execution.project_id)
+  if (plan?.project_id) return String(plan.project_id)
   if (suite?.project_id) return String(suite.project_id)
   return null
 }

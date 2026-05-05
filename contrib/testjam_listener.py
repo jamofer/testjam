@@ -89,8 +89,17 @@ class TestjamListener:
     def log_message(self, message: Any) -> None:
         level = getattr(message, "level", "INFO")
         text = getattr(message, "message", "")
-        if text:
-            self._kw_logs.append(f"**[{level}]** {text}")
+        if not text:
+            return
+        ts = getattr(message, "timestamp", None)
+        if ts:
+            if hasattr(ts, "strftime"):
+                ts_str = ts.strftime("%Y-%m-%d %H:%M:%S.") + f"{ts.microsecond // 1000:03d}"
+            else:
+                ts_str = str(ts)
+            self._kw_logs.append(f"{ts_str} [{level}] {text}")
+        else:
+            self._kw_logs.append(f"[{level}] {text}")
 
     def end_test(self, data: Any, result: Any) -> None:
         suite_path = ".".join(self._suite_path[:-1]) if len(self._suite_path) > 1 else ""

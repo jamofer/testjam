@@ -1,15 +1,24 @@
+import html as html_lib
+import io
 import os
 import shutil
 import xml.etree.ElementTree as ET
+from collections import defaultdict
 from datetime import datetime, timezone
 from unicodedata import normalize
+from urllib.parse import urlparse
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+import openpyxl
+from openpyxl.styles import Alignment, Font, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user, require_project_access
+from testjam.auth.dependencies import AuthContext, get_current_user, require_project_access, require_project_access_ctx
 from testjam.database import get_db
 from testjam.models.execution import ExecutionAttachment, ResultAttachment, TestExecution, TestResult, TestStepResult
+from testjam.models.testcase import TestCase, TestSuite
 from testjam.models.user import User
 from testjam.schemas.execution import (
     BulkResultCreate, BulkResultResponse,
@@ -50,6 +59,7 @@ def list_executions(
     id: int,
     type: str | None = None,
     status: str | None = None,
+    assigned_to_id: int | None = None,
     db: Session = Depends(get_db),
     _: User = Depends(require_project_access),
 ):
@@ -58,6 +68,8 @@ def list_executions(
         q = q.filter(TestExecution.type == type)
     if status:
         q = q.filter(TestExecution.status == status)
+    if assigned_to_id is not None:
+        q = q.filter(TestExecution.assigned_to_id == assigned_to_id)
     return [_execution_out(ex) for ex in q.order_by(TestExecution.created_at.desc()).all()]
 
 
@@ -66,12 +78,14 @@ def create_execution(
     id: int,
     body: TestExecutionCreate,
     db: Session = Depends(get_db),
-    current: User = Depends(require_project_access),
+    ctx: AuthContext = Depends(require_project_access_ctx),
 ):
     data = body.model_dump(exclude={"test_case_ids"})
     data["project_id"] = id
+    data["created_by_id"] = ctx.user.id
+    data["token_name"] = ctx.token_name
     if body.type == "manual" and not data.get("triggered_by"):
-        data["triggered_by"] = current.username
+        data["triggered_by"] = ctx.user.username
     ex = TestExecution(**data, started_at=datetime.now(timezone.utc))
     db.add(ex)
     db.flush()
@@ -109,6 +123,453 @@ def delete_execution(id: int, db: Session = Depends(get_db), _: User = Depends(g
         raise HTTPException(status_code=404, detail="Not found")
     db.delete(ex)
     db.commit()
+
+
+@executions_router.get("/{id}/export/xlsx")
+def export_execution_xlsx(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    ex = db.get(TestExecution, id)
+    if not ex:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    wb = openpyxl.Workbook()
+
+    # Summary sheet
+    ws_sum = wb.active
+    ws_sum.title = "Summary"
+    launched_by = ex.token_name or (ex.created_by.username if ex.created_by else ex.triggered_by or "")
+    ws_sum.append(["Title", ex.title])
+    ws_sum.append(["Status", ex.status])
+    ws_sum.append(["Type", ex.type])
+    ws_sum.append(["Environment", ex.environment or ""])
+    ws_sum.append(["Version", ex.version or ""])
+    ws_sum.append(["Launched by", launched_by])
+    ws_sum.append(["Started at", ex.started_at.isoformat() if ex.started_at else ""])
+    ws_sum.append(["Finished at", ex.finished_at.isoformat() if ex.finished_at else ""])
+
+    # Results sheet
+    ws_res = wb.create_sheet("Results")
+    ws_res.append(["Test Case", "Status", "Executed by", "Executed at", "Duration (ms)", "Comment"])
+    for r in ex.results:
+        tc_name = r.test_case.name if r.test_case else str(r.test_case_id)
+        ws_res.append([
+            tc_name,
+            r.status,
+            r.executed_by or "",
+            r.executed_at.isoformat() if r.executed_at else "",
+            r.duration_ms or "",
+            r.comment or "",
+        ])
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    filename = f"execution_{id}.xlsx"
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@executions_router.get("/{id}/export/html")
+def export_execution_html(id: int, request: Request, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    ex = db.get(TestExecution, id)
+    if not ex:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    def e(s): return html_lib.escape(str(s)) if s is not None else ""
+
+    def fmt_date(dt):
+        if not dt:
+            return "—"
+        ms = dt.microsecond // 1000
+        return dt.strftime("%-d %b %Y, %H:%M:%S") + f".{ms:03d}"
+
+    def fmt_dur(ms):
+        if ms is None: return ""
+        return f"{ms}ms" if ms < 1000 else f"{ms/1000:.1f}s"
+
+    # Derive frontend execution URL from Referer header
+    exec_url = ""
+    referer = request.headers.get("referer", "")
+    if referer:
+        try:
+            p = urlparse(referer)
+            if p.scheme and p.netloc:
+                exec_url = f"{p.scheme}://{p.netloc}/executions/{id}/run"
+        except Exception:
+            pass
+
+    launched_by = ex.token_name or (ex.created_by.username if ex.created_by else ex.triggered_by or "—")
+    counts = {"passed": 0, "failed": 0, "blocked": 0, "not_run": 0}
+    for r in ex.results:
+        counts[r.status] = counts.get(r.status, 0) + 1
+    total = sum(counts.values())
+
+    # Build compact header meta line
+    meta_items = []
+    project_name = ex.project.name if ex.project else ""
+    if project_name:
+        meta_items.append(e(project_name))
+    if ex.environment:
+        meta_items.append(e(ex.environment))
+    if ex.version:
+        meta_items.append(f"v{e(ex.version)}")
+    if launched_by and launched_by != "—":
+        meta_items.append(f"by {e(launched_by)}")
+    dates_str = fmt_date(ex.started_at)
+    if ex.finished_at:
+        dates_str += f" → {fmt_date(ex.finished_at)}"
+    if dates_str and dates_str != "—":
+        meta_items.append(dates_str)
+    meta_html = "".join(f'<span>{m}</span>' for m in meta_items)
+
+    # Header extras: execution URL + attachments
+    hextras = []
+    if exec_url:
+        hextras.append(f'<a class="hlink" href="{e(exec_url)}" target="_blank">↗ View in Testjam</a>')
+    atts = ex.attachments or []
+    if atts:
+        att_names = " · ".join(e(a.filename) for a in atts)
+        hextras.append(f'<span class="hatts">Attachments: {att_names}</span>')
+    hextras_html = f'<div class="hextras">{" ".join(hextras)}</div>' if hextras else ""
+
+    # Group results by suite (preserving order)
+    suite_order: list[str] = []
+    results_by_suite: dict[str, list] = defaultdict(list)
+    for r in ex.results:
+        suite_name = (r.test_case.suite.name if r.test_case and r.test_case.suite else "—")
+        if suite_name not in results_by_suite:
+            suite_order.append(suite_name)
+        results_by_suite[suite_name].append(r)
+
+    STATUS_LABEL = {"passed": "Passed", "failed": "Failed", "blocked": "Blocked", "not_run": "Not run"}
+
+    def render_steps(r) -> str:
+        steps = sorted(r.test_case.steps, key=lambda s: s.order) if r.test_case and r.test_case.steps else []
+        sr_by_step = {sr.step_id: sr for sr in r.step_results}
+        if not steps:
+            return ""
+        parts = []
+        for step in steps:
+            sr = sr_by_step.get(step.id)
+            st = sr.status if sr else "not_run"
+            is_step_error = st in ("failed", "blocked")
+            log = sr.log_output if sr else None
+            comment = sr.comment if sr else None
+            dur = fmt_dur(sr.duration_ms) if sr else ""
+            has_body = step.expected_result or comment or log
+            open_attr = 'open data-error="1"' if is_step_error else ""
+            expected_html = f'<div class="sexpected"><span class="slabel">Expected</span>{e(step.expected_result)}</div>' if step.expected_result else ""
+            comment_html = f'<div class="scomment">⚠ {e(comment)}</div>' if comment else ""
+            log_html = f'<pre class="slog">{e(log)}</pre>' if log else ""
+            body_html = f'<div class="sbody">{expected_html}{comment_html}{log_html}</div>' if has_body else ""
+            parts.append(f"""<details class="step {e(st)}" {open_attr}>
+        <summary class="step-hd">
+          <span class="schev">▶</span>
+          <span class="snum">{step.order}.</span>
+          <span class="stype {e(step.step_type)}">{e(step.step_type)}</span>
+          <span class="saction">{e(step.action)}</span>
+          <span class="sbadge {e(st)}">{e(STATUS_LABEL.get(st, st))}</span>
+          {f'<span class="sdur">{e(dur)}</span>' if dur else ""}
+        </summary>
+        {body_html}
+      </details>""")
+        return "\n      ".join(parts)
+
+    def render_result(r) -> str:
+        st = r.status
+        is_error = st in ("failed", "blocked")
+        dur = fmt_dur(r.duration_ms)
+        meta_parts = [p for p in [e(r.executed_by), dur, fmt_date(r.executed_at)] if p and p != "—"]
+        meta = " · ".join(meta_parts) if meta_parts else ""
+        steps_html = render_steps(r)
+        comment_html = f'<div class="comment">💬 {e(r.comment)}</div>' if r.comment else ""
+        steps_div = f'<div class="steps">{steps_html}</div>' if steps_html else ""
+        body = f'<div class="tbody">{comment_html}{steps_div}</div>' if (comment_html or steps_html) else ""
+        open_attr = 'open data-error="1"' if is_error else ""
+        return f"""<details class="test" {open_attr}>
+      <summary class="thd">
+        <span class="chevron">▶</span>
+        <span class="kpill kp-{e(st)}">Test</span>
+        <span class="tname">{e(r.test_case.name if r.test_case else str(r.test_case_id))}</span>
+        {f'<span class="tmeta">{e(meta)}</span>' if meta else ""}
+      </summary>
+      {body}
+    </details>"""
+
+    def render_suite(name: str) -> str:
+        suite_results = results_by_suite[name]
+        sc = {"passed": 0, "failed": 0, "blocked": 0, "not_run": 0}
+        suite_dur = 0
+        suite_at = None
+        for r in suite_results:
+            sc[r.status] = sc.get(r.status, 0) + 1
+            if r.duration_ms:
+                suite_dur += r.duration_ms
+            if r.executed_at and (suite_at is None or r.executed_at > suite_at):
+                suite_at = r.executed_at
+        suite_ok = sc["failed"] == 0 and sc["blocked"] == 0
+        pill_cls = "kp-passed" if suite_ok else "kp-failed"
+        sc_pills = (
+            f'<span class="kpill kp-passed">✓ {sc["passed"]}</span>'
+            f'<span class="kpill kp-failed">✗ {sc["failed"]}</span>'
+            f'<span class="kpill kp-blocked">⚠ {sc["blocked"]}</span>'
+            f'<span class="kpill kp-not_run">— {sc["not_run"]}</span>'
+        )
+        dur_str = fmt_dur(suite_dur) if suite_dur else ""
+        at_str = fmt_date(suite_at) if suite_at else ""
+        meta_parts = [p for p in [dur_str, at_str] if p and p != "—"]
+        suite_meta = " · ".join(meta_parts)
+        results_html = "\n    ".join(render_result(r) for r in suite_results)
+        err_cls = " suite-err" if not suite_ok else ""
+        return f"""<details class="suite{err_cls}" open>
+    <summary class="suite-hd">
+      <span class="suite-chev">▶</span>
+      <span class="kpill {pill_cls}">Suite</span>
+      <span class="suite-name">{e(name)}</span>
+      <div class="suite-counts">{sc_pills}</div>
+      {f'<span class="suite-meta">{e(suite_meta)}</span>' if suite_meta else ""}
+    </summary>
+    <div class="suite-body">
+    {results_html}
+    </div>
+  </details>"""
+
+    suites_html = "\n  ".join(render_suite(name) for name in suite_order)
+    generated = datetime.now().strftime("%-d %b %Y, %H:%M:%S")
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{e(ex.title)} — Testjam</title>
+<style>
+*{{box-sizing:border-box;margin:0;padding:0}}
+body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f9fafb;color:#111827;font-size:14px;line-height:1.5}}
+header{{background:#fff8f9;border-bottom:1px solid #fecdd3;padding:22px 40px 20px}}
+.brand{{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#e11d48;background:#fee2e2;padding:2px 8px;border-radius:3px;margin-bottom:10px}}
+header h1{{font-size:22px;font-weight:700;color:#111827;margin-bottom:8px;line-height:1.25}}
+.hmeta{{font-size:12px;color:#6b7280;display:flex;flex-wrap:wrap;gap:0 6px;margin-bottom:14px}}
+.hmeta span+span::before{{content:"·";margin-right:6px;color:#fca5a5}}
+.hbottom{{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}}
+.hstats{{display:flex;gap:7px;flex-wrap:wrap}}
+.hs{{font-size:13px;font-weight:700;padding:5px 14px;border-radius:6px}}
+.hs.passed{{background:#d1fae5;color:#065f46}}
+.hs.failed{{background:#fee2e2;color:#991b1b}}
+.hs.blocked{{background:#fef3c7;color:#92400e}}
+.hs.notrun{{background:#f3f4f6;color:#6b7280}}
+.hextras{{display:flex;gap:14px;align-items:center;font-size:12px}}
+.hlink{{color:#e11d48;text-decoration:none;font-weight:600}}
+.hlink:hover{{text-decoration:underline}}
+.hatts{{color:#9ca3af}}
+main{{max-width:920px;margin:20px auto;padding:0 24px 48px}}
+.toolbar{{display:flex;justify-content:flex-end;gap:6px;margin-bottom:14px}}
+.toolbar button{{padding:4px 12px;border:1px solid #e5e7eb;background:#fff;border-radius:6px;font-size:12px;cursor:pointer;color:#374151;transition:background .1s}}
+.toolbar button:hover{{background:#f3f4f6;border-color:#d1d5db}}
+.kpill{{font-size:11px;padding:2px 7px;border-radius:3px;font-weight:700;flex-shrink:0;white-space:nowrap}}
+.kp-passed{{background:#d1fae5;color:#065f46}}
+.kp-failed{{background:#fee2e2;color:#991b1b}}
+.kp-blocked{{background:#fef3c7;color:#92400e}}
+.kp-not_run{{background:#f3f4f6;color:#6b7280}}
+details.suite{{background:#fff;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:16px;overflow:hidden}}
+details.suite.suite-err{{border-color:#fca5a5}}
+summary.suite-hd{{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;list-style:none;background:#f9fafb}}
+summary.suite-hd::-webkit-details-marker{{display:none}}
+details.suite.suite-err>summary.suite-hd{{background:#fff5f5}}
+details.suite[open]>summary.suite-hd{{border-bottom:1px solid #e5e7eb}}
+.suite-chev{{color:#9ca3af;font-size:10px;transition:transform .15s;flex-shrink:0;pointer-events:none}}
+details.suite[open]>summary .suite-chev{{transform:rotate(90deg)}}
+.suite-name{{flex:1;font-size:14px;font-weight:700;color:#1f2937}}
+.suite-counts{{display:flex;gap:5px;flex-shrink:0}}
+.suite-meta{{font-size:11px;color:#9ca3af;white-space:nowrap}}
+.suite-body{{padding:10px 12px;display:flex;flex-direction:column;gap:5px}}
+details.test{{background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;transition:box-shadow .15s}}
+details.test[open]{{box-shadow:0 1px 6px rgba(0,0,0,.07)}}
+details.test[data-error]{{border-color:#fca5a5}}
+details.test[data-error]>summary.thd{{background:#fff8f8}}
+summary.thd{{display:flex;align-items:center;gap:9px;padding:9px 14px;cursor:pointer;list-style:none}}
+summary.thd::-webkit-details-marker{{display:none}}
+summary.thd:hover{{background:#f9fafb}}
+.chevron{{color:#d1d5db;font-size:10px;transition:transform .15s;flex-shrink:0;pointer-events:none}}
+details[open]>summary .chevron{{transform:rotate(90deg)}}
+.tname{{flex:1;font-weight:500;font-size:13px}}
+.tmeta{{font-size:12px;color:#9ca3af;white-space:nowrap}}
+.tbody{{border-top:1px solid #f3f4f6;background:#fafafa;padding:10px 14px;display:flex;flex-direction:column;gap:8px}}
+.comment{{background:#fef3c7;border-left:3px solid #f59e0b;padding:6px 10px;font-size:12px;border-radius:0 4px 4px 0;color:#78350f}}
+.steps{{display:flex;flex-direction:column;gap:4px}}
+details.step{{border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;background:#fff}}
+details.step.failed{{border-color:#fca5a5}}
+details.step.blocked{{border-color:#fcd34d}}
+summary.step-hd{{display:flex;align-items:center;gap:7px;padding:6px 10px;cursor:pointer;list-style:none}}
+summary.step-hd::-webkit-details-marker{{display:none}}
+details.step.failed>summary.step-hd{{background:#fff5f5}}
+details.step.blocked>summary.step-hd{{background:#fffbeb}}
+.schev{{color:#d1d5db;font-size:9px;transition:transform .15s;flex-shrink:0;pointer-events:none}}
+details.step[open] .schev{{transform:rotate(90deg)}}
+.snum{{font-size:11px;color:#9ca3af;min-width:18px;flex-shrink:0}}
+.stype{{font-size:10px;padding:1px 5px;border-radius:3px;font-weight:700;flex-shrink:0}}
+.stype.setup{{background:#dbeafe;color:#1e40af}}
+.stype.teardown{{background:#ffedd5;color:#9a3412}}
+.stype.action{{background:#f3f4f6;color:#4b5563}}
+.saction{{flex:1;font-size:13px;color:#1f2937}}
+.sbadge{{font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;flex-shrink:0}}
+.sbadge.passed{{background:#d1fae5;color:#065f46}}
+.sbadge.failed{{background:#fee2e2;color:#991b1b}}
+.sbadge.blocked{{background:#fef3c7;color:#92400e}}
+.sbadge.not_run{{background:#f3f4f6;color:#9ca3af}}
+.sdur{{font-size:11px;color:#9ca3af;min-width:36px;text-align:right;flex-shrink:0}}
+.sbody{{border-top:1px solid #f3f4f6}}
+.sexpected{{padding:6px 12px 6px 34px;font-size:12px;color:#4b5563;background:#f9fafb;display:flex;gap:6px}}
+.slabel{{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0;padding-top:2px}}
+.scomment{{padding:6px 12px 6px 34px;font-size:12px;color:#92400e;background:#fffbeb;border-top:1px solid #fef3c7}}
+.slog{{margin:0;padding:10px 14px;background:#f8fafc;color:#334155;font-family:'Monaco','Consolas','Liberation Mono',monospace;font-size:11px;white-space:pre-wrap;overflow-x:auto;border-top:1px solid #e2e8f0;line-height:1.65}}
+footer{{text-align:center;padding:20px;font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;margin-top:16px}}
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">Testjam</span>
+  <h1>{e(ex.title)}</h1>
+  <div class="hmeta">{meta_html}</div>
+  <div class="hbottom">
+    <div class="hstats">
+      <span class="hs passed">✓ {counts["passed"]} passed</span>
+      <span class="hs failed">✗ {counts["failed"]} failed</span>
+      <span class="hs blocked">⚠ {counts["blocked"]} blocked</span>
+      <span class="hs notrun">— {counts["not_run"]} not run</span>
+    </div>
+    {hextras_html}
+  </div>
+</header>
+<main>
+  <div class="toolbar">
+    <button onclick="document.querySelectorAll('details').forEach(d=>d.open=true)">Expand all</button>
+    <button onclick="document.querySelectorAll('details').forEach(d=>{{if(!d.dataset.error)d.open=false}})">Collapse passing</button>
+    <button onclick="document.querySelectorAll('details').forEach(d=>d.open=false)">Collapse all</button>
+  </div>
+  {suites_html}
+</main>
+<footer>Generated {generated} · Testjam · {total} test{"s" if total!=1 else ""}</footer>
+</body>
+</html>"""
+
+    filename = f"execution_{id}_{ex.title.replace(' ', '_')}.html"
+    return StreamingResponse(
+        io.BytesIO(html.encode("utf-8")),
+        media_type="text/html; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@projects_router.get("/{id}/cases/export/xlsx")
+def export_cases_xlsx(id: int, db: Session = Depends(get_db), _: User = Depends(require_project_access)):
+    from testjam.models.project import Project
+    project = db.get(Project, id)
+    suites = db.query(TestSuite).filter(TestSuite.project_id == id, TestSuite.parent_suite_id == None).all()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Test Cases"
+
+    # ── Palette ──────────────────────────────────────────────────────────────
+    NAVY   = "1E3A5F"
+    WHITE  = "FFFFFF"
+    GRAY50 = "F9FAFB"
+    GRAY200= "E5E7EB"
+    BLUE50 = "EFF6FF"
+    SUITE_BG = "1E3A5F"
+
+    thin_border = Border(
+        left=Side(style="thin", color=GRAY200),
+        right=Side(style="thin", color=GRAY200),
+        top=Side(style="thin", color=GRAY200),
+        bottom=Side(style="thin", color=GRAY200),
+    )
+
+    # ── Title row ────────────────────────────────────────────────────────────
+    ws.merge_cells("A1:H1")
+    title_cell = ws["A1"]
+    title_cell.value = f"Test Cases — {project.name if project else ''}"
+    title_cell.font = Font(bold=True, size=13, color=WHITE)
+    title_cell.fill = PatternFill("solid", fgColor=NAVY)
+    title_cell.alignment = Alignment(vertical="center", indent=1)
+    ws.row_dimensions[1].height = 22
+
+    ws.merge_cells("A2:H2")
+    ws["A2"].value = f"Exported {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+    ws["A2"].font = Font(size=8, color="6B7280")
+    ws["A2"].alignment = Alignment(indent=1)
+    ws.row_dimensions[2].height = 14
+
+    # ── Header row ───────────────────────────────────────────────────────────
+    HEADERS = ["Suite", "Test Case", "Preconditions", "Description", "Step #", "Type", "Action", "Expected Result"]
+    for col, h in enumerate(HEADERS, start=1):
+        cell = ws.cell(row=3, column=col, value=h)
+        cell.font = Font(bold=True, size=9, color=WHITE)
+        cell.fill = PatternFill("solid", fgColor="374151")  # gray-700
+        cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=False)
+        cell.border = thin_border
+    ws.row_dimensions[3].height = 16
+
+    STEP_TYPE_COLORS = {"setup": "DBEAFE", "teardown": "FFEDD5", "action": "F9FAFB"}
+
+    data_row = 4
+    alt = False
+
+    for suite in suites:
+        cases = db.query(TestCase).filter(TestCase.suite_id == suite.id).all()
+        for tc in cases:
+            steps = sorted(tc.steps, key=lambda s: s.order) if tc.steps else []
+            row_count = max(len(steps), 1)
+            row_bg = GRAY50 if alt else WHITE
+            alt = not alt
+
+            for i in range(row_count):
+                step = steps[i] if i < len(steps) else None
+                values = [
+                    suite.name if i == 0 else "",
+                    tc.name if i == 0 else "",
+                    tc.preconditions or "" if i == 0 else "",
+                    tc.description or "" if i == 0 else "",
+                    step.order if step else "",
+                    step.step_type if step else "",
+                    step.action if step else "",
+                    step.expected_result or "" if step else "",
+                ]
+                step_bg = STEP_TYPE_COLORS.get(step.step_type, row_bg) if step else row_bg
+
+                for col, val in enumerate(values, start=1):
+                    cell = ws.cell(row=data_row, column=col, value=val)
+                    bg = step_bg if col >= 5 else row_bg
+                    cell.fill = PatternFill("solid", fgColor=bg)
+                    cell.font = Font(size=9, bold=(col <= 2 and i == 0))
+                    cell.alignment = Alignment(
+                        vertical="top",
+                        wrap_text=(col in (3, 4, 7, 8)),
+                        horizontal="center" if col == 5 else "left",
+                    )
+                    cell.border = thin_border
+                ws.row_dimensions[data_row].height = 15
+                data_row += 1
+
+    # ── Column widths ─────────────────────────────────────────────────────────
+    col_widths = [20, 28, 22, 30, 6, 10, 40, 30]
+    for i, w in enumerate(col_widths, start=1):
+        ws.column_dimensions[get_column_letter(i)].width = w
+
+    ws.freeze_panes = "A4"
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    filename = f"cases_{project.name.replace(' ', '_') if project else id}.xlsx"
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 # ─── Execution attachments ────────────────────────────────────────────────────

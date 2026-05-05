@@ -124,3 +124,62 @@ def test_case_steps_returned_in_order(auth_client, case_ids):
     steps = auth_client.get(f"/api/v1/cases/{case_ids[0]}/steps").json()
 
     assert [s["order"] for s in steps] == [1, 2, 3]
+
+
+def test_bulk_delete_cases(auth_client, suite_id, case_ids):
+    to_delete = case_ids[:2]
+    resp = auth_client.post("/api/v1/cases/bulk-delete", json={"ids": to_delete})
+
+    assert resp.status_code == 200
+    assert resp.json()["deleted"] == 2
+
+    remaining = auth_client.get(f"/api/v1/suites/{suite_id}/cases").json()
+    remaining_ids = {c["id"] for c in remaining}
+    assert all(cid not in remaining_ids for cid in to_delete)
+    assert case_ids[2] in remaining_ids
+
+
+def test_bulk_delete_empty_is_noop(auth_client):
+    resp = auth_client.post("/api/v1/cases/bulk-delete", json={"ids": []})
+    assert resp.status_code == 200
+    assert resp.json()["deleted"] == 0
+
+
+def test_bulk_delete_ignores_missing_ids(auth_client, case_ids):
+    resp = auth_client.post("/api/v1/cases/bulk-delete", json={"ids": [case_ids[0], 99999]})
+    assert resp.status_code == 200
+    assert resp.json()["deleted"] == 1
+
+
+def test_reorder_case_steps(auth_client, case_ids):
+    case_id = case_ids[0]
+    step_ids = []
+    for i in range(3):
+        sid = auth_client.post(f"/api/v1/cases/{case_id}/steps", json={
+            "action": f"Step {i}", "order": i + 1,
+        }).json()["id"]
+        step_ids.append(sid)
+
+    new_order = [step_ids[2], step_ids[0], step_ids[1]]
+    resp = auth_client.post(f"/api/v1/cases/{case_id}/steps/reorder",
+                            json={"step_ids": new_order})
+    assert resp.status_code == 200
+    assert [s["id"] for s in resp.json()] == new_order
+    assert [s["order"] for s in resp.json()] == [1, 2, 3]
+
+
+def test_reorder_rejects_foreign_step(auth_client, suite_id, case_ids):
+    case_id = case_ids[0]
+    other_case = case_ids[1]
+    other_step = auth_client.post(f"/api/v1/cases/{other_case}/steps", json={
+        "action": "Other", "order": 1,
+    }).json()["id"]
+
+    resp = auth_client.post(f"/api/v1/cases/{case_id}/steps/reorder",
+                            json={"step_ids": [other_step]})
+    assert resp.status_code == 400
+
+
+def test_reorder_unknown_case_returns_404(auth_client):
+    resp = auth_client.post("/api/v1/cases/99999/steps/reorder", json={"step_ids": []})
+    assert resp.status_code == 404

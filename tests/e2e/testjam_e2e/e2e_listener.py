@@ -156,19 +156,23 @@ class TestjamE2EListener:
     # ── Log extraction ────────────────────────────────────────────────────────
 
     def _collect_log(self, item: Any) -> str | None:
+        # In RF v7 the `messages` property is just body filtered to MESSAGE type —
+        # iterating both would duplicate every line. Use body exclusively.
         lines: list[str] = []
-        # Direct messages attribute (RF v7 keyword results)
-        for msg in getattr(item, "messages", []):
-            level = getattr(msg, "level", "INFO")
-            text = getattr(msg, "message", "").strip()
-            if text:
-                lines.append(f"[{level}] {text}")
-        # Body items of type MESSAGE
         for child in getattr(item, "body", []):
             if getattr(child, "type", "") == "MESSAGE":
                 level = getattr(child, "level", "INFO")
                 text = getattr(child, "message", "").strip()
-                if text:
+                if not text:
+                    continue
+                ts = getattr(child, "timestamp", None)
+                if ts:
+                    if hasattr(ts, "strftime"):
+                        ts_str = ts.strftime("%Y-%m-%d %H:%M:%S.") + f"{ts.microsecond // 1000:03d}"
+                    else:
+                        ts_str = str(ts)
+                    lines.append(f"{ts_str} [{level}] {text}")
+                else:
                     lines.append(f"[{level}] {text}")
         return "\n".join(lines) or None
 
