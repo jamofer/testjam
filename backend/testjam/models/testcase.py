@@ -18,6 +18,7 @@ class TestSuite(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     tags: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    order: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -47,6 +48,7 @@ class TestCase(Base):
     tags: Mapped[list | None] = mapped_column(JSON, nullable=True)
     # used to match automated results (e.g. "tests/login.py::test_login" or "Suite.Test Name")
     external_id: Mapped[str | None] = mapped_column(String(512), nullable=True, index=True)
+    order: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 

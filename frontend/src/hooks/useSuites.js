@@ -71,6 +71,26 @@ export function useDeleteSuite(projectId) {
   })
 }
 
+export function useReorderProjectSuites(projectId) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ suiteIds, parentSuiteId = null }) =>
+      suitesApi.reorderProjectSuites(projectId, suiteIds, parentSuiteId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["suites-list", projectId] })
+      qc.invalidateQueries({ queryKey: ["suites-list-all", projectId] })
+    },
+  })
+}
+
+export function useReorderSuiteCases(suiteId) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (caseIds) => casesApi.reorderInSuite(suiteId, caseIds),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["cases-list", suiteId] }),
+  })
+}
+
 export function useCases(suiteId) {
   return useQuery({
     queryKey: ["cases-list", suiteId],
@@ -81,6 +101,16 @@ export function useCases(suiteId) {
 
 export function useCase(id) {
   return useQuery({ queryKey: ["case", id], queryFn: () => casesApi.get(id), enabled: !!id })
+}
+
+export function useSearchCases(projectId, { q, tags } = {}) {
+  const enabled = Boolean(projectId) && (Boolean(q) || (Array.isArray(tags) && tags.length > 0))
+  return useQuery({
+    queryKey: ["cases-search", projectId, q || "", tags || []],
+    queryFn: () => casesApi.search(projectId, { q, tags }),
+    enabled,
+    placeholderData: (prev) => prev,
+  })
 }
 
 export function useCreateCase(suiteId) {

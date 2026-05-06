@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { MemoryRouter, Route, Routes } from "react-router-dom"
 import { PlanDetailPage } from "../pages/PlanDetailPage"
@@ -97,7 +97,8 @@ describe("PlanDetailPage — add cases", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /add cases/i }))
 
-    const summary = await screen.findByText("Auth Suite")
+    const dialog = await screen.findByRole("dialog")
+    const summary = within(dialog).getByText("Auth Suite").closest("summary")
     fireEvent.click(summary)
 
     const checkbox = await screen.findByRole("checkbox")

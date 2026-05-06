@@ -1,12 +1,13 @@
 import os
 import shutil
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user
+from testjam.auth.dependencies import get_current_user, require_project_access
 from testjam.database import get_db
-from testjam.models.testcase import Attachment, TestCase, TestStep
+from testjam.models.testcase import Attachment, TestCase, TestStep, TestSuite
 from testjam.models.testplan import TestPlan
 from testjam.models.user import User
 from testjam.schemas.testcase import (
@@ -16,8 +17,31 @@ from testjam.schemas.testcase import (
 
 UPLOAD_DIR = "/app/uploads/cases"
 
+projects_router = APIRouter(prefix="/projects", tags=["TestCases"])
 suites_router = APIRouter(prefix="/suites", tags=["TestCases"])
 cases_router = APIRouter(prefix="/cases", tags=["TestCases"])
+
+
+@projects_router.get("/{id}/cases", response_model=list[TestCaseOut])
+def search_project_cases(
+    id: int,
+    q: str | None = None,
+    tags: list[str] | None = Query(None),
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_project_access),
+):
+    limit = min(limit, 500)
+    query = db.query(TestCase).join(TestSuite, TestCase.suite_id == TestSuite.id).filter(TestSuite.project_id == id)
+    if q:
+        like = f"%{q}%"
+        query = query.filter(or_(TestCase.name.ilike(like), TestCase.description.ilike(like)))
+    rows = query.order_by(TestCase.created_at.desc()).offset(skip).limit(limit).all()
+    if tags:
+        tagset = set(tags)
+        rows = [c for c in rows if c.tags and tagset.intersection(c.tags)]
+    return rows
 
 
 @suites_router.get("/{id}/cases", response_model=list[TestCaseOut])
@@ -30,7 +54,7 @@ def list_cases(
     q = db.query(TestCase).filter(TestCase.suite_id == id)
     if name is not None:
         q = q.filter(TestCase.name == name)
-    return q.all()
+    return q.order_by(TestCase.order, TestCase.id).all()
 
 
 @suites_router.post("/{id}/cases", response_model=TestCaseOut, status_code=status.HTTP_201_CREATED)
@@ -38,7 +62,8 @@ def create_case(id: int, body: TestCaseCreate, db: Session = Depends(get_db), _:
     duplicate = db.query(TestCase).filter(TestCase.suite_id == id, TestCase.name == body.name).first()
     if duplicate:
         raise HTTPException(status_code=409, detail=f"Test case '{body.name}' already exists")
-    case = TestCase(suite_id=id, **body.model_dump(exclude={"suite_id"}))
+    max_order = db.query(TestCase).filter(TestCase.suite_id == id).count()
+    case = TestCase(suite_id=id, order=max_order + 1, **body.model_dump(exclude={"suite_id"}))
     db.add(case)
     db.commit()
     db.refresh(case)
@@ -93,6 +118,22 @@ def bulk_delete_cases(body: BulkIds, db: Session = Depends(get_db), _: User = De
 
 class StepReorder(BaseModel):
     step_ids: list[int]
+
+
+class CaseReorder(BaseModel):
+    case_ids: list[int]
+
+
+@suites_router.post("/{id}/cases/reorder", response_model=list[TestCaseOut])
+def reorder_suite_cases(id: int, body: CaseReorder, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    rows = db.query(TestCase).filter(TestCase.suite_id == id).all()
+    by_id = {c.id: c for c in rows}
+    if set(body.case_ids) != set(by_id.keys()):
+        raise HTTPException(status_code=400, detail="case_ids must include exactly all cases of the suite")
+    for new_order, cid in enumerate(body.case_ids, start=1):
+        by_id[cid].order = new_order
+    db.commit()
+    return db.query(TestCase).filter(TestCase.suite_id == id).order_by(TestCase.order, TestCase.id).all()
 
 
 @cases_router.post("/{id}/steps/reorder", response_model=list[TestStepOut])

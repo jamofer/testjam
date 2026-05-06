@@ -4,7 +4,7 @@ import { ChevronDown, ChevronRight, Trash2, Copy, ExternalLink, Upload, Clock } 
 import { useCase } from "../../hooks/useSuites"
 import { useUpdateResult } from "../../hooks/useExecutions"
 import { executionsApi } from "../../api/executions"
-import { MdEditor, MdViewer } from "../MdEditor"
+import { MdEditor } from "../MdEditor"
 import { Button } from "../ui/button"
 import { Badge } from "../ui/badge"
 import { STATUS_CONFIG } from "../../lib/statusConfig"
@@ -16,7 +16,6 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
   const { data: tc } = useCase(result.test_case_id)
   const [open, setOpen] = useState(index === 0)
   const [comment, setComment] = useState(result.comment ?? "")
-  const [editComment, setEditComment] = useState(false)
   const [localStatus, setLocalStatus] = useState(result.status)
   const qc = useQueryClient()
   const updateResult = useUpdateResult(executionId)
@@ -35,11 +34,13 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
 
   const config = STATUS_CONFIG[localStatus]
   const Icon = config.icon
+  const commentDirty = comment !== (result.comment ?? "")
 
   const setStatus = async (status) => {
     setLocalStatus(status)
     try {
-      await updateResult.mutateAsync({ id: result.id, data: { status } })
+      const data = commentDirty ? { status, comment } : { status }
+      await updateResult.mutateAsync({ id: result.id, data })
       qc.invalidateQueries({ queryKey: ["executions", executionId] })
     } catch {
       setLocalStatus(result.status)
@@ -87,7 +88,6 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
   const saveComment = async () => {
     try {
       await updateResult.mutateAsync({ id: result.id, data: { comment } })
-      setEditComment(false)
     } catch {
       toast.error("Failed to save comment")
     }
@@ -132,7 +132,11 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
 
   return (
     <div ref={cardRef}
-      className={`border rounded-xl overflow-hidden shadow-sm transition-shadow ${focused ? "ring-2 ring-primary-400 shadow-md" : ""}`}>
+      className="relative border rounded-xl overflow-hidden shadow-sm transition-shadow">
+      {focused && (
+        <span aria-hidden="true"
+          className="absolute left-0 top-0 bottom-0 w-[3px] bg-red-500 pointer-events-none z-10" />
+      )}
       <div className={`flex items-center justify-between px-4 py-3 cursor-pointer ${config.bg} border-b`}
         onClick={() => { setOpen(o => !o); onFocus?.() }}>
         <div className="flex items-center gap-3 min-w-0">
@@ -171,6 +175,21 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
           {!isAutomated && (
             <>
               <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Comment</p>
+                  {commentDirty && (
+                    <button type="button" onClick={saveComment}
+                      className="text-xs text-primary-600 hover:underline disabled:opacity-50"
+                      disabled={updateResult.isPending}>
+                      Save comment
+                    </button>
+                  )}
+                </div>
+                <MdEditor value={comment} onChange={setComment} height={80} />
+                <p className="text-[11px] text-gray-400">Tip: clicking a result below also saves the comment.</p>
+              </div>
+
+              <div className="space-y-1.5">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Overall result</p>
                 <div className="flex gap-2 flex-wrap">
                   {Object.entries(STATUS_CONFIG).map(([status, cfg]) => {
@@ -184,34 +203,6 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
                     )
                   })}
                 </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Comment</p>
-                {editComment ? (
-                  <div className="space-y-1.5">
-                    <MdEditor value={comment} onChange={setComment} height={80} />
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={saveComment} loading={updateResult.isPending}>
-                        Save
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => { setEditComment(false); setComment(result.comment ?? "") }}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                ) : comment ? (
-                  <button onClick={() => setEditComment(true)} className="text-left w-full group">
-                    <div className="text-sm text-gray-600 italic border-l-2 border-gray-200 pl-3 group-hover:border-gray-400 transition-colors">
-                      <MdViewer value={comment} />
-                    </div>
-                  </button>
-                ) : (
-                  <button onClick={() => setEditComment(true)}
-                    className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
-                    + Add comment
-                  </button>
-                )}
               </div>
             </>
           )}

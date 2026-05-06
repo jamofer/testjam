@@ -113,7 +113,7 @@ export function UsersPage() {
   })
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="p-8 max-w-2xl space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">Users & Groups</h1>
 
       <Tabs defaultValue="users">

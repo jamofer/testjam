@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLogin } from '../hooks/useAuth'
+import { Logo } from '../components/ui/logo'
 
 export function LoginPage() {
   const [username, setUsername] = useState('')
@@ -17,7 +18,7 @@ export function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-xl p-8 w-80 space-y-4">
-        <h1 className="text-2xl font-bold text-gray-800">Testjam</h1>
+        <div className="flex justify-center pb-2"><Logo size={32} /></div>
         {login.isError && <p className="text-sm text-red-500">Invalid credentials</p>}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>

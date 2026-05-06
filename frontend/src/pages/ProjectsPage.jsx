@@ -5,6 +5,7 @@ import { useProjects, useCreateProject, useDeleteProject } from '../hooks/usePro
 import { useDebounced } from '../hooks/useDebounced'
 import { Button } from '../components/ui/button'
 import { SearchInput } from '../components/ui/search-input'
+import { PageHeader, PageBody } from '../components/ui/page-header'
 import { EmptyState } from '../components/ui/empty-state'
 import { SkeletonList } from '../components/ui/skeleton'
 
@@ -38,22 +39,31 @@ export function ProjectsPage() {
   }
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Projects</h1>
+    <>
+      <PageHeader>
+        <div className="max-w-2xl space-y-3">
+          <h1 className="text-2xl font-bold text-gray-800">Projects</h1>
+          <div className="flex flex-wrap gap-2">
+            <SearchInput value={search} onChange={setSearch}
+              placeholder="Search projects…" className="flex-1 min-w-[180px]" />
+            <form onSubmit={handleCreate} className="flex gap-2">
+              <input
+                className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 w-48"
+                placeholder="New project name…"
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+              />
+              <Button type="submit" size="sm" loading={createProject.isPending}>
+                <Plus size={14} /> Create
+              </Button>
+            </form>
+          </div>
+        </div>
+      </PageHeader>
 
+      <PageBody>
+      <div className="max-w-2xl">
       {isLoading && <SkeletonList count={4} itemClassName="h-20" />}
-
-      <form onSubmit={handleCreate} className="flex gap-2 mb-6">
-        <input
-          className="flex-1 border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
-          placeholder="New project name…"
-          value={newName}
-          onChange={e => setNewName(e.target.value)}
-        />
-        <Button type="submit" size="sm" loading={createProject.isPending}>
-          <Plus size={14} /> Create
-        </Button>
-      </form>
 
       <ul className="space-y-3">
         {filteredProjects.map(p => (
@@ -104,6 +114,8 @@ export function ProjectsPage() {
           compact
         />
       )}
-    </div>
+      </div>
+      </PageBody>
+    </>
   )
 }

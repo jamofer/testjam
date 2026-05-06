@@ -238,14 +238,41 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
         hextras.append(f'<span class="hatts">Attachments: {att_names}</span>')
     hextras_html = f'<div class="hextras">{" ".join(hextras)}</div>' if hextras else ""
 
-    # Group results by suite (preserving order)
-    suite_order: list[str] = []
-    results_by_suite: dict[str, list] = defaultdict(list)
+    # Group results by suite_id; collect all ancestor suites via lazy load
+    results_by_suite_id: dict[int | None, list] = defaultdict(list)
+    suites_by_id: dict[int, TestSuite] = {}
+
     for r in ex.results:
-        suite_name = (r.test_case.suite.name if r.test_case and r.test_case.suite else "—")
-        if suite_name not in results_by_suite:
-            suite_order.append(suite_name)
-        results_by_suite[suite_name].append(r)
+        suite = r.test_case.suite if r.test_case else None
+        suite_id = suite.id if suite else None
+        results_by_suite_id[suite_id].append(r)
+        s = suite
+        while s is not None:
+            if s.id not in suites_by_id:
+                suites_by_id[s.id] = s
+            s = s.parent
+
+    # parent_id → [child suite ids]
+    children_of: dict[int | None, list[int]] = defaultdict(list)
+    for sid, suite in suites_by_id.items():
+        parent_id = suite.parent_suite_id if suite.parent_suite_id in suites_by_id else None
+        children_of[parent_id].append(sid)
+
+    def _root_id(suite_id: int | None) -> int | None:
+        if suite_id is None or suite_id not in suites_by_id:
+            return None
+        pid = suites_by_id[suite_id].parent_suite_id
+        return suite_id if (pid is None or pid not in suites_by_id) else _root_id(pid)
+
+    # Preserve root order from ex.results insertion order
+    root_order: list[int | None] = []
+    seen_roots: set[int | None] = set()
+    for r in ex.results:
+        suite = r.test_case.suite if r.test_case else None
+        rid = _root_id(suite.id if suite else None)
+        if rid not in seen_roots:
+            seen_roots.add(rid)
+            root_order.append(rid)
 
     STATUS_LABEL = {"passed": "Passed", "failed": "Failed", "blocked": "Blocked", "not_run": "Not run"}
 
@@ -265,7 +292,7 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
             has_body = step.expected_result or comment or log
             open_attr = 'open data-error="1"' if is_step_error else ""
             expected_html = f'<div class="sexpected"><span class="slabel">Expected</span>{e(step.expected_result)}</div>' if step.expected_result else ""
-            comment_html = f'<div class="scomment">⚠ {e(comment)}</div>' if comment else ""
+            comment_html = f'<div class="scomment">💬 {e(comment)}</div>' if comment else ""
             log_html = f'<pre class="slog">{e(log)}</pre>' if log else ""
             body_html = f'<div class="sbody">{expected_html}{comment_html}{log_html}</div>' if has_body else ""
             parts.append(f"""<details class="step {e(st)}" {open_attr}>
@@ -302,12 +329,28 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
       {body}
     </details>"""
 
-    def render_suite(name: str) -> str:
-        suite_results = results_by_suite[name]
+    def all_results_for(suite_id: int) -> list:
+        out = list(results_by_suite_id.get(suite_id, []))
+        for cid in children_of.get(suite_id, []):
+            out.extend(all_results_for(cid))
+        return out
+
+    def render_suite(suite_id: int | None) -> str:
+        if suite_id is None:
+            name = "—"
+            all_r = list(results_by_suite_id.get(None, []))
+            child_ids: list[int] = []
+            direct_results = all_r
+        else:
+            suite = suites_by_id[suite_id]
+            name = suite.name
+            all_r = all_results_for(suite_id)
+            child_ids = children_of.get(suite_id, [])
+            direct_results = results_by_suite_id.get(suite_id, [])
         sc = {"passed": 0, "failed": 0, "blocked": 0, "not_run": 0}
         suite_dur = 0
         suite_at = None
-        for r in suite_results:
+        for r in all_r:
             sc[r.status] = sc.get(r.status, 0) + 1
             if r.duration_ms:
                 suite_dur += r.duration_ms
@@ -325,7 +368,11 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
         at_str = fmt_date(suite_at) if suite_at else ""
         meta_parts = [p for p in [dur_str, at_str] if p and p != "—"]
         suite_meta = " · ".join(meta_parts)
-        results_html = "\n    ".join(render_result(r) for r in suite_results)
+        # Children suites first, then direct test cases
+        children_html = "\n    ".join(render_suite(cid) for cid in child_ids)
+        results_html = "\n    ".join(render_result(r) for r in direct_results)
+        body_parts = [p for p in [children_html, results_html] if p]
+        body_inner = "\n    ".join(body_parts)
         err_cls = " suite-err" if not suite_ok else ""
         return f"""<details class="suite{err_cls}" open>
     <summary class="suite-hd">
@@ -336,11 +383,11 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
       {f'<span class="suite-meta">{e(suite_meta)}</span>' if suite_meta else ""}
     </summary>
     <div class="suite-body">
-    {results_html}
+    {body_inner}
     </div>
   </details>"""
 
-    suites_html = "\n  ".join(render_suite(name) for name in suite_order)
+    suites_html = "\n  ".join(render_suite(rid) for rid in root_order)
     generated = datetime.now().strftime("%-d %b %Y, %H:%M:%S")
 
     html = f"""<!DOCTYPE html>
@@ -353,7 +400,8 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
 *{{box-sizing:border-box;margin:0;padding:0}}
 body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f9fafb;color:#111827;font-size:14px;line-height:1.5}}
 header{{background:#fff8f9;border-bottom:1px solid #fecdd3;padding:22px 40px 20px}}
-.brand{{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#e11d48;background:#fee2e2;padding:2px 8px;border-radius:3px;margin-bottom:10px}}
+.brand{{display:inline-flex;align-items:center;gap:8px;font-size:20px;font-weight:700;letter-spacing:-.01em;color:#e11d48;margin-bottom:12px}}
+.brand svg{{display:block}}
 header h1{{font-size:22px;font-weight:700;color:#111827;margin-bottom:8px;line-height:1.25}}
 .hmeta{{font-size:12px;color:#6b7280;display:flex;flex-wrap:wrap;gap:0 6px;margin-bottom:14px}}
 .hmeta span+span::before{{content:"·";margin-right:6px;color:#fca5a5}}
@@ -434,7 +482,18 @@ footer{{text-align:center;padding:20px;font-size:11px;color:#9ca3af;border-top:1
 </head>
 <body>
 <header>
-  <span class="brand">Testjam</span>
+  <span class="brand">
+    <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
+      <g>
+        <rect x="6"  y="8"   width="18" height="18" rx="3.2" fill="#fda4af" transform="rotate(-14 15 17)"/>
+        <rect x="7"  y="7.5" width="18" height="18" rx="3.2" fill="#f43f5e" transform="rotate(-2 16 16.5)"/>
+        <rect x="8"  y="7"   width="18" height="18" rx="3.2" fill="#e11d48" transform="rotate(11 17 16)"/>
+      </g>
+      <path d="M13.7 16.6l3 3 6.6-7.4" stroke="#fff" stroke-width="2.6"
+        fill="none" stroke-linecap="round" stroke-linejoin="round" transform="rotate(11 17 16)" />
+    </svg>
+    Testjam
+  </span>
   <h1>{e(ex.title)}</h1>
   <div class="hmeta">{meta_html}</div>
   <div class="hbottom">
@@ -629,7 +688,7 @@ def list_results(id: int, status: str | None = None, db: Session = Depends(get_d
     q = db.query(TestResult).filter(TestResult.execution_id == id)
     if status:
         q = q.filter(TestResult.status == status)
-    results = q.all()
+    results = q.order_by(TestResult.id).all()
     out = []
     for r in results:
         ro = TestResultOut.model_validate(r)

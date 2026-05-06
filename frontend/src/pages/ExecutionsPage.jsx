@@ -8,8 +8,8 @@ import { useDebounced } from "../hooks/useDebounced"
 import { executionsApi } from "../api/executions"
 import { Button } from "../components/ui/button"
 import { Badge } from "../components/ui/badge"
-import { Breadcrumbs } from "../components/ui/breadcrumbs"
 import { SearchInput } from "../components/ui/search-input"
+import { PageHeader, PageBody } from "../components/ui/page-header"
 import { EmptyState } from "../components/ui/empty-state"
 import { SkeletonList } from "../components/ui/skeleton"
 
@@ -61,49 +61,51 @@ export function ExecutionsPage() {
   }, [executions, debouncedSearch, mineOnly, me?.id])
 
   return (
-    <div className="max-w-3xl space-y-6">
-      <Breadcrumbs
-        crumbs={[
-          { label: "Projects", to: "/projects" },
-          { label: project?.name ?? "…", to: `/projects/${projectId}` },
-          { label: "Executions" },
-        ]}
-      />
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Executions</h1>
-        <Link to={`/projects/${projectId}/executions/new`}>
-          <Button size="sm"><Plus size={14} /> New execution</Button>
-        </Link>
-      </div>
-
-      {!isLoading && executions.length > 0 && (
-        <div className="flex flex-wrap gap-2 items-center">
-          <SearchInput value={search} onChange={setSearch} placeholder="Search by title…" className="flex-1 min-w-[180px]" />
-          <div className="flex gap-1">
-            {STATUS_FILTERS.map(s => (
-              <Button
-                key={s}
-                size="sm"
-                variant={statusFilter === s ? "default" : "outline"}
-                onClick={() => setStatusFilter(s)}
-              >
-                {s === "all" ? "All" : s.replace("_", " ")}
-              </Button>
-            ))}
+    <>
+      <PageHeader crumbs={[
+        { label: "Projects", to: "/projects" },
+        { label: project?.name ?? "…", to: `/projects/${projectId}` },
+        { label: "Executions" },
+      ]}>
+        <div className="max-w-3xl space-y-3">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-gray-800">Executions</h1>
+            <Link to={`/projects/${projectId}/executions/new`}>
+              <Button size="sm"><Plus size={14} /> New execution</Button>
+            </Link>
           </div>
-          {me && (
-            <Button
-              size="sm"
-              variant={mineOnly ? "default" : "outline"}
-              onClick={() => setMineOnly(v => !v)}
-              title="Show only executions assigned to me"
-            >
-              <User size={13} /> Mine
-            </Button>
+          {!isLoading && executions.length > 0 && (
+            <div className="flex flex-wrap gap-2 items-center">
+              <SearchInput value={search} onChange={setSearch} placeholder="Search by title…" className="flex-1 min-w-[180px]" />
+              <div className="flex gap-1">
+                {STATUS_FILTERS.map(s => (
+                  <Button
+                    key={s}
+                    size="sm"
+                    variant={statusFilter === s ? "default" : "outline"}
+                    onClick={() => setStatusFilter(s)}
+                  >
+                    {s === "all" ? "All" : s.replace("_", " ")}
+                  </Button>
+                ))}
+              </div>
+              {me && (
+                <Button
+                  size="sm"
+                  variant={mineOnly ? "default" : "outline"}
+                  onClick={() => setMineOnly(v => !v)}
+                  title="Show only executions assigned to me"
+                >
+                  <User size={13} /> Mine
+                </Button>
+              )}
+            </div>
           )}
         </div>
-      )}
+      </PageHeader>
 
+      <PageBody>
+      <div className="max-w-3xl space-y-6">
       {isLoading && <SkeletonList count={3} />}
 
       <ul className="space-y-2">
@@ -183,6 +185,8 @@ export function ExecutionsPage() {
           </Button>
         </div>
       )}
-    </div>
+      </div>
+      </PageBody>
+    </>
   )
 }

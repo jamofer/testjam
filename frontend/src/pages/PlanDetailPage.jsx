@@ -1,7 +1,7 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { Trash2, Plus, ClipboardList, PlayCircle, X } from "lucide-react"
+import { Plus, ClipboardList, PlayCircle, Trash2, FolderOpen, ChevronRight } from "lucide-react"
 import { plansApi } from "../api/testplans"
 import { casesApi } from "../api/testcases"
 import { useSuitesAll, sortSuitesHierarchically } from "../hooks/useSuites"
@@ -11,23 +11,94 @@ import { Input } from "../components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog"
 import { Breadcrumbs } from "../components/ui/breadcrumbs"
 import { EmptyState } from "../components/ui/empty-state"
+import { CasePicker } from "../components/ui/case-picker"
+import { TestCaseItem, mapSuiteByCase } from "../components/ui/test-case-item"
 import { toast } from "sonner"
 
-function AddCasesDialog({ plan, projectId, onAdded }) {
+function buildSuiteTree(groups, allSuites) {
+  const order = sortSuitesHierarchically(allSuites).map(s => s.id)
+  const suiteMap = Object.fromEntries(allSuites.map(s => [s.id, s]))
+
+  // Add ancestor suites needed for hierarchy even if they have no direct plan cases
+  const full = { ...groups }
+  Object.values(groups).forEach(({ suite }) => {
+    if (!suite) return
+    let pid = suite.parent_suite_id
+    while (pid && !full[pid]) {
+      const ancestor = suiteMap[pid]
+      if (!ancestor) break
+      full[pid] = { suite: ancestor, cases: [] }
+      pid = ancestor.parent_suite_id
+    }
+  })
+
+  const topLevelIds = []
+  const childrenOf = {}
+
+  Object.values(full).forEach(({ suite }) => {
+    if (!suite) return
+    const parentId = suite.parent_suite_id
+    if (parentId && full[parentId]) {
+      if (!childrenOf[parentId]) childrenOf[parentId] = []
+      childrenOf[parentId].push(suite.id)
+    } else {
+      topLevelIds.push(suite.id)
+    }
+  })
+
+  const sort = (ids) => ids.sort((a, b) => order.indexOf(a) - order.indexOf(b))
+  sort(topLevelIds)
+  Object.keys(childrenOf).forEach(pid => sort(childrenOf[pid]))
+
+  return { topLevelIds, childrenOf, full }
+}
+
+function PlanSuiteGroup({ suiteId, groups, childrenOf, removeCase }) {
+  const { suite, cases: suiteCases } = groups[suiteId]
+  const children = childrenOf[suiteId] ?? []
+
+  return (
+    <div className="border rounded-lg overflow-hidden">
+      <details open className="group/suite">
+        <summary className="flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 cursor-pointer list-none font-medium text-sm text-gray-800">
+          <ChevronRight size={14} className="transition-transform shrink-0 group-open/suite:rotate-90" />
+          <FolderOpen size={14} className="text-yellow-500 shrink-0" />
+          <span className="truncate flex-1">{suite.name}</span>
+          <span className="text-xs text-gray-400 shrink-0">({suiteCases.length})</span>
+        </summary>
+        <div className="px-2 py-1">
+          {children.length > 0 && (
+            <div className="pl-4 mt-2 space-y-2 border-l-2 border-gray-100">
+              {children.map(childId => (
+                <PlanSuiteGroup key={childId} suiteId={childId} groups={groups} childrenOf={childrenOf} removeCase={removeCase} />
+              ))}
+            </div>
+          )}
+          {suiteCases.length > 0 && (
+            <ul className="pl-4 space-y-0.5">
+              {suiteCases.map(tc => (
+                <li key={tc.id} className="flex items-center justify-between rounded px-2 py-1.5 hover:bg-gray-50 group transition-colors">
+                  <Link to={`/cases/${tc.id}`} className="min-w-0 flex-1">
+                    <TestCaseItem tc={tc} />
+                  </Link>
+                  <button onClick={() => removeCase(tc.id)}
+                    className="ml-2 shrink-0 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-colors">
+                    <Trash2 size={13} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </details>
+    </div>
+  )
+}
+
+function AddCasesDialog({ plan, projectId }) {
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState([])
-  const [casesBySuite, setCasesBySuite] = useState({})
-  const { data: rawSuites = [] } = useSuitesAll(projectId)
-  const suites = sortSuitesHierarchically(rawSuites)
   const qc = useQueryClient()
-
-  const existing = new Set(plan.test_case_ids)
-
-  const loadCases = async (suiteId) => {
-    if (casesBySuite[suiteId]) return
-    const cases = await casesApi.list(suiteId)
-    setCasesBySuite(prev => ({ ...prev, [suiteId]: cases }))
-  }
 
   const toggle = (id) =>
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
@@ -39,7 +110,6 @@ function AddCasesDialog({ plan, projectId, onAdded }) {
     toast.success(`${selected.length} cases added`)
     setSelected([])
     setOpen(false)
-    onAdded?.()
   }
 
   return (
@@ -50,27 +120,12 @@ function AddCasesDialog({ plan, projectId, onAdded }) {
       <DialogContent className="max-w-lg">
         <DialogHeader><DialogTitle>Add test cases</DialogTitle></DialogHeader>
         <div className="space-y-4">
-          <div className="border rounded-lg max-h-64 overflow-y-auto divide-y">
-            {suites.map(suite => (
-              <details key={suite.id} onToggle={() => loadCases(suite.id)} className="group">
-                <summary className={`flex items-center gap-2 py-2 cursor-pointer text-sm font-medium bg-gray-50 hover:bg-gray-100 ${suite.parent_suite_id ? "pl-7" : "px-3"}`}>
-                  {suite.name}
-                </summary>
-                <div className="px-4 py-1 space-y-1">
-                  {(casesBySuite[suite.id] ?? []).filter(tc => !existing.has(tc.id)).map(tc => (
-                    <label key={tc.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
-                      <input type="checkbox" checked={selected.includes(tc.id)} onChange={() => toggle(tc.id)} />
-                      {tc.name}
-                    </label>
-                  ))}
-                  {(casesBySuite[suite.id] ?? []).filter(tc => existing.has(tc.id)).length === (casesBySuite[suite.id] ?? []).length
-                    && (casesBySuite[suite.id] ?? []).length > 0 && (
-                    <p className="text-xs text-gray-400 py-1">All cases already in plan</p>
-                  )}
-                </div>
-              </details>
-            ))}
-          </div>
+          <CasePicker
+            projectId={projectId}
+            selected={selected}
+            onToggle={toggle}
+            excludeIds={plan.test_case_ids}
+          />
           <p className="text-xs text-gray-400">{selected.length} selected</p>
           <Button onClick={handleAdd} className="w-full" disabled={!selected.length}>Add to plan</Button>
         </div>
@@ -91,6 +146,7 @@ export function PlanDetailPage() {
   })
 
   const { data: project } = useProject(plan?.project_id)
+  const { data: allSuites = [] } = useSuitesAll(plan?.project_id)
 
   const updatePlan = useMutation({
     mutationFn: (data) => plansApi.update(id, data),
@@ -110,10 +166,23 @@ export function PlanDetailPage() {
     enabled: !!plan,
   })
 
+  const cases = caseQueries.data ?? []
+
+  const suiteByCase = useMemo(() => mapSuiteByCase(allSuites), [allSuites])
+  const { groups, topLevelIds, childrenOf } = useMemo(() => {
+    const raw = {}
+    cases.forEach(tc => {
+      const suite = suiteByCase[tc.id]
+      const key = suite?.id ?? 0
+      if (!raw[key]) raw[key] = { suite: suite ?? null, cases: [] }
+      raw[key].cases.push(tc)
+    })
+    const { topLevelIds, childrenOf, full } = buildSuiteTree(raw, allSuites)
+    return { groups: full, topLevelIds, childrenOf }
+  }, [cases, suiteByCase, allSuites])
+
   if (isLoading) return <p className="text-gray-500">Loading…</p>
   if (!plan) return null
-
-  const cases = caseQueries.data ?? []
 
   const startEditTitle = () => { setTitle(plan.title); setEditingTitle(true) }
   const saveTitle = async () => {
@@ -129,7 +198,7 @@ export function PlanDetailPage() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="p-8 max-w-2xl space-y-6">
       <Breadcrumbs
         crumbs={[
           { label: "Projects", to: "/projects" },
@@ -169,17 +238,26 @@ export function PlanDetailPage() {
           description="Add test cases to this plan to run them together."
         />
       ) : (
-        <ul className="space-y-1.5">
-          {cases.map(tc => (
-            <li key={tc.id} className="flex items-center justify-between bg-white border rounded-lg px-4 py-2.5 group">
-              <Link to={`/cases/${tc.id}`} className="text-sm text-gray-800 hover:underline">{tc.name}</Link>
-              <button onClick={() => removeCase(tc.id)}
-                className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500">
-                <X size={14} />
-              </button>
-            </li>
+        <div className="space-y-2">
+          {topLevelIds.map(suiteId => (
+            <PlanSuiteGroup key={suiteId} suiteId={suiteId} groups={groups} childrenOf={childrenOf} removeCase={removeCase} />
           ))}
-        </ul>
+          {groups[0] && (
+            <ul className="space-y-0.5">
+              {groups[0].cases.map(tc => (
+                <li key={tc.id} className="flex items-center justify-between rounded px-2 py-1.5 hover:bg-gray-50 group transition-colors">
+                  <Link to={`/cases/${tc.id}`} className="min-w-0 flex-1">
+                    <TestCaseItem tc={tc} />
+                  </Link>
+                  <button onClick={() => removeCase(tc.id)}
+                    className="ml-2 shrink-0 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-colors">
+                    <Trash2 size={13} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
     </div>
   )

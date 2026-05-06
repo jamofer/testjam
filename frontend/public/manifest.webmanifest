@@ -1,0 +1,11 @@
+{
+  "name": "Testjam",
+  "short_name": "Testjam",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#e11d48",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

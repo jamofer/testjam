@@ -230,7 +230,7 @@ export function TestCasePage() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="p-8 max-w-2xl space-y-6">
       <Breadcrumbs crumbs={[
         { label: "Projects", to: "/projects" },
         { label: project?.name ?? "…", to: `/projects/${suite?.project_id}` },

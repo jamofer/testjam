@@ -183,3 +183,73 @@ def test_reorder_rejects_foreign_step(auth_client, suite_id, case_ids):
 def test_reorder_unknown_case_returns_404(auth_client):
     resp = auth_client.post("/api/v1/cases/99999/steps/reorder", json={"step_ids": []})
     assert resp.status_code == 404
+
+
+# ─── Search ───────────────────────────────────────────────────────────────────
+
+def test_search_cases_by_name(auth_client, project_id, suite_id, case_ids):
+    auth_client.put(f"/api/v1/cases/{case_ids[0]}", json={"name": "Login flow"})
+    auth_client.put(f"/api/v1/cases/{case_ids[1]}", json={"name": "Signup flow"})
+
+    resp = auth_client.get(f"/api/v1/projects/{project_id}/cases?q=login")
+    assert resp.status_code == 200
+    names = [c["name"] for c in resp.json()]
+    assert "Login flow" in names
+    assert "Signup flow" not in names
+
+
+def test_search_cases_by_description(auth_client, project_id, suite_id, case_ids):
+    auth_client.put(f"/api/v1/cases/{case_ids[0]}", json={"description": "checkout cart"})
+    auth_client.put(f"/api/v1/cases/{case_ids[1]}", json={"description": "register user"})
+
+    resp = auth_client.get(f"/api/v1/projects/{project_id}/cases?q=checkout")
+    assert resp.status_code == 200
+    ids = [c["id"] for c in resp.json()]
+    assert case_ids[0] in ids
+    assert case_ids[1] not in ids
+
+
+def test_search_cases_filter_tags(auth_client, project_id, suite_id, case_ids):
+    auth_client.put(f"/api/v1/cases/{case_ids[0]}", json={"tags": ["smoke", "login"]})
+    auth_client.put(f"/api/v1/cases/{case_ids[1]}", json={"tags": ["regression"]})
+
+    resp = auth_client.get(f"/api/v1/projects/{project_id}/cases?tags=smoke")
+    assert resp.status_code == 200
+    ids = [c["id"] for c in resp.json()]
+    assert case_ids[0] in ids
+    assert case_ids[1] not in ids
+
+
+def test_search_cases_no_filters_returns_all(auth_client, project_id, suite_id, case_ids):
+    resp = auth_client.get(f"/api/v1/projects/{project_id}/cases")
+    assert resp.status_code == 200
+    assert len(resp.json()) == 3
+
+
+def test_search_cases_no_match_returns_empty(auth_client, project_id, suite_id, case_ids):
+    resp = auth_client.get(f"/api/v1/projects/{project_id}/cases?q=zzznomatch")
+    assert resp.status_code == 200
+    assert resp.json() == []
+
+
+# ─── Case reorder ─────────────────────────────────────────────────────────────
+
+def test_reorder_cases_in_suite(auth_client, suite_id, case_ids):
+    new = list(reversed(case_ids))
+    resp = auth_client.post(
+        f"/api/v1/suites/{suite_id}/cases/reorder",
+        json={"case_ids": new},
+    )
+    assert resp.status_code == 200
+    assert [c["id"] for c in resp.json()] == new
+
+    listed = auth_client.get(f"/api/v1/suites/{suite_id}/cases").json()
+    assert [c["id"] for c in listed] == new
+
+
+def test_reorder_cases_rejects_partial_set(auth_client, suite_id, case_ids):
+    resp = auth_client.post(
+        f"/api/v1/suites/{suite_id}/cases/reorder",
+        json={"case_ids": case_ids[:2]},
+    )
+    assert resp.status_code == 400

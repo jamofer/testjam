@@ -106,3 +106,47 @@ def test_reorder_suite_steps_rejects_foreign_step(auth_client, project_id, suite
 def test_reorder_suite_steps_unknown_suite(auth_client):
     resp = auth_client.post("/api/v1/suites/99999/steps/reorder", json={"step_ids": []})
     assert resp.status_code == 404
+
+
+# ─── Suite reorder (siblings) ─────────────────────────────────────────────────
+
+def test_reorder_top_level_suites(auth_client, project_id):
+    s_a = auth_client.post(f"/api/v1/projects/{project_id}/suites", json={"name": "A"}).json()["id"]
+    s_b = auth_client.post(f"/api/v1/projects/{project_id}/suites", json={"name": "B"}).json()["id"]
+    s_c = auth_client.post(f"/api/v1/projects/{project_id}/suites", json={"name": "C"}).json()["id"]
+
+    resp = auth_client.post(
+        f"/api/v1/projects/{project_id}/suites/reorder",
+        json={"suite_ids": [s_c, s_a, s_b]},
+    )
+    assert resp.status_code == 200
+    assert [s["id"] for s in resp.json()] == [s_c, s_a, s_b]
+
+    listed = auth_client.get(f"/api/v1/projects/{project_id}/suites").json()
+    assert [s["id"] for s in listed] == [s_c, s_a, s_b]
+
+
+def test_reorder_child_suites_only_affects_siblings(auth_client, project_id):
+    parent = auth_client.post(f"/api/v1/projects/{project_id}/suites", json={"name": "P"}).json()["id"]
+    c1 = auth_client.post(f"/api/v1/projects/{project_id}/suites",
+                          json={"name": "c1", "parent_suite_id": parent}).json()["id"]
+    c2 = auth_client.post(f"/api/v1/projects/{project_id}/suites",
+                          json={"name": "c2", "parent_suite_id": parent}).json()["id"]
+
+    resp = auth_client.post(
+        f"/api/v1/projects/{project_id}/suites/reorder",
+        params={"parent_suite_id": parent},
+        json={"suite_ids": [c2, c1]},
+    )
+    assert resp.status_code == 200
+    assert [s["id"] for s in resp.json()] == [c2, c1]
+
+
+def test_reorder_suites_rejects_partial_set(auth_client, project_id):
+    s_a = auth_client.post(f"/api/v1/projects/{project_id}/suites", json={"name": "A"}).json()["id"]
+    auth_client.post(f"/api/v1/projects/{project_id}/suites", json={"name": "B"})
+    resp = auth_client.post(
+        f"/api/v1/projects/{project_id}/suites/reorder",
+        json={"suite_ids": [s_a]},
+    )
+    assert resp.status_code == 400

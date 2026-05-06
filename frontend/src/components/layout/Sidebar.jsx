@@ -1,11 +1,13 @@
+import { useEffect, useRef, useState } from "react"
 import { NavLink, Link, useMatch } from "react-router-dom"
-import { FolderKanban, Users, LogOut, UserCircle, FolderOpen, PlayCircle, ClipboardList, ChevronLeft, Shield } from "lucide-react"
+import { FolderKanban, Users, LogOut, UserCircle, FolderOpen, PlayCircle, ClipboardList, ChevronLeft, Shield, ChevronUp, Tag } from "lucide-react"
 import { useLogout } from "../../hooks/useAuth"
 import { useProject } from "../../hooks/useProjects"
 import { useExecution } from "../../hooks/useExecutions"
 import { useCase, useSuite } from "../../hooks/useSuites"
 import { useQuery } from "@tanstack/react-query"
 import { plansApi } from "../../api/testplans"
+import { Logo } from "../ui/logo"
 
 // ── Project-scoped nav items ───────────────────────────────────────────────────
 
@@ -13,6 +15,7 @@ const PROJECT_NAV = [
   { to: (id) => `/projects/${id}`,            icon: FolderOpen,    label: "Test Cases",  end: true },
   { to: (id) => `/projects/${id}/plans`,       icon: ClipboardList, label: "Test Plans"            },
   { to: (id) => `/projects/${id}/executions`,  icon: PlayCircle,    label: "Executions"            },
+  { to: (id) => `/projects/${id}/versions`,    icon: Tag,           label: "Versions"              },
   { to: (id) => `/projects/${id}/members`,     icon: Shield,        label: "Members"               },
 ]
 
@@ -78,8 +81,10 @@ export function Sidebar({ user }) {
 
   return (
     <aside className="w-56 bg-white border-r border-gray-200 flex flex-col h-full shrink-0">
-      <div className="px-6 py-5 text-xl font-bold tracking-tight text-primary-600 border-b border-gray-100 shrink-0">
-        Testjam
+      <div className="px-5 py-4 border-b border-gray-100 shrink-0">
+        <Link to="/projects" className="inline-flex">
+          <Logo size={26} />
+        </Link>
       </div>
 
       <nav className="flex-1 px-3 py-4 overflow-y-auto">
@@ -129,30 +134,69 @@ export function Sidebar({ user }) {
         </div>
       </nav>
 
-      {/* User section */}
-      <div className="border-t border-gray-100 p-3 shrink-0">
-        <div className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-gray-50 transition-colors">
-          <UserAvatar user={user} />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-800 truncate">
-              {user?.full_name || user?.username}
-            </p>
-            {user?.full_name && (
-              <p className="text-xs text-gray-400 truncate">@{user.username}</p>
-            )}
-          </div>
+      {/* User menu */}
+      <UserMenu user={user} logout={logout} />
+    </aside>
+  )
+}
+
+function UserMenu({ user, logout }) {
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onDoc = (e) => {
+      if (!wrapRef.current?.contains(e.target)) setOpen(false)
+    }
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false) }
+    document.addEventListener("mousedown", onDoc)
+    document.addEventListener("keydown", onKey)
+    return () => {
+      document.removeEventListener("mousedown", onDoc)
+      document.removeEventListener("keydown", onKey)
+    }
+  }, [open])
+
+  return (
+    <div ref={wrapRef} className="relative border-t border-gray-100 p-3 shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-colors ${
+          open ? "bg-gray-100" : "hover:bg-gray-50"
+        }`}
+      >
+        <UserAvatar user={user} />
+        <div className="flex-1 min-w-0 text-left">
+          <p className="text-sm font-medium text-gray-800 truncate">
+            {user?.full_name || user?.username}
+          </p>
+          {user?.full_name && (
+            <p className="text-xs text-gray-400 truncate">@{user.username}</p>
+          )}
         </div>
-        <div className="flex gap-1 mt-1 px-2">
-          <Link to="/profile"
-            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors">
-            <UserCircle size={13} /> Profile
+        <ChevronUp size={14}
+          className={`text-gray-400 shrink-0 transition-transform ${open ? "" : "rotate-180"}`} />
+      </button>
+
+      {open && (
+        <div role="menu"
+          className="absolute bottom-full left-3 right-3 mb-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-40">
+          <Link to="/profile" role="menuitem" onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+            <UserCircle size={14} /> Profile
           </Link>
-          <button onClick={logout}
-            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors">
-            <LogOut size={13} /> Logout
+          <div className="my-1 border-t border-gray-100" />
+          <button type="button" role="menuitem"
+            onClick={() => { setOpen(false); logout() }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600">
+            <LogOut size={14} /> Logout
           </button>
         </div>
-      </div>
-    </aside>
+      )}
+    </div>
   )
 }

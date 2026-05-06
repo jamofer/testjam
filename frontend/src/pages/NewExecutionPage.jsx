@@ -1,8 +1,6 @@
 import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useCreateExecution } from "../hooks/useExecutions"
-import { useSuitesAll, sortSuitesHierarchically } from "../hooks/useSuites"
-import { casesApi } from "../api/testcases"
 import { useVersions } from "../hooks/useVersions"
 import { useMembers } from "../hooks/useMembers"
 import { useQuery } from "@tanstack/react-query"
@@ -12,40 +10,8 @@ import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { MdEditor } from "../components/MdEditor"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
+import { CasePicker } from "../components/ui/case-picker"
 import { toast } from "sonner"
-
-function CasePicker({ projectId, selectedCases, onChange }) {
-  const { data: rawSuites = [] } = useSuitesAll(projectId)
-  const suites = sortSuitesHierarchically(rawSuites)
-  const [casesBySuite, setCasesBySuite] = useState({})
-
-  const loadCases = async (suiteId) => {
-    if (casesBySuite[suiteId]) return
-    const cases = await casesApi.list(suiteId)
-    setCasesBySuite(prev => ({ ...prev, [suiteId]: cases }))
-  }
-
-  const toggle = (id) =>
-    onChange(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
-
-  return (
-    <div className="border rounded-lg max-h-56 overflow-y-auto divide-y text-sm">
-      {suites.map(suite => (
-        <details key={suite.id} onToggle={() => loadCases(suite.id)}>
-          <summary className={`py-2 cursor-pointer font-medium bg-gray-50 hover:bg-gray-100 ${suite.parent_suite_id ? "pl-7" : "px-3"}`}>{suite.name}</summary>
-          <div className="px-4 py-1 space-y-1">
-            {(casesBySuite[suite.id] ?? []).map(tc => (
-              <label key={tc.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">
-                <input type="checkbox" checked={selectedCases.includes(tc.id)} onChange={() => toggle(tc.id)} />
-                {tc.name}
-              </label>
-            ))}
-          </div>
-        </details>
-      ))}
-    </div>
-  )
-}
 
 export function NewExecutionPage() {
   const { id: projectId } = useParams()
@@ -57,8 +23,7 @@ export function NewExecutionPage() {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [type, setType] = useState("manual")
-  const [versionId, setVersionId] = useState("")
-  const [versionFreeText, setVersionFreeText] = useState("")
+  const [versionInput, setVersionInput] = useState("")
   const [environment, setEnvironment] = useState("")
   const [triggeredBy, setTriggeredBy] = useState("")
   const [assigneeId, setAssigneeId] = useState("")
@@ -72,21 +37,30 @@ export function NewExecutionPage() {
     enabled: !!projectId,
   })
 
+  const toggleCase = (id) =>
+    setSelectedCases(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!title.trim()) return toast.error("Title is required")
 
+    const selectedPlan = source === "plan" ? plans.find(p => String(p.id) === planId) : null
+    if (source === "plan" && !selectedPlan) return toast.error("Select a test plan")
+
+    const trimmedVersion = versionInput.trim()
+    const matchedVersion = trimmedVersion
+      ? versions.find(v => v.name.toLowerCase() === trimmedVersion.toLowerCase())
+      : null
     const payload = {
       title: title.trim(),
       description,
       type,
-      version_id: versionId ? parseInt(versionId) : undefined,
-      version: !versionId && versionFreeText ? versionFreeText : undefined,
+      version_id: matchedVersion ? matchedVersion.id : undefined,
+      version: !matchedVersion && trimmedVersion ? trimmedVersion : undefined,
       environment: environment || undefined,
       triggered_by: type === "automatic" ? triggeredBy || undefined : undefined,
       assigned_to_id: assigneeId ? parseInt(assigneeId) : undefined,
-      test_case_ids: source === "cases" ? selectedCases : [],
-      test_plan_id: source === "plan" && planId ? parseInt(planId) : undefined,
+      test_case_ids: source === "cases" ? selectedCases : (selectedPlan?.test_case_ids ?? []),
     }
 
     try {
@@ -98,10 +72,8 @@ export function NewExecutionPage() {
     }
   }
 
-  const selectedVersion = versions.find(v => String(v.id) === versionId)
-
   return (
-    <div className="max-w-xl space-y-6">
+    <div className="p-8 max-w-xl space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">New Execution</h1>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-1.5">
@@ -128,30 +100,22 @@ export function NewExecutionPage() {
 
           <div className="space-y-1.5">
             <Label>Version</Label>
-            {versions.length > 0 ? (
-              <div className="space-y-1.5">
-                <Select value={versionId} onValueChange={v => { setVersionId(v === "__free__" ? "" : v); setVersionFreeText("") }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select version…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__free__">— Free text —</SelectItem>
-                    {versions.map(v => (
-                      <SelectItem key={v.id} value={String(v.id)}>
-                        {v.name}{v.vcs_tag ? ` (${v.vcs_tag})` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {!versionId && (
-                  <Input value={versionFreeText} onChange={e => setVersionFreeText(e.target.value)}
-                    placeholder="or type a version string…" className="text-sm" />
-                )}
-              </div>
-            ) : (
-              <Input value={versionFreeText} onChange={e => setVersionFreeText(e.target.value)}
-                placeholder="1.4.2" />
+            <Input
+              list="known-versions"
+              value={versionInput}
+              onChange={e => setVersionInput(e.target.value)}
+              placeholder={versions.length > 0 ? "Pick or type… (e.g. 1.4.2)" : "e.g. 1.4.2 or sprint-23"}
+            />
+            {versions.length > 0 && (
+              <datalist id="known-versions">
+                {versions.map(v => (
+                  <option key={v.id} value={v.name}>
+                    {v.vcs_tag ? `${v.vcs_tag}` : v.status}
+                  </option>
+                ))}
+              </datalist>
             )}
+            <p className="text-[11px] text-gray-400">Optional. Existing versions auto-suggest as you type.</p>
           </div>
         </div>
 
@@ -202,7 +166,12 @@ export function NewExecutionPage() {
               </SelectContent>
             </Select>
           ) : (
-            <CasePicker projectId={projectId} selectedCases={selectedCases} onChange={setSelectedCases} />
+            <CasePicker
+              projectId={projectId}
+              selected={selectedCases}
+              onToggle={toggleCase}
+              maxHeight="max-h-56"
+            />
           )}
           {source === "cases" && (
             <p className="text-xs text-gray-400">{selectedCases.length} cases selected</p>

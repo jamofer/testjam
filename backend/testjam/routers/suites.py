@@ -41,7 +41,8 @@ def list_suites(
             q = q.filter(TestSuite.parent_suite_id == None)
     if name is not None:
         q = q.filter(TestSuite.name == name)
-    return [_suite_out(s) for s in q.all()]
+    rows = q.order_by(TestSuite.order, TestSuite.id).all()
+    return [_suite_out(s) for s in rows]
 
 
 @projects_router.post("/{id}/suites", response_model=TestSuiteOut, status_code=status.HTTP_201_CREATED)
@@ -57,7 +58,12 @@ def create_suite(id: int, body: TestSuiteCreate, db: Session = Depends(get_db), 
     )
     if duplicate:
         raise HTTPException(status_code=409, detail=f"Suite '{body.name}' already exists")
-    suite = TestSuite(project_id=id, **body.model_dump())
+    max_order = (
+        db.query(TestSuite)
+        .filter(TestSuite.project_id == id, TestSuite.parent_suite_id == body.parent_suite_id)
+        .count()
+    )
+    suite = TestSuite(project_id=id, order=max_order + 1, **body.model_dump())
     db.add(suite)
     db.commit()
     db.refresh(suite)
@@ -110,6 +116,39 @@ def delete_suite(id: int, db: Session = Depends(get_db), _: User = Depends(get_c
 
 class StepReorder(BaseModel):
     step_ids: list[int]
+
+
+class SuiteReorder(BaseModel):
+    suite_ids: list[int]
+
+
+@projects_router.post("/{id}/suites/reorder", response_model=list[TestSuiteOut])
+def reorder_project_suites(
+    id: int,
+    body: SuiteReorder,
+    parent_suite_id: int | None = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_project_access),
+):
+    """Reorder siblings (suites sharing the same parent_suite_id)."""
+    rows = db.query(TestSuite).filter(
+        TestSuite.project_id == id,
+        TestSuite.parent_suite_id == parent_suite_id,
+    ).all()
+    by_id = {s.id: s for s in rows}
+    if set(body.suite_ids) != set(by_id.keys()):
+        raise HTTPException(
+            status_code=400,
+            detail="suite_ids must include exactly all siblings of the given parent",
+        )
+    for new_order, sid in enumerate(body.suite_ids, start=1):
+        by_id[sid].order = new_order
+    db.commit()
+    out = db.query(TestSuite).filter(
+        TestSuite.project_id == id,
+        TestSuite.parent_suite_id == parent_suite_id,
+    ).order_by(TestSuite.order, TestSuite.id).all()
+    return [_suite_out(s) for s in out]
 
 
 @suites_router.post("/{id}/steps/reorder", response_model=list[SuiteStepOut])

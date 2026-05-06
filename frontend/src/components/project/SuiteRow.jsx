@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react"
 import { Link, useParams } from "react-router-dom"
-import { Plus, Trash2, Pencil, ChevronRight, FolderOpen, FileText, ListPlus, X, GripVertical } from "lucide-react"
+import { Plus, Trash2, Pencil, ChevronRight, FolderOpen, ListPlus, X, GripVertical } from "lucide-react"
+import { TestCaseItem } from "../ui/test-case-item"
 import { useQueryClient, useQuery } from "@tanstack/react-query"
 import {
-  useChildSuites, useCreateSuite, useUpdateSuite, useDeleteSuite,
-  useCases, useCreateCase, useDeleteCase, useBulkDeleteCases, useReorderSuiteSteps,
+  useChildSuites, useCreateSuite, useUpdateSuite, useDeleteSuite, useReorderProjectSuites,
+  useCases, useCreateCase, useDeleteCase, useBulkDeleteCases, useReorderSuiteSteps, useReorderSuiteCases,
 } from "../../hooks/useSuites"
 import { suitesApi } from "../../api/testcases"
 import { plansApi } from "../../api/testplans"
@@ -63,11 +64,47 @@ function AddSubSuiteInline({ parentSuiteId, projectId, onDone }) {
   )
 }
 
+function SortableCaseRow({ tc, deleteCase, selected, toggle }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: tc.id, activationConstraint: { distance: 5 } })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.55 : 1,
+  }
+  return (
+    <li ref={setNodeRef} style={style}
+      className={`flex items-center justify-between rounded px-2 py-1.5 hover:bg-gray-50 group transition-colors ${selected.has(tc.id) ? "bg-blue-50" : ""}`}>
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        <button {...attributes} {...listeners}
+          className="text-gray-300 hover:text-gray-500 cursor-grab touch-none shrink-0"
+          aria-label="Drag to reorder">
+          <GripVertical size={12} />
+        </button>
+        <input type="checkbox" checked={selected.has(tc.id)}
+          onChange={() => toggle(tc.id)}
+          onClick={e => e.stopPropagation()}
+          className="cursor-pointer" />
+        <Link to={`/cases/${tc.id}`} className="hover:text-gray-900 min-w-0">
+          <TestCaseItem tc={tc} />
+        </Link>
+      </div>
+      <button
+        onClick={() => deleteCase.mutate(tc.id, { onSuccess: () => toast.success("Deleted") })}
+        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 shrink-0">
+        <Trash2 size={13} />
+      </button>
+    </li>
+  )
+}
+
 function CaseList({ suiteId }) {
   const { id: projectId } = useParams()
   const { data: cases = [] } = useCases(suiteId)
   const deleteCase = useDeleteCase(suiteId)
   const bulkDelete = useBulkDeleteCases(suiteId)
+  const reorderCases = useReorderSuiteCases(suiteId)
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
   const [selected, setSelected] = useState(new Set())
   const [planId, setPlanId] = useState("")
 
@@ -125,29 +162,29 @@ function CaseList({ suiteId }) {
           {selected.size > 0 ? `${selected.size} selected` : "Select all"}
         </label>
       )}
-      <ul className="pl-4 space-y-0.5">
-        {cases.map(tc => (
-          <li key={tc.id}
-            className={`flex items-center justify-between rounded px-2 py-1 hover:bg-gray-50 group ${selected.has(tc.id) ? "bg-blue-50" : ""}`}>
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              <input type="checkbox" checked={selected.has(tc.id)}
-                onChange={() => toggle(tc.id)}
-                onClick={e => e.stopPropagation()}
-                className="cursor-pointer" />
-              <Link to={`/cases/${tc.id}`}
-                className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 min-w-0">
-                <FileText size={13} className="text-gray-400 shrink-0" />
-                <span className="truncate">{tc.name}</span>
-              </Link>
-            </div>
-            <button
-              onClick={() => deleteCase.mutate(tc.id, { onSuccess: () => toast.success("Deleted") })}
-              className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 shrink-0">
-              <Trash2 size={13} />
-            </button>
-          </li>
-        ))}
-      </ul>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={({ active, over }) => {
+          if (!over || active.id === over.id) return
+          const oldIdx = cases.findIndex(c => c.id === active.id)
+          const newIdx = cases.findIndex(c => c.id === over.id)
+          if (oldIdx < 0 || newIdx < 0) return
+          const next = [...cases]
+          const [moved] = next.splice(oldIdx, 1)
+          next.splice(newIdx, 0, moved)
+          reorderCases.mutate(next.map(c => c.id))
+        }}
+      >
+        <SortableContext items={cases.map(c => c.id)} strategy={verticalListSortingStrategy}>
+          <ul className="pl-4 space-y-0.5">
+            {cases.map(tc => (
+              <SortableCaseRow key={tc.id} tc={tc} deleteCase={deleteCase}
+                selected={selected} toggle={toggle} />
+            ))}
+          </ul>
+        </SortableContext>
+      </DndContext>
 
       {selected.size > 0 && (
         <div className="ml-4 mt-2 flex items-center gap-2 p-2 rounded-lg border border-gray-200 bg-gray-50">
@@ -320,19 +357,53 @@ function SuiteEditPanel({ suite, projectId, onClose, updateSuite }) {
   )
 }
 
-function ChildSuites({ projectId, parentSuiteId }) {
-  const { data: children = [] } = useChildSuites(projectId, parentSuiteId)
-  if (children.length === 0) return null
+function SortableChildSuite({ suite, projectId }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: suite.id, activationConstraint: { distance: 5 } })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.55 : 1,
+  }
   return (
-    <div className="pl-4 mt-2 space-y-2 border-l-2 border-gray-100">
-      {children.map(child => (
-        <SuiteRow key={child.id} suite={child} projectId={projectId} />
-      ))}
+    <div ref={setNodeRef} style={style}>
+      <SuiteRow suite={suite} projectId={projectId} dragHandleProps={{ ...attributes, ...listeners }} />
     </div>
   )
 }
 
-export function SuiteRow({ suite, projectId }) {
+function ChildSuites({ projectId, parentSuiteId }) {
+  const { data: children = [] } = useChildSuites(projectId, parentSuiteId)
+  const reorderSuites = useReorderProjectSuites(projectId)
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
+  if (children.length === 0) return null
+  return (
+    <div className="pl-4 mt-2 space-y-2 border-l-2 border-gray-100">
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={({ active, over }) => {
+          if (!over || active.id === over.id) return
+          const oldIdx = children.findIndex(s => s.id === active.id)
+          const newIdx = children.findIndex(s => s.id === over.id)
+          if (oldIdx < 0 || newIdx < 0) return
+          const next = [...children]
+          const [moved] = next.splice(oldIdx, 1)
+          next.splice(newIdx, 0, moved)
+          reorderSuites.mutate({ suiteIds: next.map(s => s.id), parentSuiteId })
+        }}
+      >
+        <SortableContext items={children.map(s => s.id)} strategy={verticalListSortingStrategy}>
+          {children.map(child => (
+            <SortableChildSuite key={child.id} suite={child} projectId={projectId} />
+          ))}
+        </SortableContext>
+      </DndContext>
+    </div>
+  )
+}
+
+export function SuiteRow({ suite, projectId, dragHandleProps }) {
   const [open, setOpen] = useState(true)
   const [addingCase, setAddingCase] = useState(false)
   const [addingSuite, setAddingSuite] = useState(false)
@@ -345,6 +416,13 @@ export function SuiteRow({ suite, projectId }) {
       <div className="flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 cursor-pointer"
         onClick={() => setOpen(o => !o)}>
         <div className="flex items-center gap-2 font-medium text-sm text-gray-800 flex-1 min-w-0">
+          {dragHandleProps && (
+            <button {...dragHandleProps} onClick={e => e.stopPropagation()}
+              className="text-gray-300 hover:text-gray-500 cursor-grab touch-none shrink-0"
+              aria-label="Drag suite to reorder">
+              <GripVertical size={14} />
+            </button>
+          )}
           <ChevronRight size={14} className={`transition-transform shrink-0 ${open ? "rotate-90" : ""}`} />
           <FolderOpen size={14} className="text-yellow-500 shrink-0" />
           <span className="truncate">{suite.name}</span>

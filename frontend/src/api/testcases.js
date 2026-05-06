@@ -15,10 +15,18 @@ export const suitesApi = {
   deleteStep: (suiteId, stepId) => api.delete(`/suites/${suiteId}/steps/${stepId}`),
   deleteStepsByType: (suiteId, stepType) => api.delete(`/suites/${suiteId}/steps`, { params: { step_type: stepType } }),
   reorderSteps: (suiteId, stepIds) => api.post(`/suites/${suiteId}/steps/reorder`, { step_ids: stepIds }).then(r => r.data),
+  reorderProjectSuites: (projectId, suiteIds, parentSuiteId) =>
+    api.post(`/projects/${projectId}/suites/reorder`,
+      { suite_ids: suiteIds },
+      { params: parentSuiteId != null ? { parent_suite_id: parentSuiteId } : undefined }
+    ).then(r => r.data),
 }
 
 export const casesApi = {
   list: (suiteId) => api.get(`/suites/${suiteId}/cases`).then(r => r.data),
+  search: (projectId, { q, tags } = {}) =>
+    api.get(`/projects/${projectId}/cases`, { params: { q: q || undefined, tags: tags?.length ? tags : undefined } })
+      .then(r => r.data),
   get: (id) => api.get(`/cases/${id}`).then(r => r.data),
   create: (suiteId, data) => api.post(`/suites/${suiteId}/cases`, data).then(r => r.data),
   update: (id, data) => api.put(`/cases/${id}`, data).then(r => r.data),
@@ -30,6 +38,8 @@ export const casesApi = {
   updateStep: (caseId, stepId, data) => api.put(`/cases/${caseId}/steps/${stepId}`, data).then(r => r.data),
   deleteStep: (caseId, stepId) => api.delete(`/cases/${caseId}/steps/${stepId}`),
   reorderSteps: (caseId, stepIds) => api.post(`/cases/${caseId}/steps/reorder`, { step_ids: stepIds }).then(r => r.data),
+  reorderInSuite: (suiteId, caseIds) =>
+    api.post(`/suites/${suiteId}/cases/reorder`, { case_ids: caseIds }).then(r => r.data),
 
   uploadAttachment: (caseId, file) => {
     const form = new FormData()
