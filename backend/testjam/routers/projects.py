@@ -4,11 +4,11 @@ from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import get_current_user, require_project_access
 from testjam.database import get_db
-from testjam.models.execution import TestExecution
+from testjam.models.execution import TestExecution, TestResult
 from testjam.models.project import Project, ProjectMember
 from testjam.models.testcase import TestCase, TestSuite
 from testjam.models.user import User
-from testjam.schemas.project import ProjectCreate, ProjectOut, ProjectUpdate
+from testjam.schemas.project import ProjectCreate, ProjectOut, ProjectUpdate, RecentExecutionSummary
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -27,6 +27,25 @@ def _project_out(project: Project, db: Session) -> ProjectOut:
     last_execution_at = (
         db.query(func.max(TestExecution.created_at)).filter(TestExecution.project_id == project.id).scalar()
     )
+    recent_rows = (
+        db.query(TestExecution)
+        .filter(TestExecution.project_id == project.id)
+        .order_by(TestExecution.created_at.desc())
+        .limit(10)
+        .all()
+    )
+    recent: list[RecentExecutionSummary] = []
+    for ex in recent_rows:
+        counts = {"passed": 0, "failed": 0, "blocked": 0, "not_run": 0}
+        for r in db.query(TestResult.status).filter(TestResult.execution_id == ex.id).all():
+            counts[r[0]] = counts.get(r[0], 0) + 1
+        recent.append(RecentExecutionSummary(
+            id=ex.id,
+            title=ex.title,
+            status=ex.status,
+            started_at=ex.started_at,
+            **counts,
+        ))
     return ProjectOut(
         id=project.id,
         name=project.name,
@@ -37,6 +56,7 @@ def _project_out(project: Project, db: Session) -> ProjectOut:
         case_count=case_count,
         execution_count=execution_count,
         last_execution_at=last_execution_at,
+        recent_executions=recent,
     )
 
 

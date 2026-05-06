@@ -17,6 +17,17 @@ class ProjectUpdate(BaseModel):
     description: str | None = None
 
 
+class RecentExecutionSummary(BaseModel):
+    id: int
+    title: str
+    status: str
+    started_at: datetime | None = None
+    passed: int = 0
+    failed: int = 0
+    blocked: int = 0
+    not_run: int = 0
+
+
 class ProjectOut(ProjectBase):
     id: int
     created_at: datetime
@@ -25,6 +36,7 @@ class ProjectOut(ProjectBase):
     case_count: int = 0
     execution_count: int = 0
     last_execution_at: datetime | None = None
+    recent_executions: list[RecentExecutionSummary] = []
 
     model_config = {"from_attributes": True}
 

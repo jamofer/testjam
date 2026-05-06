@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Trash2, FolderOpen, PlayCircle, Search } from 'lucide-react'
+import { Plus, Trash2, FolderOpen, Search } from 'lucide-react'
 import { useProjects, useCreateProject, useDeleteProject } from '../hooks/useProjects'
 import { useDebounced } from '../hooks/useDebounced'
 import { Button } from '../components/ui/button'
@@ -8,11 +8,7 @@ import { SearchInput } from '../components/ui/search-input'
 import { PageHeader, PageBody } from '../components/ui/page-header'
 import { EmptyState } from '../components/ui/empty-state'
 import { SkeletonList } from '../components/ui/skeleton'
-
-function formatDate(iso) {
-  if (!iso) return null
-  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-}
+import { DashboardPanel } from '../components/project/DashboardPanel'
 
 export function ProjectsPage() {
   const { data: projects = [], isLoading } = useProjects()
@@ -41,7 +37,7 @@ export function ProjectsPage() {
   return (
     <>
       <PageHeader>
-        <div className="max-w-2xl space-y-3">
+        <div className="max-w-4xl space-y-3">
           <h1 className="text-2xl font-bold text-gray-800">Projects</h1>
           <div className="flex flex-wrap gap-2">
             <SearchInput value={search} onChange={setSearch}
@@ -62,13 +58,13 @@ export function ProjectsPage() {
       </PageHeader>
 
       <PageBody>
-      <div className="max-w-2xl">
-      {isLoading && <SkeletonList count={4} itemClassName="h-20" />}
+      <div className="max-w-4xl">
+      {isLoading && <SkeletonList count={4} itemClassName="h-32" />}
 
       <ul className="space-y-3">
         {filteredProjects.map(p => (
           <li key={p.id} className="bg-white border rounded-xl px-4 py-4 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start justify-between gap-3 mb-3">
               <div className="flex-1 min-w-0">
                 <Link to={`/projects/${p.id}`} className="font-semibold text-gray-800 hover:text-primary-600 transition-colors">
                   {p.name}
@@ -76,17 +72,6 @@ export function ProjectsPage() {
                 {p.description && (
                   <p className="text-sm text-gray-500 mt-0.5 truncate">{p.description}</p>
                 )}
-                <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
-                  <span className="flex items-center gap-1">
-                    <FolderOpen size={12} />
-                    {p.suite_count} {p.suite_count === 1 ? 'suite' : 'suites'} · {p.case_count} {p.case_count === 1 ? 'case' : 'cases'}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <PlayCircle size={12} />
-                    {p.execution_count} {p.execution_count === 1 ? 'execution' : 'executions'}
-                    {p.last_execution_at && ` · last ${formatDate(p.last_execution_at)}`}
-                  </span>
-                </div>
               </div>
               <button
                 onClick={() => deleteProject.mutate(p.id)}
@@ -96,6 +81,7 @@ export function ProjectsPage() {
                 <Trash2 size={15} />
               </button>
             </div>
+            <DashboardPanel project={p} compact />
           </li>
         ))}
       </ul>

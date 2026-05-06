@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { NavLink, Link, useMatch } from "react-router-dom"
-import { FolderKanban, Users, LogOut, UserCircle, FolderOpen, PlayCircle, ClipboardList, ChevronLeft, Shield, ChevronUp, Tag } from "lucide-react"
+import { FolderKanban, Users, LogOut, UserCircle, FolderOpen, PlayCircle, ClipboardList, ChevronLeft, Shield, ChevronUp, Tag, Search } from "lucide-react"
 import { useLogout } from "../../hooks/useAuth"
 import { useProject } from "../../hooks/useProjects"
 import { useExecution } from "../../hooks/useExecutions"
@@ -74,10 +74,11 @@ function UserAvatar({ user }) {
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
-export function Sidebar({ user }) {
+export function Sidebar({ user, onOpenPalette }) {
   const logout = useLogout()
   const activeProjectId = useActiveProjectId()
   const { data: project } = useProject(activeProjectId)
+  const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPod|iPad/.test(navigator.platform)
 
   return (
     <aside className="w-56 bg-white border-r border-gray-200 flex flex-col h-full shrink-0">
@@ -86,6 +87,19 @@ export function Sidebar({ user }) {
           <Logo size={26} />
         </Link>
       </div>
+
+      {onOpenPalette && (
+        <div className="px-3 pt-3">
+          <button type="button" onClick={onOpenPalette}
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 text-xs text-gray-500 transition-colors">
+            <Search size={13} />
+            <span className="flex-1 text-left">Search…</span>
+            <kbd className="text-[10px] font-mono bg-white border border-gray-200 rounded px-1 text-gray-400">
+              {isMac ? "⌘K" : "Ctrl K"}
+            </kbd>
+          </button>
+        </div>
+      )}
 
       <nav className="flex-1 px-3 py-4 overflow-y-auto">
 

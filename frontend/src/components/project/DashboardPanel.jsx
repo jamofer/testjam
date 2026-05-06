@@ -1,0 +1,126 @@
+import { useMemo } from "react"
+import { Link } from "react-router-dom"
+import { CheckCircle2, XCircle, AlertTriangle, MinusCircle, PlayCircle, FolderOpen, FileText, TrendingUp } from "lucide-react"
+import { fmtTime } from "../../lib/format"
+
+const STATUS_DOT = {
+  completed:   "bg-green-500",
+  in_progress: "bg-blue-500",
+  pending:     "bg-gray-400",
+  aborted:     "bg-red-500",
+}
+
+function passRateOf(ex) {
+  const ran = (ex.passed ?? 0) + (ex.failed ?? 0) + (ex.blocked ?? 0)
+  if (ran === 0) return null
+  return (ex.passed ?? 0) / ran
+}
+
+function Sparkline({ values, width = 140, height = 32 }) {
+  if (values.length < 2) return null
+  const min = 0
+  const max = 1
+  const step = width / (values.length - 1)
+  const points = values.map((v, i) => {
+    const x = i * step
+    const y = height - ((v - min) / (max - min || 1)) * height
+    return `${x.toFixed(1)},${y.toFixed(1)}`
+  }).join(" ")
+  const last = values[values.length - 1]
+  const lastX = (values.length - 1) * step
+  const lastY = height - ((last - min) / (max - min || 1)) * height
+  return (
+    <svg width={width} height={height} className="overflow-visible">
+      <polyline fill="none" stroke="#e11d48" strokeWidth="1.6"
+        strokeLinecap="round" strokeLinejoin="round" points={points} />
+      <circle cx={lastX} cy={lastY} r="2.4" fill="#e11d48" />
+    </svg>
+  )
+}
+
+/**
+ * Compact per-project dashboard for the projects list page.
+ * Reads everything from `project` (including project.recent_executions
+ * supplied by the backend), no extra fetches.
+ */
+export function DashboardPanel({ project, compact = false }) {
+  const recent = project?.recent_executions ?? []
+  const chronological = useMemo(() => [...recent].reverse(), [recent])
+  const passRates = useMemo(
+    () => chronological.map(passRateOf).filter(v => v != null),
+    [chronological],
+  )
+  const avgPass = passRates.length > 0
+    ? passRates.reduce((a, b) => a + b, 0) / passRates.length
+    : null
+
+  const totals = {
+    suites: project?.suite_count ?? 0,
+    cases: project?.case_count ?? 0,
+    executions: project?.execution_count ?? 0,
+  }
+
+  return (
+    <div className={`grid gap-3 ${compact ? "grid-cols-3" : "grid-cols-1 sm:grid-cols-3"}`}>
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Library</p>
+        <div className="mt-1.5 grid grid-cols-2 gap-y-1 text-xs">
+          <span className="flex items-center gap-1.5 text-gray-600"><FolderOpen size={11} className="text-yellow-500" /> Suites</span>
+          <span className="text-right font-semibold">{totals.suites}</span>
+          <span className="flex items-center gap-1.5 text-gray-600"><FileText size={11} className="text-gray-400" /> Cases</span>
+          <span className="text-right font-semibold">{totals.cases}</span>
+          <span className="flex items-center gap-1.5 text-gray-600"><PlayCircle size={11} className="text-blue-500" /> Executions</span>
+          <span className="text-right font-semibold">{totals.executions}</span>
+        </div>
+      </div>
+
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Pass rate</p>
+          <span className="text-[10px] text-gray-400">last {passRates.length}</span>
+        </div>
+        <div className="mt-0.5 flex items-end gap-2">
+          <div className="text-xl font-bold text-gray-800">
+            {avgPass != null ? `${Math.round(avgPass * 100)}%` : "—"}
+          </div>
+          {avgPass != null && (
+            <span className="text-[10px] text-gray-400 mb-1 flex items-center gap-1">
+              <TrendingUp size={10} /> avg
+            </span>
+          )}
+        </div>
+        <div>
+          {passRates.length >= 2 ? (
+            <Sparkline values={passRates} />
+          ) : (
+            <p className="text-[11px] text-gray-400 py-1">Not enough data yet.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">Recent runs</p>
+        {recent.length === 0 ? (
+          <p className="text-[11px] text-gray-400 py-1">No executions yet.</p>
+        ) : (
+          <ul className="space-y-1">
+            {recent.slice(0, 3).map(ex => (
+              <li key={ex.id}>
+                <Link to={`/executions/${ex.id}/run`} className="flex items-center gap-1.5 text-xs group">
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${STATUS_DOT[ex.status] ?? "bg-gray-400"}`} />
+                  <span className="truncate flex-1 text-gray-700 group-hover:text-primary-600">{ex.title}</span>
+                  <span className="flex items-center gap-1 text-[10px] text-gray-400 shrink-0">
+                    <CheckCircle2 size={9} className="text-green-500" />{ex.passed ?? 0}
+                    <XCircle size={9} className="text-red-500" />{ex.failed ?? 0}
+                    <AlertTriangle size={9} className="text-yellow-500" />{ex.blocked ?? 0}
+                    <MinusCircle size={9} className="text-gray-400" />{ex.not_run ?? 0}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  )
+}
