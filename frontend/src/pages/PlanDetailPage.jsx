@@ -101,7 +101,7 @@ export function PlanDetailPage() {
   const [title, setTitle] = useState("")
 
   const caseQueries = useQuery({
-    queryKey: ["plan-cases", parseInt(id)],
+    queryKey: ["plan-cases", parseInt(id), plan?.test_case_ids],
     queryFn: async () => {
       if (!plan?.test_case_ids?.length) return []
       const results = await Promise.all(plan.test_case_ids.map(cid => casesApi.get(cid)))
@@ -125,7 +125,6 @@ export function PlanDetailPage() {
   const removeCase = async (caseId) => {
     const remaining = plan.test_case_ids.filter(id => id !== caseId)
     await updatePlan.mutateAsync({ test_case_ids: remaining })
-    qc.invalidateQueries({ queryKey: ["plan-cases", parseInt(id)] })
     toast.success("Case removed")
   }
 
