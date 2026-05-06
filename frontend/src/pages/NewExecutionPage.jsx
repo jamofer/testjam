@@ -129,12 +129,12 @@ export function NewExecutionPage() {
             <Label>Version</Label>
             {versions.length > 0 ? (
               <div className="space-y-1.5">
-                <Select value={versionId} onValueChange={v => { setVersionId(v); setVersionFreeText("") }}>
+                <Select value={versionId} onValueChange={v => { setVersionId(v === "__free__" ? "" : v); setVersionFreeText("") }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select version…" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">— Free text —</SelectItem>
+                    <SelectItem value="__free__">— Free text —</SelectItem>
                     {versions.map(v => (
                       <SelectItem key={v.id} value={String(v.id)}>
                         {v.name}{v.vcs_tag ? ` (${v.vcs_tag})` : ""}
@@ -169,10 +169,10 @@ export function NewExecutionPage() {
 
         <div className="space-y-1.5">
           <Label>Assignee</Label>
-          <Select value={assigneeId} onValueChange={setAssigneeId}>
+          <Select value={assigneeId} onValueChange={v => setAssigneeId(v === "__none__" ? "" : v)}>
             <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Unassigned</SelectItem>
+              <SelectItem value="__none__">Unassigned</SelectItem>
               {members.map(m => (
                 <SelectItem key={m.user_id} value={String(m.user_id)}>{m.username}</SelectItem>
               ))}
