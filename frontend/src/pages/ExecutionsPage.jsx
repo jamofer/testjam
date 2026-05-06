@@ -35,23 +35,30 @@ const STATUS_FILTERS = ["all", "pending", "in_progress", "completed", "aborted"]
 
 export function ExecutionsPage() {
   const { id: projectId } = useParams()
-  const { data: executions = [], isLoading } = useExecutions(projectId)
+  const [statusFilter, setStatusFilter] = useState("all")
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useExecutions(projectId, statusFilter !== "all" ? { status: statusFilter } : undefined)
   const { data: project } = useProject(projectId)
   const { data: me } = useMe()
   const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
   const [mineOnly, setMineOnly] = useState(false)
   const debouncedSearch = useDebounced(search, 150)
+
+  const executions = useMemo(() => (data?.pages ?? []).flat(), [data])
 
   const filtered = useMemo(() => {
     const q = debouncedSearch.trim().toLowerCase()
     return executions.filter(ex => {
-      if (statusFilter !== "all" && ex.status !== statusFilter) return false
       if (mineOnly && ex.assigned_to?.id !== me?.id) return false
       if (q && !ex.title.toLowerCase().includes(q)) return false
       return true
     })
-  }, [executions, debouncedSearch, statusFilter, mineOnly, me?.id])
+  }, [executions, debouncedSearch, mineOnly, me?.id])
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -168,6 +175,13 @@ export function ExecutionsPage() {
           description="No executions match the current filters."
           compact
         />
+      )}
+      {hasNextPage && (
+        <div className="flex justify-center">
+          <Button variant="outline" size="sm" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
+            {isFetchingNextPage ? "Loading…" : "Load more"}
+          </Button>
+        </div>
       )}
     </div>
   )

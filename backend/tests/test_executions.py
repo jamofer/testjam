@@ -109,6 +109,33 @@ def test_filter_executions_by_assignee(auth_client, project_with_cases):
     assert resp[0]["title"] == "Theirs"
 
 
+def test_list_executions_pagination(auth_client, project_with_cases):
+    project_id, case_ids = project_with_cases
+    for i in range(5):
+        auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
+            "title": f"Run {i}", "type": "manual", "test_case_ids": case_ids,
+        })
+
+    page1 = auth_client.get(f"/api/v1/projects/{project_id}/executions",
+                            params={"skip": 0, "limit": 3}).json()
+    assert len(page1) == 3
+
+    page2 = auth_client.get(f"/api/v1/projects/{project_id}/executions",
+                            params={"skip": 3, "limit": 3}).json()
+    assert len(page2) == 2
+
+    ids_p1 = {e["id"] for e in page1}
+    ids_p2 = {e["id"] for e in page2}
+    assert ids_p1.isdisjoint(ids_p2)
+
+
+def test_list_executions_limit_capped(auth_client, project_with_cases):
+    project_id, _ = project_with_cases
+    resp = auth_client.get(f"/api/v1/projects/{project_id}/executions",
+                           params={"limit": 9999}).json()
+    assert isinstance(resp, list)
+
+
 def test_bulk_results(auth_client, project_with_cases):
     project_id, case_ids = project_with_cases
     exec_id = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={

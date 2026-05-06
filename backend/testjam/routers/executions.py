@@ -60,9 +60,12 @@ def list_executions(
     type: str | None = None,
     status: str | None = None,
     assigned_to_id: int | None = None,
+    skip: int = 0,
+    limit: int = 50,
     db: Session = Depends(get_db),
     _: User = Depends(require_project_access),
 ):
+    limit = min(limit, 200)
     q = db.query(TestExecution).filter(TestExecution.project_id == id)
     if type:
         q = q.filter(TestExecution.type == type)
@@ -70,7 +73,8 @@ def list_executions(
         q = q.filter(TestExecution.status == status)
     if assigned_to_id is not None:
         q = q.filter(TestExecution.assigned_to_id == assigned_to_id)
-    return [_execution_out(ex) for ex in q.order_by(TestExecution.created_at.desc()).all()]
+    rows = q.order_by(TestExecution.created_at.desc()).offset(skip).limit(limit).all()
+    return [_execution_out(ex) for ex in rows]
 
 
 @projects_router.post("/{id}/executions", response_model=TestExecutionOut, status_code=status.HTTP_201_CREATED)

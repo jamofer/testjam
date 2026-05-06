@@ -1,10 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { executionsApi } from '../api/executions'
 
+const PAGE_SIZE = 50
+
 export function useExecutions(projectId, params) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['executions', projectId, params],
-    queryFn: () => executionsApi.list(projectId, params),
+    queryFn: ({ pageParam = 0 }) =>
+      executionsApi.list(projectId, { ...params, skip: pageParam, limit: PAGE_SIZE }),
+    getNextPageParam: (lastPage, pages) =>
+      lastPage.length === PAGE_SIZE ? pages.length * PAGE_SIZE : undefined,
     enabled: !!projectId,
   })
 }
