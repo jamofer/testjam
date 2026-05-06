@@ -9,6 +9,14 @@ export function useSuites(projectId) {
   })
 }
 
+export function useSuitesAll(projectId) {
+  return useQuery({
+    queryKey: ["suites-list-all", projectId],
+    queryFn: () => suitesApi.listAll(projectId),
+    enabled: !!projectId,
+  })
+}
+
 export function useChildSuites(projectId, parentSuiteId) {
   return useQuery({
     queryKey: ["suites-list", projectId, parentSuiteId],

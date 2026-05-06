@@ -3,8 +3,8 @@ import { useParams, Link } from "react-router-dom"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Plus, Trash2, ClipboardList } from "lucide-react"
 import { plansApi } from "../api/testplans"
-import { suitesApi, casesApi } from "../api/testcases"
-import { useSuites } from "../hooks/useSuites"
+import { casesApi } from "../api/testcases"
+import { useSuitesAll } from "../hooks/useSuites"
 import { useProject } from "../hooks/useProjects"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
@@ -21,7 +21,7 @@ function CreatePlanDialog({ projectId, onCreated }) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [selectedCases, setSelectedCases] = useState([])
-  const { data: suites = [] } = useSuites(projectId)
+  const { data: suites = [] } = useSuitesAll(projectId)
   const [casesBySuite, setCasesBySuite] = useState({})
   const qc = useQueryClient()
 
@@ -59,7 +59,7 @@ function CreatePlanDialog({ projectId, onCreated }) {
             <div className="border rounded-lg max-h-64 overflow-y-auto divide-y">
               {suites.map(suite => (
                 <details key={suite.id} onToggle={() => loadCases(suite.id)} className="group">
-                  <summary className="flex items-center gap-2 px-3 py-2 cursor-pointer text-sm font-medium bg-gray-50 hover:bg-gray-100">
+                  <summary className={`flex items-center gap-2 py-2 cursor-pointer text-sm font-medium bg-gray-50 hover:bg-gray-100 ${suite.parent_suite_id ? "pl-7" : "px-3"}`}>
                     {suite.name}
                   </summary>
                   <div className="px-4 py-1 space-y-1">

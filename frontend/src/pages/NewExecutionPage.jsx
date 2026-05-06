@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useCreateExecution } from "../hooks/useExecutions"
-import { useSuites, useCases } from "../hooks/useSuites"
+import { useSuitesAll } from "../hooks/useSuites"
 import { useVersions } from "../hooks/useVersions"
 import { useMembers } from "../hooks/useMembers"
 import { useQuery } from "@tanstack/react-query"
@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { toast } from "sonner"
 
 function CasePicker({ projectId, selectedCases, onChange }) {
-  const { data: suites = [] } = useSuites(projectId)
+  const { data: suites = [] } = useSuitesAll(projectId)
   const [casesBySuite, setCasesBySuite] = useState({})
 
   const loadCases = async (suiteId) => {
@@ -31,7 +31,7 @@ function CasePicker({ projectId, selectedCases, onChange }) {
     <div className="border rounded-lg max-h-56 overflow-y-auto divide-y text-sm">
       {suites.map(suite => (
         <details key={suite.id} onToggle={() => loadCases(suite.id)}>
-          <summary className="px-3 py-2 cursor-pointer font-medium bg-gray-50 hover:bg-gray-100">{suite.name}</summary>
+          <summary className={`py-2 cursor-pointer font-medium bg-gray-50 hover:bg-gray-100 ${suite.parent_suite_id ? "pl-7" : "px-3"}`}>{suite.name}</summary>
           <div className="px-4 py-1 space-y-1">
             {(casesBySuite[suite.id] ?? []).map(tc => (
               <label key={tc.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded">

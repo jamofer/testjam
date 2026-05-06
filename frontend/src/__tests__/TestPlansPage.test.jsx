@@ -18,6 +18,7 @@ vi.mock("../api/testplans", () => ({
 vi.mock("../api/testcases", () => ({
   suitesApi: {
     list: vi.fn(() => Promise.resolve([])),
+    listAll: vi.fn(() => Promise.resolve([])),
     listChildren: vi.fn(() => Promise.resolve([])),
   },
   casesApi: {
@@ -41,7 +42,7 @@ function setup(plans = [], suites = []) {
     defaultOptions: { queries: { retry: false, gcTime: 0, staleTime: Infinity } },
   })
   qc.setQueryData(["plans", "1"], plans)
-  qc.setQueryData(["suites-list", "1"], suites)
+  qc.setQueryData(["suites-list-all", "1"], suites)
 
   return render(
     <QueryClientProvider client={qc}>

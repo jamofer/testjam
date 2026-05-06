@@ -2,6 +2,7 @@ import { api } from './client'
 
 export const suitesApi = {
   list: (projectId) => api.get(`/projects/${projectId}/suites`).then(r => r.data),
+  listAll: (projectId) => api.get(`/projects/${projectId}/suites`, { params: { all: true } }).then(r => r.data),
   listChildren: (projectId, parentSuiteId) =>
     api.get(`/projects/${projectId}/suites`, { params: { parent_suite_id: parentSuiteId } }).then(r => r.data),
   get: (id) => api.get(`/suites/${id}`).then(r => r.data),

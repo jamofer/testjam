@@ -29,14 +29,16 @@ def list_suites(
     id: int,
     name: str | None = None,
     parent_suite_id: int | None = None,
+    all: bool = False,
     db: Session = Depends(get_db),
     _: User = Depends(require_project_access),
 ):
     q = db.query(TestSuite).filter(TestSuite.project_id == id)
-    if parent_suite_id is not None:
-        q = q.filter(TestSuite.parent_suite_id == parent_suite_id)
-    else:
-        q = q.filter(TestSuite.parent_suite_id == None)
+    if not all:
+        if parent_suite_id is not None:
+            q = q.filter(TestSuite.parent_suite_id == parent_suite_id)
+        else:
+            q = q.filter(TestSuite.parent_suite_id == None)
     if name is not None:
         q = q.filter(TestSuite.name == name)
     return [_suite_out(s) for s in q.all()]
