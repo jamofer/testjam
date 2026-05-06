@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Plus, Trash2, ClipboardList } from "lucide-react"
 import { plansApi } from "../api/testplans"
 import { casesApi } from "../api/testcases"
-import { useSuitesAll } from "../hooks/useSuites"
+import { useSuitesAll, sortSuitesHierarchically } from "../hooks/useSuites"
 import { useProject } from "../hooks/useProjects"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
@@ -21,7 +21,8 @@ function CreatePlanDialog({ projectId, onCreated }) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [selectedCases, setSelectedCases] = useState([])
-  const { data: suites = [] } = useSuitesAll(projectId)
+  const { data: rawSuites = [] } = useSuitesAll(projectId)
+  const suites = sortSuitesHierarchically(rawSuites)
   const [casesBySuite, setCasesBySuite] = useState({})
   const qc = useQueryClient()
 

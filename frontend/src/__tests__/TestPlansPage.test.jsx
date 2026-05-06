@@ -31,10 +31,11 @@ vi.mock("../hooks/useProjects", () => ({
 }))
 
 import { casesApi } from "../api/testcases"
+import { sortSuitesHierarchically } from "../hooks/useSuites"
 
 const SUITES = [
-  { id: 1, name: "Auth Suite" },
-  { id: 2, name: "Payment Suite" },
+  { id: 1, name: "Auth Suite", parent_suite_id: null },
+  { id: 2, name: "Payment Suite", parent_suite_id: null },
 ]
 
 function setup(plans = [], suites = []) {
@@ -67,6 +68,23 @@ describe("TestPlansPage — plan list", () => {
   it("shows empty state when there are no plans", () => {
     setup([])
     expect(screen.getByText(/no test plans yet/i)).toBeInTheDocument()
+  })
+})
+
+describe("sortSuitesHierarchically", () => {
+  it("places child suites immediately after their parent", () => {
+    const flat = [
+      { id: 3, name: "Auth > Login", parent_suite_id: 1 },
+      { id: 1, name: "Auth", parent_suite_id: null },
+      { id: 2, name: "Payment", parent_suite_id: null },
+      { id: 4, name: "Auth > Logout", parent_suite_id: 1 },
+    ]
+    const sorted = sortSuitesHierarchically(flat)
+    const names = sorted.map(s => s.name)
+    expect(names.indexOf("Auth")).toBeLessThan(names.indexOf("Auth > Login"))
+    expect(names.indexOf("Auth")).toBeLessThan(names.indexOf("Auth > Logout"))
+    expect(names.indexOf("Auth > Login")).toBeLessThan(names.indexOf("Payment"))
+    expect(names.indexOf("Auth > Logout")).toBeLessThan(names.indexOf("Payment"))
   })
 })
 

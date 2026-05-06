@@ -1,7 +1,8 @@
 import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useCreateExecution } from "../hooks/useExecutions"
-import { useSuitesAll } from "../hooks/useSuites"
+import { useSuitesAll, sortSuitesHierarchically } from "../hooks/useSuites"
+import { casesApi } from "../api/testcases"
 import { useVersions } from "../hooks/useVersions"
 import { useMembers } from "../hooks/useMembers"
 import { useQuery } from "@tanstack/react-query"
@@ -14,12 +15,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { toast } from "sonner"
 
 function CasePicker({ projectId, selectedCases, onChange }) {
-  const { data: suites = [] } = useSuitesAll(projectId)
+  const { data: rawSuites = [] } = useSuitesAll(projectId)
+  const suites = sortSuitesHierarchically(rawSuites)
   const [casesBySuite, setCasesBySuite] = useState({})
 
   const loadCases = async (suiteId) => {
     if (casesBySuite[suiteId]) return
-    const { casesApi } = await import("../api/testcases")
     const cases = await casesApi.list(suiteId)
     setCasesBySuite(prev => ({ ...prev, [suiteId]: cases }))
   }

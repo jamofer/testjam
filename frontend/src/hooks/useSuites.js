@@ -1,6 +1,24 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { suitesApi, casesApi } from "../api/testcases"
 
+export function sortSuitesHierarchically(suites) {
+  const byParent = {}
+  for (const s of suites) {
+    const key = s.parent_suite_id ?? null
+    if (!byParent[key]) byParent[key] = []
+    byParent[key].push(s)
+  }
+  const result = []
+  const visit = (parentId) => {
+    for (const s of (byParent[parentId] ?? [])) {
+      result.push(s)
+      visit(s.id)
+    }
+  }
+  visit(null)
+  return result
+}
+
 export function useSuites(projectId) {
   return useQuery({
     queryKey: ["suites-list", projectId],
@@ -69,7 +87,11 @@ export function useCreateCase(suiteId) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data) => casesApi.create(suiteId, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["cases-list", suiteId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["cases-list", suiteId] })
+      qc.invalidateQueries({ queryKey: ["suites-list"] })
+      qc.invalidateQueries({ queryKey: ["suites-list-all"] })
+    },
   })
 }
 
