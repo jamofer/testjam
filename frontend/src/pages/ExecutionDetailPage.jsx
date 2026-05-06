@@ -4,7 +4,6 @@ import { Upload, Tag, Clock, Download } from 'lucide-react'
 import { MdViewer } from '../components/MdEditor'
 import { useExecution, useExecutionResults, useUpdateResult } from '../hooks/useExecutions'
 import { executionsApi } from '../api/executions'
-import { exportExecutionPdf } from '../lib/exportPdf'
 import { useProject } from '../hooks/useProjects'
 import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '../components/ui/button'
@@ -57,6 +56,11 @@ function ImportResultsButton({ executionId }) {
       </Button>
     </div>
   )
+}
+
+async function downloadPdf(execution, results, projectName) {
+  const { exportExecutionPdf } = await import('../lib/exportPdf')
+  exportExecutionPdf(execution, results, projectName)
 }
 
 function fmtDate(iso) {
@@ -117,7 +121,7 @@ export function ExecutionDetailPage() {
             {execution.type === 'automatic' && (
               <ImportResultsButton executionId={id} />
             )}
-            <Button size="sm" variant="outline" onClick={() => exportExecutionPdf(execution, results, project?.name)}>
+            <Button size="sm" variant="outline" onClick={() => downloadPdf(execution, results, project?.name)}>
               <Download size={13} /> PDF
             </Button>
             <Button size="sm" variant="outline" onClick={() => executionsApi.exportHtml(id, execution.title)}>

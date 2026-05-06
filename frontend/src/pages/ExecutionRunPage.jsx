@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { useParams } from "react-router-dom"
 import { ExternalLink, Clock, Keyboard, User, Download } from "lucide-react"
-import { exportExecutionPdf } from "../lib/exportPdf"
 import { useQueryClient } from "@tanstack/react-query"
 import { useExecution, useExecutionResults, useUpdateResult } from "../hooks/useExecutions"
 import { executionsApi } from "../api/executions"
@@ -15,6 +14,11 @@ import { ResultCard } from "../components/execution/ResultCard"
 import { fmtDuration } from "../lib/format"
 import { STATUS_CONFIG } from "../lib/statusConfig"
 import { toast } from "sonner"
+
+async function downloadPdf(execution, results, projectName) {
+  const { exportExecutionPdf } = await import('../lib/exportPdf')
+  exportExecutionPdf(execution, results, projectName)
+}
 
 const SHORTCUT_TO_STATUS = { p: "passed", f: "failed", b: "blocked", n: "not_run" }
 
@@ -128,7 +132,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
           <Button variant="ghost" size="sm" onClick={() => setHelpOpen(true)} title="Keyboard shortcuts (?)">
             <Keyboard size={14} />
           </Button>
-          <Button variant="outline" size="sm" onClick={() => exportExecutionPdf(execution, results, project?.name)}>
+          <Button variant="outline" size="sm" onClick={() => downloadPdf(execution, results, project?.name)}>
             <Download size={13} /> PDF
           </Button>
           <Button variant="outline" size="sm" onClick={() => executionsApi.exportHtml(id, execution.title)}>
