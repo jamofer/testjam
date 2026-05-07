@@ -19,6 +19,7 @@ const UsersPage = lazy(() => import("./pages/UsersPage").then(m => ({ default: m
 const ProfilePage = lazy(() => import("./pages/ProfilePage").then(m => ({ default: m.ProfilePage })))
 const MembersPage = lazy(() => import("./pages/MembersPage").then(m => ({ default: m.MembersPage })))
 const VersionsPage = lazy(() => import("./pages/VersionsPage").then(m => ({ default: m.VersionsPage })))
+const SettingsPage = lazy(() => import("./pages/SettingsPage").then(m => ({ default: m.SettingsPage })))
 
 let DevTools = () => null
 if (import.meta.env.DEV) {
@@ -61,6 +62,7 @@ export default function App() {
               <Route path="/executions/:id/run" element={<ExecutionRunPage />} />
               <Route path="/users" element={<UsersPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Route>
           </Routes>
         </Suspense>

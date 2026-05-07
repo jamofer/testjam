@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { NavLink, Link, useMatch } from "react-router-dom"
-import { FolderKanban, Users, LogOut, UserCircle, FolderOpen, PlayCircle, ClipboardList, ChevronLeft, Shield, ChevronUp, Tag, Search } from "lucide-react"
+import { FolderKanban, Users, LogOut, UserCircle, FolderOpen, PlayCircle, ClipboardList, ChevronLeft, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon } from "lucide-react"
 import { useLogout } from "../../hooks/useAuth"
 import { useProject } from "../../hooks/useProjects"
 import { useExecution } from "../../hooks/useExecutions"
@@ -150,13 +150,13 @@ export function Sidebar({ user, onOpenPalette }) {
         </div>
       </nav>
 
-      {/* User menu */}
-      <UserMenu user={user} logout={logout} />
+      {/* User menu + footer */}
+      <UserMenu user={user} logout={logout} isAdmin={!!user?.is_admin} />
     </aside>
   )
 }
 
-function UserMenu({ user, logout }) {
+function UserMenu({ user, logout, isAdmin }) {
   const [open, setOpen] = useState(false)
   const wrapRef = useRef(null)
 
@@ -175,13 +175,13 @@ function UserMenu({ user, logout }) {
   }, [open])
 
   return (
-    <div ref={wrapRef} className="relative border-t border-gray-100 p-3 shrink-0">
+    <div ref={wrapRef} className="relative border-t border-gray-100 p-3 shrink-0 flex items-center gap-1">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-colors ${
+        className={`flex-1 flex items-center gap-2 px-2 py-2 rounded-lg transition-colors ${
           open ? "bg-gray-100" : "hover:bg-gray-50"
         }`}
       >
@@ -197,6 +197,14 @@ function UserMenu({ user, logout }) {
         <ChevronUp size={14}
           className={`text-gray-400 shrink-0 transition-transform ${open ? "" : "rotate-180"}`} />
       </button>
+      {isAdmin && (
+        <NavLink to="/settings" title="Settings"
+          className={({ isActive }) => `w-9 h-9 flex items-center justify-center rounded-md transition-colors ${
+            isActive ? "bg-primary-50 text-primary-600" : "text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+          }`}>
+          <SettingsIcon size={15} />
+        </NavLink>
+      )}
 
       {open && (
         <div role="menu"

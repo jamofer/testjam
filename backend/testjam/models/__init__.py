@@ -7,3 +7,4 @@ from testjam.models.execution import TestExecution, TestResult, TestStepResult, 
 from testjam.models.token import ApiToken
 from testjam.models.notification import Notification
 from testjam.models.case_revision import CaseRevision
+from testjam.models.settings import AppSettings

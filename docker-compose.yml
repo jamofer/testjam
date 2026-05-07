@@ -48,6 +48,12 @@ services:
     depends_on:
       - api
 
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # web UI
+
   e2e:
     build: ./tests/e2e
     profiles: ["e2e"]

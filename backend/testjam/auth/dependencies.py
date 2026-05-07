@@ -67,6 +67,15 @@ def require_project_access_ctx(id: int, ctx: AuthContext = Depends(get_auth_cont
     return ctx
 
 
+def require_admin(current: User = Depends(get_current_user)) -> User:
+    if not current.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required",
+        )
+    return current
+
+
 def require_project_access(id: int, ctx: AuthContext = Depends(get_auth_context)) -> User:
     """Returns the user only if the active credential can access the given project.
     Project-scoped API tokens may only access their own project. The path parameter

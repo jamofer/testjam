@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 import openpyxl
 from openpyxl.styles import Alignment, Font, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, UploadFile, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -22,6 +22,8 @@ from testjam.models.notification import Notification
 from testjam.models.testcase import TestCase, TestSuite
 from testjam.models.user import User
 from testjam.realtime import notify_user
+from testjam.services.email import send_email, smtp_configured
+from testjam.services.settings import get_settings as get_app_settings
 from testjam.schemas.execution import (
     BulkResultCreate, BulkResultResponse,
     ExecutionAttachmentOut,
@@ -40,7 +42,13 @@ executions_router = APIRouter(prefix="/executions", tags=["TestExecutions"])
 results_router = APIRouter(prefix="/results", tags=["TestResults"])
 
 
-def _push_assignment_notification(db: Session, execution: TestExecution, assignee_id: int, actor: User) -> None:
+def _push_assignment_notification(
+    db: Session,
+    execution: TestExecution,
+    assignee_id: int,
+    actor: User,
+    background: BackgroundTasks | None = None,
+) -> None:
     if assignee_id == actor.id:
         return
     n = Notification(
@@ -60,6 +68,22 @@ def _push_assignment_notification(db: Session, execution: TestExecution, assigne
         "created_at": n.created_at.isoformat() if n.created_at else None,
     }
     notify_user(assignee_id, {"event": "notification", "data": payload})
+
+    settings_row = get_app_settings(db)
+    if not smtp_configured(settings_row) or background is None:
+        return
+    assignee = db.get(User, assignee_id)
+    if not assignee or not assignee.email:
+        return
+    link = f"{settings_row.site_url.rstrip('/')}{n.link}" if settings_row.site_url else n.link
+    subject = f"[{settings_row.app_name}] You were assigned to '{execution.title}'"
+    html = (
+        f"<p>{actor.username} assigned you to "
+        f"<strong>{execution.title}</strong>.</p>"
+        f"<p><a href='{link}'>Open the execution</a></p>"
+    )
+    text = f"{actor.username} assigned you to '{execution.title}'. Open: {link}"
+    background.add_task(send_email, settings_row, assignee.email, subject, html, text)
 
 
 def _compute_summary(execution: TestExecution) -> ExecutionSummary:
@@ -105,6 +129,7 @@ def list_executions(
 def create_execution(
     id: int,
     body: TestExecutionCreate,
+    background: BackgroundTasks,
     db: Session = Depends(get_db),
     ctx: AuthContext = Depends(require_project_access_ctx),
 ):
@@ -120,7 +145,7 @@ def create_execution(
     for tc_id in body.test_case_ids:
         db.add(TestResult(execution_id=ex.id, test_case_id=tc_id, status="not_run"))
     if ex.assigned_to_id:
-        _push_assignment_notification(db, ex, ex.assigned_to_id, ctx.user)
+        _push_assignment_notification(db, ex, ex.assigned_to_id, ctx.user, background)
     db.commit()
     db.refresh(ex)
     return _execution_out(ex)
@@ -135,7 +160,10 @@ def get_execution(id: int, db: Session = Depends(get_db), _: User = Depends(get_
 
 
 @executions_router.put("/{id}", response_model=TestExecutionOut)
-def update_execution(id: int, body: TestExecutionUpdate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def update_execution(
+    id: int, body: TestExecutionUpdate, background: BackgroundTasks,
+    db: Session = Depends(get_db), current: User = Depends(get_current_user),
+):
     ex = db.get(TestExecution, id)
     if not ex:
         raise HTTPException(status_code=404, detail="Not found")
@@ -143,7 +171,7 @@ def update_execution(id: int, body: TestExecutionUpdate, db: Session = Depends(g
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(ex, field, value)
     if ex.assigned_to_id and ex.assigned_to_id != prev_assignee:
-        _push_assignment_notification(db, ex, ex.assigned_to_id, current)
+        _push_assignment_notification(db, ex, ex.assigned_to_id, current, background)
     db.commit()
     db.refresh(ex)
     return _execution_out(ex)
@@ -222,16 +250,20 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
         if ms is None: return ""
         return f"{ms}ms" if ms < 1000 else f"{ms/1000:.1f}s"
 
-    # Derive frontend execution URL from Referer header
+    app_settings = get_app_settings(db)
+    # Prefer the configured Site URL; fall back to Referer-derived value.
     exec_url = ""
-    referer = request.headers.get("referer", "")
-    if referer:
-        try:
-            p = urlparse(referer)
-            if p.scheme and p.netloc:
-                exec_url = f"{p.scheme}://{p.netloc}/executions/{id}/run"
-        except Exception:
-            pass
+    if app_settings.site_url:
+        exec_url = f"{app_settings.site_url.rstrip('/')}/executions/{id}/run"
+    else:
+        referer = request.headers.get("referer", "")
+        if referer:
+            try:
+                p = urlparse(referer)
+                if p.scheme and p.netloc:
+                    exec_url = f"{p.scheme}://{p.netloc}/executions/{id}/run"
+            except Exception:
+                pass
 
     launched_by = ex.token_name or (ex.created_by.username if ex.created_by else ex.triggered_by or "—")
     counts = {"passed": 0, "failed": 0, "blocked": 0, "not_run": 0}
@@ -260,10 +292,10 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
     # Header extras: execution URL + attachments
     hextras = []
     if exec_url:
-        hextras.append(f'<a class="hlink" href="{e(exec_url)}" target="_blank">↗ View in Testjam</a>')
+        hextras.append(f'<a class="hlink" href="{e(exec_url)}" target="_blank">↗ View in {e(app_settings.app_name)}</a>')
     atts = ex.attachments or []
     if atts:
-        api_base = f"{request.url.scheme}://{request.url.netloc}"
+        api_base = app_settings.site_url.rstrip("/") if app_settings.site_url else f"{request.url.scheme}://{request.url.netloc}"
         att_links = []
         for a in atts:
             rel = a.file_path.replace("/app/uploads/", "/files/", 1) if a.file_path.startswith("/app/uploads/") else a.file_path
@@ -430,7 +462,7 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{e(ex.title)} — Testjam</title>
+<title>{e(ex.title)} — {e(app_settings.app_name)}</title>
 <style>
 *{{box-sizing:border-box;margin:0;padding:0}}
 body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f9fafb;color:#111827;font-size:14px;line-height:1.5}}
@@ -532,7 +564,7 @@ footer{{text-align:center;padding:20px;font-size:11px;color:#9ca3af;border-top:1
       <path d="M13.7 16.6l3 3 6.6-7.4" stroke="#fff" stroke-width="2.6"
         fill="none" stroke-linecap="round" stroke-linejoin="round" transform="rotate(11 17 16)" />
     </svg>
-    Testjam
+    {e(app_settings.app_name)}
   </span>
   <h1>{e(ex.title)}</h1>
   <div class="hmeta">{meta_html}</div>
@@ -554,7 +586,7 @@ footer{{text-align:center;padding:20px;font-size:11px;color:#9ca3af;border-top:1
   </div>
   {suites_html}
 </main>
-<footer>Generated {generated} · Testjam · {total} test{"s" if total!=1 else ""}</footer>
+<footer>Generated {generated} · {e(app_settings.app_name)} · {total} test{"s" if total!=1 else ""}</footer>
 </body>
 </html>"""
 
