@@ -1,0 +1,47 @@
+name: E2E
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  robot:
+    name: Robot Framework + Playwright
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build images
+        run: docker compose --profile e2e build
+
+      - name: Start stack
+        run: docker compose up -d --wait db api frontend
+
+      - name: Seed admin user
+        run: |
+          docker compose exec -T api python scripts/create_admin.py \
+            --username admin --email admin@example.com --password admin123
+
+      - name: Run Robot Framework suites
+        run: docker compose --profile e2e run --rm e2e robot suites/
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results
+          path: |
+            tests/e2e/log.html
+            tests/e2e/output.xml
+            tests/e2e/report.html
+          if-no-files-found: ignore
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
