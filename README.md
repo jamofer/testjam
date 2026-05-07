@@ -8,7 +8,7 @@ Web-based test management system for planning, executing, and tracking software 
 - **Test plans** — Group cases from multiple suites into versioned plans
 - **Executions** — Manual runs with keyboard shortcuts (`j/k` navigation, `p/f/b/n` to set status) and automatic runs fed by CI
 - **Import results** — JUnit XML and Robot Framework XML; matched by `external_id` or test name
-- **Export reports** — Self-contained HTML (collapsible by suite/test/step, auto-expands failures), PDF, XLSX
+- **HTML report export** — Self-contained, collapsible by suite/test/step, header tinted green on pass / red on fail, failures auto-expand, attachments rendered as links
 - **Real-time RF listener** — Pushes results as tests run (`contrib/testjam_listener.py`)
 - **Access control** — JWT auth, per-project members with roles, scoped API tokens (`X-API-Key`)
 - **Versions** — Track releases (active → released → archived) with optional VCS tag
@@ -27,59 +27,27 @@ Web-based test management system for planning, executing, and tracking software 
 
 ## Quick start
 
-Requires Docker + Docker Compose. **No local Python/Node install needed.**
+Requires Docker + Docker Compose. No local Python or Node install needed.
 
 ```bash
-# 1. Start everything (DB + auto migration + API on :8000 + frontend on :5173)
 docker compose up
-
-# 2. Create the first admin user
 docker compose exec api python scripts/create_admin.py \
   --username admin --email admin@example.com --password secret
-
-# 3. Open the app
-xdg-open http://localhost:5173       # or open / start
 ```
 
-The `api` container runs `alembic upgrade head` **before** booting `uvicorn`, so the schema is always migrated on `up`. No manual migration step needed.
+Open http://localhost:5173. API docs at http://localhost:8000/api/docs.
 
-API docs: http://localhost:8000/api/docs
+`docker compose up` brings up Postgres, runs `alembic upgrade head`, then starts the API on `:8000` and the frontend on `:5173`.
 
----
-
-## Common workflows
-
-### Rebuild image (after changing dependencies or `Dockerfile`)
+### Reset the database
 
 ```bash
-docker compose build api frontend
-docker compose up -d api frontend
-```
-
-`docker compose up --build` rebuilds and restarts in one command.
-
-### Add a database migration (after changing a model)
-
-```bash
-# 1. Generate the revision file
-docker compose exec api alembic revision --autogenerate -m "short description"
-
-# 2. Apply it (also auto-runs on next `docker compose up`)
-docker compose exec api alembic upgrade head
-```
-
-### Reset the database from scratch
-
-```bash
-docker compose down -v       # drops the postgres volume
-docker compose up            # fresh schema via alembic upgrade head
+docker compose down -v && docker compose up
 ```
 
 ---
 
-## Running tests
-
-### Whole test battery
+## Tests
 
 ```bash
 docker compose exec api      pytest                      # backend
@@ -87,55 +55,35 @@ docker compose exec frontend npm test -- --run           # frontend
 docker compose --profile e2e run --rm e2e                # E2E (RF + listener auto-wired)
 ```
 
-The `e2e` service is gated by the `e2e` profile so it never runs on `docker compose up`. The container's `command` already wires the Testjam listener — no extra args needed.
+Frontend `node_modules` lives in an anonymous Docker volume — always run `npm`/`vitest` via `docker compose exec frontend …`, never on the host. The `e2e` service is gated by the `e2e` profile so it never runs on `docker compose up`.
 
-### Per platform — single file or test
+### Single file or test
 
 ```bash
-# Backend file or single test
-docker compose exec api pytest tests/test_executions.py
 docker compose exec api pytest tests/test_executions.py::test_create_manual_execution
-
-# Frontend file
 docker compose exec frontend npm test -- --run __tests__/PlanDetailPage
-
-# Single E2E suite
 docker compose --profile e2e run --rm e2e robot --listener testjam_e2e.e2e_listener.TestjamE2EListener suites/01_auth.robot
 ```
 
-> **Tip:** the frontend `node_modules` lives in an anonymous Docker volume — always run `npm`/`vitest` via `docker compose exec frontend …`, never on the host.
-
-Current counts: **127 backend · 74 frontend · 12 E2E.**
-
 ---
 
-## Project structure
+## Robot Framework listener (external CI)
 
+Push results from an external RF run into an existing Testjam execution:
+
+```bash
+robot --listener contrib/testjam_listener.TestjamListener \
+      --variable TESTJAM_URL:http://localhost:8000/api/v1 \
+      --variable TESTJAM_API_KEY:your-project-token \
+      --variable TESTJAM_EXECUTION_ID:42 \
+      tests/
 ```
-backend/
-  testjam/
-    auth/             JWT, dependencies (get_current_user, require_project_access)
-    models/           SQLAlchemy mapped classes
-    schemas/          Pydantic v2 request/response
-    routers/          Endpoint handlers (mounted under /api/v1)
-  tests/              pytest suite (SQLite in-memory, autouse setup_db)
-  alembic/            Migration history
 
-frontend/
-  src/
-    api/              Axios modules (one per domain)
-    hooks/            TanStack Query hooks
-    pages/            Route components
-    components/       layout (Sidebar/AppLayout) · ui (Radix primitives) · execution · project
-    lib/              statusConfig, format, exportPdf
+Or via env vars: `TESTJAM_URL`, `TESTJAM_API_KEY`, `TESTJAM_EXECUTION_ID`. Tests are matched to Testjam cases by `external_id` (full RF path) or by name; status, duration, and per-step log output are pushed at the end of each test.
 
-tests/e2e/
-  suites/             Robot Framework test suites
-  testjam_e2e/        Keywords, library, E2E listener
+## API tokens
 
-contrib/
-  testjam_listener.py External RF listener for reporting into Testjam
-```
+**Project → Members → API Tokens** issues a project-scoped token. Send `X-API-Key: <token>` on every request. Cross-project access returns 403.
 
 ## Model overview
 
@@ -153,38 +101,3 @@ Project
 `TestExecution.type`: `manual` | `automatic`.
 Execution status: `pending · in_progress · completed · aborted`.
 Result / step status: `not_run · passed · failed · blocked`.
-
----
-
-## Robot Framework listener (external CI)
-
-Push results from an external RF run into an existing Testjam execution:
-
-```bash
-robot --listener contrib/testjam_listener.TestjamListener \
-      --variable TESTJAM_URL:http://localhost:8000/api/v1 \
-      --variable TESTJAM_API_KEY:your-project-token \
-      --variable TESTJAM_EXECUTION_ID:42 \
-      tests/
-```
-
-Or use env vars: `TESTJAM_URL`, `TESTJAM_API_KEY`, `TESTJAM_EXECUTION_ID`.
-
-The listener matches RF tests to Testjam cases by `external_id` (full RF path) or by test name, then pushes status, duration, and per-step log output (ms timestamps) at the end of each test.
-
-## API tokens
-
-Scoped tokens let CI post results without user login:
-
-1. Create the token: **Project → Members → API Tokens**
-2. Send `X-API-Key: <token>` on every request
-3. Tokens are project-scoped: requests to a different project return 403
-
-## Exports
-
-| Format             | Contents                                                            | Where                                          |
-|--------------------|---------------------------------------------------------------------|------------------------------------------------|
-| HTML               | Full report — suites, tests, steps, logs. Self-contained, failures auto-expand. | Executions list / detail / run page            |
-| PDF                | Summary table per test                                              | Execution detail / run page                    |
-| XLSX (execution)   | One row per result                                                  | API endpoint                                   |
-| XLSX (test cases)  | Full case library with steps, type-coloured                         | Project detail                                 |

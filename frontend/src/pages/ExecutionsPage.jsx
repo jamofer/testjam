@@ -50,6 +50,7 @@ export function ExecutionsPage() {
   const debouncedSearch = useDebounced(search, 150)
 
   const executions = useMemo(() => (data?.pages ?? []).flat(), [data])
+  const hasFiltersActive = statusFilter !== "all" || debouncedSearch.trim() !== "" || mineOnly
 
   const filtered = useMemo(() => {
     const q = debouncedSearch.trim().toLowerCase()
@@ -74,7 +75,7 @@ export function ExecutionsPage() {
               <Button size="sm"><Plus size={14} /> New execution</Button>
             </Link>
           </div>
-          {!isLoading && executions.length > 0 && (
+          {!isLoading && (executions.length > 0 || hasFiltersActive) && (
             <div className="flex flex-wrap gap-2 items-center">
               <SearchInput value={search} onChange={setSearch} placeholder="Search by title…" className="flex-1 min-w-[180px]" />
               <div className="flex gap-1">
@@ -158,7 +159,7 @@ export function ExecutionsPage() {
           </li>
         ))}
       </ul>
-      {!isLoading && executions.length === 0 && (
+      {!isLoading && executions.length === 0 && !hasFiltersActive && (
         <EmptyState
           icon={PlayCircle}
           title="No executions yet"
@@ -170,7 +171,7 @@ export function ExecutionsPage() {
           }
         />
       )}
-      {!isLoading && executions.length > 0 && filtered.length === 0 && (
+      {!isLoading && filtered.length === 0 && hasFiltersActive && (
         <EmptyState
           icon={Search}
           title="No matches"

@@ -18,8 +18,10 @@ from sqlalchemy.orm import Session
 from testjam.auth.dependencies import AuthContext, get_current_user, require_project_access, require_project_access_ctx
 from testjam.database import get_db
 from testjam.models.execution import ExecutionAttachment, ResultAttachment, TestExecution, TestResult, TestStepResult
+from testjam.models.notification import Notification
 from testjam.models.testcase import TestCase, TestSuite
 from testjam.models.user import User
+from testjam.realtime import notify_user
 from testjam.schemas.execution import (
     BulkResultCreate, BulkResultResponse,
     ExecutionAttachmentOut,
@@ -36,6 +38,28 @@ EXECUTION_UPLOAD_DIR = "/app/uploads/executions"
 projects_router = APIRouter(prefix="/projects", tags=["TestExecutions"])
 executions_router = APIRouter(prefix="/executions", tags=["TestExecutions"])
 results_router = APIRouter(prefix="/results", tags=["TestResults"])
+
+
+def _push_assignment_notification(db: Session, execution: TestExecution, assignee_id: int, actor: User) -> None:
+    if assignee_id == actor.id:
+        return
+    n = Notification(
+        user_id=assignee_id,
+        type="execution_assigned",
+        message=f"{actor.username} assigned you to '{execution.title}'",
+        link=f"/executions/{execution.id}/run",
+    )
+    db.add(n)
+    db.flush()
+    payload = {
+        "id": n.id,
+        "type": n.type,
+        "message": n.message,
+        "link": n.link,
+        "is_read": n.is_read,
+        "created_at": n.created_at.isoformat() if n.created_at else None,
+    }
+    notify_user(assignee_id, {"event": "notification", "data": payload})
 
 
 def _compute_summary(execution: TestExecution) -> ExecutionSummary:
@@ -95,6 +119,8 @@ def create_execution(
     db.flush()
     for tc_id in body.test_case_ids:
         db.add(TestResult(execution_id=ex.id, test_case_id=tc_id, status="not_run"))
+    if ex.assigned_to_id:
+        _push_assignment_notification(db, ex, ex.assigned_to_id, ctx.user)
     db.commit()
     db.refresh(ex)
     return _execution_out(ex)
@@ -109,12 +135,15 @@ def get_execution(id: int, db: Session = Depends(get_db), _: User = Depends(get_
 
 
 @executions_router.put("/{id}", response_model=TestExecutionOut)
-def update_execution(id: int, body: TestExecutionUpdate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def update_execution(id: int, body: TestExecutionUpdate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
     ex = db.get(TestExecution, id)
     if not ex:
         raise HTTPException(status_code=404, detail="Not found")
+    prev_assignee = ex.assigned_to_id
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(ex, field, value)
+    if ex.assigned_to_id and ex.assigned_to_id != prev_assignee:
+        _push_assignment_notification(db, ex, ex.assigned_to_id, current)
     db.commit()
     db.refresh(ex)
     return _execution_out(ex)
@@ -234,8 +263,12 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
         hextras.append(f'<a class="hlink" href="{e(exec_url)}" target="_blank">↗ View in Testjam</a>')
     atts = ex.attachments or []
     if atts:
-        att_names = " · ".join(e(a.filename) for a in atts)
-        hextras.append(f'<span class="hatts">Attachments: {att_names}</span>')
+        api_base = f"{request.url.scheme}://{request.url.netloc}"
+        att_links = []
+        for a in atts:
+            rel = a.file_path.replace("/app/uploads/", "/files/", 1) if a.file_path.startswith("/app/uploads/") else a.file_path
+            att_links.append(f'<a href="{e(api_base + rel)}" target="_blank" rel="noopener">{e(a.filename)}</a>')
+        hextras.append(f'<span class="hatts">Attachments: {" ".join(att_links)}</span>')
     hextras_html = f'<div class="hextras">{" ".join(hextras)}</div>' if hextras else ""
 
     # Group results by suite_id; collect all ancestor suites via lazy load
@@ -389,6 +422,8 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
 
     suites_html = "\n  ".join(render_suite(rid) for rid in root_order)
     generated = datetime.now().strftime("%-d %b %Y, %H:%M:%S")
+    overall_passed = total > 0 and counts["failed"] == 0 and counts["blocked"] == 0
+    header_class = "pass" if overall_passed else "fail"
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -399,12 +434,14 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
 <style>
 *{{box-sizing:border-box;margin:0;padding:0}}
 body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f9fafb;color:#111827;font-size:14px;line-height:1.5}}
-header{{background:#fff8f9;border-bottom:1px solid #fecdd3;padding:22px 40px 20px}}
+header{{padding:22px 40px 20px;border-bottom:1px solid}}
+header.fail{{background:#fff8f9;border-bottom-color:#fecdd3}}
+header.pass{{background:#f0fdf4;border-bottom-color:#bbf7d0}}
 .brand{{display:inline-flex;align-items:center;gap:8px;font-size:20px;font-weight:700;letter-spacing:-.01em;color:#e11d48;margin-bottom:12px}}
 .brand svg{{display:block}}
 header h1{{font-size:22px;font-weight:700;color:#111827;margin-bottom:8px;line-height:1.25}}
 .hmeta{{font-size:12px;color:#6b7280;display:flex;flex-wrap:wrap;gap:0 6px;margin-bottom:14px}}
-.hmeta span+span::before{{content:"·";margin-right:6px;color:#fca5a5}}
+.hmeta span+span::before{{content:"·";margin-right:6px;color:#cbd5e1}}
 .hbottom{{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}}
 .hstats{{display:flex;gap:7px;flex-wrap:wrap}}
 .hs{{font-size:13px;font-weight:700;padding:5px 14px;border-radius:6px}}
@@ -412,9 +449,12 @@ header h1{{font-size:22px;font-weight:700;color:#111827;margin-bottom:8px;line-h
 .hs.failed{{background:#fee2e2;color:#991b1b}}
 .hs.blocked{{background:#fef3c7;color:#92400e}}
 .hs.notrun{{background:#f3f4f6;color:#6b7280}}
-.hextras{{display:flex;gap:14px;align-items:center;font-size:12px}}
+.hextras{{display:flex;gap:14px;align-items:center;font-size:12px;flex-wrap:wrap}}
 .hlink{{color:#e11d48;text-decoration:none;font-weight:600}}
 .hlink:hover{{text-decoration:underline}}
+.hatts{{color:#9ca3af;display:flex;gap:6px;flex-wrap:wrap;align-items:center}}
+.hatts a{{color:#4b5563;text-decoration:none;border:1px solid #e5e7eb;border-radius:4px;padding:2px 8px;background:#fff;font-size:12px}}
+.hatts a:hover{{background:#f9fafb;color:#111827;border-color:#d1d5db}}
 .hatts{{color:#9ca3af}}
 main{{max-width:920px;margin:20px auto;padding:0 24px 48px}}
 .toolbar{{display:flex;justify-content:flex-end;gap:6px;margin-bottom:14px}}
@@ -481,7 +521,7 @@ footer{{text-align:center;padding:20px;font-size:11px;color:#9ca3af;border-top:1
 </style>
 </head>
 <body>
-<header>
+<header class="{header_class}">
   <span class="brand">
     <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
       <g>

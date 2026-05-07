@@ -48,4 +48,9 @@ export const casesApi = {
   },
   deleteAttachment: (caseId, attachmentId) =>
     api.delete(`/cases/${caseId}/attachments/${attachmentId}`),
+
+  listRevisions: (caseId) =>
+    api.get(`/cases/${caseId}/revisions`).then(r => r.data),
+  getRevision: (caseId, revId) =>
+    api.get(`/cases/${caseId}/revisions/${revId}`).then(r => r.data),
 }

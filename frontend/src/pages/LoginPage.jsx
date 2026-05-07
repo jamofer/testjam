@@ -21,8 +21,11 @@ export function LoginPage() {
         <div className="flex justify-center pb-2"><Logo size={32} /></div>
         {login.isError && <p className="text-sm text-red-500">Invalid credentials</p>}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="username">Username</label>
           <input
+            id="username"
+            name="username"
+            autoComplete="username"
             className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
             value={username}
             onChange={e => setUsername(e.target.value)}
@@ -30,9 +33,12 @@ export function LoginPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">Password</label>
           <input
+            id="password"
+            name="password"
             type="password"
+            autoComplete="current-password"
             className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
             value={password}
             onChange={e => setPassword(e.target.value)}

@@ -18,3 +18,8 @@ export function fmtDate(iso) {
   if (!iso) return null
   return new Date(iso).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })
 }
+
+export function fmtDateTime(iso) {
+  if (!iso) return null
+  return new Date(iso).toLocaleString(undefined, { dateStyle: "short", timeStyle: "medium" })
+}

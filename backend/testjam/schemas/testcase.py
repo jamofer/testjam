@@ -73,11 +73,21 @@ class TestCaseUpdate(BaseModel):
     suite_id: int | None = None
 
 
+class UserMini(BaseModel):
+    id: int
+    username: str
+    full_name: str | None = None
+
+    model_config = {"from_attributes": True}
+
+
 class TestCaseOut(TestCaseBase):
     id: int
     suite_id: int
     created_at: datetime
     updated_at: datetime
+    created_by: UserMini | None = None
+    updated_by: UserMini | None = None
     steps: list[TestStepOut] = []
     attachments: list[AttachmentOut] = []
 

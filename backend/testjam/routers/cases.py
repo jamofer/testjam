@@ -7,13 +7,16 @@ from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import get_current_user, require_project_access
 from testjam.database import get_db
+from testjam.models.case_revision import CaseRevision
 from testjam.models.testcase import Attachment, TestCase, TestStep, TestSuite
 from testjam.models.testplan import TestPlan
 from testjam.models.user import User
+from testjam.schemas.case_revision import CaseRevisionDetail, CaseRevisionSummary
 from testjam.schemas.testcase import (
     AttachmentOut, TestCaseCreate, TestCaseOut, TestCaseUpdate,
     TestStepCreate, TestStepOut, TestStepUpdate,
 )
+from testjam.services.case_revisions import write_revision
 
 UPLOAD_DIR = "/app/uploads/cases"
 
@@ -58,13 +61,21 @@ def list_cases(
 
 
 @suites_router.post("/{id}/cases", response_model=TestCaseOut, status_code=status.HTTP_201_CREATED)
-def create_case(id: int, body: TestCaseCreate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def create_case(id: int, body: TestCaseCreate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
     duplicate = db.query(TestCase).filter(TestCase.suite_id == id, TestCase.name == body.name).first()
     if duplicate:
         raise HTTPException(status_code=409, detail=f"Test case '{body.name}' already exists")
     max_order = db.query(TestCase).filter(TestCase.suite_id == id).count()
-    case = TestCase(suite_id=id, order=max_order + 1, **body.model_dump(exclude={"suite_id"}))
+    case = TestCase(
+        suite_id=id,
+        order=max_order + 1,
+        created_by_id=current.id,
+        updated_by_id=current.id,
+        **body.model_dump(exclude={"suite_id"}),
+    )
     db.add(case)
+    db.flush()
+    write_revision(db, case, current, "created")
     db.commit()
     db.refresh(case)
     return case
@@ -79,15 +90,51 @@ def get_case(id: int, db: Session = Depends(get_db), _: User = Depends(get_curre
 
 
 @cases_router.put("/{id}", response_model=TestCaseOut)
-def update_case(id: int, body: TestCaseUpdate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def update_case(id: int, body: TestCaseUpdate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(case, field, value)
+    case.updated_by_id = current.id
+    db.flush()
+    write_revision(db, case, current, "updated")
     db.commit()
     db.refresh(case)
     return case
+
+
+@cases_router.get("/{id}/revisions", response_model=list[CaseRevisionSummary])
+def list_case_revisions(
+    id: int,
+    skip: int = 0,
+    limit: int = 50,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    if not db.get(TestCase, id):
+        raise HTTPException(status_code=404, detail="Not found")
+    limit = min(limit, 200)
+    return (
+        db.query(CaseRevision)
+        .filter(CaseRevision.case_id == id)
+        .order_by(CaseRevision.created_at.desc(), CaseRevision.id.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+
+@cases_router.get("/{id}/revisions/{rev_id}", response_model=CaseRevisionDetail)
+def get_case_revision(
+    id: int, rev_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    rev = db.query(CaseRevision).filter(CaseRevision.id == rev_id, CaseRevision.case_id == id).first()
+    if not rev:
+        raise HTTPException(status_code=404, detail="Not found")
+    return rev
 
 
 @cases_router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -137,8 +184,9 @@ def reorder_suite_cases(id: int, body: CaseReorder, db: Session = Depends(get_db
 
 
 @cases_router.post("/{id}/steps/reorder", response_model=list[TestStepOut])
-def reorder_case_steps(id: int, body: StepReorder, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
-    if not db.get(TestCase, id):
+def reorder_case_steps(id: int, body: StepReorder, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    case = db.get(TestCase, id)
+    if not case:
         raise HTTPException(status_code=404, detail="Not found")
     steps = {s.id: s for s in db.query(TestStep).filter(TestStep.test_case_id == id).all()}
     for new_order, step_id in enumerate(body.step_ids, start=1):
@@ -146,6 +194,10 @@ def reorder_case_steps(id: int, body: StepReorder, db: Session = Depends(get_db)
         if step is None:
             raise HTTPException(status_code=400, detail=f"Step {step_id} not in case {id}")
         step.order = new_order
+    case.updated_by_id = current.id
+    db.flush()
+    db.refresh(case)
+    write_revision(db, case, current, "updated")
     db.commit()
     return db.query(TestStep).filter(TestStep.test_case_id == id).order_by(TestStep.order).all()
 
@@ -157,43 +209,60 @@ def list_steps(id: int, db: Session = Depends(get_db), _: User = Depends(get_cur
     return db.query(TestStep).filter(TestStep.test_case_id == id).order_by(TestStep.order).all()
 
 
+def _touch_case_revision(db: Session, case_id: int, actor: User) -> None:
+    case = db.get(TestCase, case_id)
+    if case is None:
+        return
+    case.updated_by_id = actor.id
+    db.flush()
+    db.refresh(case)
+    write_revision(db, case, actor, "updated")
+
+
 @cases_router.delete("/{id}/steps", status_code=status.HTTP_204_NO_CONTENT)
-def delete_all_steps(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def delete_all_steps(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
     db.query(TestStep).filter(TestStep.test_case_id == id).delete()
+    _touch_case_revision(db, id, current)
     db.commit()
 
 
 @cases_router.post("/{id}/steps", response_model=TestStepOut, status_code=status.HTTP_201_CREATED)
-def create_step(id: int, body: TestStepCreate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def create_step(id: int, body: TestStepCreate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
     order = body.order
     if order is None:
         max_order = db.query(TestStep).filter(TestStep.test_case_id == id).count()
         order = max_order + 1
     step = TestStep(test_case_id=id, **{**body.model_dump(exclude={"order"}), "order": order})
     db.add(step)
+    db.flush()
+    _touch_case_revision(db, id, current)
     db.commit()
     db.refresh(step)
     return step
 
 
 @cases_router.put("/{id}/steps/{step_id}", response_model=TestStepOut)
-def update_step(id: int, step_id: int, body: TestStepUpdate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def update_step(id: int, step_id: int, body: TestStepUpdate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
     step = db.query(TestStep).filter(TestStep.id == step_id, TestStep.test_case_id == id).first()
     if not step:
         raise HTTPException(status_code=404, detail="Not found")
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(step, field, value)
+    db.flush()
+    _touch_case_revision(db, id, current)
     db.commit()
     db.refresh(step)
     return step
 
 
 @cases_router.delete("/{id}/steps/{step_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_step(id: int, step_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def delete_step(id: int, step_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
     step = db.query(TestStep).filter(TestStep.id == step_id, TestStep.test_case_id == id).first()
     if not step:
         raise HTTPException(status_code=404, detail="Not found")
     db.delete(step)
+    db.flush()
+    _touch_case_revision(db, id, current)
     db.commit()
 
 

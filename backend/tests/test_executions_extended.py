@@ -108,3 +108,65 @@ def test_update_step_result_log_output(auth_client, project_id, suite_id, case_i
 
     assert resp.status_code == 200
     assert resp.json()["log_output"] == "**[INFO]** Login successful"
+
+
+def test_export_html_header_pass_class(auth_client, project_id, case_ids):
+    exec_id = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
+        "title": "All green", "type": "manual", "test_case_ids": case_ids,
+    }).json()["id"]
+    for cid in case_ids:
+        auth_client.post(f"/api/v1/executions/{exec_id}/results", json={
+            "test_case_id": cid, "status": "passed",
+        })
+
+    resp = auth_client.get(f"/api/v1/executions/{exec_id}/export/html")
+
+    assert resp.status_code == 200
+    assert '<header class="pass">' in resp.text
+
+
+def test_export_html_header_fail_class(auth_client, project_id, case_ids):
+    exec_id = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
+        "title": "Some failed", "type": "manual", "test_case_ids": case_ids,
+    }).json()["id"]
+    auth_client.post(f"/api/v1/executions/{exec_id}/results", json={
+        "test_case_id": case_ids[0], "status": "passed",
+    })
+    auth_client.post(f"/api/v1/executions/{exec_id}/results", json={
+        "test_case_id": case_ids[1], "status": "failed",
+    })
+
+    resp = auth_client.get(f"/api/v1/executions/{exec_id}/export/html")
+
+    assert resp.status_code == 200
+    assert '<header class="fail">' in resp.text
+
+
+def test_export_html_header_fail_when_only_blocked(auth_client, project_id, case_ids):
+    exec_id = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
+        "title": "Blocked", "type": "manual", "test_case_ids": case_ids,
+    }).json()["id"]
+    auth_client.post(f"/api/v1/executions/{exec_id}/results", json={
+        "test_case_id": case_ids[0], "status": "blocked",
+    })
+
+    resp = auth_client.get(f"/api/v1/executions/{exec_id}/export/html")
+
+    assert resp.status_code == 200
+    assert '<header class="fail">' in resp.text
+
+
+def test_export_html_attachments_render_as_links(auth_client, project_id, case_ids, tmp_path):
+    exec_id = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
+        "title": "With attach", "type": "manual", "test_case_ids": case_ids,
+    }).json()["id"]
+
+    files = {"file": ("evidence.txt", b"hello", "text/plain")}
+    auth_client.post(f"/api/v1/executions/{exec_id}/attachments", files=files)
+
+    resp = auth_client.get(f"/api/v1/executions/{exec_id}/export/html")
+
+    assert resp.status_code == 200
+    assert 'href="' in resp.text
+    assert 'evidence.txt</a>' in resp.text
+    assert '/files/executions/' in resp.text

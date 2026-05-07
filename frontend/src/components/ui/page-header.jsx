@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react"
 import { cn } from "../../lib/utils"
 import { Breadcrumbs } from "./breadcrumbs"
 
@@ -5,10 +6,36 @@ import { Breadcrumbs } from "./breadcrumbs"
  * Sticky page header pinned to top of <main> scroll container.
  * Reserves a thin row at the top for breadcrumbs so the title row
  * sits at the same vertical offset on every page.
+ *
+ * Publishes its own height as the CSS custom property
+ * `--page-header-height` on the document root, so siblings (e.g. a
+ * sticky right-side ContextPanel) can clear it.
  */
 export function PageHeader({ crumbs = [], children, className, contentClassName }) {
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const node = ref.current
+    if (!node) return undefined
+    const apply = () => {
+      document.documentElement.style.setProperty(
+        "--page-header-height", `${node.offsetHeight}px`,
+      )
+    }
+    apply()
+    let ro
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(apply)
+      ro.observe(node)
+    }
+    return () => {
+      ro?.disconnect()
+      document.documentElement.style.removeProperty("--page-header-height")
+    }
+  }, [])
+
   return (
-    <div className={cn(
+    <div ref={ref} className={cn(
       "sticky top-0 z-30 px-8 pt-3 pb-4",
       "bg-gray-50 border-b border-gray-200",
       className,

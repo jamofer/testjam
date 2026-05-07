@@ -5,3 +5,5 @@ from testjam.models.testcase import TestSuite, SuiteStep, TestCase, TestStep, At
 from testjam.models.testplan import TestPlan
 from testjam.models.execution import TestExecution, TestResult, TestStepResult, ResultAttachment, ExecutionAttachment
 from testjam.models.token import ApiToken
+from testjam.models.notification import Notification
+from testjam.models.case_revision import CaseRevision

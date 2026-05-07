@@ -131,6 +131,7 @@ export function useUpdateCase(id) {
     mutationFn: (data) => casesApi.update(id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["case", id] })
+      qc.invalidateQueries({ queryKey: ["case-revisions", id] })
     },
   })
 }
@@ -151,11 +152,30 @@ export function useBulkDeleteCases(suiteId) {
   })
 }
 
+export function useCaseRevisions(caseId) {
+  return useQuery({
+    queryKey: ["case-revisions", caseId],
+    queryFn: () => casesApi.listRevisions(caseId),
+    enabled: !!caseId,
+  })
+}
+
+export function useCaseRevision(caseId, revId) {
+  return useQuery({
+    queryKey: ["case-revision", caseId, revId],
+    queryFn: () => casesApi.getRevision(caseId, revId),
+    enabled: !!caseId && !!revId,
+  })
+}
+
 export function useReorderSteps(caseId) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (stepIds) => casesApi.reorderSteps(caseId, stepIds),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["case", caseId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["case", caseId] })
+      qc.invalidateQueries({ queryKey: ["case-revisions", caseId] })
+    },
   })
 }
 

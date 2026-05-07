@@ -1,6 +1,6 @@
 import { useState } from "react"
-import { useParams } from "react-router-dom"
-import { Plus, Trash2, GripVertical, Upload, Copy, ExternalLink } from "lucide-react"
+import { useParams, Link } from "react-router-dom"
+import { Plus, Trash2, GripVertical, Upload, Copy, ExternalLink, History, User as UserIcon, Clock } from "lucide-react"
 import { useCase, useUpdateCase, useReorderSteps, useSuite } from "../hooks/useSuites"
 import { useProject } from "../hooks/useProjects"
 import { casesApi } from "../api/testcases"
@@ -14,6 +14,10 @@ import { Input } from "../components/ui/input"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs"
 import { EmptyState } from "../components/ui/empty-state"
 import { Breadcrumbs } from "../components/ui/breadcrumbs"
+import { CaseRevisions } from "../components/case/CaseRevisions"
+import { ContextPanel } from "../components/ui/context-panel"
+import { fmtDate, fmtDateTime } from "../lib/format"
+import { useCaseRevisions } from "../hooks/useSuites"
 import { toast } from "sonner"
 
 const STEP_TYPE_STYLE = {
@@ -88,6 +92,81 @@ function SortableStepRow({ step, caseId, onDelete }) {
         </button>
       </div>
     </div>
+  )
+}
+
+function PanelAttachments({ caseId, attachments }) {
+  const qc = useQueryClient()
+
+  const upload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    await casesApi.uploadAttachment(caseId, file)
+    qc.invalidateQueries({ queryKey: ["case", caseId] })
+    toast.success(`${file.name} uploaded`)
+    e.target.value = ""
+  }
+
+  const remove = async (attachmentId) => {
+    await casesApi.deleteAttachment(caseId, attachmentId)
+    qc.invalidateQueries({ queryKey: ["case", caseId] })
+    toast.success("Attachment deleted")
+  }
+
+  return (
+    <div className="space-y-1.5">
+      {attachments.length === 0 && (
+        <p className="text-[11px] text-gray-400">No attachments</p>
+      )}
+      <ul className="space-y-1">
+        {attachments.map(att => (
+          <li key={att.id} className="flex items-center gap-1.5 text-xs">
+            <a href={att.url} target="_blank" rel="noopener noreferrer"
+              className="flex-1 min-w-0 truncate text-gray-700 hover:text-primary-600 flex items-center gap-1">
+              {att.filename}
+              <ExternalLink size={10} className="shrink-0 text-gray-400" />
+            </a>
+            <button onClick={() => remove(att.id)}
+              title="Delete"
+              className="text-gray-300 hover:text-red-500 shrink-0">
+              <Trash2 size={11} />
+            </button>
+          </li>
+        ))}
+      </ul>
+      <label className="inline-flex items-center gap-1 cursor-pointer text-[11px] text-gray-500 hover:text-gray-800">
+        <input type="file" className="hidden" onChange={upload} />
+        <Upload size={11} /> Upload file
+      </label>
+    </div>
+  )
+}
+
+function PanelHistory({ caseId }) {
+  const { data: revs = [] } = useCaseRevisions(caseId)
+  const top = revs.slice(0, 5)
+  if (top.length === 0) return <p className="text-[11px] text-gray-400">No history yet</p>
+  return (
+    <ul className="space-y-1">
+      {top.map(rev => {
+        const kindCls = rev.change_kind === "created"
+          ? "bg-green-50 text-green-700 border-green-200"
+          : "bg-blue-50 text-blue-700 border-blue-200"
+        const actor = rev.actor?.full_name || rev.actor?.username || "system"
+        return (
+          <li key={rev.id} className="flex items-center gap-1.5 text-[11px]">
+            <span className={`px-1 py-0.5 rounded border text-[9px] uppercase font-bold shrink-0 ${kindCls}`}>
+              {rev.change_kind}
+            </span>
+            <span className="text-gray-700 shrink-0">{actor}</span>
+            <span className="text-gray-400 truncate">· {fmtDateTime(rev.created_at)}</span>
+          </li>
+        )
+      })}
+      {revs.length > top.length && (
+        <li className="text-[11px] text-gray-400">+ {revs.length - top.length} more in History tab</li>
+      )}
+    </ul>
   )
 }
 
@@ -208,6 +287,7 @@ export function TestCasePage() {
     const order = (tc.steps?.length ?? 0) + 1
     await casesApi.createStep(id, { action: newStepContent, order })
     qc.invalidateQueries({ queryKey: ["case", id] })
+    qc.invalidateQueries({ queryKey: ["case-revisions", id] })
     setNewStepContent("")
     toast.success("Step added")
   }
@@ -215,6 +295,7 @@ export function TestCasePage() {
   const deleteStep = async (stepId) => {
     await casesApi.deleteStep(id, stepId)
     qc.invalidateQueries({ queryKey: ["case", id] })
+    qc.invalidateQueries({ queryKey: ["case-revisions", id] })
     toast.success("Step deleted")
   }
 
@@ -229,8 +310,53 @@ export function TestCasePage() {
     reorderSteps.mutate(reordered.map(s => s.id))
   }
 
+  const userLink = (u) => u
+    ? <Link to="/users" className="text-primary-600 hover:underline">{u.full_name || u.username}</Link>
+    : null
+
+  const contextSections = [
+    {
+      title: "About",
+      rows: [
+        { label: "Project", value: project?.name },
+        { label: "Suite", value: suite?.name },
+        { label: "External ID", value: tc.external_id },
+        { label: "Created by", value: userLink(tc.created_by) },
+        { label: "Created", value: fmtDateTime(tc.created_at) },
+        { label: "Updated by", value: userLink(tc.updated_by) },
+        { label: "Updated", value: fmtDateTime(tc.updated_at) },
+      ],
+    },
+    {
+      title: "Tags",
+      body: (tc.tags ?? []).length > 0 ? (
+        <div className="flex flex-wrap gap-1">
+          {tc.tags.map(t => (
+            <span key={t} className="text-[11px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-200">{t}</span>
+          ))}
+        </div>
+      ) : <p className="text-[11px] text-gray-400">No tags</p>,
+    },
+    {
+      title: `Attachments (${tc.attachments?.length ?? 0})`,
+      body: <PanelAttachments caseId={id} attachments={tc.attachments ?? []} />,
+    },
+    {
+      title: "History",
+      body: <PanelHistory caseId={id} />,
+    },
+    {
+      title: "Counts",
+      rows: [
+        { label: "Steps", value: tc.steps?.length ?? 0 },
+        { label: "Attachments", value: tc.attachments?.length ?? 0 },
+      ],
+    },
+  ]
+
   return (
-    <div className="p-8 max-w-2xl space-y-6">
+    <div className="p-8 flex gap-6">
+      <div className="flex-1 max-w-2xl space-y-6">
       <Breadcrumbs crumbs={[
         { label: "Projects", to: "/projects" },
         { label: project?.name ?? "…", to: `/projects/${suite?.project_id}` },
@@ -257,6 +383,23 @@ export function TestCasePage() {
         <div className="flex items-start justify-between gap-2">
           <div className="cursor-pointer group flex-1" onClick={startEditMeta}>
             <h1 className="text-2xl font-bold text-gray-800 group-hover:text-gray-600">{tc.name}</h1>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-400">
+              {tc.created_by && (
+                <span className="flex items-center gap-1">
+                  <UserIcon size={11} /> Created by {tc.created_by.full_name || tc.created_by.username}
+                </span>
+              )}
+              {tc.created_at && (
+                <span className="flex items-center gap-1">
+                  <Clock size={11} /> {fmtDateTime(tc.created_at)}
+                </span>
+              )}
+              {tc.updated_by && tc.updated_at && tc.updated_at !== tc.created_at && (
+                <span className="flex items-center gap-1">
+                  <History size={11} /> Updated by {tc.updated_by.full_name || tc.updated_by.username} · {fmtDateTime(tc.updated_at)}
+                </span>
+              )}
+            </div>
             {tc.preconditions && (
               <div className="mt-2">
                 <p className="text-xs text-gray-400 uppercase tracking-wide">Preconditions</p>
@@ -277,6 +420,7 @@ export function TestCasePage() {
         <TabsList>
           <TabsTrigger value="steps">Steps ({tc.steps?.length ?? 0})</TabsTrigger>
           <TabsTrigger value="attachments">Attachments ({tc.attachments?.length ?? 0})</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
 
         <TabsContent value="steps">
@@ -301,7 +445,13 @@ export function TestCasePage() {
         <TabsContent value="attachments">
           <AttachmentList caseId={id} attachments={tc.attachments ?? []} />
         </TabsContent>
+
+        <TabsContent value="history">
+          <CaseRevisions caseId={id} />
+        </TabsContent>
       </Tabs>
+      </div>
+      <ContextPanel sections={contextSections} />
     </div>
   )
 }

@@ -17,7 +17,10 @@ backend/uploads/
 
 # E2E test results
 tests/e2e/results/
+tests/e2e/log.html
+tests/e2e/output.xml
+tests/e2e/report.html
+tests/e2e/playwright-log.txt
 
-# Alembic generated versions (keep the folder)
-backend/alembic/versions/*.py
-!backend/alembic/versions/.gitkeep
+# Alembic — track migrations, ignore caches only
+backend/alembic/versions/__pycache__/

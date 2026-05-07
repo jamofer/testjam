@@ -1,6 +1,8 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useContext, createContext } from "react"
 import { Link, useParams } from "react-router-dom"
 import { Plus, Trash2, Pencil, ChevronRight, FolderOpen, ListPlus, X, GripVertical } from "lucide-react"
+
+export const SuiteCollapseContext = createContext({ version: 0, desiredOpen: true })
 import { TestCaseItem } from "../ui/test-case-item"
 import { useQueryClient, useQuery } from "@tanstack/react-query"
 import {
@@ -404,7 +406,11 @@ function ChildSuites({ projectId, parentSuiteId }) {
 }
 
 export function SuiteRow({ suite, projectId, dragHandleProps }) {
-  const [open, setOpen] = useState(true)
+  const { version, desiredOpen } = useContext(SuiteCollapseContext)
+  const [open, setOpen] = useState(desiredOpen)
+  useEffect(() => {
+    if (version > 0) setOpen(desiredOpen)
+  }, [version, desiredOpen])
   const [addingCase, setAddingCase] = useState(false)
   const [addingSuite, setAddingSuite] = useState(false)
   const [editing, setEditing] = useState(false)

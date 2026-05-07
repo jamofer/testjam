@@ -1,11 +1,11 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Link, useParams } from "react-router-dom"
-import { Plus, FolderOpen, PlayCircle, Clock, FileText, Search } from "lucide-react"
+import { Plus, FolderOpen, PlayCircle, Clock, FileText, Search, ChevronsUpDown, ChevronsDownUp } from "lucide-react"
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { useProject } from "../hooks/useProjects"
-import { useSuites, useCreateSuite, useSearchCases, useReorderProjectSuites } from "../hooks/useSuites"
+import { useSuites, useSuitesAll, useCreateSuite, useSearchCases, useReorderProjectSuites } from "../hooks/useSuites"
 import { useDebounced } from "../hooks/useDebounced"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
@@ -14,7 +14,7 @@ import { PageHeader, PageBody } from "../components/ui/page-header"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog"
 import { EmptyState } from "../components/ui/empty-state"
 import { Skeleton, SkeletonList } from "../components/ui/skeleton"
-import { SuiteRow } from "../components/project/SuiteRow"
+import { SuiteRow, SuiteCollapseContext } from "../components/project/SuiteRow"
 import { toast } from "sonner"
 
 function SortableSuite({ suite, projectId }) {
@@ -75,6 +75,26 @@ export function ProjectDetailPage() {
   const debouncedSearch = useDebounced(search, 200)
   const { data: searchResults = [], isFetching: searching } = useSearchCases(id, { q: debouncedSearch })
   const isSearching = debouncedSearch.trim().length > 0
+  const { data: allSuites = [] } = useSuitesAll(id)
+  const suitePathById = useMemo(() => {
+    const byId = new Map(allSuites.map(s => [s.id, s]))
+    const cache = new Map()
+    const climb = (sid) => {
+      if (cache.has(sid)) return cache.get(sid)
+      const s = byId.get(sid)
+      if (!s) { cache.set(sid, []); return [] }
+      const parent = s.parent_suite_id ? climb(s.parent_suite_id) : []
+      const path = [...parent, s.name]
+      cache.set(sid, path)
+      return path
+    }
+    const out = {}
+    for (const s of allSuites) out[s.id] = climb(s.id)
+    return out
+  }, [allSuites])
+  const [collapseState, setCollapseState] = useState({ version: 0, desiredOpen: true })
+  const expandAll = () => setCollapseState(s => ({ version: s.version + 1, desiredOpen: true }))
+  const collapseAll = () => setCollapseState(s => ({ version: s.version + 1, desiredOpen: false }))
 
   if (isLoading) {
     return (
@@ -118,8 +138,20 @@ export function ProjectDetailPage() {
             </div>
             <CreateSuiteDialog projectId={id} />
           </div>
-          <SearchInput value={search} onChange={setSearch}
-            placeholder="Search test cases by name or description…" />
+          <div className="flex items-center gap-2">
+            <SearchInput value={search} onChange={setSearch}
+              placeholder="Search test cases by name or description…" className="flex-1" />
+            {!isSearching && suites.length > 0 && (
+              <div className="flex gap-1 shrink-0">
+                <Button size="sm" variant="outline" onClick={expandAll} title="Expand all suites">
+                  <ChevronsUpDown size={13} />
+                </Button>
+                <Button size="sm" variant="outline" onClick={collapseAll} title="Collapse all suites">
+                  <ChevronsDownUp size={13} />
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </PageHeader>
 
@@ -137,61 +169,77 @@ export function ProjectDetailPage() {
                 />
               ) : (
                 <ul className="divide-y divide-gray-100 border border-gray-200 rounded-md bg-white">
-                  {searchResults.map(tc => (
-                    <li key={tc.id}>
-                      <Link
-                        to={`/cases/${tc.id}`}
-                        className="flex items-start gap-2 px-3 py-2 hover:bg-gray-50"
-                      >
-                        <FileText size={14} className="text-gray-400 mt-0.5 shrink-0" />
-                        <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium text-gray-800 truncate">{tc.name}</div>
-                          {tc.description && (
-                            <div className="text-xs text-gray-500 truncate">{tc.description}</div>
-                          )}
-                          {tc.tags && tc.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {tc.tags.map(t => (
-                                <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">{t}</span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </Link>
-                    </li>
-                  ))}
+                  {searchResults.map(tc => {
+                    const path = suitePathById[tc.suite_id] ?? []
+                    return (
+                      <li key={tc.id}>
+                        <Link
+                          to={`/cases/${tc.id}`}
+                          className="flex items-start gap-2 px-3 py-2 hover:bg-gray-50"
+                        >
+                          <FileText size={14} className="text-gray-400 mt-0.5 shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            {path.length > 0 && (
+                              <div className="flex items-center flex-wrap gap-0.5 text-[11px] text-gray-400 mb-0.5">
+                                <FolderOpen size={10} className="text-gray-300 shrink-0" />
+                                {path.map((seg, i) => (
+                                  <span key={i} className="flex items-center gap-0.5">
+                                    {i > 0 && <span className="text-gray-300">/</span>}
+                                    <span className="truncate max-w-[140px]">{seg}</span>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            <div className="text-sm font-medium text-gray-800 truncate">{tc.name}</div>
+                            {tc.description && (
+                              <div className="text-xs text-gray-500 truncate">{tc.description}</div>
+                            )}
+                            {tc.tags && tc.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {tc.tags.map(t => (
+                                  <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">{t}</span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+                      </li>
+                    )
+                  })}
                 </ul>
               )}
             </div>
           ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={(e) => {
-                const { active, over } = e
-                if (!over || active.id === over.id) return
-                const oldIdx = suites.findIndex(s => s.id === active.id)
-                const newIdx = suites.findIndex(s => s.id === over.id)
-                if (oldIdx < 0 || newIdx < 0) return
-                const next = [...suites]
-                const [moved] = next.splice(oldIdx, 1)
-                next.splice(newIdx, 0, moved)
-                reorderSuites.mutate({ suiteIds: next.map(s => s.id), parentSuiteId: null })
-              }}
-            >
-              <SortableContext items={suites.map(s => s.id)} strategy={verticalListSortingStrategy}>
-                <div className="space-y-2">
-                  {suites.map(suite => <SortableSuite key={suite.id} suite={suite} projectId={id} />)}
-                  {suites.length === 0 && (
-                    <EmptyState
-                      icon={FolderOpen}
-                      title="No test suites yet"
-                      description="Suites group related test cases. Use “New suite” above to create your first one."
-                    />
-                  )}
-                </div>
-              </SortableContext>
-            </DndContext>
+            <SuiteCollapseContext.Provider value={collapseState}>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={(e) => {
+                  const { active, over } = e
+                  if (!over || active.id === over.id) return
+                  const oldIdx = suites.findIndex(s => s.id === active.id)
+                  const newIdx = suites.findIndex(s => s.id === over.id)
+                  if (oldIdx < 0 || newIdx < 0) return
+                  const next = [...suites]
+                  const [moved] = next.splice(oldIdx, 1)
+                  next.splice(newIdx, 0, moved)
+                  reorderSuites.mutate({ suiteIds: next.map(s => s.id), parentSuiteId: null })
+                }}
+              >
+                <SortableContext items={suites.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-2">
+                    {suites.map(suite => <SortableSuite key={suite.id} suite={suite} projectId={id} />)}
+                    {suites.length === 0 && (
+                      <EmptyState
+                        icon={FolderOpen}
+                        title="No test suites yet"
+                        description="Suites group related test cases. Use “New suite” above to create your first one."
+                      />
+                    )}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            </SuiteCollapseContext.Provider>
           )}
         </div>
       </PageBody>

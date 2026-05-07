@@ -9,6 +9,10 @@ vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 vi.mock("../api/testcases", () => ({
   suitesApi: {
     list: vi.fn(() => Promise.resolve([{ id: 1, name: "Suite A", project_id: 1 }])),
+    listAll: vi.fn(() => Promise.resolve([
+      { id: 1, name: "Suite A", parent_suite_id: null, project_id: 1 },
+      { id: 2, name: "Sub Suite", parent_suite_id: 1, project_id: 1 },
+    ])),
   },
   casesApi: {
     search: vi.fn(),
@@ -23,6 +27,7 @@ vi.mock("../api/projects", () => ({
 
 vi.mock("../components/project/SuiteRow", () => ({
   SuiteRow: ({ suite }) => <div data-testid={`suite-${suite.id}`}>{suite.name}</div>,
+  SuiteCollapseContext: { Provider: ({ children }) => <>{children}</> },
 }))
 
 vi.mock("../components/project/VersionsPanel", () => ({
@@ -79,5 +84,18 @@ describe("ProjectDetailPage search", () => {
     setup()
     expect(await screen.findByTestId("suite-1")).toBeInTheDocument()
     expect(casesApi.search).not.toHaveBeenCalled()
+  })
+
+  it("renders parent suite hierarchy on each search result", async () => {
+    casesApi.search.mockResolvedValue([
+      { id: 200, name: "Edge case", description: null, tags: [], suite_id: 2 },
+    ])
+    setup()
+    const input = await screen.findByPlaceholderText(/search test cases/i)
+    fireEvent.change(input, { target: { value: "edge" } })
+
+    expect(await screen.findByText("Edge case")).toBeInTheDocument()
+    expect(screen.getByText("Suite A")).toBeInTheDocument()
+    expect(screen.getByText("Sub Suite")).toBeInTheDocument()
   })
 })

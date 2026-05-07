@@ -6,8 +6,9 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
+    allowedHosts: ['localhost', 'frontend'],
     proxy: {
-      '/api': { target: 'http://api:8000', changeOrigin: true },
+      '/api': { target: 'http://api:8000', changeOrigin: true, ws: true },
       '/files': { target: 'http://api:8000', changeOrigin: true },
     },
   },

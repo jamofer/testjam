@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react"
-import { useParams } from "react-router-dom"
+import { useParams, Link } from "react-router-dom"
 import { ExternalLink, Clock, Keyboard, User, Download, FolderOpen, ChevronRight } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useExecution, useExecutionResults, useUpdateResult } from "../hooks/useExecutions"
@@ -7,13 +7,61 @@ import { executionsApi } from "../api/executions"
 import { useProject } from "../hooks/useProjects"
 import { useSuitesAll, sortSuitesHierarchically } from "../hooks/useSuites"
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts"
-import { Breadcrumbs } from "../components/ui/breadcrumbs"
+import { PageHeader, PageBody } from "../components/ui/page-header"
 import { Button } from "../components/ui/button"
 import { Skeleton, SkeletonList } from "../components/ui/skeleton"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components/ui/dialog"
 import { ResultCard } from "../components/execution/ResultCard"
 import { mapSuiteByCase } from "../components/ui/test-case-item"
-import { fmtDuration } from "../lib/format"
+import { fmtDuration, fmtDateTime } from "../lib/format"
+import { ContextPanel } from "../components/ui/context-panel"
+
+const EXECUTION_STATUS_PILL = {
+  pending:     "bg-gray-100 text-gray-600 border-gray-200",
+  in_progress: "bg-blue-50 text-blue-700 border-blue-200",
+  completed:   "bg-green-50 text-green-700 border-green-200",
+  aborted:     "bg-red-50 text-red-700 border-red-200",
+}
+
+const EXECUTION_TYPE_PILL = {
+  manual:    "bg-amber-50 text-amber-700 border-amber-200",
+  automatic: "bg-purple-50 text-purple-700 border-purple-200",
+}
+
+function StatusPill({ status }) {
+  const cls = EXECUTION_STATUS_PILL[status] ?? "bg-gray-100 text-gray-600 border-gray-200"
+  return <span className={`inline-block text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border ${cls}`}>{status?.replace("_", " ")}</span>
+}
+
+function TypePill({ type }) {
+  const cls = EXECUTION_TYPE_PILL[type] ?? "bg-gray-100 text-gray-600 border-gray-200"
+  return <span className={`inline-block text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border ${cls}`}>{type}</span>
+}
+
+function UserLink({ user }) {
+  if (!user) return null
+  return <Link to="/users" className="text-primary-600 hover:underline">{user.full_name || user.username}</Link>
+}
+
+function PanelExecutionAttachments({ attachments = [] }) {
+  if (attachments.length === 0) return <p className="text-[11px] text-gray-400">No attachments</p>
+  return (
+    <ul className="space-y-1">
+      {attachments.map(att => (
+        <li key={att.id} className="flex items-center gap-1.5 text-xs">
+          <a href={att.url} target="_blank" rel="noopener noreferrer"
+            className="flex-1 min-w-0 truncate text-gray-700 hover:text-primary-600 flex items-center gap-1">
+            {att.filename}
+            <ExternalLink size={10} className="shrink-0 text-gray-400" />
+          </a>
+          {att.size_bytes != null && (
+            <span className="text-[10px] text-gray-400 shrink-0">{Math.round(att.size_bytes / 1024)} KB</span>
+          )}
+        </li>
+      ))}
+    </ul>
+  )
+}
 import { STATUS_CONFIG } from "../lib/statusConfig"
 import { toast } from "sonner"
 
@@ -45,12 +93,14 @@ export function ExecutionRunPage() {
 
   if (!execution) {
     return (
-      <div className="p-8 max-w-2xl space-y-4">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-7 w-1/2" />
-        <Skeleton className="h-4 w-2/3" />
-        <SkeletonList count={3} itemClassName="h-24" />
-      </div>
+      <PageBody>
+        <div className="max-w-2xl space-y-4">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-7 w-1/2" />
+          <Skeleton className="h-4 w-2/3" />
+          <SkeletonList count={3} itemClassName="h-24" />
+        </div>
+      </PageBody>
     )
   }
 
@@ -217,82 +267,104 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
     )),
   }, { enabled: orderedResults.length > 0, allowWhileTyping: ["Escape"] })
 
+  const contextSections = [
+    {
+      title: "About",
+      rows: [
+        { label: "Project", value: project?.name },
+        { label: "Status", value: <StatusPill status={execution.status} /> },
+        { label: "Type", value: <TypePill type={execution.type} /> },
+        { label: "Version", value: execution.version },
+        { label: "Environment", value: execution.environment },
+        { label: "Created by", value: <UserLink user={execution.created_by} /> },
+        { label: "Triggered by", value: execution.triggered_by },
+        { label: "Token", value: execution.token_name },
+        { label: "Assigned to", value: <UserLink user={execution.assigned_to} /> },
+        { label: "Created", value: fmtDateTime(execution.created_at) },
+        { label: "Started", value: fmtDateTime(execution.started_at) },
+        { label: "Finished", value: fmtDateTime(execution.finished_at) },
+      ],
+    },
+    {
+      title: "Summary",
+      rows: [
+        { label: "Total", value: summary.total ?? 0 },
+        { label: "Passed", value: summary.passed ?? 0 },
+        { label: "Failed", value: summary.failed ?? 0 },
+        { label: "Blocked", value: summary.blocked ?? 0 },
+        { label: "Not run", value: summary.not_run ?? 0 },
+      ],
+    },
+    {
+      title: `Attachments (${(execution.attachments ?? []).length})`,
+      body: <PanelExecutionAttachments attachments={execution.attachments ?? []} />,
+    },
+  ]
+
   return (
-    <div className="p-8 max-w-2xl space-y-4">
-      <Breadcrumbs
-        crumbs={[
-          { label: "Projects", to: "/projects" },
-          { label: project?.name ?? "…", to: `/projects/${execution.project_id}` },
-          { label: "Executions", to: `/projects/${execution.project_id}/executions` },
-          { label: execution.title },
-        ]}
-      />
-
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-gray-800">{execution.title}</h1>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-sm text-gray-500">
-            {execution.version && <span>v{execution.version}</span>}
-            {execution.environment && <span>{execution.environment}</span>}
-            {(execution.token_name || execution.created_by || execution.triggered_by) && (
-              <span>{execution.token_name
-                ? `via ${execution.token_name}`
-                : `by ${execution.created_by?.username ?? execution.triggered_by}`}
-              </span>
-            )}
-            {execution.assigned_to && (
-              <span className="flex items-center gap-1">
-                <User size={12} /> {execution.assigned_to.username}
-              </span>
-            )}
-            <span>{done}/{summary.total ?? 0} done</span>
-            {totalMs != null && (
-              <span className="flex items-center gap-1 text-gray-400">
-                <Clock size={12} /> {fmtDuration(totalMs)} total
-              </span>
-            )}
+    <>
+      <PageHeader crumbs={[
+        { label: "Projects", to: "/projects" },
+        { label: project?.name ?? "…", to: `/projects/${execution.project_id}` },
+        { label: "Executions", to: `/projects/${execution.project_id}/executions` },
+        { label: execution.title },
+      ]}>
+        <div className="max-w-2xl flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-gray-800 truncate">{execution.title}</h1>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-sm text-gray-500">
+              {execution.version && <span>v{execution.version}</span>}
+              {execution.environment && <span>{execution.environment}</span>}
+              {(execution.token_name || execution.created_by || execution.triggered_by) && (
+                <span>{execution.token_name
+                  ? `via ${execution.token_name}`
+                  : `by ${execution.created_by?.username ?? execution.triggered_by}`}
+                </span>
+              )}
+              {execution.assigned_to && (
+                <span className="flex items-center gap-1">
+                  <User size={12} /> {execution.assigned_to.username}
+                </span>
+              )}
+              <span>{done}/{summary.total ?? 0} done</span>
+              {totalMs != null && (
+                <span className="flex items-center gap-1 text-gray-400">
+                  <Clock size={12} /> {fmtDuration(totalMs)} total
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3 mt-1.5 text-sm">
+              <span className="text-green-600 font-medium">✓ {summary.passed ?? 0} passed</span>
+              <span className="text-red-500 font-medium">✗ {summary.failed ?? 0} failed</span>
+              <span className="text-yellow-600 font-medium">⚠ {summary.blocked ?? 0} blocked</span>
+              <span className="text-gray-400">— {summary.not_run ?? 0} not run</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button variant="ghost" size="sm" onClick={() => setHelpOpen(true)} title="Keyboard shortcuts (?)">
+              <Keyboard size={14} />
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => downloadPdf(execution, results, project?.name)}>
+              <Download size={13} /> PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => executionsApi.exportHtml(id, execution.title)}>
+              <Download size={13} /> HTML
+            </Button>
+            <Button
+              onClick={finishExecution}
+              disabled={execution.status === "completed" || finishing}
+              loading={finishing}
+            >
+              {execution.status === "completed" ? "Completed" : "Finish execution"}
+            </Button>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Button variant="ghost" size="sm" onClick={() => setHelpOpen(true)} title="Keyboard shortcuts (?)">
-            <Keyboard size={14} />
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => downloadPdf(execution, results, project?.name)}>
-            <Download size={13} /> PDF
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => executionsApi.exportHtml(id, execution.title)}>
-            <Download size={13} /> HTML
-          </Button>
-          <Button
-            onClick={finishExecution}
-            disabled={execution.status === "completed" || finishing}
-            loading={finishing}
-          >
-            {execution.status === "completed" ? "Completed" : "Finish execution"}
-          </Button>
-        </div>
-      </div>
+      </PageHeader>
 
-      <div className="flex items-center gap-4">
-        <div className="flex gap-3 text-sm">
-          <span className="text-green-600 font-medium">✓ {summary.passed ?? 0} passed</span>
-          <span className="text-red-500 font-medium">✗ {summary.failed ?? 0} failed</span>
-          <span className="text-yellow-600 font-medium">⚠ {summary.blocked ?? 0} blocked</span>
-          <span className="text-gray-400">— {summary.not_run ?? 0} not run</span>
-        </div>
-        {(execution.attachments ?? []).length > 0 && (
-          <div className="flex gap-2 ml-auto">
-            {execution.attachments.map(a => (
-              <a key={a.id} href={a.url} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs text-gray-500 hover:text-primary-600 border rounded px-2 py-1 bg-white hover:bg-gray-50 transition-colors">
-                <ExternalLink size={11} />{a.filename}
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-2">
+      <PageBody>
+        <div className="flex gap-6">
+          <div className="flex-1 max-w-2xl space-y-4">
+            <div className="space-y-2">
         {topLevelIds.map(suiteId => (
           <RunSuiteGroup key={suiteId} suiteId={suiteId} groups={groups} childrenOf={childrenOf}
             orderedResults={orderedResults} focusedResultId={focusedResultId} setFocusedResultId={setFocusedResultId}
@@ -317,10 +389,14 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
             focused={result.id === focusedResultId}
             onFocus={() => setFocusedResultId(result.id)} />
         ))}
-      </div>
+            </div>
+          </div>
+          <ContextPanel sections={contextSections} />
+        </div>
+      </PageBody>
 
       <ShortcutHelpDialog open={helpOpen} onOpenChange={setHelpOpen} isAutomated={isAutomated} />
-    </div>
+    </>
   )
 }
 

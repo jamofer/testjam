@@ -8,6 +8,7 @@ import { useCase, useSuite } from "../../hooks/useSuites"
 import { useQuery } from "@tanstack/react-query"
 import { plansApi } from "../../api/testplans"
 import { Logo } from "../ui/logo"
+import { NotificationsBell } from "./NotificationsBell"
 
 // ── Project-scoped nav items ───────────────────────────────────────────────────
 
@@ -82,10 +83,11 @@ export function Sidebar({ user, onOpenPalette }) {
 
   return (
     <aside className="w-56 bg-white border-r border-gray-200 flex flex-col h-full shrink-0">
-      <div className="px-5 py-4 border-b border-gray-100 shrink-0">
+      <div className="px-5 py-4 border-b border-gray-100 shrink-0 flex items-center justify-between gap-2">
         <Link to="/projects" className="inline-flex">
           <Logo size={26} />
         </Link>
+        <NotificationsBell enabled={!!user} />
       </div>
 
       {onOpenPalette && (

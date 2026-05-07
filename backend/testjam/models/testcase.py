@@ -39,7 +39,7 @@ class TestCase(Base):
     __tablename__ = "test_cases"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    suite_id: Mapped[int] = mapped_column(ForeignKey("test_suites.id", ondelete="CASCADE"))
+    suite_id: Mapped[int] = mapped_column(ForeignKey("test_suites.id", ondelete="CASCADE"), index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     preconditions: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -49,6 +49,12 @@ class TestCase(Base):
     # used to match automated results (e.g. "tests/login.py::test_login" or "Suite.Test Name")
     external_id: Mapped[str | None] = mapped_column(String(512), nullable=True, index=True)
     order: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    created_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    updated_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -61,6 +67,13 @@ class TestCase(Base):
     attachments: Mapped[list[Attachment]] = relationship(
         back_populates="test_case", cascade="all, delete-orphan"
     )
+    revisions: Mapped[list["CaseRevision"]] = relationship(  # noqa: F821
+        back_populates="test_case",
+        cascade="all, delete-orphan",
+        order_by="CaseRevision.created_at.desc(), CaseRevision.id.desc()",
+    )
+    created_by: Mapped["User | None"] = relationship(foreign_keys=[created_by_id])  # noqa: F821
+    updated_by: Mapped["User | None"] = relationship(foreign_keys=[updated_by_id])  # noqa: F821
 
 
 class TestStep(Base):

@@ -3,8 +3,8 @@ Library    testjam_e2e.testjam_library.TestjamLibrary
 
 
 *** Variables ***
-${JUNIT_FILE}    ${CURDIR}/../fixtures/junit_results.xml
-${RF_FILE}       ${CURDIR}/../fixtures/rf_output.xml
+${JUNIT_FILE}    ${CURDIR}/../../fixtures/junit_results.xml
+${RF_FILE}       ${CURDIR}/../../fixtures/rf_output.xml
 
 
 *** Test Cases ***
