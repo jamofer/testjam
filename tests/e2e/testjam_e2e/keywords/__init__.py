@@ -1,12 +1,13 @@
-from .auth import AuthMixin
-from .projects import ProjectMixin
-from .versions import VersionMixin
-from .suites import SuiteMixin
-from .cases import CaseMixin
-from .executions import ExecutionMixin
-from .imports import ImportMixin
-from .members import MembersMixin
-from .tokens import TokensMixin
+from testjam_e2e.keywords.auth import AuthMixin
+from testjam_e2e.keywords.projects import ProjectMixin
+from testjam_e2e.keywords.versions import VersionMixin
+from testjam_e2e.keywords.suites import SuiteMixin
+from testjam_e2e.keywords.cases import CaseMixin
+from testjam_e2e.keywords.plans import PlanMixin
+from testjam_e2e.keywords.executions import ExecutionMixin
+from testjam_e2e.keywords.imports import ImportMixin
+from testjam_e2e.keywords.members import MembersMixin
+from testjam_e2e.keywords.tokens import TokensMixin
 
 __all__ = [
     "AuthMixin",
@@ -14,6 +15,7 @@ __all__ = [
     "VersionMixin",
     "SuiteMixin",
     "CaseMixin",
+    "PlanMixin",
     "ExecutionMixin",
     "ImportMixin",
     "MembersMixin",

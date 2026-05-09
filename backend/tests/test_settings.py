@@ -128,7 +128,7 @@ def test_assignment_sends_email_when_smtp_configured(auth_client: TestClient, pr
         db.refresh(bob)
         bob_id = bob.id
 
-    with patch("testjam.routers.executions.send_email") as mock_send:
+    with patch("testjam.routers.executions._helpers.send_email") as mock_send:
         resp = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
             "title": "R", "type": "manual",
             "assigned_to_id": bob_id, "test_case_ids": case_ids,
@@ -152,7 +152,7 @@ def test_assignment_does_not_send_email_when_smtp_unset(auth_client: TestClient,
         db.refresh(bob)
         bob_id = bob.id
 
-    with patch("testjam.routers.executions.send_email") as mock_send:
+    with patch("testjam.routers.executions._helpers.send_email") as mock_send:
         auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
             "title": "R", "type": "manual",
             "assigned_to_id": bob_id, "test_case_ids": case_ids,

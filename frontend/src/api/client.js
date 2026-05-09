@@ -17,7 +17,9 @@ api.interceptors.response.use(
     const isLoginCall = url.includes('/auth/login')
     if (error.response?.status === 401 && !isLoginCall) {
       localStorage.removeItem('token')
-      window.location.href = '/login'
+      // Soft-navigate via a custom event so the React tree (QueryClient, route
+      // state) is preserved instead of paying a full bundle reload.
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'))
     }
     return Promise.reject(error)
   }

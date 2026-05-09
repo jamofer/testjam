@@ -2,13 +2,14 @@ import os
 
 from robot.api.deco import library
 
-from .client import HttpClient
-from .keywords import (
+from testjam_e2e.client import HttpClient
+from testjam_e2e.keywords import (
     AuthMixin,
     ProjectMixin,
     VersionMixin,
     SuiteMixin,
     CaseMixin,
+    PlanMixin,
     ExecutionMixin,
     ImportMixin,
     MembersMixin,
@@ -23,6 +24,7 @@ class TestjamLibrary(
     VersionMixin,
     SuiteMixin,
     CaseMixin,
+    PlanMixin,
     ExecutionMixin,
     ImportMixin,
     MembersMixin,
@@ -38,6 +40,7 @@ class TestjamLibrary(
         self.current_version_id: int | None = None
         self.current_suite_id: int | None = None
         self.current_case_id: int | None = None
+        self.current_plan_id: int | None = None
         self.current_execution_id: int | None = None
         self.last_status_code: int | None = None
         self.last_import_summary: dict | None = None

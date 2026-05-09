@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Toaster } from "sonner"
 
 import { AppLayout } from "./components/layout/AppLayout"
+import { AuthRedirector } from "./components/AuthRedirector"
 
 const LoginPage = lazy(() => import("./pages/LoginPage").then(m => ({ default: m.LoginPage })))
 const ProjectsPage = lazy(() => import("./pages/ProjectsPage").then(m => ({ default: m.ProjectsPage })))
@@ -44,6 +45,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <AuthRedirector />
         <Suspense fallback={null}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />

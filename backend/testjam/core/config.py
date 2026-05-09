@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "change-me-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 8
+    BCRYPT_ROUNDS: int = 12
 
     UPLOAD_DIR: str = "/app/uploads"
 

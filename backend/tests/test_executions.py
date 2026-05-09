@@ -1,18 +1,6 @@
 import pytest
-from fastapi.testclient import TestClient
 from testjam.auth.security import hash_password
 from testjam.models.user import User
-
-
-@pytest.fixture
-def auth_client(client: TestClient, setup_db):
-    from tests.conftest import TestingSession
-    with TestingSession() as db:
-        db.add(User(username="u", email="u@x.com", hashed_password=hash_password("pw"), is_active=True))
-        db.commit()
-    token = client.post("/api/v1/auth/login", data={"username": "u", "password": "pw"}).json()["access_token"]
-    client.headers["Authorization"] = f"Bearer {token}"
-    return client
 
 
 @pytest.fixture

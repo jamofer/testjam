@@ -1,23 +1,41 @@
+import os
+
+# Set test-only env BEFORE importing testjam — settings reads env at import time.
+os.environ.setdefault("BCRYPT_ROUNDS", "4")
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from testjam.auth.security import hash_password
 from testjam.database import Base, get_db
 from testjam.main import app
 from testjam.models.user import User
 
-TEST_DB_URL = "sqlite:///./test.db"
-engine = create_engine(TEST_DB_URL, connect_args={"check_same_thread": False})
+TEST_DB_URL = "sqlite:///:memory:"
+engine = create_engine(
+    TEST_DB_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
 TestingSession = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-@pytest.fixture(autouse=True)
-def setup_db():
+@pytest.fixture(scope="session", autouse=True)
+def _setup_schema():
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture(autouse=True)
+def setup_db(_setup_schema):
+    yield
+    with engine.begin() as conn:
+        for table in reversed(Base.metadata.sorted_tables):
+            conn.execute(table.delete())
 
 
 @pytest.fixture
@@ -41,6 +59,20 @@ def auth_client(client):
         db.add(User(username="u", email="u@x.com", hashed_password=hash_password("pw"), is_active=True))
         db.commit()
     token = client.post("/api/v1/auth/login", data={"username": "u", "password": "pw"}).json()["access_token"]
+    client.headers["Authorization"] = f"Bearer {token}"
+    return client
+
+
+@pytest.fixture
+def admin_client(client):
+    with TestingSession() as db:
+        db.add(User(
+            username="admin", email="admin@x.com",
+            hashed_password=hash_password("pw"),
+            is_active=True, is_admin=True,
+        ))
+        db.commit()
+    token = client.post("/api/v1/auth/login", data={"username": "admin", "password": "pw"}).json()["access_token"]
     client.headers["Authorization"] = f"Bearer {token}"
     return client
 
