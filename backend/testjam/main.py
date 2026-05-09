@@ -39,5 +39,5 @@ app.include_router(tokens.project_router, prefix=settings.API_V1_PREFIX)
 app.include_router(notifications.router, prefix=settings.API_V1_PREFIX)
 app.include_router(settings_router.router, prefix=settings.API_V1_PREFIX)
 
-os.makedirs("/app/uploads", exist_ok=True)
-app.mount("/files", StaticFiles(directory="/app/uploads"), name="uploads")
+os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+app.mount("/files", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")

@@ -16,6 +16,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import AuthContext, get_current_user, require_project_access, require_project_access_ctx
+from testjam.core.config import settings
 from testjam.database import get_db
 from testjam.models.execution import ExecutionAttachment, ResultAttachment, TestExecution, TestResult, TestStepResult
 from testjam.models.notification import Notification
@@ -34,8 +35,8 @@ from testjam.schemas.execution import (
 )
 from testjam.schemas.testcase import AttachmentOut
 
-UPLOAD_DIR = "/app/uploads/results"
-EXECUTION_UPLOAD_DIR = "/app/uploads/executions"
+UPLOAD_DIR = os.path.join(settings.UPLOAD_DIR, "results")
+EXECUTION_UPLOAD_DIR = os.path.join(settings.UPLOAD_DIR, "executions")
 
 projects_router = APIRouter(prefix="/projects", tags=["TestExecutions"])
 executions_router = APIRouter(prefix="/executions", tags=["TestExecutions"])
@@ -298,7 +299,8 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
         api_base = app_settings.site_url.rstrip("/") if app_settings.site_url else f"{request.url.scheme}://{request.url.netloc}"
         att_links = []
         for a in atts:
-            rel = a.file_path.replace("/app/uploads/", "/files/", 1) if a.file_path.startswith("/app/uploads/") else a.file_path
+            upload_prefix = settings.UPLOAD_DIR.rstrip("/") + "/"
+            rel = a.file_path.replace(upload_prefix, "/files/", 1) if a.file_path.startswith(upload_prefix) else a.file_path
             att_links.append(f'<a href="{e(api_base + rel)}" target="_blank" rel="noopener">{e(a.filename)}</a>')
         hextras.append(f'<span class="hatts">Attachments: {" ".join(att_links)}</span>')
     hextras_html = f'<div class="hextras">{" ".join(hextras)}</div>' if hextras else ""

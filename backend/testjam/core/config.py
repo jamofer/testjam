@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 8
 
+    UPLOAD_DIR: str = "/app/uploads"
+
     class Config:
         env_file = ".env"
 

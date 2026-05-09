@@ -1,6 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel, Field, computed_field
 from urllib.parse import quote
+from testjam.core.config import settings
 from testjam.schemas.testcase import AttachmentOut
 from testjam.schemas.user import UserOut
 
@@ -17,7 +18,7 @@ class ExecutionAttachmentOut(BaseModel):
     @property
     def url(self) -> str:
         path = self.file_path or ""
-        relative = path.replace("/app/uploads", "", 1)
+        relative = path.replace(settings.UPLOAD_DIR, "", 1)
         segments = [quote(s, safe="") for s in relative.strip("/").split("/")]
         return "/files/" + "/".join(segments) if segments and segments[0] else ""
 

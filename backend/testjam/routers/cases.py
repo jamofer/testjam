@@ -6,6 +6,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import get_current_user, require_project_access
+from testjam.core.config import settings
 from testjam.database import get_db
 from testjam.models.case_revision import CaseRevision
 from testjam.models.testcase import Attachment, TestCase, TestStep, TestSuite
@@ -18,7 +19,7 @@ from testjam.schemas.testcase import (
 )
 from testjam.services.case_revisions import write_revision
 
-UPLOAD_DIR = "/app/uploads/cases"
+UPLOAD_DIR = os.path.join(settings.UPLOAD_DIR, "cases")
 
 projects_router = APIRouter(prefix="/projects", tags=["TestCases"])
 suites_router = APIRouter(prefix="/suites", tags=["TestCases"])
