@@ -5,7 +5,7 @@ import { useProjects } from "../../hooks/useProjects"
 import { useExecutions } from "../../hooks/useExecutions"
 import { useSearchCases } from "../../hooks/useSuites"
 import { useDebounced } from "../../hooks/useDebounced"
-import { Dialog, DialogContent } from "./dialog"
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "./dialog"
 
 function useActiveProjectIdFromUrl() {
   const m1 = useMatch("/projects/:id")
@@ -185,6 +185,8 @@ export function CommandPalette({ open, onOpenChange, onAction }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl p-0 gap-0 top-[20%] translate-y-0">
+        <DialogTitle className="sr-only">Command palette</DialogTitle>
+        <DialogDescription className="sr-only">Search projects, test cases, executions, and run quick actions.</DialogDescription>
         <div className="flex items-center gap-2 px-3 border-b border-gray-200">
           <Search size={15} className="text-gray-400 shrink-0" />
           <input
