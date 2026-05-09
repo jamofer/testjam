@@ -111,19 +111,23 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
         return f"{ms}ms" if ms < 1000 else f"{ms/1000:.1f}s"
 
     app_settings = get_app_settings(db)
-    # Prefer the configured Site URL; fall back to Referer-derived value.
-    exec_url = ""
-    if app_settings.site_url:
-        exec_url = f"{app_settings.site_url.rstrip('/')}/executions/{id}/run"
-    else:
-        referer = request.headers.get("referer", "")
-        if referer:
-            try:
-                p = urlparse(referer)
-                if p.scheme and p.netloc:
-                    exec_url = f"{p.scheme}://{p.netloc}/executions/{id}/run"
-            except Exception:
-                pass
+    # Prefer the caller's origin (Referer) so links resolve from wherever the
+    # browser invoked Export HTML; fall back to configured site_url, then to
+    # the backend's request URL.
+    base_url = ""
+    referer = request.headers.get("referer", "")
+    if referer:
+        try:
+            p = urlparse(referer)
+            if p.scheme and p.netloc:
+                base_url = f"{p.scheme}://{p.netloc}"
+        except Exception:
+            pass
+    if not base_url and app_settings.site_url:
+        base_url = app_settings.site_url.rstrip("/")
+    if not base_url:
+        base_url = f"{request.url.scheme}://{request.url.netloc}"
+    exec_url = f"{base_url}/executions/{id}/run"
 
     launched_by = ex.token_name or (ex.created_by.username if ex.created_by else ex.triggered_by or "—")
     counts = {"passed": 0, "failed": 0, "blocked": 0, "not_run": 0}
@@ -155,12 +159,11 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
         hextras.append(f'<a class="hlink" href="{e(exec_url)}" target="_blank">↗ View in {e(app_settings.app_name)}</a>')
     atts = ex.attachments or []
     if atts:
-        api_base = app_settings.site_url.rstrip("/") if app_settings.site_url else f"{request.url.scheme}://{request.url.netloc}"
         att_links = []
         for a in atts:
             upload_prefix = settings.UPLOAD_DIR.rstrip("/") + "/"
             rel = a.file_path.replace(upload_prefix, "/files/", 1) if a.file_path.startswith(upload_prefix) else a.file_path
-            att_links.append(f'<a href="{e(api_base + rel)}" target="_blank" rel="noopener">{e(a.filename)}</a>')
+            att_links.append(f'<a href="{e(base_url + rel)}" target="_blank" rel="noopener">{e(a.filename)}</a>')
         hextras.append(f'<span class="hatts">Attachments: {" ".join(att_links)}</span>')
     hextras_html = f'<div class="hextras">{" ".join(hextras)}</div>' if hextras else ""
 
@@ -200,8 +203,6 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
             seen_roots.add(rid)
             root_order.append(rid)
 
-    STATUS_LABEL = {"passed": "Passed", "failed": "Failed", "blocked": "Blocked", "not_run": "Not run"}
-
     def render_steps(r) -> str:
         steps = sorted(r.test_case.steps, key=lambda s: s.order) if r.test_case and r.test_case.steps else []
         sr_by_step = {sr.step_id: sr for sr in r.step_results}
@@ -215,6 +216,8 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
             log = sr.log_output if sr else None
             comment = sr.comment if sr else None
             dur = fmt_dur(sr.duration_ms) if sr else ""
+            step_meta_parts = [p for p in [dur, fmt_date(r.executed_at)] if p and p != "—"]
+            step_meta = " · ".join(step_meta_parts)
             has_body = step.expected_result or comment or log
             open_attr = 'open data-error="1"' if is_step_error else ""
             expected_html = f'<div class="sexpected"><span class="slabel">Expected</span>{e(step.expected_result)}</div>' if step.expected_result else ""
@@ -225,10 +228,9 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
         <summary class="step-hd">
           <span class="schev">▶</span>
           <span class="snum">{step.order}.</span>
-          <span class="stype {e(step.step_type)}">{e(step.step_type)}</span>
+          <span class="kpill kp-{e(st)}">{e(step.step_type.capitalize())}</span>
           <span class="saction">{e(step.action)}</span>
-          <span class="sbadge {e(st)}">{e(STATUS_LABEL.get(st, st))}</span>
-          {f'<span class="sdur">{e(dur)}</span>' if dur else ""}
+          {f'<span class="tmeta">{e(step_meta)}</span>' if step_meta else ""}
         </summary>
         {body_html}
       </details>""")
@@ -394,17 +396,7 @@ details.step.blocked>summary.step-hd{{background:#fffbeb}}
 .schev{{color:#d1d5db;font-size:9px;transition:transform .15s;flex-shrink:0;pointer-events:none}}
 details.step[open] .schev{{transform:rotate(90deg)}}
 .snum{{font-size:11px;color:#9ca3af;min-width:18px;flex-shrink:0}}
-.stype{{font-size:10px;padding:1px 5px;border-radius:3px;font-weight:700;flex-shrink:0}}
-.stype.setup{{background:#dbeafe;color:#1e40af}}
-.stype.teardown{{background:#ffedd5;color:#9a3412}}
-.stype.action{{background:#f3f4f6;color:#4b5563}}
 .saction{{flex:1;font-size:13px;color:#1f2937}}
-.sbadge{{font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;flex-shrink:0}}
-.sbadge.passed{{background:#d1fae5;color:#065f46}}
-.sbadge.failed{{background:#fee2e2;color:#991b1b}}
-.sbadge.blocked{{background:#fef3c7;color:#92400e}}
-.sbadge.not_run{{background:#f3f4f6;color:#9ca3af}}
-.sdur{{font-size:11px;color:#9ca3af;min-width:36px;text-align:right;flex-shrink:0}}
 .sbody{{border-top:1px solid #f3f4f6}}
 .sexpected{{padding:6px 12px 6px 34px;font-size:12px;color:#4b5563;background:#f9fafb;display:flex;gap:6px}}
 .slabel{{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0;padding-top:2px}}

@@ -68,7 +68,11 @@ export function useNotificationsSocket(enabled) {
     }
 
     return () => {
-      try { ws.close() } catch { /* ignore */ }
+      if (ws.readyState === WebSocket.CONNECTING) {
+        ws.addEventListener('open', () => ws.close(), { once: true })
+      } else {
+        try { ws.close() } catch { /* ignore */ }
+      }
       wsRef.current = null
     }
   }, [enabled, qc])

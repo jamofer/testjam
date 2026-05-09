@@ -1,3 +1,4 @@
+import { forwardRef } from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva } from "class-variance-authority"
 import { Loader2 } from "lucide-react"
@@ -25,16 +26,20 @@ const buttonVariants = cva(
   }
 )
 
-export function Button({ className, variant, size, asChild = false, loading = false, disabled, children, ...props }) {
+export const Button = forwardRef(function Button(
+  { className, variant, size, asChild = false, loading = false, disabled, children, ...props },
+  ref,
+) {
   if (asChild) {
     return (
-      <Slot className={cn(buttonVariants({ variant, size, className }))} disabled={disabled} {...props}>
+      <Slot ref={ref} className={cn(buttonVariants({ variant, size, className }))} disabled={disabled} {...props}>
         {children}
       </Slot>
     )
   }
   return (
     <button
+      ref={ref}
       className={cn(buttonVariants({ variant, size, className }))}
       disabled={disabled || loading}
       {...props}
@@ -43,4 +48,4 @@ export function Button({ className, variant, size, asChild = false, loading = fa
       {children}
     </button>
   )
-}
+})

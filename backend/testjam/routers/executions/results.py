@@ -65,6 +65,8 @@ def create_result(
             existing_sr.status = sr.status
             existing_sr.comment = sr.comment
             existing_sr.log_output = sr.log_output
+            if sr.duration_ms is not None:
+                existing_sr.duration_ms = sr.duration_ms
         else:
             db.add(TestStepResult(test_result_id=result.id, **sr.model_dump()))
     db.commit()
@@ -104,6 +106,8 @@ def bulk_results(
                 if existing_sr:
                     existing_sr.status = sr.status
                     existing_sr.comment = sr.comment
+                    if sr.duration_ms is not None:
+                        existing_sr.duration_ms = sr.duration_ms
                 else:
                     db.add(TestStepResult(test_result_id=result.id, **sr.model_dump()))
         except Exception as e:

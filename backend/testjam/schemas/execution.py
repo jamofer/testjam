@@ -30,12 +30,14 @@ class TestStepResultCreate(BaseModel):
     status: str
     comment: str | None = None
     log_output: str | None = None
+    duration_ms: int | None = None
 
 
 class TestStepResultUpdate(BaseModel):
     status: str | None = None
     comment: str | None = None
     log_output: str | None = None
+    duration_ms: int | None = None
 
 
 class TestStepResultOut(BaseModel):

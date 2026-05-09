@@ -20,6 +20,7 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
   const qc = useQueryClient()
   const updateResult = useUpdateResult(executionId)
   const cardRef = useRef(null)
+  const lastStepTickRef = useRef(Date.now())
 
   useEffect(() => {
     setLocalStatus(result.status)
@@ -50,14 +51,17 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
 
   const updateStepResult = async (stepId, status) => {
     try {
+      const now = Date.now()
+      const duration_ms = Math.max(0, now - lastStepTickRef.current)
+      lastStepTickRef.current = now
       const existingSr = (result.step_results ?? []).find(sr => sr.step_id === stepId)
       if (existingSr) {
-        await executionsApi.updateStepResult(result.id, existingSr.id, { status })
+        await executionsApi.updateStepResult(result.id, existingSr.id, { status, duration_ms })
       } else {
         await executionsApi.createResult(executionId, {
           test_case_id: result.test_case_id,
           status: result.status,
-          step_results: [{ step_id: stepId, status }],
+          step_results: [{ step_id: stepId, status, duration_ms }],
         })
       }
       qc.invalidateQueries({ queryKey: ["results", executionId] })
