@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { NavLink, Link, useMatch } from "react-router-dom"
-import { FolderKanban, Users, LogOut, UserCircle, FolderOpen, PlayCircle, ClipboardList, ChevronLeft, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon } from "lucide-react"
+import { FolderKanban, Users, LogOut, UserCircle, FolderOpen, PlayCircle, ClipboardList, ChevronLeft, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon, X } from "lucide-react"
 import { useLogout } from "../../hooks/useAuth"
 import { useProject } from "../../hooks/useProjects"
 import { useExecution } from "../../hooks/useExecutions"
@@ -75,19 +75,36 @@ function UserAvatar({ user }) {
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
-export function Sidebar({ user, onOpenPalette }) {
+export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile }) {
   const logout = useLogout()
   const activeProjectId = useActiveProjectId()
   const { data: project } = useProject(activeProjectId)
   const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPod|iPad/.test(navigator.platform)
 
   return (
-    <aside className="w-56 bg-white border-r border-gray-200 flex flex-col h-full shrink-0">
+    <aside
+      className={`w-56 bg-white border-r border-gray-200 flex flex-col h-full shrink-0 z-50
+        fixed inset-y-0 left-0 transform transition-transform duration-200
+        md:relative md:translate-x-0
+        ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
+    >
       <div className="px-5 py-4 border-b border-gray-100 shrink-0 flex items-center justify-between gap-2">
         <Link to="/projects" className="inline-flex">
           <Logo size={26} />
         </Link>
-        <NotificationsBell enabled={!!user} />
+        <div className="flex items-center gap-1">
+          <NotificationsBell enabled={!!user} />
+          {onCloseMobile && (
+            <button
+              type="button"
+              aria-label="Close menu"
+              onClick={onCloseMobile}
+              className="md:hidden w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
       </div>
 
       {onOpenPalette && (

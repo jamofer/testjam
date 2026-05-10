@@ -116,9 +116,9 @@ export function ProjectDetailPage() {
     <>
       <PageHeader crumbs={[{ label: "Projects", to: "/projects" }, { label: project?.name ?? "…" }]}>
         <div className="max-w-2xl space-y-3">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold text-gray-800 truncate">{project?.name}</h1>
+              <h1 className="text-2xl font-bold text-gray-800 break-words md:truncate">{project?.name}</h1>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 text-xs text-gray-400">
                 <span className="flex items-center gap-1">
                   <FolderOpen size={12} />

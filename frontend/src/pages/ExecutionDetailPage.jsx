@@ -12,8 +12,7 @@ import { Skeleton, SkeletonList } from '../components/ui/skeleton'
 import { ImportResultsButton } from '../components/execution/ImportResultsButton'
 import {
   DetailSuiteGroup,
-  ResultRows,
-  TABLE_HEAD,
+  ResultListResponsive,
 } from '../components/execution/DetailSuiteGroup'
 import { buildResultTree } from '../lib/buildResultTree'
 
@@ -49,7 +48,7 @@ export function ExecutionDetailPage() {
 
   if (!execution) {
     return (
-      <div className="p-8 max-w-3xl space-y-4">
+      <div className="pl-14 pr-4 py-4 md:p-8 max-w-3xl space-y-4">
         <Skeleton className="h-7 w-1/2" />
         <Skeleton className="h-4 w-2/3" />
         <SkeletonList count={4} itemClassName="h-12" />
@@ -60,7 +59,7 @@ export function ExecutionDetailPage() {
   const versionLabel = execution.version ?? null
 
   return (
-    <div className="p-8 max-w-3xl space-y-6">
+    <div className="pl-14 pr-4 py-4 md:p-8 max-w-3xl space-y-6">
       <div>
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -133,12 +132,10 @@ export function ExecutionDetailPage() {
         ))}
         {(topLevelIds.length === 0 || groups[0]) && (
           <div className="bg-white border rounded-xl shadow-sm overflow-hidden">
-            <table className="w-full text-sm">
-              {TABLE_HEAD}
-              <tbody className="divide-y divide-gray-100">
-                <ResultRows items={topLevelIds.length === 0 ? results : (groups[0]?.items ?? [])} updateResult={updateResult} />
-              </tbody>
-            </table>
+            <ResultListResponsive
+              items={topLevelIds.length === 0 ? results : (groups[0]?.items ?? [])}
+              updateResult={updateResult}
+            />
           </div>
         )}
       </div>

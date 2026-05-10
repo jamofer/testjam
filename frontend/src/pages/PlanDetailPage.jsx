@@ -198,7 +198,7 @@ export function PlanDetailPage() {
   }
 
   return (
-    <div className="p-8 max-w-2xl space-y-6">
+    <div className="pl-14 pr-4 py-4 md:p-8 max-w-2xl space-y-6">
       <Breadcrumbs
         crumbs={[
           { label: "Projects", to: "/projects" },

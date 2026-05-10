@@ -80,9 +80,11 @@ export function TestPlansPage() {
         { label: project?.name ?? "…", to: `/projects/${projectId}` },
         { label: "Test Plans" },
       ]}>
-        <div className="max-w-2xl flex items-center justify-between">
+        <div className="max-w-2xl flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold text-gray-800">Test Plans</h1>
-          <CreatePlanDialog projectId={projectId} />
+          <div className="self-start sm:self-auto">
+            <CreatePlanDialog projectId={projectId} />
+          </div>
         </div>
       </PageHeader>
 

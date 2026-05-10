@@ -126,8 +126,8 @@ export function TestCasePage() {
   ]
 
   return (
-    <div className="p-8 flex gap-6">
-      <div className="flex-1 max-w-2xl space-y-6">
+    <div className="pl-14 pr-4 py-4 md:p-8 flex flex-col md:flex-row gap-6">
+      <div className="flex-1 min-w-0 max-w-2xl space-y-6">
       <Breadcrumbs crumbs={[
         { label: "Projects", to: "/projects" },
         { label: project?.name ?? "…", to: `/projects/${suite?.project_id}` },

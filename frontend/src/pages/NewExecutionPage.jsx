@@ -73,7 +73,7 @@ export function NewExecutionPage() {
   }
 
   return (
-    <div className="p-8 max-w-xl space-y-6">
+    <div className="pl-14 pr-4 py-4 md:p-8 max-w-xl space-y-6">
       <h1 className="text-2xl font-bold text-gray-800">New Execution</h1>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-1.5">

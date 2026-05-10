@@ -36,7 +36,7 @@ export function PageHeader({ crumbs = [], children, className, contentClassName 
 
   return (
     <div ref={ref} className={cn(
-      "sticky top-0 z-30 px-8 pt-3 pb-4",
+      "sticky top-0 z-30 pl-16 pr-4 md:px-8 pt-3 pb-4",
       "bg-gray-50 border-b border-gray-200",
       className,
     )}>
@@ -52,5 +52,5 @@ export function PageHeader({ crumbs = [], children, className, contentClassName 
 
 /** Padded body wrapper to use after a PageHeader. */
 export function PageBody({ children, className }) {
-  return <div className={cn("px-8 pt-6 pb-8", className)}>{children}</div>
+  return <div className={cn("px-4 pt-4 pb-6 md:px-8 md:pt-6 md:pb-8", className)}>{children}</div>
 }

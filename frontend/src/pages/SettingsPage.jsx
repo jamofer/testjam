@@ -121,9 +121,9 @@ export function SettingsPage() {
   return (
     <>
       <PageHeader crumbs={[{ label: "Settings" }]}>
-        <div className="max-w-2xl flex items-center justify-between gap-4">
+        <div className="max-w-2xl flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <h1 className="text-2xl font-bold text-gray-800">Settings</h1>
-          <Button size="sm" onClick={submit} loading={updateSettings.isPending}>
+          <Button size="sm" onClick={submit} loading={updateSettings.isPending} className="self-start sm:self-auto">
             <Save size={13} /> Save
           </Button>
         </div>

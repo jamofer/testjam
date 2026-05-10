@@ -159,7 +159,7 @@ export function ProfilePage() {
     .split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
 
   return (
-    <div className="p-8 max-w-lg space-y-8">
+    <div className="pl-14 pr-4 py-4 md:p-8 max-w-lg space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Profile</h1>
         <p className="text-sm text-gray-500 mt-0.5">Manage your account settings</p>

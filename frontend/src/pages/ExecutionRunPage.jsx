@@ -9,6 +9,7 @@ import { useExportExecution } from "../hooks/useExportExecution"
 import { useProject } from "../hooks/useProjects"
 import { useSuitesAll } from "../hooks/useSuites"
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts"
+import { useSwipe } from "../hooks/useSwipe"
 import { PageHeader, PageBody } from "../components/ui/page-header"
 import { Button } from "../components/ui/button"
 import { Skeleton, SkeletonList } from "../components/ui/skeleton"
@@ -164,6 +165,11 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
     if (target) setFocusedResultId(target.id)
   }
 
+  const swipe = useSwipe({
+    onSwipeLeft: () => stepBy(1),
+    onSwipeRight: () => stepBy(-1),
+  })
+
   useKeyboardShortcuts({
     j: () => stepBy(1),
     ArrowDown: () => stepBy(1),
@@ -228,9 +234,9 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
         { label: "Executions", to: `/projects/${execution.project_id}/executions` },
         { label: execution.title },
       ]}>
-        <div className="max-w-2xl flex items-start justify-between gap-4">
+        <div className="max-w-2xl flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-4">
           <div className="min-w-0">
-            <h1 className="text-xl font-bold text-gray-800 truncate">{execution.title}</h1>
+            <h1 className="text-xl font-bold text-gray-800 break-words md:truncate">{execution.title}</h1>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-sm text-gray-500">
               {execution.version && <span>v{execution.version}</span>}
               {execution.environment && <span>{execution.environment}</span>}
@@ -259,7 +265,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
               <span className="text-gray-400">— {summary.not_run ?? 0} not run</span>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 md:shrink-0">
             <Button variant="ghost" size="sm" onClick={() => setHelpOpen(true)} title="Keyboard shortcuts (?)">
               <Keyboard size={14} />
             </Button>
@@ -274,15 +280,15 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
               disabled={execution.status === "completed" || finishing}
               loading={finishing}
             >
-              {execution.status === "completed" ? "Completed" : "Finish execution"}
+              {execution.status === "completed" ? "Completed" : <><span className="sm:hidden">Finish</span><span className="hidden sm:inline">Finish execution</span></>}
             </Button>
           </div>
         </div>
       </PageHeader>
 
       <PageBody>
-        <div className="flex gap-6">
-          <div className="flex-1 max-w-2xl space-y-4">
+        <div className="flex gap-6" {...swipe}>
+          <div className="flex-1 min-w-0 max-w-2xl space-y-4">
             <div className="space-y-2">
               {topLevelIds.map(suiteId => (
                 <RunSuiteGroup key={suiteId} suiteId={suiteId} groups={groups} childrenOf={childrenOf}

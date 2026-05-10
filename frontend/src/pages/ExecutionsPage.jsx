@@ -69,9 +69,9 @@ export function ExecutionsPage() {
         { label: "Executions" },
       ]}>
         <div className="max-w-3xl space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h1 className="text-2xl font-bold text-gray-800">Executions</h1>
-            <Link to={`/projects/${projectId}/executions/new`}>
+            <Link to={`/projects/${projectId}/executions/new`} className="self-start sm:self-auto">
               <Button size="sm"><Plus size={14} /> New execution</Button>
             </Link>
           </div>
