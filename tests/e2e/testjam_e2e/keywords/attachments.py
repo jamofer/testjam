@@ -46,6 +46,30 @@ class AttachmentsMixin:
         )
         assert ack.status_code == 204, ack.text
 
+    @keyword("I try to download the execution attachment named ${filename}")
+    def try_download_execution_attachment(self, filename: str) -> None:
+        attachment = self._find_execution_attachment(filename)
+        url = f"/executions/{self.current_execution_id}/attachments/{attachment['id']}/download"
+        self.last_status_code = self.client.get(url).status_code
+
+    @keyword("I try to download the execution attachment named ${filename} unauthenticated")
+    def try_download_execution_attachment_anon(self, filename: str) -> None:
+        attachment = self._find_execution_attachment(filename)
+        url = f"/executions/{self.current_execution_id}/attachments/{attachment['id']}/download"
+        previous = self.client.session.headers.pop("Authorization", None)
+        try:
+            self.last_status_code = self.client.get(url).status_code
+        finally:
+            if previous is not None:
+                self.client.session.headers["Authorization"] = previous
+
+    def _find_execution_attachment(self, filename: str) -> dict:
+        response = self.client.get(f"/executions/{self.current_execution_id}/attachments")
+        assert response.status_code == 200, response.text
+        attachment = next((a for a in response.json() if a["filename"] == filename), None)
+        assert attachment, f"Attachment '{filename}' not found"
+        return attachment
+
     def _upload(self, path: str, file_path: str) -> int:
         resolved = self._resolve_fixture(file_path)
         with open(resolved, "rb") as handle:

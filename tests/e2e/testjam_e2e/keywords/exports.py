@@ -29,3 +29,17 @@ class ExportsMixin:
     @keyword("the downloaded HTML report should not be empty")
     def downloaded_report_should_not_be_empty(self) -> None:
         assert self.last_download["size"] > 0, "Downloaded report is empty"
+
+    @keyword("the downloaded HTML report should embed ${filename} as a data url")
+    def downloaded_report_should_embed_attachment(self, filename: str) -> None:
+        body = self.last_download["body"]
+        anchor = f'download="{filename}"'
+        assert anchor in body, f"Attachment '{filename}' not embedded with download attribute"
+        assert "data:" in body, "No data: URLs found in report"
+
+    @keyword("the downloaded HTML report should mark ${filename} as unavailable")
+    def downloaded_report_should_mark_unavailable(self, filename: str) -> None:
+        body = self.last_download["body"]
+        marker = f'class="hatt-missing"'
+        assert marker in body, "No unavailable-attachment marker in report"
+        assert filename in body, f"Attachment '{filename}' not referenced in report"

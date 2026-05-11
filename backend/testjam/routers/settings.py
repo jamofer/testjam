@@ -33,6 +33,7 @@ def _to_admin_out(s) -> AppSettingsOut:
         smtp_reply_to=s.smtp_reply_to,
         smtp_use_tls=s.smtp_use_tls,
         ws_log_flush_ms=s.ws_log_flush_ms,
+        export_inline_attachment_mb=s.export_inline_attachment_mb,
         updated_at=s.updated_at,
     )
 

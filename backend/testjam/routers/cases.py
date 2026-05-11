@@ -1,6 +1,7 @@
 import os
 import shutil
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
@@ -9,6 +10,7 @@ from testjam.auth.dependencies import get_current_user, require_project_access
 from testjam.core.config import settings
 from testjam.database import get_db
 from testjam.models.case_revision import CaseRevision
+from testjam.models.project import ProjectMember
 from testjam.models.testcase import Attachment, TestCase, TestStep, TestSuite
 from testjam.models.testplan import TestPlan
 from testjam.models.user import User
@@ -302,6 +304,33 @@ def upload_attachment(
     db.commit()
     db.refresh(attachment)
     return attachment
+
+
+@cases_router.get("/{id}/attachments/{attachment_id}/download")
+def download_case_attachment(
+    id: int,
+    attachment_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    case = db.get(TestCase, id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Not found")
+    suite = db.get(TestSuite, case.suite_id)
+    if not suite:
+        raise HTTPException(status_code=404, detail="Not found")
+    if not current.is_admin:
+        member = (
+            db.query(ProjectMember)
+            .filter_by(project_id=suite.project_id, user_id=current.id)
+            .first()
+        )
+        if not member:
+            raise HTTPException(status_code=403, detail="Not a project member")
+    att = db.query(Attachment).filter(Attachment.id == attachment_id, Attachment.test_case_id == id).first()
+    if not att or not os.path.exists(att.file_path):
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse(att.file_path, filename=att.filename, media_type=att.content_type)
 
 
 @cases_router.delete("/{id}/attachments/{attachment_id}", status_code=status.HTTP_204_NO_CONTENT)

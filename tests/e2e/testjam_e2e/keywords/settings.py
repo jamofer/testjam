@@ -20,6 +20,7 @@ class SettingsMixin:
             "smtp_password": "",
             "smtp_use_tls": True,
             "ws_log_flush_ms": 100,
+            "export_inline_attachment_mb": 10,
             "app_name": "Testjam",
             "allow_registration": True,
         })
@@ -69,6 +70,10 @@ class SettingsMixin:
     @keyword("I set the log flush interval to ${ms} milliseconds")
     def set_log_flush_ms(self, ms: str) -> None:
         self._patch_settings({"ws_log_flush_ms": int(ms)})
+
+    @keyword("I set the export inline attachment limit to ${mb} megabytes")
+    def set_export_inline_attachment_mb(self, mb: str) -> None:
+        self._patch_settings({"export_inline_attachment_mb": int(mb)})
 
     @keyword("I set the app name to ${name}")
     def set_app_name(self, name: str) -> None:

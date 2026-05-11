@@ -4,7 +4,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
 from testjam.core.config import settings
 from testjam.database import SessionLocal
@@ -62,4 +61,3 @@ app.include_router(settings_router.router, prefix=settings.API_V1_PREFIX)
 app.include_router(ws.router, prefix=settings.API_V1_PREFIX)
 
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-app.mount("/files", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")

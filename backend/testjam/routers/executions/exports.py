@@ -1,9 +1,24 @@
 """Export endpoints: HTML / XLSX for executions, XLSX for project cases."""
+import base64
 import html as html_lib
 import io
+import os
 from collections import defaultdict
 from datetime import datetime, timezone
 from urllib.parse import urlparse
+
+
+def _attachment_data_url(
+    file_path: str | None, content_type: str | None, limit_bytes: int,
+) -> str | None:
+    if not file_path or not os.path.exists(file_path):
+        return None
+    if os.path.getsize(file_path) > limit_bytes:
+        return None
+    with open(file_path, "rb") as handle:
+        encoded = base64.b64encode(handle.read()).decode("ascii")
+    mime = content_type or "application/octet-stream"
+    return f"data:{mime};base64,{encoded}"
 
 import openpyxl
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
@@ -160,10 +175,17 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
     atts = ex.attachments or []
     if atts:
         att_links = []
+        inline_limit_bytes = app_settings.export_inline_attachment_mb * 1024 * 1024
         for a in atts:
-            upload_prefix = settings.UPLOAD_DIR.rstrip("/") + "/"
-            rel = a.file_path.replace(upload_prefix, "/files/", 1) if a.file_path.startswith(upload_prefix) else a.file_path
-            att_links.append(f'<a href="{e(base_url + rel)}" target="_blank" rel="noopener">{e(a.filename)}</a>')
+            data_url = _attachment_data_url(a.file_path, a.content_type, inline_limit_bytes)
+            if data_url is None:
+                att_links.append(
+                    f'<span class="hatt-missing" title="Attachment exceeds inline limit or missing">{e(a.filename)}</span>',
+                )
+                continue
+            att_links.append(
+                f'<a href="{data_url}" download="{e(a.filename)}" target="_blank" rel="noopener">{e(a.filename)}</a>',
+            )
         hextras.append(f'<span class="hatts">Attachments: {" ".join(att_links)}</span>')
     hextras_html = f'<div class="hextras">{" ".join(hextras)}</div>' if hextras else ""
 

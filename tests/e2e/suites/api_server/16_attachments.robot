@@ -48,3 +48,38 @@ Uploading a file attaches it to a specific result
 
     # Then
     The current result should have 1 attachments
+
+Project members can download execution attachments
+    # Given
+    I have a live-ready execution with one step Run
+    I attach file fixtures/junit_results.xml to the execution
+
+    # When
+    I try to download the execution attachment named junit_results.xml
+
+    # Then
+    The response status should be 200
+
+Users outside the project cannot download its attachments
+    # Given
+    I have a live-ready execution with one step Run
+    I attach file fixtures/junit_results.xml to the execution
+    I create a user named outsider with password pw12345
+    I log in as outsider with password pw12345
+
+    # When
+    I try to download the execution attachment named junit_results.xml
+
+    # Then
+    The response status should be 403
+
+Anonymous requests cannot download execution attachments
+    # Given
+    I have a live-ready execution with one step Run
+    I attach file fixtures/junit_results.xml to the execution
+
+    # When
+    I try to download the execution attachment named junit_results.xml unauthenticated
+
+    # Then
+    The response status should be 401

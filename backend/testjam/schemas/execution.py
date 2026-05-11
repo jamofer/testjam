@@ -1,6 +1,5 @@
 from datetime import datetime
 from pydantic import BaseModel, Field, computed_field
-from urllib.parse import quote
 from testjam.core.config import settings
 from testjam.schemas.testcase import AttachmentOut
 from testjam.schemas.user import UserOut
@@ -12,15 +11,15 @@ class ExecutionAttachmentOut(BaseModel):
     content_type: str | None
     size_bytes: int | None
     uploaded_at: datetime
+    execution_id: int | None = Field(default=None, exclude=True)
     file_path: str | None = Field(default=None, exclude=True)
 
     @computed_field
     @property
     def url(self) -> str:
-        path = self.file_path or ""
-        relative = path.replace(settings.UPLOAD_DIR, "", 1)
-        segments = [quote(s, safe="") for s in relative.strip("/").split("/")]
-        return "/files/" + "/".join(segments) if segments and segments[0] else ""
+        if self.execution_id is None:
+            return ""
+        return f"{settings.API_V1_PREFIX}/executions/{self.execution_id}/attachments/{self.id}/download"
 
     model_config = {"from_attributes": True}
 

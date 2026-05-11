@@ -156,7 +156,7 @@ def test_export_html_header_fail_when_only_blocked(auth_client, project_id, case
     assert '<header class="fail">' in resp.text
 
 
-def test_export_html_attachments_render_as_links(auth_client, project_id, case_ids, tmp_path):
+def test_export_html_attachments_render_as_inline_data_urls(auth_client, project_id, case_ids, tmp_path):
     exec_id = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
         "title": "With attach", "type": "manual", "test_case_ids": case_ids,
     }).json()["id"]
@@ -167,6 +167,5 @@ def test_export_html_attachments_render_as_links(auth_client, project_id, case_i
     resp = auth_client.get(f"/api/v1/executions/{exec_id}/export/html")
 
     assert resp.status_code == 200
-    assert 'href="' in resp.text
-    assert 'evidence.txt</a>' in resp.text
-    assert '/files/executions/' in resp.text
+    assert 'download="evidence.txt"' in resp.text
+    assert 'data:text/plain;base64,' in resp.text

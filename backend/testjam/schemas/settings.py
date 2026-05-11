@@ -29,6 +29,7 @@ class AppSettingsOut(BaseModel):
     smtp_reply_to: str | None
     smtp_use_tls: bool
     ws_log_flush_ms: int
+    export_inline_attachment_mb: int
     updated_at: datetime
 
 
@@ -52,3 +53,4 @@ class AppSettingsUpdate(BaseModel):
     smtp_reply_to: str | None = None
     smtp_use_tls: bool | None = None
     ws_log_flush_ms: int | None = None
+    export_inline_attachment_mb: int | None = None

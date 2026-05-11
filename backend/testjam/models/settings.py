@@ -39,6 +39,10 @@ class AppSettings(Base):
 
     ws_log_flush_ms: Mapped[int] = mapped_column(Integer, nullable=False, server_default="100")
 
+    export_inline_attachment_mb: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default="10",
+    )
+
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
     )

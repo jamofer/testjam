@@ -3,11 +3,13 @@ import os
 import shutil
 
 from fastapi import Depends, File, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import get_current_user
 from testjam.database import get_db
 from testjam.models.execution import ExecutionAttachment, ResultAttachment, TestExecution, TestResult
+from testjam.models.project import ProjectMember
 from testjam.models.user import User
 from testjam.routers.executions import (
     EXECUTION_UPLOAD_DIR,
@@ -17,6 +19,18 @@ from testjam.routers.executions import (
 )
 from testjam.schemas.execution import ExecutionAttachmentOut
 from testjam.schemas.testcase import AttachmentOut
+
+
+def _require_project_membership(db: Session, project_id: int, user: User) -> None:
+    if user.is_admin:
+        return
+    member = (
+        db.query(ProjectMember)
+        .filter_by(project_id=project_id, user_id=user.id)
+        .first()
+    )
+    if not member:
+        raise HTTPException(status_code=403, detail="Not a project member")
 
 
 # ─── Execution attachments ────────────────────────────────────────────────────
@@ -54,6 +68,27 @@ def upload_execution_attachment(
     db.commit()
     db.refresh(att)
     return att
+
+
+@executions_router.get("/{id}/attachments/{attachment_id}/download")
+def download_execution_attachment(
+    id: int,
+    attachment_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    execution = db.get(TestExecution, id)
+    if not execution:
+        raise HTTPException(status_code=404, detail="Not found")
+    _require_project_membership(db, execution.project_id, current)
+    att = (
+        db.query(ExecutionAttachment)
+        .filter(ExecutionAttachment.id == attachment_id, ExecutionAttachment.execution_id == id)
+        .first()
+    )
+    if not att or not os.path.exists(att.file_path):
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse(att.file_path, filename=att.filename, media_type=att.content_type)
 
 
 @executions_router.delete("/{id}/attachments/{attachment_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -106,6 +141,30 @@ def upload_result_attachment(
     db.commit()
     db.refresh(att)
     return att
+
+
+@results_router.get("/{id}/attachments/{attachment_id}/download")
+def download_result_attachment(
+    id: int,
+    attachment_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    result = db.get(TestResult, id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Not found")
+    execution = db.get(TestExecution, result.execution_id)
+    if not execution:
+        raise HTTPException(status_code=404, detail="Not found")
+    _require_project_membership(db, execution.project_id, current)
+    att = (
+        db.query(ResultAttachment)
+        .filter(ResultAttachment.id == attachment_id, ResultAttachment.result_id == id)
+        .first()
+    )
+    if not att or not os.path.exists(att.file_path):
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse(att.file_path, filename=att.filename, media_type=att.content_type)
 
 
 @results_router.delete("/{id}/attachments/{attachment_id}", status_code=status.HTTP_204_NO_CONTENT)
