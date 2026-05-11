@@ -18,18 +18,18 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build images
-        run: docker compose --profile e2e build
+        run: docker compose -f docker-compose-dev.yml --profile e2e build
 
       - name: Start stack
-        run: docker compose up -d --wait db api frontend
+        run: docker compose -f docker-compose-dev.yml up -d --wait db api frontend
 
       - name: Seed admin user
         run: |
-          docker compose exec -T api python scripts/create_admin.py \
+          docker compose -f docker-compose-dev.yml exec -T api python scripts/create_admin.py \
             --username admin --email admin@example.com --password admin123
 
       - name: Run Robot Framework suites
-        run: docker compose --profile e2e run --rm e2e robot suites/
+        run: docker compose -f docker-compose-dev.yml --profile e2e run --rm e2e robot suites/
 
       - name: Upload artifacts
         if: always()
@@ -44,4 +44,4 @@ jobs:
 
       - name: Tear down
         if: always()
-        run: docker compose down -v
+        run: docker compose -f docker-compose-dev.yml down -v

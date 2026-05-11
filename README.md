@@ -29,44 +29,58 @@ Web-based test management system for planning, executing, and tracking software 
 
 ---
 
-## Quick start
+## Quick start (development)
 
 Requires Docker + Docker Compose. No local Python or Node install needed.
 
 ```bash
-docker compose up
-docker compose exec api python scripts/create_admin.py \
+docker compose -f docker-compose-dev.yml up
+docker compose -f docker-compose-dev.yml exec api python scripts/create_admin.py \
   --username admin --email admin@example.com --password secret
 ```
 
 Open http://localhost:5173. API docs at http://localhost:8000/api/docs.
 
-`docker compose up` brings up Postgres, runs `alembic upgrade head`, then starts the API on `:8000` and the frontend on `:5173`.
+The dev compose bind-mounts source code, runs Vite + uvicorn with `--reload`, bundles Mailpit on `:8025` and ships an `e2e` profile.
 
 ### Reset the database
 
 ```bash
-docker compose down -v && docker compose up
+docker compose -f docker-compose-dev.yml down -v && docker compose -f docker-compose-dev.yml up
 ```
+
+---
+
+## Production deploy
+
+```bash
+cp .env.example .env
+# set POSTGRES_PASSWORD and SECRET_KEY (openssl rand -hex 32)
+docker compose up -d
+docker compose exec api python scripts/create_admin.py \
+  --username admin --email admin@example.com --password secret
+```
+
+Brings up Postgres + API + nginx-served frontend on a single host port (`APP_PORT`, default `8080`). Point your external reverse proxy / TLS terminator at it.
 
 ---
 
 ## Tests
 
 ```bash
-docker compose exec api      pytest                      # backend
-docker compose exec frontend npm test -- --run           # frontend
-docker compose --profile e2e run --rm e2e                # E2E (RF + listener auto-wired)
+docker compose -f docker-compose-dev.yml exec api      pytest                      # backend
+docker compose -f docker-compose-dev.yml exec frontend npm test -- --run           # frontend
+docker compose -f docker-compose-dev.yml --profile e2e run --rm e2e                # E2E (RF + listener auto-wired)
 ```
 
-Frontend `node_modules` lives in an anonymous Docker volume — always run `npm`/`vitest` via `docker compose exec frontend …`, never on the host. The `e2e` service is gated by the `e2e` profile so it never runs on `docker compose up`.
+Frontend `node_modules` lives in an anonymous Docker volume — always run `npm`/`vitest` via `docker compose -f docker-compose-dev.yml exec frontend …`, never on the host. The `e2e` service is gated by the `e2e` profile so it never runs on `docker compose -f docker-compose-dev.yml up`.
 
 ### Single file or test
 
 ```bash
-docker compose exec api pytest tests/test_executions.py::test_create_manual_execution
-docker compose exec frontend npm test -- --run __tests__/PlanDetailPage
-docker compose --profile e2e run --rm e2e robot --listener testjam_listener.TestjamListener suites/01_auth.robot
+docker compose -f docker-compose-dev.yml exec api pytest tests/test_executions.py::test_create_manual_execution
+docker compose -f docker-compose-dev.yml exec frontend npm test -- --run __tests__/PlanDetailPage
+docker compose -f docker-compose-dev.yml --profile e2e run --rm e2e robot --listener testjam_listener.TestjamListener suites/01_auth.robot
 ```
 
 ---
