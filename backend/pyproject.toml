@@ -19,6 +19,7 @@ dependencies = [
     "bcrypt>=4.2.0",
     "python-multipart>=0.0.20",
     "openpyxl>=3.1.0",
+    "Jinja2>=3.1.0",
 ]
 
 [project.optional-dependencies]
@@ -30,6 +31,9 @@ dev = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["testjam"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"testjam/templates" = "testjam/templates"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

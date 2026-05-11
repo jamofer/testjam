@@ -1,13 +1,33 @@
+import asyncio
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from testjam.core.config import settings
-from testjam.routers import auth, users, groups, projects, suites, cases, testplans, executions, versions, members, tokens, notifications, settings as settings_router
+from testjam.database import SessionLocal
+from testjam.realtime import set_main_loop
+from testjam.routers import auth, users, groups, projects, suites, cases, testplans, executions, versions, members, tokens, notifications, notification_preferences, settings as settings_router, ws
+from testjam.services.log_flusher import configure_from_settings as configure_log_flusher
+from testjam.services.settings import get_settings as get_app_settings
 
-app = FastAPI(title=settings.APP_NAME, docs_url="/api/docs", redoc_url="/api/redoc")
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    set_main_loop(asyncio.get_running_loop())
+    with SessionLocal() as db:
+        configure_log_flusher(get_app_settings(db))
+    yield
+
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    lifespan=lifespan,
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -37,7 +57,9 @@ app.include_router(members.router, prefix=settings.API_V1_PREFIX)
 app.include_router(tokens.user_router, prefix=settings.API_V1_PREFIX)
 app.include_router(tokens.project_router, prefix=settings.API_V1_PREFIX)
 app.include_router(notifications.router, prefix=settings.API_V1_PREFIX)
+app.include_router(notification_preferences.router, prefix=settings.API_V1_PREFIX)
 app.include_router(settings_router.router, prefix=settings.API_V1_PREFIX)
+app.include_router(ws.router, prefix=settings.API_V1_PREFIX)
 
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 app.mount("/files", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")

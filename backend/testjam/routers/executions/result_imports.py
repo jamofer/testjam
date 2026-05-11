@@ -12,6 +12,7 @@ from testjam.models.execution import TestExecution, TestResult, TestStepResult
 from testjam.models.user import User
 from testjam.routers.executions import executions_router
 from testjam.schemas.execution import BulkResultResponse
+from testjam.services import execution_events
 
 
 # ─── Import helpers ───────────────────────────────────────────────────────────
@@ -145,6 +146,7 @@ def import_junit(
             updated += 1
 
     db.commit()
+    execution_events.on_results_bulk_updated(db, id)
     return BulkResultResponse(created=created, updated=updated, errors=errors)
 
 
@@ -276,4 +278,5 @@ def import_robotframework(
         _process_suite(top)
 
     db.commit()
+    execution_events.on_results_bulk_updated(db, id)
     return BulkResultResponse(created=created, updated=updated, errors=errors)

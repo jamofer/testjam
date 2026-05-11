@@ -13,7 +13,7 @@ Web-based test management system for planning, executing, and tracking software 
 - **Executions** — Manual runs with keyboard shortcuts (`j/k` navigation, `p/f/b/n` to set status) and automatic runs fed by CI
 - **Import results** — JUnit XML and Robot Framework XML; matched by `external_id` or test name
 - **HTML report export** — Self-contained, collapsible by suite/test/step, header tinted green on pass / red on fail, failures auto-expand, attachments rendered as links
-- **Real-time RF listener** — Pushes results as tests run (`contrib/testjam_listener.py`)
+- **Real-time RF listener** — `testjam-listener` package streams results live as tests run
 - **Access control** — JWT auth, per-project members with roles, scoped API tokens (`X-API-Key`)
 - **Versions** — Track releases (active → released → archived) with optional VCS tag
 
@@ -66,24 +66,24 @@ Frontend `node_modules` lives in an anonymous Docker volume — always run `npm`
 ```bash
 docker compose exec api pytest tests/test_executions.py::test_create_manual_execution
 docker compose exec frontend npm test -- --run __tests__/PlanDetailPage
-docker compose --profile e2e run --rm e2e robot --listener testjam_e2e.e2e_listener.TestjamE2EListener suites/01_auth.robot
+docker compose --profile e2e run --rm e2e robot --listener testjam_listener.TestjamListener suites/01_auth.robot
 ```
 
 ---
 
 ## Robot Framework listener (external CI)
 
-Push results from an external RF run into an existing Testjam execution:
+`listener/` is a standalone `testjam-listener` package. It creates a fresh execution per run, discovers and syncs suites/cases/steps from the Robot tree, and streams pass/fail + per-step duration + per-line logs live.
 
 ```bash
-robot --listener contrib/testjam_listener.TestjamListener \
-      --variable TESTJAM_URL:http://localhost:8000/api/v1 \
-      --variable TESTJAM_API_KEY:your-project-token \
-      --variable TESTJAM_EXECUTION_ID:42 \
-      tests/
+pip install ./listener
+TESTJAM_API_URL=http://localhost:8000/api/v1 \
+TESTJAM_USER=admin TESTJAM_PASS=secret \
+TESTJAM_PROJECT="My Project" \
+robot --listener testjam_listener.TestjamListener tests/
 ```
 
-Or via env vars: `TESTJAM_URL`, `TESTJAM_API_KEY`, `TESTJAM_EXECUTION_ID`. Tests are matched to Testjam cases by `external_id` (full RF path) or by name; status, duration, and per-step log output are pushed at the end of each test.
+Auth: `TESTJAM_USER` + `TESTJAM_PASS` (admin login) or `TESTJAM_API_KEY`. See `listener/README.md` for details.
 
 ## API tokens
 

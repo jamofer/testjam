@@ -1,0 +1,20 @@
+{% extends "_layout.html" %}
+{% block content %}
+<p style="font-size: 16px; line-height: 1.5;">
+  Execution <strong>{{ subject_object }}</strong> has finished.
+</p>
+{% if summary %}
+<p style="font-size: 14px; line-height: 1.6; background: #f5f5f5; padding: 12px 16px; border-radius: 6px;">
+  Total: {{ summary.total }}<br>
+  Passed: {{ summary.passed }}<br>
+  Failed: {{ summary.failed }}<br>
+  Blocked: {{ summary.blocked }}<br>
+  Not run: {{ summary.not_run }}
+</p>
+{% endif %}
+<p style="margin: 24px 0;">
+  <a href="{{ link_in_app }}" style="display: inline-block; background: #2563eb; color: #fff; padding: 10px 18px; border-radius: 6px; text-decoration: none;">
+    View results
+  </a>
+</p>
+{% endblock %}

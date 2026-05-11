@@ -26,6 +26,8 @@ def send_email(s: AppSettings, to: str, subject: str, html: str, text: str | Non
     msg["Subject"] = subject
     msg["From"] = s.smtp_from
     msg["To"] = to
+    if s.smtp_reply_to:
+        msg["Reply-To"] = s.smtp_reply_to
     msg.set_content(text or "Open this email in an HTML-capable client.")
     msg.add_alternative(html, subtype="html")
 

@@ -33,7 +33,7 @@ class TestjamLibrary(
     """Robot Framework library for end-to-end testing of the Testjam API."""
 
     def __init__(self, base_url: str | None = None):
-        url = base_url or os.getenv("TESTJAM_BASE_URL", "http://localhost:8000/api/v1")
+        url = base_url or os.getenv("TESTJAM_API_URL", "http://localhost:8000/api/v1")
         self.client = HttpClient(url)
 
         self.current_project_id: int | None = None

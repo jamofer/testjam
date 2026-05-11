@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Clock } from "lucide-react"
 import { MdViewer } from "../MdEditor"
 import { STATUS_CONFIG } from "../../lib/statusConfig"
@@ -9,12 +9,22 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
   const [comment, setComment] = useState(stepResult?.comment ?? "")
   const [editComment, setEditComment] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [showLog, setShowLog] = useState(false)
+  const [showLog, setShowLog] = useState(stepResult?.status === "running")
+  const logRef = useRef(null)
 
   useEffect(() => {
     setLocalStatus(stepResult?.status ?? "not_run")
     setComment(stepResult?.comment ?? "")
   }, [stepResult?.status, stepResult?.comment])
+
+  useEffect(() => {
+    if (stepResult?.status === "running") setShowLog(true)
+  }, [stepResult?.status])
+
+  useEffect(() => {
+    if (!showLog || !logRef.current) return
+    logRef.current.scrollTop = logRef.current.scrollHeight
+  }, [showLog, stepResult?.log_output])
 
   const config = STATUS_CONFIG[localStatus]
 
@@ -119,7 +129,11 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
       </div>
 
       {showLog && stepResult?.log_output && (
-        <div className="px-4 pb-3 border-t border-gray-100 bg-gray-900 text-gray-100 text-xs font-mono whitespace-pre-wrap rounded-b-lg max-h-48 overflow-y-auto">
+        <div
+          ref={logRef}
+          data-testid="step-log-output"
+          className="px-4 pb-3 border-t border-gray-100 bg-gray-900 text-gray-100 text-xs font-mono whitespace-pre-wrap rounded-b-lg max-h-48 overflow-y-auto"
+        >
           {stepResult.log_output}
         </div>
       )}

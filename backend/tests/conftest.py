@@ -98,3 +98,24 @@ def case_ids(auth_client, suite_id):
             ).json()["id"]
         )
     return ids
+
+
+@pytest.fixture
+def execution_with_step(auth_client, project_id):
+    suite_id = auth_client.post(
+        f"/api/v1/projects/{project_id}/suites", json={"name": "S"},
+    ).json()["id"]
+    case_id = auth_client.post(
+        f"/api/v1/suites/{suite_id}/cases", json={"name": "TC", "suite_id": suite_id},
+    ).json()["id"]
+    step_id = auth_client.post(
+        f"/api/v1/cases/{case_id}/steps", json={"action": "Login", "order": 1},
+    ).json()["id"]
+    execution_id = auth_client.post(
+        f"/api/v1/projects/{project_id}/executions",
+        json={"title": "Run", "type": "manual", "test_case_ids": [case_id]},
+    ).json()["id"]
+    result_id = auth_client.get(
+        f"/api/v1/executions/{execution_id}/results",
+    ).json()[0]["id"]
+    return execution_id, result_id, step_id

@@ -1,12 +1,32 @@
 import { useState, useEffect } from "react"
 import { useMe, useUpdateMe, useChangePassword } from "../hooks/useAuth"
 import { useUserTokens, useCreateUserToken, useRevokeUserToken } from "../hooks/useTokens"
+import {
+  useNotificationPreferences,
+  useUpdateNotificationPreference,
+} from "../hooks/useNotificationPreferences"
+import { usePublicSettings } from "../hooks/useSettings"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { EmptyState } from "../components/ui/empty-state"
-import { Trash2, Plus, Key, Copy, Eye, EyeOff, Clock } from "lucide-react"
+import { Trash2, Plus, Key, Copy, Eye, EyeOff, Clock, Bell, AlertTriangle } from "lucide-react"
 import { toast } from "sonner"
+
+const NOTIFICATION_EVENT_LABELS = {
+  execution_assigned: {
+    title: "Execution assigned to you",
+    description: "When someone assigns you to a test execution.",
+  },
+  execution_finished: {
+    title: "Execution finished",
+    description: "When a run you created or are assigned to completes.",
+  },
+  execution_failed: {
+    title: "Execution had failed tests",
+    description: "When a completed run had at least one failed test.",
+  },
+}
 
 function fmtDate(iso) {
   if (!iso) return "Never"
@@ -114,6 +134,104 @@ function UserTokensSection() {
   )
 }
 
+function NotificationPreferencesSection() {
+  const { data: preferences = [], isLoading } = useNotificationPreferences()
+  const { data: publicSettings } = usePublicSettings()
+  const update = useUpdateNotificationPreference()
+
+  const smtpConfigured = publicSettings?.smtp_configured ?? true
+
+  const togglePreference = async (preference, field) => {
+    const next = { ...preference, [field]: !preference[field] }
+    try {
+      await update.mutateAsync({
+        eventType: preference.event_type,
+        in_app: next.in_app,
+        email: next.email,
+      })
+      toast.success("Preferences saved")
+    } catch {
+      toast.error("Failed to save preference")
+    }
+  }
+
+  const sortedPreferences = [...preferences].sort(
+    (a, b) => a.event_type.localeCompare(b.event_type),
+  )
+
+  return (
+    <div className="bg-white border rounded-xl p-6 space-y-4 shadow-sm">
+      <div className="flex items-center gap-2">
+        <Bell size={15} className="text-gray-500" />
+        <h2 className="font-semibold text-gray-700">Notifications</h2>
+      </div>
+
+      {!smtpConfigured && (
+        <div
+          data-testid="smtp-not-configured-banner"
+          className="flex items-start gap-2 text-xs bg-amber-50 border border-amber-200 rounded-md px-3 py-2 text-amber-800"
+        >
+          <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+          <p>SMTP is not configured. Emails will not be sent regardless of your preferences here.</p>
+        </div>
+      )}
+
+      {isLoading && <p className="text-sm text-gray-400">Loading…</p>}
+
+      {!isLoading && sortedPreferences.length > 0 && (
+        <table className="w-full text-sm">
+          <thead className="text-xs text-gray-400 uppercase">
+            <tr>
+              <th className="text-left pb-2">Event</th>
+              <th className="pb-2 w-16 text-center">In-app</th>
+              <th className="pb-2 w-16 text-center">Email</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {sortedPreferences.map(preference => {
+              const meta = NOTIFICATION_EVENT_LABELS[preference.event_type] ?? {
+                title: preference.event_type,
+                description: "",
+              }
+              return (
+                <tr key={preference.event_type}>
+                  <td className="py-3 pr-2">
+                    <p className="font-medium text-gray-800">{meta.title}</p>
+                    {meta.description && (
+                      <p className="text-xs text-gray-400 mt-0.5">{meta.description}</p>
+                    )}
+                  </td>
+                  <td className="py-3 text-center">
+                    <input
+                      type="checkbox"
+                      aria-label={`In-app for ${meta.title}`}
+                      checked={preference.in_app}
+                      onChange={() => togglePreference(preference, "in_app")}
+                      disabled={update.isPending}
+                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                  </td>
+                  <td className="py-3 text-center">
+                    <input
+                      type="checkbox"
+                      aria-label={`Email for ${meta.title}`}
+                      checked={preference.email}
+                      onChange={() => togglePreference(preference, "email")}
+                      disabled={update.isPending || !smtpConfigured}
+                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 disabled:opacity-50"
+                    />
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      )}
+    </div>
+  )
+}
+
+
 export function ProfilePage() {
   const { data: user } = useMe()
   const updateMe = useUpdateMe()
@@ -193,6 +311,8 @@ export function ProfilePage() {
       </form>
 
       <UserTokensSection />
+
+      <NotificationPreferencesSection />
 
       <form onSubmit={handleChangePassword} className="bg-white border rounded-xl p-6 space-y-4 shadow-sm">
         <h2 className="font-semibold text-gray-700">Change password</h2>

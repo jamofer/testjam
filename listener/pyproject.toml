@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "testjam-listener"
+version = "0.1.0"
+description = "Robot Framework listener that reports results to a Testjam server in real time."
+requires-python = ">=3.12"
+dependencies = [
+    "requests>=2.32",
+]
+
+[project.optional-dependencies]
+robot = ["robotframework>=7.0"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["testjam_listener"]

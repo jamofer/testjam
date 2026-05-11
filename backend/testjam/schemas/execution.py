@@ -47,9 +47,25 @@ class TestStepResultOut(BaseModel):
     status: str
     comment: str | None
     duration_ms: int | None = None
+    started_at: datetime | None = None
     log_output: str | None = None
 
     model_config = {"from_attributes": True}
+
+
+class StepResultLogAppend(BaseModel):
+    level: str
+    message: str
+    ts: datetime | None = None
+
+
+class StepResultLogAppendResponse(BaseModel):
+    step_result_id: int
+    appended: int
+
+
+class TestStepResultStartRunning(BaseModel):
+    step_id: int
 
 
 class TestResultCreate(BaseModel):

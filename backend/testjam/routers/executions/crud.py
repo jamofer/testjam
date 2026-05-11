@@ -17,13 +17,13 @@ from testjam.routers.executions import executions_router, projects_router
 from testjam.routers.executions._helpers import (
     execution_out,
     load_execution_full,
-    push_assignment_notification,
 )
 from testjam.schemas.execution import (
     TestExecutionCreate,
     TestExecutionOut,
     TestExecutionUpdate,
 )
+from testjam.services import execution_events
 
 
 @projects_router.get("/{id}/executions", response_model=list[TestExecutionOut])
@@ -77,8 +77,8 @@ def create_execution(
     db.flush()
     for tc_id in body.test_case_ids:
         db.add(TestResult(execution_id=ex.id, test_case_id=tc_id, status="not_run"))
-    if ex.assigned_to_id:
-        push_assignment_notification(db, ex, ex.assigned_to_id, ctx.user, background)
+    db.flush()
+    execution_events.on_execution_created(db, ex, ctx.user, background)
     db.commit()
     return execution_out(load_execution_full(db, ex.id))
 
@@ -102,11 +102,16 @@ def update_execution(
     ex = db.get(TestExecution, id)
     if not ex:
         raise HTTPException(status_code=404, detail="Not found")
-    prev_assignee = ex.assigned_to_id
+    previous_status = ex.status
+    previous_assignee_id = ex.assigned_to_id
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(ex, field, value)
-    if ex.assigned_to_id and ex.assigned_to_id != prev_assignee:
-        push_assignment_notification(db, ex, ex.assigned_to_id, current, background)
+    db.flush()
+    execution_events.on_execution_updated(
+        db, ex, current, background,
+        previous_status=previous_status,
+        previous_assignee_id=previous_assignee_id,
+    )
     db.commit()
     return execution_out(load_execution_full(db, ex.id))
 
@@ -116,5 +121,8 @@ def delete_execution(id: int, db: Session = Depends(get_db), _: User = Depends(g
     ex = db.get(TestExecution, id)
     if not ex:
         raise HTTPException(status_code=404, detail="Not found")
+    execution_id = ex.id
+    project_id = ex.project_id
     db.delete(ex)
     db.commit()
+    execution_events.on_execution_deleted(execution_id, project_id)

@@ -3,11 +3,13 @@ import { useParams } from 'react-router-dom'
 import { Upload, Tag, Clock, Download } from 'lucide-react'
 import { MdViewer } from '../components/MdEditor'
 import { useExecution, useExecutionResults, useUpdateResult } from '../hooks/useExecutions'
+import { useExecutionLive } from '../hooks/useExecutionLive'
 import { useExportExecution } from '../hooks/useExportExecution'
 import { useProject } from '../hooks/useProjects'
 import { useSuitesAll } from '../hooks/useSuites'
 import { mapSuiteByCase } from '../components/ui/test-case-item'
 import { Button } from '../components/ui/button'
+import { LiveIndicator } from '../components/ui/live-indicator'
 import { Skeleton, SkeletonList } from '../components/ui/skeleton'
 import { ImportResultsButton } from '../components/execution/ImportResultsButton'
 import {
@@ -25,6 +27,7 @@ export function ExecutionDetailPage() {
   const { id } = useParams()
   const { data: execution } = useExecution(id)
   const { data: results = [] } = useExecutionResults(id)
+  const { connected: live } = useExecutionLive(id)
   const { data: project } = useProject(execution?.project_id)
   const { data: allSuites = [] } = useSuitesAll(execution?.project_id)
   const updateResult = useUpdateResult(id)
@@ -63,7 +66,10 @@ export function ExecutionDetailPage() {
       <div>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">{execution.title}</h1>
+            <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2 flex-wrap">
+              {execution.title}
+              <LiveIndicator connected={live} />
+            </h1>
             <div className="flex items-center gap-2 mt-1 text-sm text-gray-500 flex-wrap">
               <span>{execution.type}</span>
               {versionLabel && (

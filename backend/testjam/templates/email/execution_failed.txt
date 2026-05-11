@@ -1,0 +1,12 @@
+Execution '{{ subject_object }}' has finished with failures.
+
+{% if summary %}
+{{ summary.failed }} failed out of {{ summary.total }} tests.
+Passed: {{ summary.passed }} · Blocked: {{ summary.blocked }} · Not run: {{ summary.not_run }}
+
+{% endif %}
+Investigate: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Manage preferences: {{ preferences_url }}

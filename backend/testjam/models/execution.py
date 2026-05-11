@@ -80,7 +80,7 @@ class TestStepResult(Base):
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="not_run")
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    # markdown execution log — populated by automated runners (Robot Framework, CI)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     log_output: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     test_result: Mapped[TestResult] = relationship(back_populates="step_results")

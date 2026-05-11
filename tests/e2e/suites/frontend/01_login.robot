@@ -26,15 +26,15 @@ Login page renders
 
 Successful login lands on projects
     Open login page
-    Fill Text    input[name="username"]    %{TESTJAM_ADMIN_USER=admin}
-    Fill Text    input[name="password"]    %{TESTJAM_ADMIN_PASS=admin123}
+    Fill Text    input[name="username"]    %{TESTJAM_USER=admin}
+    Fill Text    input[name="password"]    %{TESTJAM_PASS=admin123}
     Click    button[type="submit"]
     Wait Until Network Is Idle    timeout=10s
     Get Url    contains    /projects
 
 Login with wrong password shows error
     Open login page
-    Fill Text    input[name="username"]    %{TESTJAM_ADMIN_USER=admin}
+    Fill Text    input[name="username"]    %{TESTJAM_USER=admin}
     Fill Text    input[name="password"]    definitely-wrong
     Click    button[type="submit"]
     Wait For Elements State    p.text-red-500    visible    timeout=10s

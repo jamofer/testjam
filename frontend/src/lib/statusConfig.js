@@ -1,8 +1,16 @@
-import { CheckCircle2, XCircle, MinusCircle, AlertTriangle } from "lucide-react"
+import { CheckCircle2, XCircle, MinusCircle, AlertTriangle, Loader2 } from "lucide-react"
 
 export const STATUS_KEYS = ["passed", "failed", "blocked", "not_run"]
 
 export const STATUS_CONFIG = {
+  running: {
+    label: "Running",
+    icon: Loader2,
+    badgeVariant: "default",
+    iconColor: "text-blue-500 animate-spin",
+    bg: "bg-blue-50 border-blue-200 animate-pulse",
+    pill: "bg-blue-100 text-blue-700",
+  },
   passed: {
     label: "Pass",
     icon: CheckCircle2,

@@ -12,20 +12,31 @@ import { fmtDuration, fmtTime } from "../../lib/format"
 import { StepsSection } from "./StepsSection"
 import { toast } from "sonner"
 
+const KEEP_OPEN_STATUSES = new Set(["running", "failed", "blocked"])
+
 export function ResultCard({ result, executionId, index, total, isAutomated, focused = false, onFocus }) {
   const { data: tc } = useCase(result.test_case_id)
-  const [open, setOpen] = useState(index === 0)
+  const [open, setOpen] = useState(index === 0 || KEEP_OPEN_STATUSES.has(result.status))
   const [comment, setComment] = useState(result.comment ?? "")
   const [localStatus, setLocalStatus] = useState(result.status)
   const qc = useQueryClient()
   const updateResult = useUpdateResult(executionId)
   const cardRef = useRef(null)
+  const previousStatusRef = useRef(result.status)
   const lastStepTickRef = useRef(Date.now())
 
   useEffect(() => {
     setLocalStatus(result.status)
     setComment(result.comment ?? "")
   }, [result.status, result.comment])
+
+  useEffect(() => {
+    const previousStatus = previousStatusRef.current
+    if (previousStatus === result.status) return
+    previousStatusRef.current = result.status
+    if (result.status === "passed") setOpen(false)
+    else if (KEEP_OPEN_STATUSES.has(result.status)) setOpen(true)
+  }, [result.status])
 
   useEffect(() => {
     if (focused && cardRef.current) {

@@ -1,58 +1,8 @@
 """Shared helpers used across execution submodules."""
-from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session, selectinload
 
 from testjam.models.execution import ExecutionAttachment, TestExecution, TestResult
-from testjam.models.notification import Notification
-from testjam.models.user import User
-from testjam.realtime import notify_user
-from testjam.services.email import send_email, smtp_configured
-from testjam.services.settings import get_settings as get_app_settings
 from testjam.schemas.execution import ExecutionAttachmentOut, ExecutionSummary, TestExecutionOut
-
-
-def push_assignment_notification(
-    db: Session,
-    execution: TestExecution,
-    assignee_id: int,
-    actor: User,
-    background: BackgroundTasks | None = None,
-) -> None:
-    if assignee_id == actor.id:
-        return
-    n = Notification(
-        user_id=assignee_id,
-        type="execution_assigned",
-        message=f"{actor.username} assigned you to '{execution.title}'",
-        link=f"/executions/{execution.id}/run",
-    )
-    db.add(n)
-    db.flush()
-    payload = {
-        "id": n.id,
-        "type": n.type,
-        "message": n.message,
-        "link": n.link,
-        "is_read": n.is_read,
-        "created_at": n.created_at.isoformat() if n.created_at else None,
-    }
-    notify_user(assignee_id, {"event": "notification", "data": payload})
-
-    settings_row = get_app_settings(db)
-    if not smtp_configured(settings_row) or background is None:
-        return
-    assignee = db.get(User, assignee_id)
-    if not assignee or not assignee.email:
-        return
-    link = f"{settings_row.site_url.rstrip('/')}{n.link}" if settings_row.site_url else n.link
-    subject = f"[{settings_row.app_name}] You were assigned to '{execution.title}'"
-    html = (
-        f"<p>{actor.username} assigned you to "
-        f"<strong>{execution.title}</strong>.</p>"
-        f"<p><a href='{link}'>Open the execution</a></p>"
-    )
-    text = f"{actor.username} assigned you to '{execution.title}'. Open: {link}"
-    background.add_task(send_email, settings_row, assignee.email, subject, html, text)
 
 
 def compute_summary(execution: TestExecution) -> ExecutionSummary:

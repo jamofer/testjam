@@ -17,8 +17,8 @@ class AuthMixin:
 
     @keyword("I am authenticated as admin")
     def authenticate_as_admin(self) -> None:
-        user = os.getenv("TESTJAM_ADMIN_USER", "admin")
-        password = os.getenv("TESTJAM_ADMIN_PASS", "admin123")
+        user = os.getenv("TESTJAM_USER", "admin")
+        password = os.getenv("TESTJAM_PASS", "admin123")
         self.log_in(user, password)
 
     @keyword("I authenticate using api key ${api_key}")

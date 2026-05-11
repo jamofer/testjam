@@ -4,6 +4,7 @@ import { ExternalLink, Clock, Keyboard, User, Download } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { useExecution, useExecutionResults, useUpdateResult } from "../hooks/useExecutions"
+import { useExecutionLive } from "../hooks/useExecutionLive"
 import { executionsApi } from "../api/executions"
 import { useExportExecution } from "../hooks/useExportExecution"
 import { useProject } from "../hooks/useProjects"
@@ -12,6 +13,7 @@ import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts"
 import { useSwipe } from "../hooks/useSwipe"
 import { PageHeader, PageBody } from "../components/ui/page-header"
 import { Button } from "../components/ui/button"
+import { LiveIndicator } from "../components/ui/live-indicator"
 import { Skeleton, SkeletonList } from "../components/ui/skeleton"
 import { ResultCard } from "../components/execution/ResultCard"
 import { RunSuiteGroup } from "../components/execution/RunSuiteGroup"
@@ -72,6 +74,7 @@ export function ExecutionRunPage() {
   const { id } = useParams()
   const { data: execution } = useExecution(id)
   const { data: results = [] } = useExecutionResults(id)
+  const { connected: live } = useExecutionLive(id)
   const qc = useQueryClient()
   const [finishing, setFinishing] = useState(false)
   const { exportPdf, exportHtml } = useExportExecution()
@@ -107,10 +110,10 @@ export function ExecutionRunPage() {
     ? new Date(execution.finished_at) - new Date(execution.started_at)
     : null
 
-  return <ExecutionRunBody {...{ execution, results, id, summary, done, totalMs, finishExecution, finishing, exportPdf, exportHtml }} />
+  return <ExecutionRunBody {...{ execution, results, id, summary, done, totalMs, finishExecution, finishing, exportPdf, exportHtml, live }} />
 }
 
-function ExecutionRunBody({ execution, results, id, summary, done, totalMs, finishExecution, finishing, exportPdf, exportHtml }) {
+function ExecutionRunBody({ execution, results, id, summary, done, totalMs, finishExecution, finishing, exportPdf, exportHtml, live }) {
   const { data: project } = useProject(execution.project_id)
   const { data: allSuites = [] } = useSuitesAll(execution.project_id)
   const updateResult = useUpdateResult(id)
@@ -236,7 +239,10 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
       ]}>
         <div className="max-w-2xl flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-4">
           <div className="min-w-0">
-            <h1 className="text-xl font-bold text-gray-800 break-words md:truncate">{execution.title}</h1>
+            <h1 className="text-xl font-bold text-gray-800 break-words md:truncate flex items-center gap-2 flex-wrap">
+              {execution.title}
+              <LiveIndicator connected={live} />
+            </h1>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-sm text-gray-500">
               {execution.version && <span>v{execution.version}</span>}
               {execution.environment && <span>{execution.environment}</span>}

@@ -1,6 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notificationsApi } from '../api/notifications'
+import { authApi } from '../api/auth'
+import { useTopicSocket } from './useTopicSocket'
 
 const LIST_KEY = ['notifications']
 const COUNT_KEY = ['notifications', 'unread-count']
@@ -44,36 +46,22 @@ export function useMarkAllRead() {
 
 export function useNotificationsSocket(enabled) {
   const qc = useQueryClient()
-  const wsRef = useRef(null)
+  const { data: me } = useQuery({
+    queryKey: ['me'],
+    queryFn: authApi.me,
+    enabled: !!enabled,
+    retry: false,
+    staleTime: Infinity,
+  })
 
-  useEffect(() => {
-    if (!enabled) return undefined
-    const token = localStorage.getItem('token')
-    if (!token) return undefined
+  const topics = useMemo(() => (me ? [`user:${me.id}`] : []), [me])
+  const handlers = useMemo(() => ({
+    notification: (data) => {
+      if (!data) return
+      qc.setQueryData(LIST_KEY, (prev = []) => [data, ...prev])
+      qc.setQueryData(COUNT_KEY, (prev = { unread: 0 }) => ({ unread: (prev?.unread ?? 0) + 1 }))
+    },
+  }), [qc])
 
-    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    const url = `${proto}://${window.location.host}/api/v1/notifications/ws?token=${encodeURIComponent(token)}`
-    const ws = new WebSocket(url)
-    wsRef.current = ws
-
-    ws.onmessage = (ev) => {
-      try {
-        const msg = JSON.parse(ev.data)
-        if (msg.event !== 'notification' || !msg.data) return
-        qc.setQueryData(LIST_KEY, (prev = []) => [msg.data, ...prev])
-        qc.setQueryData(COUNT_KEY, (prev = { unread: 0 }) => ({ unread: (prev?.unread ?? 0) + 1 }))
-      } catch {
-        /* ignore malformed payload */
-      }
-    }
-
-    return () => {
-      if (ws.readyState === WebSocket.CONNECTING) {
-        ws.addEventListener('open', () => ws.close(), { once: true })
-      } else {
-        try { ws.close() } catch { /* ignore */ }
-      }
-      wsRef.current = null
-    }
-  }, [enabled, qc])
+  useTopicSocket(topics, handlers, { enabled: !!enabled && !!me })
 }

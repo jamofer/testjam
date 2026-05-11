@@ -5,12 +5,14 @@ import { useExecutions } from "../hooks/useExecutions"
 import { useProject } from "../hooks/useProjects"
 import { useMe } from "../hooks/useAuth"
 import { useDebounced } from "../hooks/useDebounced"
+import { useProjectExecutionsLive } from "../hooks/useProjectExecutionsLive"
 import { executionsApi } from "../api/executions"
 import { Button } from "../components/ui/button"
 import { Badge } from "../components/ui/badge"
 import { SearchInput } from "../components/ui/search-input"
 import { PageHeader, PageBody } from "../components/ui/page-header"
 import { EmptyState } from "../components/ui/empty-state"
+import { LiveIndicator } from "../components/ui/live-indicator"
 import { SkeletonList } from "../components/ui/skeleton"
 
 function fmtDate(iso) {
@@ -45,6 +47,7 @@ export function ExecutionsPage() {
   } = useExecutions(projectId, statusFilter !== "all" ? { status: statusFilter } : undefined)
   const { data: project } = useProject(projectId)
   const { data: me } = useMe()
+  const { connected: live } = useProjectExecutionsLive(projectId, { enabled: !!me })
   const [search, setSearch] = useState("")
   const [mineOnly, setMineOnly] = useState(false)
   const debouncedSearch = useDebounced(search, 150)
@@ -70,7 +73,10 @@ export function ExecutionsPage() {
       ]}>
         <div className="max-w-3xl space-y-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h1 className="text-2xl font-bold text-gray-800">Executions</h1>
+            <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              Executions
+              <LiveIndicator connected={live} />
+            </h1>
             <Link to={`/projects/${projectId}/executions/new`} className="self-start sm:self-auto">
               <Button size="sm"><Plus size={14} /> New execution</Button>
             </Link>

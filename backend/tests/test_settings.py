@@ -36,6 +36,17 @@ def test_public_settings_anon_readable(client: TestClient):
     assert body["app_name"] == "Testjam"
     assert body["allow_registration"] is True
     assert "site_url" in body
+    assert body["smtp_configured"] is False
+
+
+def test_public_settings_reports_smtp_configured_after_admin_sets_it(client: TestClient):
+    admin = _admin_client(client)
+    admin.put("/api/v1/settings", json={
+        "smtp_host": "smtp.example.com",
+        "smtp_from": "noreply@example.com",
+    })
+    body = client.get("/api/v1/settings/public").json()
+    assert body["smtp_configured"] is True
 
 
 def test_admin_get_returns_settings_with_masked_secret(auth_client: TestClient):
@@ -128,7 +139,7 @@ def test_assignment_sends_email_when_smtp_configured(auth_client: TestClient, pr
         db.refresh(bob)
         bob_id = bob.id
 
-    with patch("testjam.routers.executions._helpers.send_email") as mock_send:
+    with patch("testjam.services.notifications.send_email") as mock_send:
         resp = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
             "title": "R", "type": "manual",
             "assigned_to_id": bob_id, "test_case_ids": case_ids,
@@ -152,7 +163,7 @@ def test_assignment_does_not_send_email_when_smtp_unset(auth_client: TestClient,
         db.refresh(bob)
         bob_id = bob.id
 
-    with patch("testjam.routers.executions._helpers.send_email") as mock_send:
+    with patch("testjam.services.notifications.send_email") as mock_send:
         auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
             "title": "R", "type": "manual",
             "assigned_to_id": bob_id, "test_case_ids": case_ids,

@@ -63,6 +63,7 @@ export function SettingsPage() {
         clear_smtp_password: false,
         smtp_from: settings.smtp_from ?? "",
         smtp_use_tls: settings.smtp_use_tls,
+        ws_log_flush_ms: settings.ws_log_flush_ms ?? 100,
       })
     }
   }, [settings])
@@ -105,6 +106,7 @@ export function SettingsPage() {
       smtp_user: form.smtp_user || null,
       smtp_from: form.smtp_from || null,
       smtp_use_tls: form.smtp_use_tls,
+      ws_log_flush_ms: Number(form.ws_log_flush_ms),
     }
     if (form.clear_smtp_password) payload.smtp_password = ""
     else if (form.smtp_password) payload.smtp_password = form.smtp_password
@@ -206,6 +208,15 @@ export function SettingsPage() {
             <Toggle checked={form.smtp_use_tls}
               onChange={set("smtp_use_tls")}
               label="Use STARTTLS" />
+          </Section>
+
+          <Section title="Real-time"
+            description="Tuning for WebSocket broadcasts during live test runs.">
+            <Field label="Log flush interval (ms)"
+              hint="How often buffered log lines are pushed to subscribers. 0 disables batching.">
+              <Input type="number" min="0" value={form.ws_log_flush_ms}
+                onChange={e => set("ws_log_flush_ms")(e.target.value)} />
+            </Field>
           </Section>
         </form>
       </PageBody>

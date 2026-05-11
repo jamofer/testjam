@@ -9,6 +9,8 @@ from testjam.schemas.settings import (
     AppSettingsPublicOut,
     AppSettingsUpdate,
 )
+from testjam.services.email import smtp_configured
+from testjam.services.log_flusher import configure_from_settings as configure_log_flusher
 from testjam.services.settings import get_settings
 
 router = APIRouter(prefix="/settings", tags=["Settings"])
@@ -28,7 +30,9 @@ def _to_admin_out(s) -> AppSettingsOut:
         smtp_user=s.smtp_user,
         smtp_password_set=bool(s.smtp_password),
         smtp_from=s.smtp_from,
+        smtp_reply_to=s.smtp_reply_to,
         smtp_use_tls=s.smtp_use_tls,
+        ws_log_flush_ms=s.ws_log_flush_ms,
         updated_at=s.updated_at,
     )
 
@@ -40,6 +44,7 @@ def public_settings(db: Session = Depends(get_db)):
         app_name=s.app_name,
         allow_registration=s.allow_registration,
         site_url=s.site_url,
+        smtp_configured=smtp_configured(s),
     )
 
 
@@ -64,4 +69,5 @@ def update_settings(
     s.updated_by_id = current.id
     db.commit()
     db.refresh(s)
+    configure_log_flusher(s)
     return _to_admin_out(s)

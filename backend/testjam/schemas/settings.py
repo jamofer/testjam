@@ -7,6 +7,7 @@ class AppSettingsPublicOut(BaseModel):
     app_name: str
     allow_registration: bool
     site_url: str | None = None
+    smtp_configured: bool = False
 
 
 class AppSettingsOut(BaseModel):
@@ -25,7 +26,9 @@ class AppSettingsOut(BaseModel):
     smtp_user: str | None
     smtp_password_set: bool
     smtp_from: str | None
+    smtp_reply_to: str | None
     smtp_use_tls: bool
+    ws_log_flush_ms: int
     updated_at: datetime
 
 
@@ -46,4 +49,6 @@ class AppSettingsUpdate(BaseModel):
     smtp_user: str | None = None
     smtp_password: str | None = None
     smtp_from: str | None = None
+    smtp_reply_to: str | None = None
     smtp_use_tls: bool | None = None
+    ws_log_flush_ms: int | None = None

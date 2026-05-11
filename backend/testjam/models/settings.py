@@ -34,7 +34,10 @@ class AppSettings(Base):
     smtp_user: Mapped[str | None] = mapped_column(String(255), nullable=True)
     smtp_password: Mapped[str | None] = mapped_column(String(255), nullable=True)
     smtp_from: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    smtp_reply_to: Mapped[str | None] = mapped_column(String(255), nullable=True)
     smtp_use_tls: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")
+
+    ws_log_flush_ms: Mapped[int] = mapped_column(Integer, nullable=False, server_default="100")
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
