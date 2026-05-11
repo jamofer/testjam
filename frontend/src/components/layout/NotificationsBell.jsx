@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { createPortal } from "react-dom"
 import { Link } from "react-router-dom"
 import { Bell, Check, CheckCheck, X } from "lucide-react"
 import {
@@ -61,8 +62,8 @@ function NotificationsDrawer({ open, onClose }) {
 
   const unread = list.filter(n => !n.is_read).length
 
-  return (
-    <div className="fixed inset-0 z-50" role="dialog" aria-label="Notifications">
+  return createPortal(
+    <div className="fixed inset-0 z-[100]" role="dialog" aria-label="Notifications">
       <div
         onClick={onClose}
         className="absolute inset-0 bg-black/20"
@@ -124,6 +125,7 @@ function NotificationsDrawer({ open, onClose }) {
           )}
         </div>
       </aside>
-    </div>
+    </div>,
+    document.body,
   )
 }

@@ -4,12 +4,14 @@ Library    testjam_e2e.testjam_library.TestjamLibrary
 
 *** Test Cases ***
 Create and use a user token
+    [Teardown]    The admin personal tokens are cleaned up
     I am authenticated as admin
     ${token}=    I create a user token named CI Pipeline
     I authenticate using token ${token}
     The current user should be admin
 
 User token is listed with prefix only
+    [Teardown]    The admin personal tokens are cleaned up
     I am authenticated as admin
     I create a user token named Listed Token
     ${tokens}=    I list my user tokens

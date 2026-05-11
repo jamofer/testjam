@@ -32,7 +32,9 @@ class Group(Base):
     description: Mapped[str | None] = mapped_column(String(512), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
-    members: Mapped[list[GroupMember]] = relationship(back_populates="group")
+    members: Mapped[list[GroupMember]] = relationship(
+        back_populates="group", cascade="all, delete-orphan",
+    )
 
 
 class GroupMember(Base):

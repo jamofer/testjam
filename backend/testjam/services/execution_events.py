@@ -69,7 +69,7 @@ def _completion_context(
     db: Session, execution: TestExecution, summary,
 ) -> dict[str, Any]:
     settings_row = get_app_settings(db)
-    in_app_link = f"/executions/{execution.id}"
+    in_app_link = f"/executions/{execution.id}/run"
     public_link = _build_public_link(settings_row.site_url, in_app_link)
     return {
         "app_name": settings_row.app_name,
@@ -130,7 +130,7 @@ def _send_finished_email(
         user_id,
         NotificationEvent.EXECUTION_FINISHED,
         message=f"Execution '{execution.title}' finished",
-        link=f"/executions/{execution.id}",
+        link=f"/executions/{execution.id}/run",
         email_subject=subject,
         email_html=html,
         email_text=text,
@@ -153,7 +153,7 @@ def _send_failed_email(
         user_id,
         NotificationEvent.EXECUTION_FAILED,
         message=f"Failed tests in '{execution.title}'",
-        link=f"/executions/{execution.id}",
+        link=f"/executions/{execution.id}/run",
         email_subject=subject,
         email_html=html,
         email_text=text,
@@ -211,6 +211,7 @@ def on_execution_completed(
     execution: TestExecution,
     background: BackgroundTasks | None = None,
 ) -> None:
+    _block_running_artefacts(db, execution.id)
     summary = compute_summary(execution)
     context = _completion_context(db, execution, summary)
     recipients = _resolve_recipients(execution)
@@ -219,6 +220,36 @@ def on_execution_completed(
     if summary.failed > 0:
         for user_id in recipients:
             _send_failed_email(db, user_id, execution, context, background)
+
+
+def _block_running_artefacts(db: Session, execution_id: int) -> None:
+    from testjam.models.execution import TestResult, TestStepResult
+
+    running_steps = (
+        db.query(TestStepResult)
+        .join(TestResult, TestStepResult.test_result_id == TestResult.id)
+        .filter(
+            TestResult.execution_id == execution_id,
+            TestStepResult.status == "running",
+        )
+        .all()
+    )
+    for step in running_steps:
+        step.status = "blocked"
+    running_results = (
+        db.query(TestResult)
+        .filter(
+            TestResult.execution_id == execution_id,
+            TestResult.status.in_(["running", "not_run"]),
+        )
+        .all()
+    )
+    for result in running_results:
+        if result.status == "running":
+            result.status = "blocked"
+        elif any(sr.status == "blocked" for sr in result.step_results):
+            result.status = "blocked"
+    db.commit()
 
 
 def on_execution_deleted(execution_id: int, project_id: int) -> None:

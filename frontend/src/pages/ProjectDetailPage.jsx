@@ -227,7 +227,7 @@ export function ProjectDetailPage() {
                 }}
               >
                 <SortableContext items={suites.map(s => s.id)} strategy={verticalListSortingStrategy}>
-                  <div className="space-y-2">
+                  <div className="space-y-2" role="tree" aria-label="Test suites">
                     {suites.map(suite => <SortableSuite key={suite.id} suite={suite} projectId={id} />)}
                     {suites.length === 0 && (
                       <EmptyState

@@ -405,6 +405,14 @@ function ChildSuites({ projectId, parentSuiteId }) {
   )
 }
 
+function focusSiblingTreeitem(current, delta) {
+  const items = Array.from(document.querySelectorAll('[role="treeitem"]'))
+  const idx = items.indexOf(current)
+  if (idx < 0) return
+  const target = items[idx + delta]
+  if (target) target.focus()
+}
+
 export function SuiteRow({ suite, projectId, dragHandleProps }) {
   const { version, desiredOpen } = useContext(SuiteCollapseContext)
   const [open, setOpen] = useState(desiredOpen)
@@ -417,9 +425,34 @@ export function SuiteRow({ suite, projectId, dragHandleProps }) {
   const deleteSuite = useDeleteSuite(projectId)
   const updateSuite = useUpdateSuite(projectId)
 
+  const handleKeyDown = (e) => {
+    if (e.target !== e.currentTarget) return
+    if (e.key === "ArrowRight") {
+      e.preventDefault()
+      if (!open) setOpen(true)
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault()
+      if (open) setOpen(false)
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault()
+      focusSiblingTreeitem(e.currentTarget, 1)
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault()
+      focusSiblingTreeitem(e.currentTarget, -1)
+    } else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault()
+      setOpen(o => !o)
+    }
+  }
+
   return (
     <div className="border rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 cursor-pointer"
+      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-300"
+        role="treeitem"
+        tabIndex={0}
+        aria-expanded={open}
+        aria-label={suite.name}
+        onKeyDown={handleKeyDown}
         onClick={() => setOpen(o => !o)}>
         <div className="flex items-center gap-2 font-medium text-sm text-gray-800 flex-1 min-w-0">
           {dragHandleProps && (

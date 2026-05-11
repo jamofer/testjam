@@ -56,7 +56,11 @@ def client():
 @pytest.fixture
 def auth_client(client):
     with TestingSession() as db:
-        db.add(User(username="u", email="u@x.com", hashed_password=hash_password("pw"), is_active=True))
+        db.add(User(
+            username="u", email="u@x.com",
+            hashed_password=hash_password("pw"),
+            is_active=True, is_admin=True,
+        ))
         db.commit()
     token = client.post("/api/v1/auth/login", data={"username": "u", "password": "pw"}).json()["access_token"]
     client.headers["Authorization"] = f"Bearer {token}"

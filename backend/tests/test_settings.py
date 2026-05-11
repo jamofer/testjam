@@ -59,8 +59,19 @@ def test_admin_get_returns_settings_with_masked_secret(auth_client: TestClient):
     assert "smtp_password" not in body
 
 
-def test_non_admin_cannot_read_settings(auth_client: TestClient):
-    resp = auth_client.get("/api/v1/settings")
+def test_non_admin_cannot_read_settings(client: TestClient):
+    with TestingSession() as db:
+        db.add(User(
+            username="peon", email="peon@x.com",
+            hashed_password=hash_password("pw"),
+            is_active=True,
+        ))
+        db.commit()
+    token = client.post("/api/v1/auth/login", data={"username": "peon", "password": "pw"}).json()["access_token"]
+    client.headers["Authorization"] = f"Bearer {token}"
+
+    resp = client.get("/api/v1/settings")
+
     assert resp.status_code == 403
 
 

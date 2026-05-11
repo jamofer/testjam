@@ -47,6 +47,7 @@ class TestjamListener:
         self._suite_stack: list[int] = []
         self._test: _TestState | None = None
         self._step: _StepState | None = None
+        self._keyword_depth = 0
 
     def start_suite(self, data: Any, _result: Any) -> None:
         if self._is_root_suite:
@@ -92,6 +93,7 @@ class TestjamListener:
         self._test = _TestState(
             result_id=created["id"], case_id=case_id, step_ids=step_ids,
         )
+        self._keyword_depth = 0
         self._safe_update_result(
             created["id"], status="running",
             executed_at=datetime.now(timezone.utc).isoformat(),
@@ -116,6 +118,9 @@ class TestjamListener:
             self._step = None
 
     def start_keyword(self, _data: Any, _result: Any) -> None:
+        self._keyword_depth += 1
+        if self._keyword_depth != 1:
+            return
         test = self._test
         if test is None or test.step_cursor >= len(test.step_ids):
             self._step = None
@@ -135,6 +140,10 @@ class TestjamListener:
             self._step = None
 
     def end_keyword(self, _data: Any, result: Any) -> None:
+        depth = self._keyword_depth
+        self._keyword_depth = max(0, depth - 1)
+        if depth != 1:
+            return
         test, step = self._test, self._step
         if test is None or step is None:
             return

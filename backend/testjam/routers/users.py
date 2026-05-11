@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user
+from testjam.auth.dependencies import get_current_user, require_admin
 from testjam.auth.security import hash_password, verify_password
 from testjam.database import get_db
 from testjam.models.user import User
@@ -16,7 +16,7 @@ def list_users(db: Session = Depends(get_db), _: User = Depends(get_current_user
 
 
 @router.post("", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-def create_user(body: UserCreate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def create_user(body: UserCreate, db: Session = Depends(get_db), _: User = Depends(require_admin)):
     if db.query(User).filter(User.username == body.username).first():
         raise HTTPException(status_code=400, detail="Username already exists")
     user = User(**body.model_dump(exclude={"password"}), hashed_password=hash_password(body.password))
@@ -57,7 +57,7 @@ def get_user(id: int, db: Session = Depends(get_db), _: User = Depends(get_curre
 
 
 @router.put("/{id}", response_model=UserOut)
-def update_user(id: int, body: UserUpdate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def update_user(id: int, body: UserUpdate, db: Session = Depends(get_db), _: User = Depends(require_admin)):
     user = db.get(User, id)
     if not user:
         raise HTTPException(status_code=404, detail="Not found")
@@ -69,7 +69,7 @@ def update_user(id: int, body: UserUpdate, db: Session = Depends(get_db), _: Use
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def delete_user(id: int, db: Session = Depends(get_db), _: User = Depends(require_admin)):
     user = db.get(User, id)
     if not user:
         raise HTTPException(status_code=404, detail="Not found")

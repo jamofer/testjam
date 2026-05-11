@@ -69,6 +69,8 @@ def list_projects(db: Session = Depends(get_db), current: User = Depends(get_cur
 
 @router.post("", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)
 def create_project(body: ProjectCreate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    if db.query(Project).filter(Project.name == body.name).first():
+        raise HTTPException(status_code=409, detail=f"Project '{body.name}' already exists")
     project = Project(**body.model_dump())
     db.add(project)
     db.flush()
@@ -91,7 +93,12 @@ def update_project(id: int, body: ProjectUpdate, db: Session = Depends(get_db), 
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Not found")
-    for field, value in body.model_dump(exclude_none=True).items():
+    payload = body.model_dump(exclude_none=True)
+    if "name" in payload and payload["name"] != project.name:
+        clash = db.query(Project).filter(Project.name == payload["name"], Project.id != id).first()
+        if clash:
+            raise HTTPException(status_code=409, detail=f"Project '{payload['name']}' already exists")
+    for field, value in payload.items():
         setattr(project, field, value)
     db.commit()
     db.refresh(project)

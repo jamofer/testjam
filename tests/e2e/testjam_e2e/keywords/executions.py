@@ -17,6 +17,30 @@ class ExecutionMixin:
         logger.info(f"Started execution '{title}' → id={self.current_execution_id}")
         return self.current_execution_id
 
+    @keyword("I start an execution titled ${title} assigned to ${username}")
+    def start_execution_assigned_to(self, title: str, username: str) -> int:
+        assignee_id = self._resolve_user_id(username)
+        body = {"title": title, "type": "manual", "assigned_to_id": assignee_id}
+        response = self.client.post(
+            f"/projects/{self.current_project_id}/executions",
+            json=body,
+        )
+        assert response.status_code == 201, f"Create execution failed: {response.text}"
+        self.current_execution_id = response.json()["id"]
+        logger.info(
+            f"Started execution '{title}' assigned to '{username}' → id={self.current_execution_id}",
+        )
+        return self.current_execution_id
+
+    @keyword("I assign the execution to ${username}")
+    def assign_execution_to(self, username: str) -> None:
+        assignee_id = self._resolve_user_id(username)
+        response = self.client.put(
+            f"/executions/{self.current_execution_id}",
+            json={"assigned_to_id": assignee_id},
+        )
+        assert response.status_code == 200, response.text
+
     @keyword("I start a versioned execution titled ${title}")
     def start_versioned_execution(self, title: str) -> int:
         body = {"title": title, "type": "manual", "version_id": self.current_version_id}
@@ -31,10 +55,17 @@ class ExecutionMixin:
 
     @keyword("I start an execution titled ${title} for the current suite")
     def start_execution_for_suite(self, title: str) -> int:
+        return self._start_for_suite(title, "automatic")
+
+    @keyword("I start a manual execution titled ${title} for the current suite")
+    def start_manual_execution_for_suite(self, title: str) -> int:
+        return self._start_for_suite(title, "manual")
+
+    def _start_for_suite(self, title: str, type_: str) -> int:
         resp = self.client.get(f"/suites/{self.current_suite_id}/cases")
         assert resp.status_code == 200
         case_ids = [c["id"] for c in resp.json()]
-        body = {"title": title, "type": "automatic", "test_case_ids": case_ids}
+        body = {"title": title, "type": type_, "test_case_ids": case_ids}
         response = self.client.post(
             f"/projects/{self.current_project_id}/executions",
             json=body,

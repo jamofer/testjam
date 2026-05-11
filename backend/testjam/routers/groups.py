@@ -9,9 +9,19 @@ from testjam.schemas.user import GroupCreate, GroupMemberOut, GroupMemberUpdate,
 router = APIRouter(prefix="/groups", tags=["Groups"])
 
 
+def _group_out(group: Group) -> GroupOut:
+    return GroupOut(
+        id=group.id,
+        name=group.name,
+        description=group.description,
+        created_at=group.created_at,
+        members=[_member_out(member) for member in group.members],
+    )
+
+
 @router.get("", response_model=list[GroupOut])
 def list_groups(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
-    return db.query(Group).all()
+    return [_group_out(group) for group in db.query(Group).all()]
 
 
 @router.post("", response_model=GroupOut, status_code=status.HTTP_201_CREATED)
@@ -22,7 +32,7 @@ def create_group(body: GroupCreate, db: Session = Depends(get_db), _: User = Dep
     db.add(group)
     db.commit()
     db.refresh(group)
-    return group
+    return _group_out(group)
 
 
 @router.get("/{id}", response_model=GroupOut)
@@ -30,7 +40,7 @@ def get_group(id: int, db: Session = Depends(get_db), _: User = Depends(get_curr
     group = db.get(Group, id)
     if not group:
         raise HTTPException(status_code=404, detail="Not found")
-    return group
+    return _group_out(group)
 
 
 @router.put("/{id}", response_model=GroupOut)
@@ -42,7 +52,7 @@ def update_group(id: int, body: GroupCreate, db: Session = Depends(get_db), _: U
         setattr(group, field, value)
     db.commit()
     db.refresh(group)
-    return group
+    return _group_out(group)
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)

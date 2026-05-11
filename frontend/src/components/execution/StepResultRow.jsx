@@ -54,11 +54,6 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
           {step.expected_result && (
             <p className="text-xs text-gray-500 mt-1 italic">Expected: <MdViewer value={step.expected_result} /></p>
           )}
-          {stepResult?.duration_ms != null && (
-            <span className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-              <Clock size={9} /> {fmtDuration(stepResult.duration_ms)}
-            </span>
-          )}
 
           {!isAutomated && (
             <div className="mt-2">
@@ -105,6 +100,12 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
             </button>
           )}
         </div>
+
+        {stepResult?.duration_ms != null && (
+          <span className="text-xs text-gray-400 flex items-center gap-1 shrink-0 self-center">
+            <Clock size={10} /> {fmtDuration(stepResult.duration_ms)}
+          </span>
+        )}
 
         {!isAutomated && (
           <div className="flex gap-1 shrink-0">

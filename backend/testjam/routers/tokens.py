@@ -35,6 +35,13 @@ def create_user_token(
     db: Session = Depends(get_db),
     current: User = Depends(get_current_user),
 ):
+    clash = (
+        db.query(ApiToken)
+        .filter(ApiToken.user_id == current.id, ApiToken.name == body.name)
+        .first()
+    )
+    if clash:
+        raise HTTPException(status_code=409, detail=f"Token '{body.name}' already exists")
     raw, hashed, prefix = ApiToken.generate()
     t = ApiToken(name=body.name, token_hash=hashed, prefix=prefix, user_id=current.id, created_by=current.id)
     db.add(t)
@@ -78,6 +85,13 @@ def create_project_token(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     _require_owner(project, current, db)
+    clash = (
+        db.query(ApiToken)
+        .filter(ApiToken.project_id == id, ApiToken.name == body.name)
+        .first()
+    )
+    if clash:
+        raise HTTPException(status_code=409, detail=f"Token '{body.name}' already exists")
     raw, hashed, prefix = ApiToken.generate()
     t = ApiToken(name=body.name, token_hash=hashed, prefix=prefix, project_id=id, created_by=current.id)
     db.add(t)

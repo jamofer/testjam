@@ -4,7 +4,7 @@ import hashlib
 import secrets
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import DateTime, ForeignKey, Integer, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from testjam.database import Base
@@ -12,12 +12,15 @@ from testjam.database import Base
 
 class ApiToken(Base):
     __tablename__ = "api_tokens"
+    __table_args__ = (
+        UniqueConstraint("user_id", "name", name="uq_api_tokens_user_name"),
+        UniqueConstraint("project_id", "name", name="uq_api_tokens_project_name"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(128), nullable=False)
     token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
     prefix: Mapped[str] = mapped_column(String(16), nullable=False)
-    # user_id set → personal token; project_id set → project-scoped token
     user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
     project_id: Mapped[int | None] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), nullable=True)
     created_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)

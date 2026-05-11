@@ -215,6 +215,10 @@ def start_step_result(
             started_at=now,
         )
         db.add(step_result)
+    result_promoted = False
+    if result.status == "not_run":
+        result.status = "running"
+        result_promoted = True
     db.commit()
     db.refresh(step_result)
     execution_id = _resolve_execution_id(db, id)
@@ -223,6 +227,12 @@ def start_step_result(
             execution_id,
             TestStepResultOut.model_validate(step_result).model_dump(mode="json"),
         )
+        if result_promoted:
+            db.refresh(result)
+            execution_events.on_result_updated(
+                execution_id,
+                _result_out(result).model_dump(mode="json"),
+            )
     return step_result
 
 

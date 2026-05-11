@@ -43,3 +43,10 @@ class AuthMixin:
         assert response.status_code == 200
         actual = response.json()["username"]
         assert actual == username, f"Expected user '{username}', got '{actual}'"
+
+    @keyword("the current user should have admin privileges")
+    def current_user_should_have_admin_privileges(self) -> None:
+        response = self.client.get("/users/me")
+        assert response.status_code == 200
+        body = response.json()
+        assert body.get("is_admin") is True, f"User '{body.get('username')}' is not an admin"
