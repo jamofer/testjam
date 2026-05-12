@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from testjam.auth.dependencies import get_current_user
 from testjam.database import get_db
-from testjam.models.execution import TestResult, TestStepResult
+from testjam.models.execution import TestExecution, TestResult, TestStepResult
 from testjam.models.user import User
 from testjam.routers.executions import executions_router, results_router
 from testjam.schemas.execution import (
@@ -219,6 +219,11 @@ def start_step_result(
     if result.status == "not_run":
         result.status = "running"
         result_promoted = True
+    execution = db.get(TestExecution, result.execution_id)
+    execution_promoted = False
+    if execution and execution.status == "pending":
+        execution.status = "in_progress"
+        execution_promoted = True
     db.commit()
     db.refresh(step_result)
     execution_id = _resolve_execution_id(db, id)
@@ -233,6 +238,9 @@ def start_step_result(
                 execution_id,
                 _result_out(result).model_dump(mode="json"),
             )
+        if execution_promoted:
+            db.refresh(execution)
+            execution_events.on_execution_status_changed(db, execution)
     return step_result
 
 
@@ -256,7 +264,7 @@ def update_step_result(
     step_payload = TestStepResultOut.model_validate(sr).model_dump(mode="json")
     execution_id = _resolve_execution_id(db, id)
     if execution_id is not None:
-        execution_events.on_step_result_finished(execution_id, step_payload)
+        execution_events.on_step_result_finished_with_refresh(execution_id, step_payload)
     return sr
 
 

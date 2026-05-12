@@ -47,10 +47,14 @@ def _execution_payload(execution: TestExecution) -> dict[str, Any]:
 
 
 def _broadcast_project(event: str, execution: TestExecution) -> None:
-    notify_project(
-        execution.project_id,
-        {"event": event, "data": _execution_payload(execution)},
-    )
+    payload = {"event": event, "data": _execution_payload(execution)}
+    notify_project(execution.project_id, payload)
+    notify_execution(execution.id, payload)
+
+
+def on_execution_status_changed(db: Session, execution: TestExecution) -> None:
+    full = load_execution_full(db, execution.id) or execution
+    _broadcast_project("execution.updated", full)
 
 
 def _resolve_recipients(execution: TestExecution) -> list[int]:
@@ -271,6 +275,25 @@ def on_results_bulk_updated(db: Session, execution_id: int) -> None:
 
 def on_result_updated(execution_id: int, payload: dict[str, Any]) -> None:
     notify_execution(execution_id, {"event": "result.updated", "data": payload})
+    _broadcast_execution_updated(execution_id)
+
+
+def on_step_result_finished_with_refresh(execution_id: int, payload: dict[str, Any]) -> None:
+    on_step_result_finished(execution_id, payload)
+    _broadcast_execution_updated(execution_id)
+
+
+def _broadcast_execution_updated(execution_id: int) -> None:
+    from testjam.database import SessionLocal
+
+    db = SessionLocal()
+    try:
+        execution = load_execution_full(db, execution_id)
+        if execution is None:
+            return
+        _broadcast_project("execution.updated", execution)
+    finally:
+        db.close()
 
 
 def on_step_result_started(execution_id: int, payload: dict[str, Any]) -> None:

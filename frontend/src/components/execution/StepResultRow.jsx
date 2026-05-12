@@ -11,6 +11,7 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
   const [saving, setSaving] = useState(false)
   const [showLog, setShowLog] = useState(stepResult?.status === "running")
   const logRef = useRef(null)
+  const rowRef = useRef(null)
 
   useEffect(() => {
     setLocalStatus(stepResult?.status ?? "not_run")
@@ -19,6 +20,12 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
 
   useEffect(() => {
     if (stepResult?.status === "running") setShowLog(true)
+  }, [stepResult?.status])
+
+  useEffect(() => {
+    if (stepResult?.status === "running" && rowRef.current) {
+      rowRef.current.scrollIntoView({ block: "center", behavior: "smooth" })
+    }
   }, [stepResult?.status])
 
   useEffect(() => {
@@ -46,7 +53,7 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
   }
 
   return (
-    <div className={`border rounded-lg overflow-hidden ${config.bg}`}>
+    <div ref={rowRef} className={`border rounded-lg overflow-hidden ${config.bg}`}>
       <div className="flex items-start gap-3 p-3">
         <span className="text-xs font-mono text-gray-400 mt-0.5 w-5 shrink-0">{step.order}.</span>
         <div className="flex-1 min-w-0">

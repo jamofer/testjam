@@ -13,4 +13,8 @@ RUN mkdir -p /app/uploads/cases /app/uploads/results /app/uploads/executions
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "alembic upgrade head && uvicorn testjam.main:app --host 0.0.0.0 --port 8000 --workers 2 --proxy-headers --forwarded-allow-ips=*"]
+CMD ["sh", "-c", "\
+: ${SECRET_KEY:?SECRET_KEY env var is required (generate with: openssl rand -hex 32)} && \
+: ${DATABASE_URL:?DATABASE_URL env var is required} && \
+alembic upgrade head && \
+uvicorn testjam.main:app --host 0.0.0.0 --port 8000 --workers 2 --proxy-headers --forwarded-allow-ips=*"]

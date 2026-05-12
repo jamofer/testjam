@@ -40,7 +40,7 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
 
   useEffect(() => {
     if (focused && cardRef.current) {
-      cardRef.current.scrollIntoView({ block: "nearest", behavior: "smooth" })
+      cardRef.current.scrollIntoView({ block: "center", behavior: "smooth" })
     }
   }, [focused])
 
@@ -147,6 +147,7 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
 
   return (
     <div ref={cardRef}
+      data-result-id={result.id}
       className="relative border rounded-xl overflow-hidden shadow-sm transition-shadow">
       {focused && (
         <span aria-hidden="true"

@@ -21,7 +21,7 @@ jobs:
         run: docker compose -f docker-compose-dev.yml --profile e2e build
 
       - name: Start stack
-        run: docker compose -f docker-compose-dev.yml up -d --wait db api frontend
+        run: docker compose -f docker-compose-dev.yml up -d --wait db api frontend mailpit
 
       - name: Seed admin user
         run: |

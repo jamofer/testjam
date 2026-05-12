@@ -6,6 +6,7 @@ Test Teardown    I clean up the current project
 
 *** Variables ***
 ${ADMIN_USER}    %{TESTJAM_USER=admin}
+${ADMIN_PASS}    %{TESTJAM_PASS=admin123}
 
 
 *** Test Cases ***
@@ -60,10 +61,11 @@ Disabling the email preference suppresses the dispatch
     # Given
     I am authenticated as admin
     I configure SMTP to use mailpit
-    I disable email notifications for execution_assigned
     I create a project named Emails-Pref
     I create a user named carol with password carol123
+    I log in as carol with password carol123
     I disable email notifications for execution_assigned
+    I log in as ${ADMIN_USER} with password ${ADMIN_PASS}
 
     # When
     I start an execution titled With pref off assigned to carol

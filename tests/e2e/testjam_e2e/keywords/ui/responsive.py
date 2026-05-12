@@ -45,7 +45,9 @@ class ResponsiveUIMixin:
 
     @keyword("I dismiss the mobile sidebar via the backdrop")
     def dismiss_via_backdrop(self) -> None:
-        BuiltIn().run_keyword("Click", SIDEBAR_BACKDROP)
+        BuiltIn().run_keyword(
+            "Click With Options", SIDEBAR_BACKDROP, "position_x=320", "position_y=300",
+        )
         BuiltIn().run_keyword(
             "Wait For Elements State",
             SIDEBAR_BACKDROP, "hidden", "timeout=5s",

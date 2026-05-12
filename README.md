@@ -1,86 +1,132 @@
+<div align="center">
+
+<img src="docs/logo.svg" width="96" alt="Testjam logo" />
+
 # Testjam
+
+**Self-hosted test management for teams that ship.**
+Plan suites, drive manual runs with keyboard shortcuts, stream CI results live, and export self-contained HTML reports.
 
 [![Backend](https://github.com/Jamofer/testjam/actions/workflows/backend.yml/badge.svg?branch=master)](https://github.com/Jamofer/testjam/actions/workflows/backend.yml)
 [![Frontend](https://github.com/Jamofer/testjam/actions/workflows/frontend.yml/badge.svg?branch=master)](https://github.com/Jamofer/testjam/actions/workflows/frontend.yml)
 [![E2E](https://github.com/Jamofer/testjam/actions/workflows/e2e.yml/badge.svg?branch=master)](https://github.com/Jamofer/testjam/actions/workflows/e2e.yml)
 
-Web-based test management system for planning, executing, and tracking software quality assurance.
+<p align="center">
+  <img src="docs/screenshots/demo.gif" alt="Create suite → case → plan → execution → results" width="60%" />
+</p>
 
-## Features
-
-- **Test library** — Projects → Suites (nested) → Test cases with steps (action / setup / teardown), preconditions, tags, attachments
-- **Test plans** — Group cases from multiple suites into versioned plans
-- **Executions** — Manual runs with keyboard shortcuts (`j/k` navigation, `p/f/b/n` to set status) and automatic runs fed by CI
-- **Import results** — JUnit XML and Robot Framework XML; matched by `external_id` or test name
-- **HTML report export** — Self-contained, collapsible by suite/test/step, header tinted green on pass / red on fail, failures auto-expand, attachments rendered as links
-- **Real-time RF listener** — `testjam-listener` package streams results live as tests run
-- **Access control** — JWT auth, per-project members with roles, scoped API tokens (`X-API-Key`)
-- **Versions** — Track releases (active → released → archived) with optional VCS tag
-
-## Stack
-
-| Layer            | Tech                                                    |
-|------------------|---------------------------------------------------------|
-| Backend          | FastAPI · SQLAlchemy (sync) · Alembic · PostgreSQL      |
-| Frontend         | React 18 · Vite · TanStack Query · Tailwind · Radix UI  |
-| Auth             | JWT Bearer + scoped API tokens (`X-API-Key`)            |
-| Tests            | pytest · Vitest · Robot Framework (E2E)                 |
-| Dev environment  | Docker Compose                                          |
+</div>
 
 ---
 
-## Quick start (development)
+## Highlights
 
-Requires Docker + Docker Compose. No local Python or Node install needed.
+|                |                                                                             |
+|----------------|-----------------------------------------------------------------------------|
+| 📚 **Library** | Projects → nested suites → cases with steps, preconditions, tags, attachments |
+| 🎯 **Plans**   | Curate cases from many suites into versioned plans                           |
+| ▶️ **Run**      | Manual runs with `j/k` nav + `p/f/b/n` to set status — under a second per case |
+| 📡 **Live**    | WebSocket stream of step status + logs from CI via `testjam-listener`        |
+| 📥 **Import**  | JUnit and Robot Framework XML, matched by `external_id` or name              |
+| 📄 **Reports** | Self-contained HTML, attachments inlined as data URLs                         |
+| 🔐 **Access**  | JWT + per-project members with roles + scoped API tokens (`X-API-Key`)       |
 
-```bash
-docker compose -f docker-compose-dev.yml up
-docker compose -f docker-compose-dev.yml exec api python scripts/create_admin.py \
-  --username admin --email admin@example.com --password secret
-```
 
-Open http://localhost:5173. API docs at http://localhost:8000/api/docs.
+<details>
+<summary><strong>Stack</strong></summary>
 
-The dev compose bind-mounts source code, runs Vite + uvicorn with `--reload`, bundles Mailpit on `:8025` and ships an `e2e` profile.
+| Layer    | Tech                                                    |
+|----------|---------------------------------------------------------|
+| Backend  | FastAPI · SQLAlchemy (sync) · Alembic · PostgreSQL 18   |
+| Frontend | React 18 · Vite · TanStack Query · Tailwind · Radix UI  |
+| Auth     | JWT Bearer + scoped API tokens (`X-API-Key`)            |
+| Tests    | pytest · Vitest · Robot Framework (E2E)                 |
+| Runtime  | Docker Compose                                          |
 
-### Reset the database
-
-```bash
-docker compose -f docker-compose-dev.yml down -v && docker compose -f docker-compose-dev.yml up
-```
+</details>
 
 ---
 
-## Production deploy
+## Deploy
 
 ```bash
 cp .env.example .env
-# set POSTGRES_PASSWORD and SECRET_KEY (openssl rand -hex 32)
+# edit .env: set POSTGRES_PASSWORD and SECRET_KEY=$(openssl rand -hex 32)
+
 docker compose up -d
 docker compose exec api python scripts/create_admin.py \
   --username admin --email admin@example.com --password secret
 ```
 
-Brings up Postgres + API + nginx-served frontend on a single host port (`APP_PORT`, default `8080`). Point your external reverse proxy / TLS terminator at it.
+Three containers: `db` (Postgres 18), `api` (FastAPI + uvicorn workers), `web` (nginx serving the built frontend + proxying `/api/` to the API).
+
+Only one host port is exposed: `APP_PORT` (default `8080`). Point your external reverse proxy / TLS terminator (nginx, Caddy, Cloudflare, …) at it.
+
+### Required env vars
+
+| Variable             | Purpose                                                |
+|----------------------|--------------------------------------------------------|
+| `POSTGRES_PASSWORD`  | Password for the bundled Postgres instance.            |
+| `SECRET_KEY`         | JWT signing secret. Generate with `openssl rand -hex 32`. |
+| `APP_PORT`           | Optional. Host port mapped to the web container (default `8080`). |
+
+### Upgrade
+
+```bash
+git pull
+docker compose pull        # for any base images that moved
+docker compose up -d --build
+```
+
+Alembic migrations run automatically on container start.
+
+### Backup
+
+```bash
+docker compose exec -T db pg_dumpall -U testjam > backup.sql
+docker run --rm -v testjam_uploads:/u -v $PWD:/b alpine \
+  tar czf /b/uploads.tgz -C / u
+```
 
 ---
 
-## Tests
+## Development
+
+Dev uses a separate compose file (`docker-compose-dev.yml`) with bind-mounted source, hot reload, Mailpit on `:8025`, and an `e2e` profile.
 
 ```bash
-docker compose -f docker-compose-dev.yml exec api      pytest                      # backend
-docker compose -f docker-compose-dev.yml exec frontend npm test -- --run           # frontend
-docker compose -f docker-compose-dev.yml --profile e2e run --rm e2e                # E2E (RF + listener auto-wired)
+# one-time per shell
+export COMPOSE_FILE=docker-compose-dev.yml
+
+docker compose up
+docker compose exec api python scripts/create_admin.py \
+  --username admin --email admin@example.com --password secret
 ```
 
-Frontend `node_modules` lives in an anonymous Docker volume — always run `npm`/`vitest` via `docker compose -f docker-compose-dev.yml exec frontend …`, never on the host. The `e2e` service is gated by the `e2e` profile so it never runs on `docker compose -f docker-compose-dev.yml up`.
+UI on http://localhost:5173 · API on http://localhost:8000/api/docs
+
+### Reset the database
+
+```bash
+docker compose down -v && docker compose up
+```
+
+### Tests
+
+```bash
+docker compose exec api      pytest                      # backend
+docker compose exec frontend npm test -- --run           # frontend
+docker compose --profile e2e run --rm e2e                # E2E (RF + listener auto-wired)
+```
+
+Frontend `node_modules` lives in an anonymous Docker volume — always run `npm`/`vitest` via `docker compose exec frontend …`, never on the host. The `e2e` service is gated by the `e2e` profile so it never runs on `docker compose up`.
 
 ### Single file or test
 
 ```bash
-docker compose -f docker-compose-dev.yml exec api pytest tests/test_executions.py::test_create_manual_execution
-docker compose -f docker-compose-dev.yml exec frontend npm test -- --run __tests__/PlanDetailPage
-docker compose -f docker-compose-dev.yml --profile e2e run --rm e2e robot --listener testjam_listener.TestjamListener suites/01_auth.robot
+docker compose exec api pytest tests/test_executions.py::test_create_manual_execution
+docker compose exec frontend npm test -- --run __tests__/PlanDetailPage
+docker compose --profile e2e run --rm e2e robot --listener testjam_listener.TestjamListener suites/01_auth.robot
 ```
 
 ---
@@ -91,7 +137,7 @@ docker compose -f docker-compose-dev.yml --profile e2e run --rm e2e robot --list
 
 ```bash
 pip install ./listener
-TESTJAM_API_URL=http://localhost:8000/api/v1 \
+TESTJAM_API_URL=http://your-host:8080/api/v1 \
 TESTJAM_USER=admin TESTJAM_PASS=secret \
 TESTJAM_PROJECT="My Project" \
 robot --listener testjam_listener.TestjamListener tests/

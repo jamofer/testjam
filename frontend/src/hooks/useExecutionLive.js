@@ -14,14 +14,17 @@ export function useExecutionLive(executionId, { enabled = true } = {}) {
     "execution.updated": (data) => {
       if (!data?.id) return
       queryClient.setQueryData(["executions", String(data.id)], data)
+      queryClient.invalidateQueries({ queryKey: ["suites-list-all"] })
     },
     "result.updated": (data) => {
       if (!data?.id) return
       patchResult(queryClient, executionId, data)
+      refreshSuites(queryClient)
     },
     "result.started": (data) => {
       if (!data?.id) return
       patchResult(queryClient, executionId, data)
+      refreshSuites(queryClient)
     },
     "result.finished": (data) => {
       if (!data?.id) return
@@ -43,6 +46,10 @@ export function useExecutionLive(executionId, { enabled = true } = {}) {
   }), [queryClient, executionId])
 
   return useTopicSocket(topics, handlers, { enabled })
+}
+
+function refreshSuites(queryClient) {
+  queryClient.invalidateQueries({ queryKey: ["suites-list-all"] })
 }
 
 function patchResult(queryClient, executionId, incoming) {

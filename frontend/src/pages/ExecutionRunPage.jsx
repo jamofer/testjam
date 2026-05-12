@@ -119,6 +119,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
   const updateResult = useUpdateResult(id)
   const [focusedResultId, setFocusedResultId] = useState(null)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [followLive, setFollowLive] = useState(true)
   const isAutomated = execution.type === "automatic"
 
   const suiteByCase = useMemo(() => mapSuiteByCase(allSuites), [allSuites])
@@ -155,6 +156,54 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
       setFocusedResultId(orderedResults[0].id)
     }
   }, [orderedResults, focusedResultId])
+
+  const runningResultId = useMemo(() => {
+    for (const result of orderedResults) {
+      if (result.status === "running") return result.id
+      if ((result.step_results ?? []).some(sr => sr.status === "running")) return result.id
+    }
+    return null
+  }, [orderedResults])
+
+  const isExecutionLive = execution.status === "pending" || execution.status === "in_progress"
+
+  useEffect(() => {
+    if (runningResultId != null && followLive && isExecutionLive) {
+      setFocusedResultId(runningResultId)
+    }
+  }, [runningResultId, followLive, isExecutionLive])
+
+  useEffect(() => {
+    const scroller = document.querySelector("main")
+    if (!scroller) return undefined
+    let userScrolling = false
+    const onUserInteract = () => { userScrolling = true }
+    const onScroll = () => {
+      if (!userScrolling) return
+      userScrolling = false
+      if (runningResultId == null) return
+      const card = document.querySelector(`[data-result-id="${runningResultId}"]`)
+      if (!card) return
+      const cardRect = card.getBoundingClientRect()
+      const scrollerRect = scroller.getBoundingClientRect()
+      const fullyVisible =
+        cardRect.top >= scrollerRect.top && cardRect.bottom <= scrollerRect.bottom
+      if (!fullyVisible) setFollowLive(false)
+    }
+    scroller.addEventListener("wheel", onUserInteract, { passive: true })
+    scroller.addEventListener("touchstart", onUserInteract, { passive: true })
+    scroller.addEventListener("scroll", onScroll, { passive: true })
+    return () => {
+      scroller.removeEventListener("wheel", onUserInteract)
+      scroller.removeEventListener("touchstart", onUserInteract)
+      scroller.removeEventListener("scroll", onScroll)
+    }
+  }, [runningResultId])
+
+  const resumeFollowLive = () => {
+    setFollowLive(true)
+    if (runningResultId != null) setFocusedResultId(runningResultId)
+  }
 
   const focused = orderedResults.find(r => r.id === focusedResultId) ?? null
 
@@ -325,6 +374,17 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
           <ContextPanel sections={contextSections} />
         </div>
       </PageBody>
+
+      {!followLive && isExecutionLive && runningResultId != null && (
+        <button
+          type="button"
+          onClick={resumeFollowLive}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 rounded-full bg-blue-600 text-white text-sm font-medium px-4 py-2 shadow-lg hover:bg-blue-700 transition-colors"
+        >
+          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+          Follow live
+        </button>
+      )}
 
       <ShortcutHelpDialog open={helpOpen} onOpenChange={setHelpOpen} isAutomated={isAutomated} />
     </>
