@@ -37,7 +37,7 @@ export function ProjectsPage() {
   return (
     <>
       <PageHeader>
-        <div className="max-w-4xl space-y-3">
+        <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-3">
           <h1 className="text-2xl font-bold text-gray-800">Projects</h1>
           <div className="flex flex-wrap gap-2">
             <SearchInput value={search} onChange={setSearch}
@@ -58,7 +58,7 @@ export function ProjectsPage() {
       </PageHeader>
 
       <PageBody>
-      <div className="max-w-4xl">
+      <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl">
       {isLoading && <SkeletonList count={4} itemClassName="h-32" />}
 
       <ul className="space-y-3">

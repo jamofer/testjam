@@ -96,7 +96,7 @@ export function ExecutionRunPage() {
   if (!execution) {
     return (
       <PageBody>
-        <div className="max-w-2xl space-y-4">
+        <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-4">
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-7 w-1/2" />
           <Skeleton className="h-4 w-2/3" />
@@ -381,7 +381,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
         { label: "Executions", to: `/projects/${execution.project_id}/executions` },
         { label: execution.title },
       ]}>
-        <div className="max-w-2xl flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-4">
+        <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-4">
           <div className="min-w-0">
             <h1 className="text-xl font-bold text-gray-800 break-words md:truncate flex items-center gap-2 flex-wrap">
               {execution.title}
@@ -438,7 +438,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
 
       <PageBody>
         <div className="flex gap-6" {...swipe}>
-          <div className="flex-1 min-w-0 max-w-2xl space-y-4">
+          <div className="flex-1 min-w-0 max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-4">
             <ResultExpandContext.Provider value={expandState}>
               <div className="space-y-2">
                 {topLevelIds.map(suiteId => (

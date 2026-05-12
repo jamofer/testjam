@@ -80,7 +80,7 @@ export function TestPlansPage() {
         { label: project?.name ?? "…", to: `/projects/${projectId}` },
         { label: "Test Plans" },
       ]}>
-        <div className="max-w-2xl flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold text-gray-800">Test Plans</h1>
           <div className="self-start sm:self-auto">
             <CreatePlanDialog projectId={projectId} />
@@ -89,7 +89,7 @@ export function TestPlansPage() {
       </PageHeader>
 
       <PageBody>
-      <div className="max-w-2xl">
+      <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl">
       <ul className="space-y-2">
         {plans.map(plan => (
           <li key={plan.id} className="flex items-center justify-between bg-white border rounded-lg px-4 py-3 shadow-sm">

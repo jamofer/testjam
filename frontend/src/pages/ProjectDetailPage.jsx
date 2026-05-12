@@ -173,7 +173,7 @@ export function ProjectDetailPage() {
   if (isLoading) {
     return (
       <PageBody>
-        <div className="max-w-2xl space-y-4">
+        <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-4">
           <Skeleton className="h-7 w-1/3" />
           <Skeleton className="h-4 w-2/3" />
           <SkeletonList count={3} itemClassName="h-12" />
@@ -189,7 +189,7 @@ export function ProjectDetailPage() {
   return (
     <>
       <PageHeader crumbs={[{ label: "Projects", to: "/projects" }, { label: project?.name ?? "…" }]}>
-        <div className="max-w-2xl space-y-3">
+        <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-3">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
             <div className="min-w-0">
               <h1 className="text-2xl font-bold text-gray-800 break-words md:truncate">{project?.name}</h1>
@@ -233,7 +233,7 @@ export function ProjectDetailPage() {
       </PageHeader>
 
       <PageBody>
-        <div className="max-w-2xl space-y-4">
+        <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-4">
           {isSearching ? (
             <div className="space-y-2">
               {searching && searchResults.length === 0 ? (

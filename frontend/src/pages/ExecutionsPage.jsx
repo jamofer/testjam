@@ -83,7 +83,7 @@ export function ExecutionsPage() {
         { label: project?.name ?? "…", to: `/projects/${projectId}` },
         { label: "Executions" },
       ]}>
-        <div className="max-w-3xl space-y-3">
+        <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
               Executions
@@ -124,7 +124,7 @@ export function ExecutionsPage() {
       </PageHeader>
 
       <PageBody>
-      <div className="max-w-3xl space-y-6">
+      <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-6">
       {isLoading && <SkeletonList count={3} />}
 
       <ul className="space-y-2">

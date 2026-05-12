@@ -11,7 +11,7 @@ import { MdEditor, MdViewer } from "../components/MdEditor"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs"
-import { Breadcrumbs } from "../components/ui/breadcrumbs"
+import { PageHeader, PageBody } from "../components/ui/page-header"
 import { CaseRevisions } from "../components/case/CaseRevisions"
 import { SortableStepRow } from "../components/case/SortableStepRow"
 import { AttachmentList } from "../components/case/AttachmentList"
@@ -126,103 +126,107 @@ export function TestCasePage() {
   ]
 
   return (
-    <div className="pl-14 pr-4 py-4 md:p-8 flex flex-col md:flex-row gap-6">
-      <div className="flex-1 min-w-0 max-w-2xl space-y-6">
-      <Breadcrumbs crumbs={[
+    <>
+      <PageHeader crumbs={[
         { label: "Projects", to: "/projects" },
         { label: project?.name ?? "…", to: `/projects/${suite?.project_id}` },
         { label: tc?.name },
-      ]} />
-
-      {editingTitle ? (
-        <div className="space-y-3">
-          <Input value={title} onChange={e => setTitle(e.target.value)} className="text-lg font-bold" />
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Preconditions</p>
-            <MdEditor value={preconditions} onChange={setPreconditions} height={80} />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Description</p>
-            <MdEditor value={description} onChange={setDescription} height={120} />
-          </div>
-          <div className="flex gap-2">
-            <Button size="sm" onClick={saveMeta} loading={updateCase.isPending}>Save</Button>
-            <Button size="sm" variant="ghost" onClick={() => setEditingTitle(false)}>Cancel</Button>
-          </div>
-        </div>
-      ) : (
-        <div className="flex items-start justify-between gap-2">
-          <div className="cursor-pointer group flex-1" onClick={startEditMeta}>
-            <h1 className="text-2xl font-bold text-gray-800 group-hover:text-gray-600">{tc.name}</h1>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-400">
-              {tc.created_by && (
-                <span className="flex items-center gap-1">
-                  <UserIcon size={11} /> Created by {tc.created_by.full_name || tc.created_by.username}
-                </span>
+      ]}>
+        <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl">
+          {editingTitle ? (
+            <div className="space-y-3">
+              <Input value={title} onChange={e => setTitle(e.target.value)} className="text-lg font-bold" />
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Preconditions</p>
+                <MdEditor value={preconditions} onChange={setPreconditions} height={80} />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Description</p>
+                <MdEditor value={description} onChange={setDescription} height={120} />
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={saveMeta} loading={updateCase.isPending}>Save</Button>
+                <Button size="sm" variant="ghost" onClick={() => setEditingTitle(false)}>Cancel</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="cursor-pointer group" onClick={startEditMeta}>
+              <h1 className="text-2xl font-bold text-gray-800 group-hover:text-gray-600">{tc.name}</h1>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-400">
+                {tc.created_by && (
+                  <span className="flex items-center gap-1">
+                    <UserIcon size={11} /> Created by {tc.created_by.full_name || tc.created_by.username}
+                  </span>
+                )}
+                {tc.created_at && (
+                  <span className="flex items-center gap-1">
+                    <Clock size={11} /> {fmtDateTime(tc.created_at)}
+                  </span>
+                )}
+                {tc.updated_by && tc.updated_at && tc.updated_at !== tc.created_at && (
+                  <span className="flex items-center gap-1">
+                    <History size={11} /> Updated by {tc.updated_by.full_name || tc.updated_by.username} · {fmtDateTime(tc.updated_at)}
+                  </span>
+                )}
+              </div>
+              {tc.preconditions && (
+                <div className="mt-2">
+                  <p className="text-xs text-gray-400 uppercase tracking-wide">Preconditions</p>
+                  <div className="prose prose-sm mt-1"><MdViewer value={tc.preconditions} /></div>
+                </div>
               )}
-              {tc.created_at && (
-                <span className="flex items-center gap-1">
-                  <Clock size={11} /> {fmtDateTime(tc.created_at)}
-                </span>
+              {tc.description && (
+                <div className="mt-2 prose prose-sm text-gray-600"><MdViewer value={tc.description} /></div>
               )}
-              {tc.updated_by && tc.updated_at && tc.updated_at !== tc.created_at && (
-                <span className="flex items-center gap-1">
-                  <History size={11} /> Updated by {tc.updated_by.full_name || tc.updated_by.username} · {fmtDateTime(tc.updated_at)}
-                </span>
+              {!tc.preconditions && !tc.description && (
+                <p className="text-sm text-gray-400 mt-1">Click to add description…</p>
               )}
             </div>
-            {tc.preconditions && (
-              <div className="mt-2">
-                <p className="text-xs text-gray-400 uppercase tracking-wide">Preconditions</p>
-                <div className="prose prose-sm mt-1"><MdViewer value={tc.preconditions} /></div>
-              </div>
-            )}
-            {tc.description && (
-              <div className="mt-2 prose prose-sm text-gray-600"><MdViewer value={tc.description} /></div>
-            )}
-            {!tc.preconditions && !tc.description && (
-              <p className="text-sm text-gray-400 mt-1">Click to add description…</p>
-            )}
-          </div>
+          )}
         </div>
-      )}
+      </PageHeader>
 
-      <Tabs defaultValue="steps">
-        <TabsList>
-          <TabsTrigger value="steps">Steps ({tc.steps?.length ?? 0})</TabsTrigger>
-          <TabsTrigger value="attachments">Attachments ({tc.attachments?.length ?? 0})</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
-        </TabsList>
+      <PageBody>
+        <div className="flex gap-6">
+          <div className="flex-1 min-w-0 max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-6">
+            <Tabs defaultValue="steps">
+              <TabsList>
+                <TabsTrigger value="steps">Steps ({tc.steps?.length ?? 0})</TabsTrigger>
+                <TabsTrigger value="attachments">Attachments ({tc.attachments?.length ?? 0})</TabsTrigger>
+                <TabsTrigger value="history">History</TabsTrigger>
+              </TabsList>
 
-        <TabsContent value="steps">
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={(tc.steps ?? []).map(s => s.id)} strategy={verticalListSortingStrategy}>
-              <div className="space-y-2">
-                {(tc.steps ?? []).map(step => (
-                  <SortableStepRow key={step.id} step={step} caseId={id} onDelete={() => deleteStep(step.id)} />
-                ))}
-                <div className="border rounded-lg p-3 space-y-2">
-                  <p className="text-xs text-gray-500">New step</p>
-                  <MdEditor value={newStepContent} onChange={setNewStepContent} height={100} />
-                  <Button size="sm" onClick={addStep} disabled={!newStepContent.trim()}>
-                    <Plus size={13} /> Add step
-                  </Button>
-                </div>
-              </div>
-            </SortableContext>
-          </DndContext>
-        </TabsContent>
+              <TabsContent value="steps">
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={(tc.steps ?? []).map(s => s.id)} strategy={verticalListSortingStrategy}>
+                    <div className="space-y-2">
+                      {(tc.steps ?? []).map(step => (
+                        <SortableStepRow key={step.id} step={step} caseId={id} onDelete={() => deleteStep(step.id)} />
+                      ))}
+                      <div className="border rounded-lg p-3 space-y-2">
+                        <p className="text-xs text-gray-500">New step</p>
+                        <MdEditor value={newStepContent} onChange={setNewStepContent} height={100} />
+                        <Button size="sm" onClick={addStep} disabled={!newStepContent.trim()}>
+                          <Plus size={13} /> Add step
+                        </Button>
+                      </div>
+                    </div>
+                  </SortableContext>
+                </DndContext>
+              </TabsContent>
 
-        <TabsContent value="attachments">
-          <AttachmentList caseId={id} attachments={tc.attachments ?? []} />
-        </TabsContent>
+              <TabsContent value="attachments">
+                <AttachmentList caseId={id} attachments={tc.attachments ?? []} />
+              </TabsContent>
 
-        <TabsContent value="history">
-          <CaseRevisions caseId={id} />
-        </TabsContent>
-      </Tabs>
-      </div>
-      <ContextPanel sections={contextSections} />
-    </div>
+              <TabsContent value="history">
+                <CaseRevisions caseId={id} />
+              </TabsContent>
+            </Tabs>
+          </div>
+          <ContextPanel sections={contextSections} />
+        </div>
+      </PageBody>
+    </>
   )
 }

@@ -188,7 +188,7 @@ export function MembersPage() {
   if (isLoading) return <p className="text-gray-500">Loading…</p>
 
   return (
-    <div className="pl-14 pr-4 py-4 md:p-8 max-w-2xl space-y-6">
+    <div className="pl-14 pr-4 py-4 md:p-8 max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-6">
       <Breadcrumbs
         crumbs={[
           { label: "Projects", to: "/projects" },

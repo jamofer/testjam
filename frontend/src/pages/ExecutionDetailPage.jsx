@@ -51,7 +51,7 @@ export function ExecutionDetailPage() {
 
   if (!execution) {
     return (
-      <div className="pl-14 pr-4 py-4 md:p-8 max-w-3xl space-y-4">
+      <div className="pl-14 pr-4 py-4 md:p-8 max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-4">
         <Skeleton className="h-7 w-1/2" />
         <Skeleton className="h-4 w-2/3" />
         <SkeletonList count={4} itemClassName="h-12" />
@@ -62,7 +62,7 @@ export function ExecutionDetailPage() {
   const versionLabel = execution.version ?? null
 
   return (
-    <div className="pl-14 pr-4 py-4 md:p-8 max-w-3xl space-y-6">
+    <div className="pl-14 pr-4 py-4 md:p-8 max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-6">
       <div>
         <div className="flex items-start justify-between gap-4">
           <div>

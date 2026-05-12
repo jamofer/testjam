@@ -14,13 +14,13 @@ export function VersionsPage() {
         { label: project?.name ?? "…", to: `/projects/${projectId}` },
         { label: "Versions" },
       ]}>
-        <div className="max-w-2xl">
+        <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl">
           <h1 className="text-2xl font-bold text-gray-800">Versions</h1>
         </div>
       </PageHeader>
 
       <PageBody>
-        <div className="max-w-2xl">
+        <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl">
           <VersionsPanel projectId={projectId} />
         </div>
       </PageBody>
