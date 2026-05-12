@@ -9,6 +9,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from testjam import database as testjam_database
+from testjam import main as testjam_main
 from testjam.auth.security import hash_password
 from testjam.database import Base, get_db
 from testjam.main import app
@@ -21,6 +23,13 @@ engine = create_engine(
     poolclass=StaticPool,
 )
 TestingSession = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Lifespan in testjam.main opens SessionLocal(); without this rebind it would
+# reach for the prod Postgres host configured in core/config.py. `testjam.main`
+# imported SessionLocal by name, so patch its module attribute too.
+testjam_database.engine = engine
+testjam_database.SessionLocal = TestingSession
+testjam_main.SessionLocal = TestingSession
 
 
 @pytest.fixture(scope="session", autouse=True)

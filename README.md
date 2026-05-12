@@ -114,19 +114,20 @@ docker compose down -v && docker compose up
 ### Tests
 
 ```bash
-docker compose exec api      pytest                      # backend
-docker compose exec frontend npm test -- --run           # frontend
-docker compose --profile e2e run --rm e2e                # E2E (RF + listener auto-wired)
+make test          # backend + frontend + e2e
+make test-api      # pytest
+make test-front    # vitest
+make test-e2e      # Robot Framework (listener auto-wired)
 ```
 
-Frontend `node_modules` lives in an anonymous Docker volume — always run `npm`/`vitest` via `docker compose exec frontend …`, never on the host. The `e2e` service is gated by the `e2e` profile so it never runs on `docker compose up`.
+Frontend `node_modules` lives in an anonymous Docker volume — always run `npm`/`vitest` inside the container (the Makefile does this for you), never on the host. The `e2e` service is gated by the `e2e` profile so it never runs on `docker compose up`.
 
 ### Single file or test
 
 ```bash
-docker compose exec api pytest tests/test_executions.py::test_create_manual_execution
-docker compose exec frontend npm test -- --run __tests__/PlanDetailPage
-docker compose --profile e2e run --rm e2e robot --listener testjam_listener.TestjamListener suites/01_auth.robot
+make test-api   ARGS=tests/test_executions.py::test_create_manual_execution
+make test-front ARGS=__tests__/PlanDetailPage
+make test-e2e   ARGS=suites/01_auth.robot
 ```
 
 ---
