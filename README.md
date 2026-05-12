@@ -12,7 +12,7 @@ Plan suites, drive manual runs with keyboard shortcuts, stream CI results live, 
 [![E2E](https://github.com/Jamofer/testjam/actions/workflows/e2e.yml/badge.svg?branch=master)](https://github.com/Jamofer/testjam/actions/workflows/e2e.yml)
 
 <p align="center">
-  <img src="docs/screenshots/demo.gif" alt="Create suite → case → plan → execution → results" width="60%" />
+  <img src="docs/screenshots/demo.gif" alt="Create suite → case → plan → execution → results" width="80%" />
 </p>
 
 </div>
