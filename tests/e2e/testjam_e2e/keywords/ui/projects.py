@@ -58,7 +58,10 @@ class ProjectsUIMixin:
     @keyword("I open the project ${name}")
     def open_project(self, name: str) -> None:
         BuiltIn().run_keyword("Click", _project_link(name))
-        BuiltIn().run_keyword("Wait For Load State", "networkidle", "timeout=10s")
+        BuiltIn().run_keyword(
+            "Wait For Elements State",
+            f'h1:has-text("{name}")', "visible", "timeout=10s",
+        )
 
     @keyword("I delete the project ${name} via the UI")
     def delete_project_ui(self, name: str) -> None:

@@ -12,17 +12,21 @@ class HttpClient:
     def __init__(self, base_url: str):
         self.base_url = base_url.rstrip("/")
         self.session = requests.Session()
+        self.bearer_token: str | None = None
 
     # ── Authentication ────────────────────────────────────────────────────────
 
     def set_bearer_token(self, token: str) -> None:
+        self.bearer_token = token
         self.session.headers.update({"Authorization": f"Bearer {token}"})
 
     def set_api_key(self, api_key: str) -> None:
+        self.bearer_token = None
         self.session.headers.pop("Authorization", None)
         self.session.headers.update({"X-API-Key": api_key})
 
     def clear_auth(self) -> None:
+        self.bearer_token = None
         self.session.headers.pop("Authorization", None)
         self.session.headers.pop("X-API-Key", None)
 

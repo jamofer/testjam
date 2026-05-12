@@ -4,7 +4,6 @@ Library    testjam_e2e.testjam_library.TestjamLibrary
 Suite Setup       I sign in to the UI as ${ADMIN_USER} with password ${ADMIN_PASS}
 Suite Teardown    I tear down the frontend suite
 Test Setup        Settings are reset to defaults
-Test Teardown     I log in as ${ADMIN_USER} with password ${ADMIN_PASS}
 
 
 *** Variables ***
