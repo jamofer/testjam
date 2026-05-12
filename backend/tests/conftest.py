@@ -2,6 +2,9 @@ import os
 
 # Set test-only env BEFORE importing testjam — settings reads env at import time.
 os.environ.setdefault("BCRYPT_ROUNDS", "4")
+# PyJWT requires HMAC keys >=32 bytes (RFC 7518 §3.2); override any inherited
+# SECRET_KEY so the dev-container value does not trigger InsecureKeyLengthWarning.
+os.environ["SECRET_KEY"] = "x" * 32
 
 import pytest
 from fastapi.testclient import TestClient

@@ -38,6 +38,9 @@ packages = ["testjam"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+# Tests are function-based; disabling class collection silences PytestCollectionWarning
+# from SQLAlchemy models named TestExecution / TestResult / TestSuite / TestCase / ...
+python_classes = []
 
 [tool.ruff]
 line-length = 100
