@@ -155,6 +155,17 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
     return { groups: groupsFull, topLevelIds, childrenOf, orderedResults: ordered }
   }, [results, allSuites, suiteByCase])
 
+  const suiteOrder = useMemo(() => {
+    const out = []
+    const walk = (sid) => {
+      for (const c of (childrenOf[sid] ?? [])) walk(c)
+      if ((groups[sid]?.items ?? []).length) out.push(sid)
+    }
+    for (const tl of topLevelIds) walk(tl)
+    if ((groups[0]?.items ?? []).length) out.push(0)
+    return out
+  }, [groups, topLevelIds, childrenOf])
+
   useEffect(() => {
     if (focusedResultId == null && orderedResults.length > 0) {
       setFocusedResultId(orderedResults[0].id)
@@ -232,6 +243,19 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
       : orderedResults[orderedResults.length - 1].id)
   }
 
+  const jumpSuite = (delta) => {
+    if (suiteOrder.length === 0) return
+    const focused = orderedResults.find(r => r.id === focusedResultId)
+    const currentSuiteId = focused ? (suiteByCase[focused.test_case_id]?.id ?? 0) : suiteOrder[0]
+    const idx = suiteOrder.indexOf(currentSuiteId)
+    const nextIdx = idx < 0
+      ? (delta > 0 ? 0 : suiteOrder.length - 1)
+      : Math.max(0, Math.min(suiteOrder.length - 1, idx + delta))
+    const targetSuite = suiteOrder[nextIdx]
+    const firstItem = groups[targetSuite]?.items?.[0]
+    if (firstItem) setFocusedResultId(firstItem.id)
+  }
+
   const stepNav = (delta) => {
     if (focusedSteps.length === 0) return
     const idx = focusedSteps.findIndex(s => s.id === focusedStepId)
@@ -256,11 +280,15 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
     }
   }
 
-  const toggleFocusedExpand = () => {
+  const dispatchExpand = (open) => {
     if (focusedResultId == null) return
     const card = document.querySelector(`[data-result-id="${focusedResultId}"]`)
-    card?.dispatchEvent(new CustomEvent("result-toggle"))
+    const detail = open == null ? undefined : { open }
+    card?.dispatchEvent(new CustomEvent("result-toggle", { detail }))
   }
+  const toggleFocusedExpand = () => dispatchExpand(null)
+  const collapseFocused = () => dispatchExpand(false)
+  const expandFocused = () => dispatchExpand(true)
 
   const expandAllResults = () =>
     setExpandState(s => ({ version: s.version + 1, desiredOpen: true }))
@@ -279,8 +307,14 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
     ArrowUp: () => stepBy(-1),
     J: () => stepNav(1),
     K: () => stepNav(-1),
+    ArrowLeft: collapseFocused,
+    h: collapseFocused,
+    ArrowRight: expandFocused,
+    l: expandFocused,
     Home: () => focusResult("first"),
     End: () => focusResult("last"),
+    PageUp: () => jumpSuite(-1),
+    PageDown: () => jumpSuite(1),
     F: () => jumpToStatus("failed"),
     B: () => jumpToStatus("blocked"),
     U: () => jumpToStatus("not_run"),

@@ -56,7 +56,10 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
   useEffect(() => {
     const card = cardRef.current
     if (!card) return undefined
-    const handler = () => setOpen(o => !o)
+    const handler = (e) => {
+      const desired = e.detail?.open
+      setOpen(typeof desired === "boolean" ? desired : (o => !o))
+    }
     card.addEventListener("result-toggle", handler)
     return () => card.removeEventListener("result-toggle", handler)
   }, [])

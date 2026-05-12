@@ -10,6 +10,8 @@ const NAV_ROWS = [
   { keys: ["Shift+K"], description: "Previous step" },
   { keys: ["Home"], description: "First result" },
   { keys: ["End"], description: "Last result" },
+  { keys: ["PgDn"], description: "Jump to next suite group" },
+  { keys: ["PgUp"], description: "Jump to previous suite group" },
 ]
 
 const FILTER_ROWS = [
@@ -19,6 +21,8 @@ const FILTER_ROWS = [
 ]
 
 const VIEW_ROWS = [
+  { keys: ["→", "l"], description: "Expand focused result" },
+  { keys: ["←", "h"], description: "Collapse focused result" },
   { keys: ["o"], description: "Toggle expand focused result" },
   { keys: ["+"], description: "Expand all results" },
   { keys: ["-"], description: "Collapse all results" },

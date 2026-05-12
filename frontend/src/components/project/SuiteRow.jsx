@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useContext, createContext } from "react"
 import { Link, useParams } from "react-router-dom"
 import { Plus, Trash2, Pencil, ChevronRight, FolderOpen, ListPlus, X, GripVertical } from "lucide-react"
+import { useTreeItemNav } from "../../hooks/useTreeItemNav"
 
 export const SuiteCollapseContext = createContext({ version: 0, desiredOpen: true })
 import { TestCaseItem } from "../ui/test-case-item"
@@ -74,24 +75,15 @@ function SortableCaseRow({ tc, suiteId, deleteCase, selected, toggle }) {
     transition,
     opacity: isDragging ? 0.55 : 1,
   }
-  const handleKeyDown = (e) => {
-    if (e.key === "ArrowDown" || e.key === "j") {
-      e.preventDefault()
-      focusSiblingTreeitem(e.currentTarget, 1)
-    } else if (e.key === "ArrowUp" || e.key === "k") {
-      e.preventDefault()
-      focusSiblingTreeitem(e.currentTarget, -1)
-    } else if (e.key === "ArrowLeft" || e.key === "h") {
-      e.preventDefault()
+  const handleKeyDown = useTreeItemNav({
+    onCollapse: () => {
       const parent = document.querySelector(
         `[data-treeitem-kind="suite"][data-suite-id="${suiteId}"]`,
       )
       parent?.focus()
-    } else if (e.key === " " || e.key === "x") {
-      e.preventDefault()
-      toggle(tc.id)
-    }
-  }
+    },
+    onToggleSelect: () => toggle(tc.id),
+  })
   return (
     <li ref={setNodeRef} style={style}
       className={`flex items-center justify-between rounded px-2 py-1.5 hover:bg-gray-50 group transition-colors ${selected.has(tc.id) ? "bg-blue-50" : ""}`}>
@@ -429,14 +421,6 @@ function ChildSuites({ projectId, parentSuiteId }) {
   )
 }
 
-function focusSiblingTreeitem(current, delta) {
-  const items = Array.from(document.querySelectorAll('[role="treeitem"]'))
-  const idx = items.indexOf(current)
-  if (idx < 0) return
-  const target = items[idx + delta]
-  if (target) target.focus()
-}
-
 export function SuiteRow({ suite, projectId, dragHandleProps }) {
   const { version, desiredOpen } = useContext(SuiteCollapseContext)
   const [open, setOpen] = useState(desiredOpen)
@@ -449,25 +433,14 @@ export function SuiteRow({ suite, projectId, dragHandleProps }) {
   const deleteSuite = useDeleteSuite(projectId)
   const updateSuite = useUpdateSuite(projectId)
 
-  const handleKeyDown = (e) => {
-    if (e.target !== e.currentTarget) return
-    if (e.key === "ArrowRight" || e.key === "l") {
-      e.preventDefault()
-      if (!open) setOpen(true)
-    } else if (e.key === "ArrowLeft" || e.key === "h") {
-      e.preventDefault()
-      if (open) setOpen(false)
-    } else if (e.key === "ArrowDown" || e.key === "j") {
-      e.preventDefault()
-      focusSiblingTreeitem(e.currentTarget, 1)
-    } else if (e.key === "ArrowUp" || e.key === "k") {
-      e.preventDefault()
-      focusSiblingTreeitem(e.currentTarget, -1)
-    } else if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault()
-      setOpen(o => !o)
-    }
-  }
+  const toggleOpen = () => setOpen(o => !o)
+  const handleKeyDown = useTreeItemNav({
+    onCollapse: () => { if (open) setOpen(false) },
+    onExpand: () => { if (!open) setOpen(true) },
+    onActivate: toggleOpen,
+    onToggleSelect: toggleOpen,
+    ignoreUnlessSelfTarget: true,
+  })
 
   return (
     <div className="border rounded-lg overflow-hidden">

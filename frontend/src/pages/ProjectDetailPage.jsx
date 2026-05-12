@@ -29,6 +29,8 @@ const SHORTCUT_SECTIONS = [
       { keys: ["l", "→"], description: "Expand suite" },
       { keys: ["Home"], description: "Focus first item" },
       { keys: ["End"], description: "Focus last item" },
+      { keys: ["PgDn"], description: "Jump to next suite" },
+      { keys: ["PgUp"], description: "Jump to previous suite" },
       { keys: ["Enter"], description: "Open case / toggle suite" },
     ],
   },
@@ -137,9 +139,31 @@ export function ProjectDetailPage() {
     target.focus()
   }
 
+  const focusSuite = (delta) => {
+    const suites = Array.from(document.querySelectorAll('[data-treeitem-kind="suite"]'))
+    if (!suites.length) return
+    const active = document.activeElement
+    const currentIdx = suites.indexOf(active)
+    if (currentIdx >= 0) {
+      const target = suites[Math.max(0, Math.min(suites.length - 1, currentIdx + delta))]
+      target.focus()
+      return
+    }
+    const all = Array.from(document.querySelectorAll('[role="treeitem"]'))
+    const ai = all.indexOf(active)
+    if (ai < 0) {
+      suites[delta > 0 ? 0 : suites.length - 1].focus()
+      return
+    }
+    if (delta > 0) (suites.find(s => all.indexOf(s) > ai) ?? suites[suites.length - 1]).focus()
+    else ([...suites].reverse().find(s => all.indexOf(s) < ai) ?? suites[0]).focus()
+  }
+
   useKeyboardShortcuts({
     Home: () => focusTreeitem("first"),
     End: () => focusTreeitem("last"),
+    PageUp: () => focusSuite(-1),
+    PageDown: () => focusSuite(1),
     "+": expandAll,
     "-": collapseAll,
     "/": () => { searchRef.current?.focus(); searchRef.current?.select?.() },
