@@ -1,12 +1,13 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useRef } from "react"
 import { Link, useParams } from "react-router-dom"
-import { Plus, FolderOpen, PlayCircle, Clock, FileText, Search, ChevronsUpDown, ChevronsDownUp } from "lucide-react"
+import { Plus, FolderOpen, PlayCircle, Clock, FileText, Search, ChevronsUpDown, ChevronsDownUp, Keyboard } from "lucide-react"
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { useProject } from "../hooks/useProjects"
 import { useSuites, useSuitesAll, useCreateSuite, useSearchCases, useReorderProjectSuites } from "../hooks/useSuites"
 import { useDebounced } from "../hooks/useDebounced"
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { SearchInput } from "../components/ui/search-input"
@@ -14,8 +15,39 @@ import { PageHeader, PageBody } from "../components/ui/page-header"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog"
 import { EmptyState } from "../components/ui/empty-state"
 import { Skeleton, SkeletonList } from "../components/ui/skeleton"
+import { ShortcutsDialog } from "../components/ui/shortcuts-dialog"
 import { SuiteRow, SuiteCollapseContext } from "../components/project/SuiteRow"
 import { toast } from "sonner"
+
+const SHORTCUT_SECTIONS = [
+  {
+    title: "Navigation",
+    rows: [
+      { keys: ["j", "↓"], description: "Next item (suite or case)" },
+      { keys: ["k", "↑"], description: "Previous item" },
+      { keys: ["h", "←"], description: "Collapse suite / focus parent" },
+      { keys: ["l", "→"], description: "Expand suite" },
+      { keys: ["Home"], description: "Focus first item" },
+      { keys: ["End"], description: "Focus last item" },
+      { keys: ["Enter"], description: "Open case / toggle suite" },
+    ],
+  },
+  {
+    title: "Selection",
+    rows: [
+      { keys: ["Space", "x"], description: "Toggle case checkbox" },
+    ],
+  },
+  {
+    title: "Actions",
+    rows: [
+      { keys: ["+"], description: "Expand all suites" },
+      { keys: ["-"], description: "Collapse all suites" },
+      { keys: ["/"], description: "Focus search" },
+      { keys: ["?"], description: "Toggle this help" },
+    ],
+  },
+]
 
 function SortableSuite({ suite, projectId }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -95,6 +127,24 @@ export function ProjectDetailPage() {
   const [collapseState, setCollapseState] = useState({ version: 0, desiredOpen: true })
   const expandAll = () => setCollapseState(s => ({ version: s.version + 1, desiredOpen: true }))
   const collapseAll = () => setCollapseState(s => ({ version: s.version + 1, desiredOpen: false }))
+  const searchRef = useRef(null)
+  const [helpOpen, setHelpOpen] = useState(false)
+
+  const focusTreeitem = (which) => {
+    const items = document.querySelectorAll('[role="treeitem"]')
+    if (!items.length) return
+    const target = which === "first" ? items[0] : items[items.length - 1]
+    target.focus()
+  }
+
+  useKeyboardShortcuts({
+    Home: () => focusTreeitem("first"),
+    End: () => focusTreeitem("last"),
+    "+": expandAll,
+    "-": collapseAll,
+    "/": () => { searchRef.current?.focus(); searchRef.current?.select?.() },
+    "?": () => setHelpOpen(o => !o),
+  })
 
   if (isLoading) {
     return (
@@ -139,18 +189,21 @@ export function ProjectDetailPage() {
             <CreateSuiteDialog projectId={id} />
           </div>
           <div className="flex items-center gap-2">
-            <SearchInput value={search} onChange={setSearch}
-              placeholder="Search test cases by name or description…" className="flex-1" />
+            <SearchInput ref={searchRef} value={search} onChange={setSearch}
+              placeholder="Search test cases by name or description… (press / )" className="flex-1" />
             {!isSearching && suites.length > 0 && (
               <div className="flex gap-1 shrink-0">
-                <Button size="sm" variant="outline" onClick={expandAll} title="Expand all suites">
+                <Button size="sm" variant="outline" onClick={expandAll} title="Expand all suites (+)">
                   <ChevronsUpDown size={13} />
                 </Button>
-                <Button size="sm" variant="outline" onClick={collapseAll} title="Collapse all suites">
+                <Button size="sm" variant="outline" onClick={collapseAll} title="Collapse all suites (-)">
                   <ChevronsDownUp size={13} />
                 </Button>
               </div>
             )}
+            <Button size="sm" variant="ghost" onClick={() => setHelpOpen(true)} title="Keyboard shortcuts (?)">
+              <Keyboard size={14} />
+            </Button>
           </div>
         </div>
       </PageHeader>
@@ -243,6 +296,10 @@ export function ProjectDetailPage() {
           )}
         </div>
       </PageBody>
+
+      <ShortcutsDialog open={helpOpen} onOpenChange={setHelpOpen}
+        description="Navigate suites and test cases without the mouse."
+        sections={SHORTCUT_SECTIONS} />
     </>
   )
 }

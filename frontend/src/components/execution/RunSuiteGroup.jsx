@@ -1,7 +1,7 @@
 import { ChevronRight, FolderOpen } from "lucide-react"
 import { ResultCard } from "./ResultCard"
 
-export function RunSuiteGroup({ suiteId, groups, childrenOf, orderedResults, focusedResultId, setFocusedResultId, id, isAutomated }) {
+export function RunSuiteGroup({ suiteId, groups, childrenOf, orderedResults, focusedResultId, setFocusedResultId, id, isAutomated, focusedStepId = null }) {
   const { suite, items } = groups[suiteId]
   const children = childrenOf[suiteId] ?? []
 
@@ -20,7 +20,7 @@ export function RunSuiteGroup({ suiteId, groups, childrenOf, orderedResults, foc
               {children.map(childId => (
                 <RunSuiteGroup key={childId} suiteId={childId} groups={groups} childrenOf={childrenOf}
                   orderedResults={orderedResults} focusedResultId={focusedResultId} setFocusedResultId={setFocusedResultId}
-                  id={id} isAutomated={isAutomated} />
+                  id={id} isAutomated={isAutomated} focusedStepId={focusedStepId} />
               ))}
             </div>
           )}
@@ -30,6 +30,7 @@ export function RunSuiteGroup({ suiteId, groups, childrenOf, orderedResults, foc
               <ResultCard key={result.id} result={result} executionId={id} index={treeIdx} total={orderedResults.length}
                 isAutomated={isAutomated}
                 focused={result.id === focusedResultId}
+                focusedStepId={result.id === focusedResultId ? focusedStepId : null}
                 onFocus={() => setFocusedResultId(result.id)} />
             )
           })}

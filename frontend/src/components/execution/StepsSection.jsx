@@ -3,7 +3,7 @@ import { StepResultRow } from "./StepResultRow"
 const STEP_TYPE_LABEL = { setup: "Setup", action: null, teardown: "Teardown" }
 const STEP_TYPE_HEADER_COLOR = { setup: "text-blue-600 bg-blue-50", teardown: "text-orange-600 bg-orange-50" }
 
-export function StepsSection({ steps, stepResults, onUpdate, onSaveComment, isAutomated }) {
+export function StepsSection({ steps, stepResults, onUpdate, onSaveComment, isAutomated, focusedStepId = null }) {
   const byType = { setup: [], action: [], teardown: [] }
   steps.forEach(s => { (byType[s.step_type] ?? byType.action).push(s) })
 
@@ -25,7 +25,8 @@ export function StepsSection({ steps, stepResults, onUpdate, onSaveComment, isAu
                 const sr = stepResults.find(r => r.step_id === step.id)
                 return (
                   <StepResultRow key={step.id} step={step} stepResult={sr}
-                    onUpdate={onUpdate} onSaveComment={onSaveComment} isAutomated={isAutomated} />
+                    onUpdate={onUpdate} onSaveComment={onSaveComment} isAutomated={isAutomated}
+                    focused={step.id === focusedStepId} />
                 )
               })}
             </div>

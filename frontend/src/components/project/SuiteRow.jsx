@@ -66,13 +66,31 @@ function AddSubSuiteInline({ parentSuiteId, projectId, onDone }) {
   )
 }
 
-function SortableCaseRow({ tc, deleteCase, selected, toggle }) {
+function SortableCaseRow({ tc, suiteId, deleteCase, selected, toggle }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: tc.id, activationConstraint: { distance: 5 } })
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.55 : 1,
+  }
+  const handleKeyDown = (e) => {
+    if (e.key === "ArrowDown" || e.key === "j") {
+      e.preventDefault()
+      focusSiblingTreeitem(e.currentTarget, 1)
+    } else if (e.key === "ArrowUp" || e.key === "k") {
+      e.preventDefault()
+      focusSiblingTreeitem(e.currentTarget, -1)
+    } else if (e.key === "ArrowLeft" || e.key === "h") {
+      e.preventDefault()
+      const parent = document.querySelector(
+        `[data-treeitem-kind="suite"][data-suite-id="${suiteId}"]`,
+      )
+      parent?.focus()
+    } else if (e.key === " " || e.key === "x") {
+      e.preventDefault()
+      toggle(tc.id)
+    }
   }
   return (
     <li ref={setNodeRef} style={style}
@@ -87,7 +105,13 @@ function SortableCaseRow({ tc, deleteCase, selected, toggle }) {
           onChange={() => toggle(tc.id)}
           onClick={e => e.stopPropagation()}
           className="cursor-pointer" />
-        <Link to={`/cases/${tc.id}`} className="hover:text-gray-900 min-w-0">
+        <Link to={`/cases/${tc.id}`}
+          role="treeitem"
+          data-treeitem-kind="case"
+          data-suite-id={suiteId}
+          data-case-id={tc.id}
+          onKeyDown={handleKeyDown}
+          className="hover:text-gray-900 min-w-0 outline-none focus:ring-2 focus:ring-primary-300 rounded">
           <TestCaseItem tc={tc} />
         </Link>
       </div>
@@ -181,7 +205,7 @@ function CaseList({ suiteId }) {
         <SortableContext items={cases.map(c => c.id)} strategy={verticalListSortingStrategy}>
           <ul className="pl-4 space-y-0.5">
             {cases.map(tc => (
-              <SortableCaseRow key={tc.id} tc={tc} deleteCase={deleteCase}
+              <SortableCaseRow key={tc.id} tc={tc} suiteId={suiteId} deleteCase={deleteCase}
                 selected={selected} toggle={toggle} />
             ))}
           </ul>
@@ -427,16 +451,16 @@ export function SuiteRow({ suite, projectId, dragHandleProps }) {
 
   const handleKeyDown = (e) => {
     if (e.target !== e.currentTarget) return
-    if (e.key === "ArrowRight") {
+    if (e.key === "ArrowRight" || e.key === "l") {
       e.preventDefault()
       if (!open) setOpen(true)
-    } else if (e.key === "ArrowLeft") {
+    } else if (e.key === "ArrowLeft" || e.key === "h") {
       e.preventDefault()
       if (open) setOpen(false)
-    } else if (e.key === "ArrowDown") {
+    } else if (e.key === "ArrowDown" || e.key === "j") {
       e.preventDefault()
       focusSiblingTreeitem(e.currentTarget, 1)
-    } else if (e.key === "ArrowUp") {
+    } else if (e.key === "ArrowUp" || e.key === "k") {
       e.preventDefault()
       focusSiblingTreeitem(e.currentTarget, -1)
     } else if (e.key === "Enter" || e.key === " ") {
@@ -452,6 +476,8 @@ export function SuiteRow({ suite, projectId, dragHandleProps }) {
         tabIndex={0}
         aria-expanded={open}
         aria-label={suite.name}
+        data-treeitem-kind="suite"
+        data-suite-id={suite.id}
         onKeyDown={handleKeyDown}
         onClick={() => setOpen(o => !o)}>
         <div className="flex items-center gap-2 font-medium text-sm text-gray-800 flex-1 min-w-0">

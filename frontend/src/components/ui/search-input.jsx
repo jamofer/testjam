@@ -1,11 +1,16 @@
+import { forwardRef } from "react"
 import { Search, X } from "lucide-react"
 import { cn } from "../../lib/utils"
 
-export function SearchInput({ value, onChange, placeholder = "Search…", className, autoFocus, ...props }) {
+export const SearchInput = forwardRef(function SearchInput(
+  { value, onChange, placeholder = "Search…", className, autoFocus, ...props },
+  ref,
+) {
   return (
     <div className={cn("relative", className)}>
       <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
       <input
+        ref={ref}
         type="search"
         autoFocus={autoFocus}
         placeholder={placeholder}
@@ -26,4 +31,4 @@ export function SearchInput({ value, onChange, placeholder = "Search…", classN
       )}
     </div>
   )
-}
+})

@@ -8,16 +8,18 @@ import { useExecutionLive } from "../hooks/useExecutionLive"
 import { executionsApi } from "../api/executions"
 import { useExportExecution } from "../hooks/useExportExecution"
 import { useProject } from "../hooks/useProjects"
-import { useSuitesAll } from "../hooks/useSuites"
+import { useSuitesAll, useCase } from "../hooks/useSuites"
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts"
 import { useSwipe } from "../hooks/useSwipe"
 import { PageHeader, PageBody } from "../components/ui/page-header"
 import { Button } from "../components/ui/button"
 import { LiveIndicator } from "../components/ui/live-indicator"
 import { Skeleton, SkeletonList } from "../components/ui/skeleton"
-import { ResultCard } from "../components/execution/ResultCard"
+import { ResultCard, ResultExpandContext } from "../components/execution/ResultCard"
 import { RunSuiteGroup } from "../components/execution/RunSuiteGroup"
 import { ShortcutHelpDialog, SHORTCUT_TO_STATUS } from "../components/execution/ShortcutHelpDialog"
+
+const STATUS_FILTER_KEY = { F: "failed", B: "blocked", U: "not_run" }
 import { mapSuiteByCase } from "../components/ui/test-case-item"
 import { fmtDuration, fmtDateTime } from "../lib/format"
 import { ContextPanel } from "../components/ui/context-panel"
@@ -118,8 +120,10 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
   const { data: allSuites = [] } = useSuitesAll(execution.project_id)
   const updateResult = useUpdateResult(id)
   const [focusedResultId, setFocusedResultId] = useState(null)
+  const [focusedStepId, setFocusedStepId] = useState(null)
   const [helpOpen, setHelpOpen] = useState(false)
   const [followLive, setFollowLive] = useState(true)
+  const [expandState, setExpandState] = useState({ version: 0, desiredOpen: null })
   const isAutomated = execution.type === "automatic"
 
   const suiteByCase = useMemo(() => mapSuiteByCase(allSuites), [allSuites])
@@ -206,6 +210,10 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
   }
 
   const focused = orderedResults.find(r => r.id === focusedResultId) ?? null
+  const { data: focusedCase } = useCase(focused?.test_case_id)
+  const focusedSteps = focusedCase?.steps ?? []
+
+  useEffect(() => { setFocusedStepId(null) }, [focusedResultId])
 
   const stepBy = (delta) => {
     const idx = orderedResults.findIndex(r => r.id === focusedResultId)
@@ -217,6 +225,48 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
     if (target) setFocusedResultId(target.id)
   }
 
+  const focusResult = (which) => {
+    if (orderedResults.length === 0) return
+    setFocusedResultId(which === "first"
+      ? orderedResults[0].id
+      : orderedResults[orderedResults.length - 1].id)
+  }
+
+  const stepNav = (delta) => {
+    if (focusedSteps.length === 0) return
+    const idx = focusedSteps.findIndex(s => s.id === focusedStepId)
+    if (idx < 0) {
+      setFocusedStepId(delta > 0 ? focusedSteps[0].id : focusedSteps[focusedSteps.length - 1].id)
+      return
+    }
+    const next = focusedSteps[Math.max(0, Math.min(focusedSteps.length - 1, idx + delta))]
+    if (next) setFocusedStepId(next.id)
+  }
+
+  const jumpToStatus = (status) => {
+    if (orderedResults.length === 0) return
+    const startIdx = orderedResults.findIndex(r => r.id === focusedResultId)
+    const total = orderedResults.length
+    for (let offset = 1; offset <= total; offset += 1) {
+      const target = orderedResults[(startIdx + offset + total) % total]
+      if (target.status === status) {
+        setFocusedResultId(target.id)
+        return
+      }
+    }
+  }
+
+  const toggleFocusedExpand = () => {
+    if (focusedResultId == null) return
+    const card = document.querySelector(`[data-result-id="${focusedResultId}"]`)
+    card?.dispatchEvent(new CustomEvent("result-toggle"))
+  }
+
+  const expandAllResults = () =>
+    setExpandState(s => ({ version: s.version + 1, desiredOpen: true }))
+  const collapseAllResults = () =>
+    setExpandState(s => ({ version: s.version + 1, desiredOpen: false }))
+
   const swipe = useSwipe({
     onSwipeLeft: () => stepBy(1),
     onSwipeRight: () => stepBy(-1),
@@ -227,8 +277,19 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
     ArrowDown: () => stepBy(1),
     k: () => stepBy(-1),
     ArrowUp: () => stepBy(-1),
+    J: () => stepNav(1),
+    K: () => stepNav(-1),
+    Home: () => focusResult("first"),
+    End: () => focusResult("last"),
+    F: () => jumpToStatus("failed"),
+    B: () => jumpToStatus("blocked"),
+    U: () => jumpToStatus("not_run"),
+    o: toggleFocusedExpand,
+    "+": expandAllResults,
+    "-": collapseAllResults,
+    L: () => setFollowLive(v => !v),
+    r: resumeFollowLive,
     "?": () => setHelpOpen(o => !o),
-    Escape: () => setHelpOpen(false),
     ...(isAutomated ? {} : Object.fromEntries(
       Object.entries(SHORTCUT_TO_STATUS).map(([key, status]) => [
         key,
@@ -242,7 +303,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
         },
       ])
     )),
-  }, { enabled: orderedResults.length > 0, allowWhileTyping: ["Escape"] })
+  }, { enabled: orderedResults.length > 0 })
 
   const contextSections = [
     {
@@ -344,32 +405,36 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
       <PageBody>
         <div className="flex gap-6" {...swipe}>
           <div className="flex-1 min-w-0 max-w-2xl space-y-4">
-            <div className="space-y-2">
-              {topLevelIds.map(suiteId => (
-                <RunSuiteGroup key={suiteId} suiteId={suiteId} groups={groups} childrenOf={childrenOf}
-                  orderedResults={orderedResults} focusedResultId={focusedResultId} setFocusedResultId={setFocusedResultId}
-                  id={id} isAutomated={isAutomated} />
-              ))}
-              {groups[0] && (
-                <div className="space-y-2">
-                  {groups[0].items.map(result => {
-                    const treeIdx = orderedResults.findIndex(r => r.id === result.id)
-                    return (
-                      <ResultCard key={result.id} result={result} executionId={id} index={treeIdx} total={orderedResults.length}
-                        isAutomated={isAutomated}
-                        focused={result.id === focusedResultId}
-                        onFocus={() => setFocusedResultId(result.id)} />
-                    )
-                  })}
-                </div>
-              )}
-              {topLevelIds.length === 0 && !groups[0] && orderedResults.map((result, treeIdx) => (
-                <ResultCard key={result.id} result={result} executionId={id} index={treeIdx} total={orderedResults.length}
-                  isAutomated={isAutomated}
-                  focused={result.id === focusedResultId}
-                  onFocus={() => setFocusedResultId(result.id)} />
-              ))}
-            </div>
+            <ResultExpandContext.Provider value={expandState}>
+              <div className="space-y-2">
+                {topLevelIds.map(suiteId => (
+                  <RunSuiteGroup key={suiteId} suiteId={suiteId} groups={groups} childrenOf={childrenOf}
+                    orderedResults={orderedResults} focusedResultId={focusedResultId} setFocusedResultId={setFocusedResultId}
+                    id={id} isAutomated={isAutomated} focusedStepId={focusedStepId} />
+                ))}
+                {groups[0] && (
+                  <div className="space-y-2">
+                    {groups[0].items.map(result => {
+                      const treeIdx = orderedResults.findIndex(r => r.id === result.id)
+                      return (
+                        <ResultCard key={result.id} result={result} executionId={id} index={treeIdx} total={orderedResults.length}
+                          isAutomated={isAutomated}
+                          focused={result.id === focusedResultId}
+                          focusedStepId={result.id === focusedResultId ? focusedStepId : null}
+                          onFocus={() => setFocusedResultId(result.id)} />
+                      )
+                    })}
+                  </div>
+                )}
+                {topLevelIds.length === 0 && !groups[0] && orderedResults.map((result, treeIdx) => (
+                  <ResultCard key={result.id} result={result} executionId={id} index={treeIdx} total={orderedResults.length}
+                    isAutomated={isAutomated}
+                    focused={result.id === focusedResultId}
+                    focusedStepId={result.id === focusedResultId ? focusedStepId : null}
+                    onFocus={() => setFocusedResultId(result.id)} />
+                ))}
+              </div>
+            </ResultExpandContext.Provider>
           </div>
           <ContextPanel sections={contextSections} />
         </div>

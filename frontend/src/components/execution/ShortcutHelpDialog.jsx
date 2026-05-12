@@ -1,39 +1,56 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../ui/dialog"
+import { ShortcutsDialog } from "../ui/shortcuts-dialog"
 import { STATUS_CONFIG } from "../../lib/statusConfig"
 
 export const SHORTCUT_TO_STATUS = { p: "passed", f: "failed", b: "blocked", n: "not_run" }
 
-function ShortcutRow({ keys, description }) {
-  return (
-    <div className="flex items-center justify-between">
-      <div className="flex gap-1">
-        {keys.map(k => (
-          <kbd key={k} className="px-2 py-0.5 text-xs font-mono bg-gray-100 border border-gray-300 rounded">{k}</kbd>
-        ))}
-      </div>
-      <span className="text-gray-600">{description}</span>
-    </div>
-  )
+const NAV_ROWS = [
+  { keys: ["j", "↓"], description: "Next result" },
+  { keys: ["k", "↑"], description: "Previous result" },
+  { keys: ["Shift+J"], description: "Next step in focused result" },
+  { keys: ["Shift+K"], description: "Previous step" },
+  { keys: ["Home"], description: "First result" },
+  { keys: ["End"], description: "Last result" },
+]
+
+const FILTER_ROWS = [
+  { keys: ["F"], description: "Jump to next failed" },
+  { keys: ["B"], description: "Jump to next blocked" },
+  { keys: ["U"], description: "Jump to next not run" },
+]
+
+const VIEW_ROWS = [
+  { keys: ["o"], description: "Toggle expand focused result" },
+  { keys: ["+"], description: "Expand all results" },
+  { keys: ["-"], description: "Collapse all results" },
+  { keys: ["L"], description: "Toggle follow-live" },
+  { keys: ["r"], description: "Resume follow-live" },
+]
+
+const HELP_ROWS = [
+  { keys: ["?"], description: "Toggle this help" },
+]
+
+function statusRows() {
+  return Object.entries(SHORTCUT_TO_STATUS).map(([key, status]) => ({
+    keys: [key],
+    description: `Mark result as ${STATUS_CONFIG[status].label}`,
+  }))
 }
 
 export function ShortcutHelpDialog({ open, onOpenChange, isAutomated }) {
+  const sections = [
+    { title: "Navigation", rows: NAV_ROWS },
+    { title: "Filter", rows: FILTER_ROWS },
+    { title: "View", rows: VIEW_ROWS },
+    ...(isAutomated ? [] : [{ title: "Set status", rows: statusRows() }]),
+    { title: "Help", rows: HELP_ROWS },
+  ]
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Keyboard shortcuts</DialogTitle>
-          <DialogDescription>Navigate and update results without the mouse.</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-2 text-sm">
-          <ShortcutRow keys={["j", "↓"]} description="Focus next result" />
-          <ShortcutRow keys={["k", "↑"]} description="Focus previous result" />
-          {!isAutomated && Object.entries(SHORTCUT_TO_STATUS).map(([key, status]) => (
-            <ShortcutRow key={key} keys={[key]} description={`Mark as ${STATUS_CONFIG[status].label}`} />
-          ))}
-          <ShortcutRow keys={["?"]} description="Toggle this help" />
-          <ShortcutRow keys={["Esc"]} description="Close this help" />
-        </div>
-      </DialogContent>
-    </Dialog>
+    <ShortcutsDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      description="Navigate and update results without the mouse."
+      sections={sections}
+    />
   )
 }

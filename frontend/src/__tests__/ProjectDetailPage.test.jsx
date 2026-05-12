@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import { render, screen, fireEvent } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { MemoryRouter, Route, Routes } from "react-router-dom"
 import { ProjectDetailPage } from "../pages/ProjectDetailPage"
@@ -97,5 +97,26 @@ describe("ProjectDetailPage search", () => {
     expect(await screen.findByText("Edge case")).toBeInTheDocument()
     expect(screen.getByText("Suite A")).toBeInTheDocument()
     expect(screen.getByText("Sub Suite")).toBeInTheDocument()
+  })
+})
+
+describe("ProjectDetailPage shortcuts", () => {
+  it("opens the shortcuts help dialog on '?'", async () => {
+    setup()
+    await screen.findByTestId("suite-1")
+
+    fireEvent.keyDown(window, { key: "?" })
+
+    expect(await screen.findByText(/keyboard shortcuts/i)).toBeInTheDocument()
+  })
+
+  it("focuses the search input on '/'", async () => {
+    setup()
+    const input = await screen.findByPlaceholderText(/search test cases/i)
+    expect(document.activeElement).not.toBe(input)
+
+    fireEvent.keyDown(window, { key: "/" })
+
+    expect(document.activeElement).toBe(input)
   })
 })

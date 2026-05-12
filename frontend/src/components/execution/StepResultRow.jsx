@@ -4,7 +4,7 @@ import { MdViewer } from "../MdEditor"
 import { STATUS_CONFIG } from "../../lib/statusConfig"
 import { fmtDuration } from "../../lib/format"
 
-export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAutomated }) {
+export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAutomated, focused = false }) {
   const [localStatus, setLocalStatus] = useState(stepResult?.status ?? "not_run")
   const [comment, setComment] = useState(stepResult?.comment ?? "")
   const [editComment, setEditComment] = useState(false)
@@ -27,6 +27,12 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
       rowRef.current.scrollIntoView({ block: "center", behavior: "smooth" })
     }
   }, [stepResult?.status])
+
+  useEffect(() => {
+    if (focused && rowRef.current) {
+      rowRef.current.scrollIntoView({ block: "nearest", behavior: "smooth" })
+    }
+  }, [focused])
 
   useEffect(() => {
     if (!showLog || !logRef.current) return
@@ -53,7 +59,8 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
   }
 
   return (
-    <div ref={rowRef} className={`border rounded-lg overflow-hidden ${config.bg}`}>
+    <div ref={rowRef} data-step-id={step.id}
+      className={`relative border rounded-lg overflow-hidden ${config.bg} ${focused ? "ring-2 ring-red-400" : ""}`}>
       <div className="flex items-start gap-3 p-3">
         <span className="text-xs font-mono text-gray-400 mt-0.5 w-5 shrink-0">{step.order}.</span>
         <div className="flex-1 min-w-0">

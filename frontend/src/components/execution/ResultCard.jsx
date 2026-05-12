@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useContext, createContext } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { ChevronDown, ChevronRight, Trash2, Copy, ExternalLink, Upload, Clock } from "lucide-react"
 import { useCase } from "../../hooks/useSuites"
@@ -14,7 +14,9 @@ import { toast } from "sonner"
 
 const KEEP_OPEN_STATUSES = new Set(["running", "failed", "blocked"])
 
-export function ResultCard({ result, executionId, index, total, isAutomated, focused = false, onFocus }) {
+export const ResultExpandContext = createContext({ version: 0, desiredOpen: null })
+
+export function ResultCard({ result, executionId, index, total, isAutomated, focused = false, onFocus, focusedStepId = null }) {
   const { data: tc } = useCase(result.test_case_id)
   const [open, setOpen] = useState(index === 0 || KEEP_OPEN_STATUSES.has(result.status))
   const [comment, setComment] = useState(result.comment ?? "")
@@ -43,6 +45,21 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
       cardRef.current.scrollIntoView({ block: "center", behavior: "smooth" })
     }
   }, [focused])
+
+  const expandContext = useContext(ResultExpandContext)
+  useEffect(() => {
+    if (expandContext.version > 0 && expandContext.desiredOpen != null) {
+      setOpen(expandContext.desiredOpen)
+    }
+  }, [expandContext.version, expandContext.desiredOpen])
+
+  useEffect(() => {
+    const card = cardRef.current
+    if (!card) return undefined
+    const handler = () => setOpen(o => !o)
+    card.addEventListener("result-toggle", handler)
+    return () => card.removeEventListener("result-toggle", handler)
+  }, [])
 
   const config = STATUS_CONFIG[localStatus]
   const Icon = config.icon
@@ -184,6 +201,7 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
                 onUpdate={updateStepResult}
                 onSaveComment={saveStepComment}
                 isAutomated={isAutomated}
+                focusedStepId={focused ? focusedStepId : null}
               />
             </div>
           )}
