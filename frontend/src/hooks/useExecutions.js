@@ -30,6 +30,14 @@ export function useCreateExecution(projectId) {
   })
 }
 
+export function useDeleteExecution(projectId) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id) => executionsApi.delete(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['executions', projectId] }),
+  })
+}
+
 export function useExecutionResults(executionId) {
   return useQuery({
     queryKey: ['results', executionId],

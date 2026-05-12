@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react"
 import { useParams, Link } from "react-router-dom"
-import { PlayCircle, CheckCircle2, XCircle, MinusCircle, Plus, Clock, Search, User, Download } from "lucide-react"
-import { useExecutions } from "../hooks/useExecutions"
+import { PlayCircle, CheckCircle2, XCircle, MinusCircle, Plus, Clock, Search, User, Download, Trash2 } from "lucide-react"
+import { toast } from "sonner"
+import { useExecutions, useDeleteExecution } from "../hooks/useExecutions"
 import { useProject } from "../hooks/useProjects"
 import { useMe } from "../hooks/useAuth"
 import { useDebounced } from "../hooks/useDebounced"
@@ -48,9 +49,20 @@ export function ExecutionsPage() {
   const { data: project } = useProject(projectId)
   const { data: me } = useMe()
   const { connected: live } = useProjectExecutionsLive(projectId, { enabled: !!me })
+  const deleteExecution = useDeleteExecution(projectId)
   const [search, setSearch] = useState("")
   const [mineOnly, setMineOnly] = useState(false)
   const debouncedSearch = useDebounced(search, 150)
+
+  const handleDelete = async (ex) => {
+    if (!confirm(`Delete execution "${ex.title}"? This cannot be undone.`)) return
+    try {
+      await deleteExecution.mutateAsync(ex.id)
+      toast.success("Execution deleted")
+    } catch {
+      toast.error("Failed to delete execution")
+    }
+  }
 
   const executions = useMemo(() => (data?.pages ?? []).flat(), [data])
   const hasFiltersActive = statusFilter !== "all" || debouncedSearch.trim() !== "" || mineOnly
@@ -132,6 +144,14 @@ export function ExecutionsPage() {
                   title="Download HTML report"
                 >
                   <Download size={13} />
+                </button>
+                <button
+                  onClick={() => handleDelete(ex)}
+                  className="text-gray-400 hover:text-red-600 p-1 rounded hover:bg-red-50"
+                  title="Delete execution"
+                  disabled={deleteExecution.isPending}
+                >
+                  <Trash2 size={13} />
                 </button>
               </div>
             </div>
