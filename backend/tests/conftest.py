@@ -15,9 +15,13 @@ from sqlalchemy.pool import StaticPool
 from testjam import database as testjam_database
 from testjam import main as testjam_main
 from testjam.auth.security import hash_password
+from testjam.core.rate_limit import limiter
 from testjam.database import Base, get_db
 from testjam.main import app
 from testjam.models.user import User
+
+# Disable rate limiting globally; tests that exercise it re-enable in scope.
+limiter.enabled = False
 
 TEST_DB_URL = "sqlite:///:memory:"
 engine = create_engine(
