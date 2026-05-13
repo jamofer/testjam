@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useLogin } from '../hooks/useAuth'
 import { Logo } from '../components/ui/logo'
 import { loginErrorMessage } from '../lib/auth-errors'
@@ -58,6 +58,11 @@ export function LoginPage() {
         >
           {login.isPending ? 'Signing in…' : 'Sign in'}
         </button>
+        <p className="text-center text-sm">
+          <Link to="/forgot-password" className="text-gray-600 hover:text-gray-800">
+            Forgot your password?
+          </Link>
+        </p>
       </form>
     </div>
   )

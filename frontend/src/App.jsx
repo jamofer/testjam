@@ -7,6 +7,8 @@ import { AppLayout } from "./components/layout/AppLayout"
 import { AuthRedirector } from "./components/AuthRedirector"
 
 const LoginPage = lazy(() => import("./pages/LoginPage").then(m => ({ default: m.LoginPage })))
+const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage").then(m => ({ default: m.ForgotPasswordPage })))
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage").then(m => ({ default: m.ResetPasswordPage })))
 const ProjectsPage = lazy(() => import("./pages/ProjectsPage").then(m => ({ default: m.ProjectsPage })))
 const ProjectDetailPage = lazy(() => import("./pages/ProjectDetailPage").then(m => ({ default: m.ProjectDetailPage })))
 const TestCasePage = lazy(() => import("./pages/TestCasePage").then(m => ({ default: m.TestCasePage })))
@@ -49,6 +51,8 @@ export default function App() {
         <Suspense fallback={null}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route element={<AppLayout />}>
               <Route index element={<Navigate to="/projects" replace />} />
               <Route path="/projects" element={<ProjectsPage />} />
