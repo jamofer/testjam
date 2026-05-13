@@ -12,7 +12,7 @@ from testjam.core.middleware import SecurityHeadersMiddleware
 from testjam.core.rate_limit import limiter
 from testjam.database import SessionLocal
 from testjam.realtime import set_main_loop
-from testjam.routers import auth, users, groups, projects, suites, cases, testplans, executions, versions, members, tokens, notifications, notification_preferences, settings as settings_router, ws
+from testjam.routers import auth, users, groups, projects, suites, cases, testplans, executions, versions, members, tokens, notifications, notification_preferences, settings as settings_router, ws, health
 from testjam.services.log_flusher import configure_from_settings as configure_log_flusher
 from testjam.services.settings import get_settings as get_app_settings
 
@@ -67,5 +67,6 @@ app.include_router(notifications.router, prefix=settings.API_V1_PREFIX)
 app.include_router(notification_preferences.router, prefix=settings.API_V1_PREFIX)
 app.include_router(settings_router.router, prefix=settings.API_V1_PREFIX)
 app.include_router(ws.router, prefix=settings.API_V1_PREFIX)
+app.include_router(health.router)
 
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)

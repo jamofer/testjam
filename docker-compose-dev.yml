@@ -33,7 +33,7 @@ services:
     command: >
       sh -c "alembic upgrade head && uvicorn testjam.main:app --host 0.0.0.0 --port 8000 --reload"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/docs')"]
+      test: ["CMD", "python", "/app/scripts/healthcheck.py"]
       interval: 10s
       timeout: 5s
       retries: 6

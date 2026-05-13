@@ -30,6 +30,7 @@ from testjam_e2e.keywords import (
     CaseRevisionsMixin,
     CaseSearchMixin,
     CleanupMixin,
+    HealthMixin,
     ListenerRunnerMixin,
     BrowserMixin,
     AuthUIMixin,
@@ -78,6 +79,7 @@ class TestjamLibrary(
     CaseRevisionsMixin,
     CaseSearchMixin,
     CleanupMixin,
+    HealthMixin,
     ListenerRunnerMixin,
     BrowserMixin,
     AuthUIMixin,
@@ -121,5 +123,6 @@ class TestjamLibrary(
         self.last_bulk_response: dict | None = None
         self.last_download: dict | None = None
         self.last_case_search: list | None = None
+        self.last_health_payload: dict | None = None
         self.listener_project_name: str | None = None
         self.frontend_url: str = os.getenv("TESTJAM_FRONTEND_URL", "http://localhost:5173").rstrip("/")

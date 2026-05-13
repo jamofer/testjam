@@ -24,6 +24,7 @@ from testjam_e2e.keywords.case_step_reorder import CaseStepReorderMixin
 from testjam_e2e.keywords.case_revisions import CaseRevisionsMixin
 from testjam_e2e.keywords.case_search import CaseSearchMixin
 from testjam_e2e.keywords.cleanup import CleanupMixin
+from testjam_e2e.keywords.health import HealthMixin
 from testjam_e2e.keywords.listener_runner import ListenerRunnerMixin
 from testjam_e2e.keywords.ui import (
     AuthUIMixin,
@@ -71,6 +72,7 @@ __all__ = [
     "CaseRevisionsMixin",
     "CaseSearchMixin",
     "CleanupMixin",
+    "HealthMixin",
     "ListenerRunnerMixin",
     "BrowserMixin",
     "AuthUIMixin",

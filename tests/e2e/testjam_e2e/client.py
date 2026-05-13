@@ -48,7 +48,15 @@ class HttpClient:
     def delete(self, path: str, **kwargs) -> requests.Response:
         return self.session.delete(self._url(path), **kwargs)
 
+    def get_root(self, path: str, **kwargs) -> requests.Response:
+        """GET a path off the API host without the /api/v1 prefix."""
+        return self.session.get(f"{self._root_origin()}{path}", **kwargs)
+
     # ── Internal ──────────────────────────────────────────────────────────────
 
     def _url(self, path: str) -> str:
         return f"{self.base_url}{path}"
+
+    def _root_origin(self) -> str:
+        without_prefix = self.base_url.removesuffix("/api/v1")
+        return without_prefix or self.base_url

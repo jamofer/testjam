@@ -28,6 +28,11 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "/app/scripts/healthcheck.py"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
 
   web:
     build:
