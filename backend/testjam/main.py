@@ -8,8 +8,11 @@ from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 
 from testjam.core.config import settings
+from testjam.core.logging import RequestContextMiddleware, configure_logging
 from testjam.core.middleware import SecurityHeadersMiddleware
 from testjam.core.rate_limit import limiter
+
+configure_logging()
 from testjam.database import SessionLocal
 from testjam.realtime import set_main_loop
 from testjam.routers import auth, users, groups, projects, suites, cases, testplans, executions, versions, members, tokens, notifications, notification_preferences, settings as settings_router, ws, health
@@ -43,6 +46,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RequestContextMiddleware)
 
 app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
 app.include_router(users.router, prefix=settings.API_V1_PREFIX)

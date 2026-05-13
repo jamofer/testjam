@@ -6,6 +6,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, APIKeyHea
 from sqlalchemy.orm import Session
 
 from testjam.auth.security import decode_token
+from testjam.core.logging import set_current_user_id
 from testjam.database import get_db
 from testjam.models.token import ApiToken
 from testjam.models.user import User
@@ -33,7 +34,7 @@ def get_auth_context(
         if username:
             user = db.query(User).filter(User.username == username, User.is_active == True).first()
             if user:
-                return AuthContext(user=user)
+                return _build_context(user)
 
     if api_key:
         token_hash = ApiToken.hash(api_key)
@@ -44,11 +45,11 @@ def get_auth_context(
             uid = token.user_id if token.user_id else token.created_by
             user = db.get(User, uid)
             if user and user.is_active:
-                return AuthContext(user=user, project_scope=token.project_id, token_name=token.name)
+                return _build_context(user, project_scope=token.project_id, token_name=token.name)
         # Fallback: legacy api_key field on User
         user = db.query(User).filter(User.api_key == api_key, User.is_active == True).first()
         if user:
-            return AuthContext(user=user)
+            return _build_context(user)
 
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
@@ -86,6 +87,15 @@ def require_project_access(id: int, ctx: AuthContext = Depends(get_auth_context)
             detail="API token is not authorized for this project",
         )
     return ctx.user
+
+
+def _build_context(
+    user: User,
+    project_scope: int | None = None,
+    token_name: str | None = None,
+) -> AuthContext:
+    set_current_user_id(user.id)
+    return AuthContext(user=user, project_scope=project_scope, token_name=token_name)
 
 
 def _is_token_expired(token: ApiToken) -> bool:
