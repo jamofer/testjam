@@ -1,7 +1,8 @@
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { UserPlus, Trash2, Users, Shield } from "lucide-react"
+import { UserPlus, Trash2, Users, Shield, RotateCcw } from "lucide-react"
 import { api } from "../api/client"
+import { usersApi } from "../api/users"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
@@ -10,18 +11,260 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs"
 import { toast } from "sonner"
 
-const usersApi = {
-  list: () => api.get("/users").then(r => r.data),
-  create: (data) => api.post("/users", data).then(r => r.data),
-  delete: (id) => api.delete(`/users/${id}`),
-}
-
 const groupsApi = {
   list: () => api.get("/groups").then(r => r.data),
   create: (data) => api.post("/groups", data).then(r => r.data),
   delete: (id) => api.delete(`/groups/${id}`),
   addMember: (groupId, userId, role) => api.post(`/groups/${groupId}/members`, null, { params: { user_id: userId, role } }),
   removeMember: (groupId, userId) => api.delete(`/groups/${groupId}/members/${userId}`),
+}
+
+export function UsersPage() {
+  const qc = useQueryClient()
+  const [includeDeleted, setIncludeDeleted] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState(null)
+
+  const { data: users = [] } = useQuery({
+    queryKey: ["users", { includeDeleted }],
+    queryFn: () => usersApi.list({ includeDeleted }),
+  })
+  const { data: groups = [] } = useQuery({ queryKey: ["groups"], queryFn: groupsApi.list })
+
+  const restoreUser = useMutation({
+    mutationFn: usersApi.restore,
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["users"] }); toast.success("User restored") },
+    onError: () => toast.error("Failed to restore user"),
+  })
+
+  const deleteGroup = useMutation({
+    mutationFn: groupsApi.delete,
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["groups"] }); toast.success("Group deleted") },
+  })
+
+  const handleDeleted = () => {
+    qc.invalidateQueries({ queryKey: ["users"] })
+    setPendingDelete(null)
+  }
+
+  return (
+    <div className="pl-14 pr-4 py-4 md:p-8 max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-6">
+      <h1 className="text-2xl font-bold text-gray-800">Users & Groups</h1>
+
+      <Tabs defaultValue="users">
+        <TabsList>
+          <TabsTrigger value="users"><Users size={13} className="mr-1" /> Users ({users.length})</TabsTrigger>
+          <TabsTrigger value="groups"><Shield size={13} className="mr-1" /> Groups ({groups.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="users">
+          <div className="flex items-center justify-between mb-3">
+            <label className="flex items-center gap-2 text-sm text-gray-600">
+              <input type="checkbox" checked={includeDeleted} onChange={e => setIncludeDeleted(e.target.checked)} />
+              Show deleted
+            </label>
+            <CreateUserDialog />
+          </div>
+          <ul className="space-y-2">
+            {users.map(u => (
+              <UserRow
+                key={u.id}
+                user={u}
+                onDeleteRequest={() => setPendingDelete(u)}
+                onRestore={() => restoreUser.mutate(u.id)}
+              />
+            ))}
+          </ul>
+        </TabsContent>
+
+        <TabsContent value="groups">
+          <div className="flex justify-end mb-3"><CreateGroupDialog /></div>
+          <ul className="space-y-2">
+            {groups.map(g => (
+              <li key={g.id} className="flex items-center justify-between bg-white border rounded-lg px-4 py-3 shadow-sm">
+                <div>
+                  <p className="font-medium text-gray-800">{g.name}</p>
+                  <p className="text-xs text-gray-400">{g.members?.length ?? 0} members</p>
+                </div>
+                <Button size="icon" variant="ghost" onClick={() => deleteGroup.mutate(g.id)}>
+                  <Trash2 size={14} />
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </TabsContent>
+      </Tabs>
+
+      {pendingDelete && (
+        <DeleteUserDialog
+          user={pendingDelete}
+          allUsers={users}
+          onCancel={() => setPendingDelete(null)}
+          onDeleted={handleDeleted}
+        />
+      )}
+    </div>
+  )
+}
+
+function UserRow({ user, onDeleteRequest, onRestore }) {
+  const isDeleted = !!user.deleted_at
+  return (
+    <li className="flex items-center justify-between bg-white border rounded-lg px-4 py-3 shadow-sm">
+      <div>
+        <p className="font-medium text-gray-800">{user.username}</p>
+        <p className="text-xs text-gray-400">{user.email}</p>
+      </div>
+      <div className="flex items-center gap-2">
+        {isDeleted ? (
+          <>
+            <Badge variant="secondary">DELETED</Badge>
+            <Button size="sm" variant="outline" onClick={onRestore}>
+              <RotateCcw size={12} /> Restore
+            </Button>
+          </>
+        ) : (
+          <>
+            <Badge variant={user.is_active ? "success" : "secondary"}>
+              {user.is_active ? "active" : "inactive"}
+            </Badge>
+            <Button size="icon" variant="ghost" onClick={onDeleteRequest}>
+              <Trash2 size={14} />
+            </Button>
+          </>
+        )}
+      </div>
+    </li>
+  )
+}
+
+function DeleteUserDialog({ user, allUsers, onCancel, onDeleted }) {
+  const [unresolved, setUnresolved] = useState(null)
+  const [actions, setActions] = useState({})
+
+  const candidates = useMemo(
+    () => Object.fromEntries(allUsers.map(u => [u.id, u.username])),
+    [allUsers],
+  )
+
+  const deleteMutation = useMutation({
+    mutationFn: (body) => usersApi.delete(user.id, body),
+    onSuccess: () => {
+      toast.success("User deleted")
+      onDeleted()
+    },
+    onError: (error) => {
+      const detail = error?.response?.data?.detail
+      if (error?.response?.status === 409 && detail?.owned_projects) {
+        setUnresolved(detail.owned_projects)
+        setActions(initialActions(detail.owned_projects))
+      } else {
+        toast.error("Failed to delete user")
+        onCancel()
+      }
+    },
+  })
+
+  useEffect(() => {
+    deleteMutation.mutate({})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.id])
+
+  if (unresolved === null) {
+    return null
+  }
+
+  const submit = () => {
+    const owned_projects = Object.entries(actions).map(([projectId, spec]) => ({
+      project_id: Number(projectId),
+      action: spec.action,
+      new_owner_id: spec.action === "reassign" ? spec.new_owner_id : null,
+    }))
+    deleteMutation.mutate({ owned_projects })
+  }
+
+  const allResolved = Object.values(actions).every(
+    spec => spec.action === "archive" || (spec.action === "reassign" && spec.new_owner_id),
+  )
+
+  return (
+    <Dialog open onOpenChange={(open) => { if (!open) onCancel() }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete user "{user.username}"</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-gray-600">
+          This user uniquely owns the projects below. Choose what to do with each one.
+        </p>
+        <div className="space-y-3">
+          {unresolved.map(project => (
+            <ProjectActionRow
+              key={project.project_id}
+              project={project}
+              candidates={candidates}
+              spec={actions[project.project_id]}
+              onChange={(spec) => setActions(prev => ({ ...prev, [project.project_id]: spec }))}
+            />
+          ))}
+        </div>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+          <Button onClick={submit} disabled={!allResolved || deleteMutation.isPending}>
+            Delete user
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function ProjectActionRow({ project, candidates, spec, onChange }) {
+  const validCandidates = project.candidate_member_ids.filter(id => candidates[id])
+  return (
+    <div className="border rounded-md p-3 space-y-2">
+      <p className="font-medium text-sm text-gray-800">{project.project_name}</p>
+      <div className="flex items-center gap-3 text-sm">
+        <label className="flex items-center gap-1">
+          <input
+            type="radio"
+            checked={spec.action === "reassign"}
+            onChange={() => onChange({ action: "reassign", new_owner_id: spec.new_owner_id ?? validCandidates[0] ?? null })}
+            disabled={validCandidates.length === 0}
+          />
+          Reassign to
+        </label>
+        <select
+          className="text-sm border rounded px-2 py-1"
+          disabled={spec.action !== "reassign" || validCandidates.length === 0}
+          value={spec.new_owner_id ?? ""}
+          onChange={e => onChange({ action: "reassign", new_owner_id: Number(e.target.value) })}
+        >
+          {validCandidates.length === 0 && <option value="">No candidates</option>}
+          {validCandidates.map(id => (
+            <option key={id} value={id}>{candidates[id]}</option>
+          ))}
+        </select>
+        <label className="flex items-center gap-1">
+          <input
+            type="radio"
+            checked={spec.action === "archive"}
+            onChange={() => onChange({ action: "archive" })}
+          />
+          Archive project
+        </label>
+      </div>
+    </div>
+  )
+}
+
+function initialActions(projects) {
+  const map = {}
+  for (const project of projects) {
+    const firstCandidate = project.candidate_member_ids[0] ?? null
+    map[project.project_id] = firstCandidate
+      ? { action: "reassign", new_owner_id: firstCandidate }
+      : { action: "archive" }
+  }
+  return map
 }
 
 function CreateUserDialog() {
@@ -94,71 +337,5 @@ function CreateGroupDialog() {
         </div>
       </DialogContent>
     </Dialog>
-  )
-}
-
-export function UsersPage() {
-  const qc = useQueryClient()
-  const { data: users = [] } = useQuery({ queryKey: ["users"], queryFn: usersApi.list })
-  const { data: groups = [] } = useQuery({ queryKey: ["groups"], queryFn: groupsApi.list })
-
-  const deleteUser = useMutation({
-    mutationFn: usersApi.delete,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["users"] }); toast.success("User deleted") },
-  })
-
-  const deleteGroup = useMutation({
-    mutationFn: groupsApi.delete,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["groups"] }); toast.success("Group deleted") },
-  })
-
-  return (
-    <div className="pl-14 pr-4 py-4 md:p-8 max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">Users & Groups</h1>
-
-      <Tabs defaultValue="users">
-        <TabsList>
-          <TabsTrigger value="users"><Users size={13} className="mr-1" /> Users ({users.length})</TabsTrigger>
-          <TabsTrigger value="groups"><Shield size={13} className="mr-1" /> Groups ({groups.length})</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="users">
-          <div className="flex justify-end mb-3"><CreateUserDialog /></div>
-          <ul className="space-y-2">
-            {users.map(u => (
-              <li key={u.id} className="flex items-center justify-between bg-white border rounded-lg px-4 py-3 shadow-sm">
-                <div>
-                  <p className="font-medium text-gray-800">{u.username}</p>
-                  <p className="text-xs text-gray-400">{u.email}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={u.is_active ? "success" : "secondary"}>{u.is_active ? "active" : "inactive"}</Badge>
-                  <Button size="icon" variant="ghost" onClick={() => deleteUser.mutate(u.id)}>
-                    <Trash2 size={14} />
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </TabsContent>
-
-        <TabsContent value="groups">
-          <div className="flex justify-end mb-3"><CreateGroupDialog /></div>
-          <ul className="space-y-2">
-            {groups.map(g => (
-              <li key={g.id} className="flex items-center justify-between bg-white border rounded-lg px-4 py-3 shadow-sm">
-                <div>
-                  <p className="font-medium text-gray-800">{g.name}</p>
-                  <p className="text-xs text-gray-400">{g.members?.length ?? 0} members</p>
-                </div>
-                <Button size="icon" variant="ghost" onClick={() => deleteGroup.mutate(g.id)}>
-                  <Trash2 size={14} />
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </TabsContent>
-      </Tabs>
-    </div>
   )
 }

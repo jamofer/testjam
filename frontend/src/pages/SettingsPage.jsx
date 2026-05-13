@@ -52,6 +52,7 @@ export function SettingsPage() {
         site_url: settings.site_url ?? "",
         app_name: settings.app_name ?? "",
         allow_registration: settings.allow_registration,
+        allow_user_self_delete: settings.allow_user_self_delete ?? false,
         default_environment: settings.default_environment ?? "",
         default_version_pattern: settings.default_version_pattern ?? "",
         max_upload_mb: settings.max_upload_mb,
@@ -97,6 +98,7 @@ export function SettingsPage() {
       site_url: form.site_url || null,
       app_name: form.app_name,
       allow_registration: form.allow_registration,
+      allow_user_self_delete: form.allow_user_self_delete,
       default_environment: form.default_environment || null,
       default_version_pattern: form.default_version_pattern || null,
       max_upload_mb: Number(form.max_upload_mb),
@@ -147,6 +149,9 @@ export function SettingsPage() {
             <Toggle checked={form.allow_registration}
               onChange={set("allow_registration")}
               label="Allow new user self-registration" />
+            <Toggle checked={form.allow_user_self_delete}
+              onChange={set("allow_user_self_delete")}
+              label="Allow users to delete their own account" />
           </Section>
 
           <Section title="Execution defaults">
