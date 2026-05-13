@@ -49,6 +49,9 @@ FOOTER_REASONS: dict[str, str] = {
         "You're receiving this because a test execution you created or were "
         "assigned to had failed tests."
     ),
+    NotificationEvent.PASSWORD_RESET.value: (
+        "You're receiving this because a password reset was requested for this account."
+    ),
 }
 
 _GENERIC_FOOTER_REASON = "You're receiving this because notifications are enabled for your account."
