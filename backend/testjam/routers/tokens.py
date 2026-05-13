@@ -1,5 +1,3 @@
-from datetime import datetime, timezone
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -13,16 +11,6 @@ from testjam.schemas.token import ApiTokenCreate, ApiTokenCreated, ApiTokenOut
 user_router = APIRouter(prefix="/users/me/tokens", tags=["Tokens"])
 project_router = APIRouter(prefix="/projects/{id}/tokens", tags=["Tokens"])
 
-
-def _require_owner(project: Project, current: User, db: Session) -> None:
-    if current.is_admin:
-        return
-    m = db.query(ProjectMember).filter_by(project_id=project.id, user_id=current.id).first()
-    if not m or m.role != "owner":
-        raise HTTPException(status_code=403, detail="Project owner or admin required")
-
-
-# ── User tokens ───────────────────────────────────────────────────────────────
 
 @user_router.get("", response_model=list[ApiTokenOut])
 def list_user_tokens(db: Session = Depends(get_db), current: User = Depends(get_current_user)):
@@ -43,11 +31,31 @@ def create_user_token(
     if clash:
         raise HTTPException(status_code=409, detail=f"Token '{body.name}' already exists")
     raw, hashed, prefix = ApiToken.generate()
-    t = ApiToken(name=body.name, token_hash=hashed, prefix=prefix, user_id=current.id, created_by=current.id)
+    t = ApiToken(
+        name=body.name,
+        token_hash=hashed,
+        prefix=prefix,
+        user_id=current.id,
+        created_by=current.id,
+        expires_at=body.expires_at,
+    )
     db.add(t)
     db.commit()
     db.refresh(t)
     return ApiTokenCreated(**ApiTokenOut.model_validate(t).model_dump(), token=raw)
+
+
+@user_router.post("/{token_id}/rotate", response_model=ApiTokenCreated)
+def rotate_user_token(
+    token_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    token = db.query(ApiToken).filter(ApiToken.id == token_id, ApiToken.user_id == current.id).first()
+    if not token:
+        raise HTTPException(status_code=404, detail="Token not found")
+    raw = _rotate_token(token, db)
+    return ApiTokenCreated(**ApiTokenOut.model_validate(token).model_dump(), token=raw)
 
 
 @user_router.delete("/{token_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -58,8 +66,6 @@ def revoke_user_token(token_id: int, db: Session = Depends(get_db), current: Use
     db.delete(t)
     db.commit()
 
-
-# ── Project tokens ────────────────────────────────────────────────────────────
 
 @project_router.get("", response_model=list[ApiTokenOut])
 def list_project_tokens(
@@ -93,11 +99,36 @@ def create_project_token(
     if clash:
         raise HTTPException(status_code=409, detail=f"Token '{body.name}' already exists")
     raw, hashed, prefix = ApiToken.generate()
-    t = ApiToken(name=body.name, token_hash=hashed, prefix=prefix, project_id=id, created_by=current.id)
+    t = ApiToken(
+        name=body.name,
+        token_hash=hashed,
+        prefix=prefix,
+        project_id=id,
+        created_by=current.id,
+        expires_at=body.expires_at,
+    )
     db.add(t)
     db.commit()
     db.refresh(t)
     return ApiTokenCreated(**ApiTokenOut.model_validate(t).model_dump(), token=raw)
+
+
+@project_router.post("/{token_id}/rotate", response_model=ApiTokenCreated)
+def rotate_project_token(
+    id: int,
+    token_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_project_access),
+):
+    project = db.get(Project, id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    _require_owner(project, current, db)
+    token = db.query(ApiToken).filter(ApiToken.id == token_id, ApiToken.project_id == id).first()
+    if not token:
+        raise HTTPException(status_code=404, detail="Token not found")
+    raw = _rotate_token(token, db)
+    return ApiTokenCreated(**ApiTokenOut.model_validate(token).model_dump(), token=raw)
 
 
 @project_router.delete("/{token_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -116,3 +147,21 @@ def revoke_project_token(
         raise HTTPException(status_code=404, detail="Token not found")
     db.delete(t)
     db.commit()
+
+
+def _require_owner(project: Project, current: User, db: Session) -> None:
+    if current.is_admin:
+        return
+    m = db.query(ProjectMember).filter_by(project_id=project.id, user_id=current.id).first()
+    if not m or m.role != "owner":
+        raise HTTPException(status_code=403, detail="Project owner or admin required")
+
+
+def _rotate_token(token: ApiToken, db: Session) -> str:
+    raw, hashed, prefix = ApiToken.generate()
+    token.token_hash = hashed
+    token.prefix = prefix
+    token.last_used_at = None
+    db.commit()
+    db.refresh(token)
+    return raw

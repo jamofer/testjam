@@ -38,7 +38,7 @@ def get_auth_context(
     if api_key:
         token_hash = ApiToken.hash(api_key)
         token = db.query(ApiToken).filter(ApiToken.token_hash == token_hash).first()
-        if token:
+        if token and not _is_token_expired(token):
             token.last_used_at = datetime.now(timezone.utc)
             db.commit()
             uid = token.user_id if token.user_id else token.created_by
@@ -86,3 +86,12 @@ def require_project_access(id: int, ctx: AuthContext = Depends(get_auth_context)
             detail="API token is not authorized for this project",
         )
     return ctx.user
+
+
+def _is_token_expired(token: ApiToken) -> bool:
+    if token.expires_at is None:
+        return False
+    expires_at = token.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    return expires_at <= datetime.now(timezone.utc)

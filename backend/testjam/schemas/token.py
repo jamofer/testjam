@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 class ApiTokenCreate(BaseModel):
     name: str
+    expires_at: datetime | None = None
 
 
 class ApiTokenOut(BaseModel):
@@ -14,6 +15,7 @@ class ApiTokenOut(BaseModel):
     project_id: int | None
     created_at: datetime
     last_used_at: datetime | None
+    expires_at: datetime | None
 
     model_config = {"from_attributes": True}
 
