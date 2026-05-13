@@ -1,5 +1,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+DEFAULT_CORS_ORIGINS = "http://localhost:5173,http://localhost:3000"
+
 
 class Settings(BaseSettings):
     APP_NAME: str = "Testjam API"
@@ -13,6 +15,12 @@ class Settings(BaseSettings):
     BCRYPT_ROUNDS: int = 12
 
     UPLOAD_DIR: str = "/app/uploads"
+
+    CORS_ORIGINS: str = DEFAULT_CORS_ORIGINS
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
 
     model_config = SettingsConfigDict(env_file=".env")
 
