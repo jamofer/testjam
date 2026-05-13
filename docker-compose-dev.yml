@@ -23,6 +23,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-testjam}:${POSTGRES_PASSWORD:-testjam}@db:5432/${POSTGRES_DB:-testjam}
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-480}
+      RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-false}
     volumes:
       - ./backend:/app
       - uploads:/app/uploads
