@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -52,6 +54,7 @@ def _project_out(project: Project, db: Session) -> ProjectOut:
         description=project.description,
         created_at=project.created_at,
         updated_at=project.updated_at,
+        archived_at=project.archived_at,
         suite_count=suite_count,
         case_count=case_count,
         execution_count=execution_count,
@@ -61,10 +64,16 @@ def _project_out(project: Project, db: Session) -> ProjectOut:
 
 
 @router.get("", response_model=list[ProjectOut])
-def list_projects(db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def list_projects(
+    include_archived: bool = False,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
     member_project_ids = db.query(ProjectMember.project_id).filter(ProjectMember.user_id == current.id)
-    projects = db.query(Project).filter(Project.id.in_(member_project_ids)).all()
-    return [_project_out(p, db) for p in projects]
+    query = db.query(Project).filter(Project.id.in_(member_project_ids))
+    if not include_archived:
+        query = query.filter(Project.archived_at.is_(None))
+    return [_project_out(p, db) for p in query.all()]
 
 
 @router.post("", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)
@@ -93,6 +102,7 @@ def update_project(id: int, body: ProjectUpdate, db: Session = Depends(get_db), 
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Not found")
+    _reject_if_archived(project)
     payload = body.model_dump(exclude_none=True)
     if "name" in payload and payload["name"] != project.name:
         clash = db.query(Project).filter(Project.name == payload["name"], Project.id != id).first()
@@ -112,3 +122,46 @@ def delete_project(id: int, db: Session = Depends(get_db), _: User = Depends(req
         raise HTTPException(status_code=404, detail="Not found")
     db.delete(project)
     db.commit()
+
+
+@router.post("/{id}/archive", response_model=ProjectOut)
+def archive_project(id: int, db: Session = Depends(get_db), current: User = Depends(require_project_access)):
+    project = db.get(Project, id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Not found")
+    _require_owner_or_admin(project, current, db)
+    if project.archived_at is None:
+        project.archived_at = datetime.now(timezone.utc)
+        db.commit()
+        db.refresh(project)
+    return _project_out(project, db)
+
+
+@router.post("/{id}/unarchive", response_model=ProjectOut)
+def unarchive_project(id: int, db: Session = Depends(get_db), current: User = Depends(require_project_access)):
+    project = db.get(Project, id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Not found")
+    _require_owner_or_admin(project, current, db)
+    if project.archived_at is not None:
+        project.archived_at = None
+        db.commit()
+        db.refresh(project)
+    return _project_out(project, db)
+
+
+def _reject_if_archived(project: Project) -> None:
+    if project.archived_at is not None:
+        raise HTTPException(status_code=409, detail="Project is archived")
+
+
+def _require_owner_or_admin(project: Project, current: User, db: Session) -> None:
+    if current.is_admin:
+        return
+    membership = (
+        db.query(ProjectMember)
+        .filter_by(project_id=project.id, user_id=current.id)
+        .first()
+    )
+    if not membership or membership.role != "owner":
+        raise HTTPException(status_code=403, detail="Project owner or admin required")

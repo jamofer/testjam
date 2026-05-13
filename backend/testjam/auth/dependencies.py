@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from testjam.auth.security import decode_token
 from testjam.core.logging import set_current_user_id
 from testjam.database import get_db
+from testjam.models.project import Project
 from testjam.models.token import ApiToken
 from testjam.models.user import User
 
@@ -103,6 +104,19 @@ def require_project_access(id: int, ctx: AuthContext = Depends(get_auth_context)
             detail="API token is not authorized for this project",
         )
     return ctx.user
+
+
+def require_writable_project_access(
+    id: int,
+    db: Session = Depends(get_db),
+    ctx: AuthContext = Depends(get_auth_context),
+) -> User:
+    """Like require_project_access but also rejects mutations on archived projects."""
+    user = require_project_access(id, ctx)
+    project = db.get(Project, id)
+    if project is not None and project.archived_at is not None:
+        raise HTTPException(status_code=409, detail="Project is archived")
+    return user
 
 
 def _build_context(

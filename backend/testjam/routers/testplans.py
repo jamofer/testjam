@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user, require_project_access
+from testjam.auth.dependencies import get_current_user, require_project_access, require_writable_project_access
 from testjam.database import get_db
 from testjam.models.testcase import TestCase
 from testjam.models.testplan import TestPlan
@@ -35,7 +35,7 @@ def list_plans(id: int, db: Session = Depends(get_db), _: User = Depends(require
 
 
 @projects_router.post("/{id}/plans", response_model=TestPlanOut, status_code=status.HTTP_201_CREATED)
-def create_plan(id: int, body: TestPlanCreate, db: Session = Depends(get_db), _: User = Depends(require_project_access)):
+def create_plan(id: int, body: TestPlanCreate, db: Session = Depends(get_db), _: User = Depends(require_writable_project_access)):
     plan = TestPlan(project_id=id, title=body.title, description=body.description)
     db.add(plan)
     db.flush()

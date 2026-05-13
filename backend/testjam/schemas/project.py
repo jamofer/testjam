@@ -32,6 +32,7 @@ class ProjectOut(ProjectBase):
     id: int
     created_at: datetime
     updated_at: datetime
+    archived_at: datetime | None = None
     suite_count: int = 0
     case_count: int = 0
     execution_count: int = 0

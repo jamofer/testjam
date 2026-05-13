@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user, require_project_access
+from testjam.auth.dependencies import get_current_user, require_project_access, require_writable_project_access
 from testjam.database import get_db
 from testjam.models.testcase import SuiteStep, TestSuite
 from testjam.models.user import User
@@ -46,7 +46,7 @@ def list_suites(
 
 
 @projects_router.post("/{id}/suites", response_model=TestSuiteOut, status_code=status.HTTP_201_CREATED)
-def create_suite(id: int, body: TestSuiteCreate, db: Session = Depends(get_db), _: User = Depends(require_project_access)):
+def create_suite(id: int, body: TestSuiteCreate, db: Session = Depends(get_db), _: User = Depends(require_writable_project_access)):
     duplicate = (
         db.query(TestSuite)
         .filter(
@@ -128,7 +128,7 @@ def reorder_project_suites(
     body: SuiteReorder,
     parent_suite_id: int | None = None,
     db: Session = Depends(get_db),
-    _: User = Depends(require_project_access),
+    _: User = Depends(require_writable_project_access),
 ):
     """Reorder siblings (suites sharing the same parent_suite_id)."""
     rows = db.query(TestSuite).filter(

@@ -15,6 +15,7 @@ class Project(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+    archived_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
 
     members: Mapped[list[ProjectMember]] = relationship(back_populates="project", cascade="all, delete-orphan")
     suites: Mapped[list[TestSuite]] = relationship(back_populates="project", cascade="all, delete-orphan")

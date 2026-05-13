@@ -12,6 +12,7 @@ from testjam.auth.dependencies import (
 )
 from testjam.database import get_db
 from testjam.models.execution import TestExecution, TestResult
+from testjam.models.project import Project
 from testjam.models.user import User
 from testjam.routers.executions import executions_router, projects_router
 from testjam.routers.executions._helpers import (
@@ -66,6 +67,9 @@ def create_execution(
     db: Session = Depends(get_db),
     ctx: AuthContext = Depends(require_project_access_ctx),
 ):
+    project = db.get(Project, id)
+    if project is not None and project.archived_at is not None:
+        raise HTTPException(status_code=409, detail="Project is archived")
     data = body.model_dump(exclude={"test_case_ids"})
     data["project_id"] = id
     data["created_by_id"] = ctx.user.id
