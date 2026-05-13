@@ -13,15 +13,24 @@ class MembersMixin:
             "password": password,
         })
         if resp.status_code == 400 and "already exists" in resp.text:
-            # User already exists from a previous run — resolve their ID
-            users = self.client.get("/users").json()
-            uid = next(u["id"] for u in users if u["username"] == username)
-            logger.info(f"User '{username}' already exists → id={uid}")
-            return uid
+            return self._reuse_existing_user(username, password)
         assert resp.status_code == 201, f"Create user failed: {resp.text}"
         uid = resp.json()["id"]
         logger.info(f"Created user '{username}' → id={uid}")
         return uid
+
+    def _reuse_existing_user(self, username: str, password: str) -> int:
+        users = self.client.get("/users", params={"include_deleted": "true"}).json()
+        existing = next((user for user in users if user["username"] == username), None)
+        assert existing is not None, f"User '{username}' missing despite 'already exists'"
+        if existing["deleted_at"] is not None:
+            self.client.post(f"/users/{existing['id']}/restore")
+        self.client.put(
+            f"/users/{existing['id']}",
+            json={"is_active": True, "clear_lockout": True, "password": password},
+        )
+        logger.info(f"User '{username}' reused (id={existing['id']})")
+        return existing["id"]
 
     @keyword("I add ${username} as ${role} to the project")
     def add_member(self, username: str, role: str) -> None:
@@ -65,8 +74,9 @@ class MembersMixin:
         assert username in members, f"'{username}' is not a member"
         assert members[username] == role, f"Expected '{role}', got '{members[username]}'"
 
-    def _resolve_user_id(self, username: str) -> int:
-        resp = self.client.get("/users")
+    def _resolve_user_id(self, username: str, include_deleted: bool = False) -> int:
+        params = {"include_deleted": "true"} if include_deleted else None
+        resp = self.client.get("/users", params=params)
         assert resp.status_code == 200
         users = {u["username"]: u["id"] for u in resp.json()}
         assert username in users, f"User '{username}' not found"

@@ -16,6 +16,14 @@ class SuiteMixin:
         logger.info(f"Created suite '{name}' → id={self.current_suite_id}")
         return self.current_suite_id
 
+    @keyword("I try to create a suite named ${name}")
+    def try_create_suite(self, name: str) -> None:
+        response = self.client.post(
+            f"/projects/{self.current_project_id}/suites",
+            json={"name": name},
+        )
+        self.last_status_code = response.status_code
+
     @keyword("I create a suite named ${name} with setup ${setup} and teardown ${teardown}")
     def create_suite_with_hooks(self, name: str, setup: str, teardown: str) -> int:
         response = self.client.post(

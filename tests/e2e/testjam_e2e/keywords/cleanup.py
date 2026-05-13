@@ -8,7 +8,7 @@ class CleanupMixin:
     @keyword("I purge projects with prefix ${prefix}")
     def purge_projects(self, prefix: str) -> None:
         self.authenticate_as_admin()
-        response = self.client.get("/projects")
+        response = self.client.get("/projects", params={"include_archived": "true"})
         if response.status_code != 200:
             return
         for project in response.json():
@@ -18,11 +18,13 @@ class CleanupMixin:
     @keyword("I purge users with prefix ${prefix}")
     def purge_users(self, prefix: str) -> None:
         self.authenticate_as_admin()
-        response = self.client.get("/users")
+        response = self.client.get("/users", params={"include_deleted": "true"})
         if response.status_code != 200:
             return
         for user in response.json():
-            if user["username"].startswith(prefix):
+            if not user["username"].startswith(prefix):
+                continue
+            if user["deleted_at"] is None:
                 self.client.delete(f"/users/{user['id']}")
 
     @keyword("I purge my personal tokens")
