@@ -18,7 +18,11 @@ def request_password_reset(
     email: str,
     background: BackgroundTasks | None = None,
 ) -> None:
-    user = db.query(User).filter(User.email == email, User.is_active == True).first()
+    user = (
+        db.query(User)
+        .filter(User.email == email, User.is_active == True, User.deleted_at.is_(None))
+        .first()
+    )
     if not user:
         return
     raw_token, _, _ = _create_reset_token(db, user)
@@ -30,7 +34,7 @@ def confirm_password_reset(db: Session, raw_token: str, new_password: str) -> bo
     if token is None:
         return False
     user = db.get(User, token.user_id)
-    if user is None or not user.is_active:
+    if user is None or not user.is_active or user.deleted_at is not None:
         return False
     user.hashed_password = hash_password(new_password)
     token.used_at = datetime.now(timezone.utc)

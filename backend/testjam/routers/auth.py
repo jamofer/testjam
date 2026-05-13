@@ -34,7 +34,9 @@ class PasswordResetConfirm(BaseModel):
 @router.post("/login", response_model=TokenResponse)
 @limiter.limit(LOGIN_RATE_LIMIT)
 def login(request: Request, form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == form.username).first()
+    user = db.query(User).filter(
+        User.username == form.username, User.deleted_at.is_(None),
+    ).first()
     if user and is_locked(user):
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,

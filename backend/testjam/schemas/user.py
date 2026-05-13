@@ -28,6 +28,7 @@ class UserOut(UserBase):
     is_active: bool
     is_admin: bool
     created_at: datetime
+    deleted_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 

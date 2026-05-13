@@ -32,7 +32,15 @@ def get_auth_context(
     if credentials:
         username = decode_token(credentials.credentials)
         if username:
-            user = db.query(User).filter(User.username == username, User.is_active == True).first()
+            user = (
+                db.query(User)
+                .filter(
+                    User.username == username,
+                    User.is_active == True,
+                    User.deleted_at.is_(None),
+                )
+                .first()
+            )
             if user:
                 return _build_context(user)
 
@@ -44,10 +52,18 @@ def get_auth_context(
             db.commit()
             uid = token.user_id if token.user_id else token.created_by
             user = db.get(User, uid)
-            if user and user.is_active:
+            if user and user.is_active and user.deleted_at is None:
                 return _build_context(user, project_scope=token.project_id, token_name=token.name)
         # Fallback: legacy api_key field on User
-        user = db.query(User).filter(User.api_key == api_key, User.is_active == True).first()
+        user = (
+            db.query(User)
+            .filter(
+                User.api_key == api_key,
+                User.is_active == True,
+                User.deleted_at.is_(None),
+            )
+            .first()
+        )
         if user:
             return _build_context(user)
 

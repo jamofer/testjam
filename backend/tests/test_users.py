@@ -53,7 +53,8 @@ def test_delete_user(auth_client):
     resp = auth_client.delete(f"/api/v1/users/{user_id}")
 
     assert resp.status_code == 204
-    assert auth_client.get(f"/api/v1/users/{user_id}").status_code == 404
+    listed_ids = {u["id"] for u in auth_client.get("/api/v1/users").json()}
+    assert user_id not in listed_ids
 
 
 def test_list_users(auth_client):
