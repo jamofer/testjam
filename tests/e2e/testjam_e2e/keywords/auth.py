@@ -1,7 +1,11 @@
 import os
+import re
 
 from robot.api import logger
 from robot.api.deco import keyword
+
+
+RESET_TOKEN_PATTERN = re.compile(r"/reset-password\?token=([A-Za-z0-9_\-]+)")
 
 
 class AuthMixin:
@@ -50,3 +54,35 @@ class AuthMixin:
         assert response.status_code == 200
         body = response.json()
         assert body.get("is_admin") is True, f"User '{body.get('username')}' is not an admin"
+
+    @keyword("I request a password reset for ${email}")
+    def request_password_reset(self, email: str) -> None:
+        response = self.client.post("/auth/password-reset/request", json={"email": email})
+        self.last_status_code = response.status_code
+
+    @keyword("I confirm the password reset with token ${token} and password ${new_password}")
+    def confirm_password_reset(self, token: str, new_password: str) -> None:
+        response = self.client.post(
+            "/auth/password-reset/confirm",
+            json={"token": token, "new_password": new_password},
+        )
+        self.last_status_code = response.status_code
+
+    @keyword("I extract the password reset token from the latest email")
+    def extract_reset_token_from_latest_email(self) -> str:
+        latest = self._latest_message()
+        full = self._fetch_message(latest["ID"])
+        body = (full.get("Text") or "") + (full.get("HTML") or "")
+        match = RESET_TOKEN_PATTERN.search(body)
+        assert match, f"No reset link found in latest email body"
+        token = match.group(1)
+        logger.info(f"Extracted reset token (prefix={token[:8]}…)")
+        return token
+
+    @keyword("I make ${count} failed login attempts as ${username}")
+    def make_failed_login_attempts(self, count: str, username: str) -> None:
+        for _ in range(int(count)):
+            response = self.client.post_form(
+                "/auth/login", {"username": username, "password": "definitely-wrong"},
+            )
+            self.last_status_code = response.status_code
