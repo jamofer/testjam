@@ -1,13 +1,21 @@
+import * as Sentry from '@sentry/react'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
+import { configureSentry } from './lib/sentry'
 import './index.css'
+
+configureSentry()
 
 class ErrorBoundary extends React.Component {
   state = { error: null }
 
   static getDerivedStateFromError(error) {
     return { error }
+  }
+
+  componentDidCatch(error, info) {
+    Sentry.captureException(error, { extra: { componentStack: info?.componentStack } })
   }
 
   render() {

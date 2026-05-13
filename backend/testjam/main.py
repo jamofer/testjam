@@ -11,8 +11,10 @@ from testjam.core.config import settings
 from testjam.core.logging import RequestContextMiddleware, configure_logging
 from testjam.core.middleware import SecurityHeadersMiddleware
 from testjam.core.rate_limit import limiter
+from testjam.core.sentry import configure_sentry
 
 configure_logging()
+configure_sentry()
 from testjam.database import SessionLocal
 from testjam.realtime import set_main_loop
 from testjam.routers import auth, users, groups, projects, suites, cases, testplans, executions, versions, members, tokens, notifications, notification_preferences, settings as settings_router, ws, health
