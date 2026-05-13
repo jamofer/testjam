@@ -22,6 +22,7 @@ vi.mock("../api/testcases", () => ({
 vi.mock("../api/projects", () => ({
   projectsApi: {
     get: vi.fn(() => Promise.resolve({ id: 1, name: "Acme", suite_count: 1, case_count: 0, execution_count: 0 })),
+    exportZip: vi.fn(() => Promise.resolve()),
   },
 }))
 
@@ -35,6 +36,7 @@ vi.mock("../components/project/VersionsPanel", () => ({
 }))
 
 import { casesApi } from "../api/testcases"
+import { projectsApi } from "../api/projects"
 
 function setup() {
   const qc = new QueryClient({
@@ -97,6 +99,16 @@ describe("ProjectDetailPage search", () => {
     expect(await screen.findByText("Edge case")).toBeInTheDocument()
     expect(screen.getByText("Suite A")).toBeInTheDocument()
     expect(screen.getByText("Sub Suite")).toBeInTheDocument()
+  })
+})
+
+describe("ProjectDetailPage export", () => {
+  it("calls projectsApi.exportZip when Export button is clicked", async () => {
+    projectsApi.exportZip.mockClear()
+    setup()
+    const button = await screen.findByRole("button", { name: /export/i })
+    fireEvent.click(button)
+    expect(projectsApi.exportZip).toHaveBeenCalledWith("1")
   })
 })
 

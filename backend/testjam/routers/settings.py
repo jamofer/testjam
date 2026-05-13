@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import require_admin
@@ -9,11 +10,15 @@ from testjam.schemas.settings import (
     AppSettingsPublicOut,
     AppSettingsUpdate,
 )
+from testjam.services.backup import cleanup_archive, create_backup
 from testjam.services.email import smtp_configured
 from testjam.services.log_flusher import configure_from_settings as configure_log_flusher
+from testjam.services.restore import RestoreSummary, restore_backup
 from testjam.services.settings import get_settings
 
 router = APIRouter(prefix="/settings", tags=["Settings"])
+
+RESTORE_CONFIRM_TOKEN = "I-UNDERSTAND-THIS-REPLACES-ALL-DATA"
 
 
 def _to_admin_out(s) -> AppSettingsOut:
@@ -74,3 +79,33 @@ def update_settings(
     db.refresh(s)
     configure_log_flusher(s)
     return _to_admin_out(s)
+
+
+@router.get("/backup")
+def download_backup(
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    artifact = create_backup(db, db.get_bind())
+    background_tasks.add_task(cleanup_archive, artifact.path)
+    return FileResponse(
+        artifact.path,
+        media_type="application/zip",
+        filename=artifact.filename,
+    )
+
+
+@router.post("/restore", response_model=RestoreSummary)
+async def upload_restore(
+    file: UploadFile = File(...),
+    confirm: str = Query(..., description=f"Must equal {RESTORE_CONFIRM_TOKEN}"),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    if confirm != RESTORE_CONFIRM_TOKEN:
+        raise HTTPException(status_code=400, detail="Missing or invalid confirmation token")
+    payload = await file.read()
+    if not payload:
+        raise HTTPException(status_code=400, detail="Empty upload")
+    return restore_backup(db.get_bind(), payload)

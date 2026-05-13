@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi.responses import FileResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -11,6 +12,7 @@ from testjam.models.project import Project, ProjectMember
 from testjam.models.testcase import TestCase, TestSuite
 from testjam.models.user import User
 from testjam.schemas.project import ProjectCreate, ProjectOut, ProjectUpdate, RecentExecutionSummary
+from testjam.services.project_export import cleanup_archive, export_project
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -137,6 +139,21 @@ def archive_project(id: int, db: Session = Depends(get_db), current: User = Depe
         db.commit()
         db.refresh(project)
     return _project_out(project, db)
+
+
+@router.get("/{id}/export")
+def export_project_zip(
+    id: int,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_project_access),
+):
+    project = db.get(Project, id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Not found")
+    artifact = export_project(db, project)
+    background_tasks.add_task(cleanup_archive, artifact.path)
+    return FileResponse(artifact.path, media_type="application/zip", filename=artifact.filename)
 
 
 @router.post("/{id}/unarchive", response_model=ProjectOut)

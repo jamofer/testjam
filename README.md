@@ -80,13 +80,25 @@ docker compose up -d --build
 
 Alembic migrations run automatically on container start.
 
-### Backup
+### Backup & restore
+
+A full backup contains the database dump and the uploads volume.
 
 ```bash
-docker compose exec -T db pg_dumpall -U testjam > backup.sql
-docker run --rm -v testjam_uploads:/u -v $PWD:/b alpine \
-  tar czf /b/uploads.tgz -C / u
+# Periodic backup. Honors BACKUP_DIR (default ./backups) and RETENTION_DAYS (default 14).
+make backup
 ```
+
+`scripts/backup.sh` writes a timestamped `testjam-<UTC>.tar.gz` and prunes archives older than `RETENTION_DAYS`. Schedule from cron / systemd timers as needed.
+
+You can also generate or restore a backup from the running app (admin only):
+
+- **Download backup**: Settings → "Download backup" produces a ZIP with `manifest.json`, `dump.sql`, and the `uploads/` tree.
+- **Restore from backup**: Settings → "Restore from backup". The form requires uploading the ZIP and typing `REPLACE ALL DATA` to confirm. Restore is destructive — it drops existing tables, replays the dump, and replaces the uploads tree. The backup's `manifest.json` `dialect` must match the running server.
+
+Per-project export ships from the project page (**Export** button) and downloads a `project-<slug>-<UTC>.zip` containing `project.json` plus binary case/result/execution attachments — useful for moving a single project between instances or archiving long-term.
+
+Schema migrations on restore: run `alembic upgrade head` after restoring an older backup. If the dump was produced against a newer schema, downgrade with `alembic downgrade <rev>` first.
 
 ---
 

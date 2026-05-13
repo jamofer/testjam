@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react"
-import { Save } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { Download, Save, Upload } from "lucide-react"
 import { useMe } from "../hooks/useAuth"
 import { useSettings, useUpdateSettings } from "../hooks/useSettings"
+import { settingsApi } from "../api/settings"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { PageHeader, PageBody } from "../components/ui/page-header"
 import { Skeleton } from "../components/ui/skeleton"
 import { EmptyState } from "../components/ui/empty-state"
 import { toast } from "sonner"
+
+const RESTORE_CONFIRM_PHRASE = "REPLACE ALL DATA"
 
 function Section({ title, description, children }) {
   return (
@@ -224,7 +227,89 @@ export function SettingsPage() {
             </Field>
           </Section>
         </form>
+
+        <div className="max-w-2xl mt-4">
+          <BackupRestoreSection />
+        </div>
       </PageBody>
     </>
+  )
+}
+
+function BackupRestoreSection() {
+  const [downloading, setDownloading] = useState(false)
+  const [restoring, setRestoring] = useState(false)
+  const [confirmText, setConfirmText] = useState("")
+  const [selectedFile, setSelectedFile] = useState(null)
+  const fileInputRef = useRef(null)
+
+  const handleDownload = async () => {
+    setDownloading(true)
+    try {
+      await settingsApi.downloadBackup()
+      toast.success("Backup downloaded")
+    } catch {
+      toast.error("Backup failed")
+    } finally {
+      setDownloading(false)
+    }
+  }
+
+  const canRestore = !!selectedFile && confirmText === RESTORE_CONFIRM_PHRASE
+
+  const handleRestore = async () => {
+    if (!canRestore) return
+    setRestoring(true)
+    try {
+      const summary = await settingsApi.restoreBackup(selectedFile)
+      toast.success(`Restored (${summary.uploads_restored} files)`)
+      setSelectedFile(null)
+      setConfirmText("")
+      if (fileInputRef.current) fileInputRef.current.value = ""
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Restore failed")
+    } finally {
+      setRestoring(false)
+    }
+  }
+
+  return (
+    <section className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+      <div>
+        <h2 className="text-sm font-semibold text-gray-800">Backup &amp; Restore</h2>
+        <p className="text-xs text-gray-500 mt-0.5">
+          Download a ZIP containing the database dump and uploaded files. Restore replaces all data.
+        </p>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Button size="sm" onClick={handleDownload} loading={downloading}>
+          <Download size={13} /> Download backup
+        </Button>
+      </div>
+
+      <div className="border-t pt-4 space-y-3">
+        <p className="text-xs font-medium text-red-600">
+          Restore is destructive. The current database and uploads are overwritten.
+        </p>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".zip,application/zip"
+          onChange={e => setSelectedFile(e.target.files?.[0] ?? null)}
+          className="text-xs"
+        />
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-gray-700">
+            Type <code className="px-1 bg-gray-100 rounded">{RESTORE_CONFIRM_PHRASE}</code> to confirm
+          </label>
+          <Input value={confirmText} onChange={e => setConfirmText(e.target.value)} placeholder={RESTORE_CONFIRM_PHRASE} />
+        </div>
+        <Button size="sm" variant="outline" onClick={handleRestore}
+          loading={restoring} disabled={!canRestore}>
+          <Upload size={13} /> Restore from backup
+        </Button>
+      </div>
+    </section>
   )
 }

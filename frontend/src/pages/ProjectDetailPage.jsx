@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef } from "react"
 import { Link, useParams } from "react-router-dom"
-import { Plus, FolderOpen, PlayCircle, Clock, FileText, Search, ChevronsUpDown, ChevronsDownUp, Keyboard } from "lucide-react"
+import { Plus, FolderOpen, PlayCircle, Clock, FileText, Search, ChevronsUpDown, ChevronsDownUp, Keyboard, Download } from "lucide-react"
+import { projectsApi } from "../api/projects"
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
@@ -63,6 +64,26 @@ function SortableSuite({ suite, projectId }) {
     <div ref={setNodeRef} style={style}>
       <SuiteRow suite={suite} projectId={projectId} dragHandleProps={{ ...attributes, ...listeners }} />
     </div>
+  )
+}
+
+function ExportProjectButton({ projectId }) {
+  const [downloading, setDownloading] = useState(false)
+  const handle = async () => {
+    setDownloading(true)
+    try {
+      await projectsApi.exportZip(projectId)
+      toast.success("Project exported")
+    } catch {
+      toast.error("Export failed")
+    } finally {
+      setDownloading(false)
+    }
+  }
+  return (
+    <Button size="sm" variant="outline" onClick={handle} loading={downloading} title="Download project as ZIP">
+      <Download size={14} /> Export
+    </Button>
   )
 }
 
@@ -210,7 +231,10 @@ export function ProjectDetailPage() {
                 )}
               </div>
             </div>
-            <CreateSuiteDialog projectId={id} />
+            <div className="flex items-center gap-2">
+              <ExportProjectButton projectId={id} />
+              <CreateSuiteDialog projectId={id} />
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <SearchInput ref={searchRef} value={search} onChange={setSearch}

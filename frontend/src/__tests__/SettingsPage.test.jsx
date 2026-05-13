@@ -11,6 +11,8 @@ vi.mock("../api/settings", () => ({
     public: vi.fn(() => Promise.resolve({})),
     read: vi.fn(),
     update: vi.fn(() => Promise.resolve({})),
+    downloadBackup: vi.fn(() => Promise.resolve()),
+    restoreBackup: vi.fn(() => Promise.resolve({ uploads_restored: 0 })),
   },
 }))
 
@@ -104,5 +106,35 @@ describe("SettingsPage", () => {
 
     await waitFor(() => expect(settingsApi.update).toHaveBeenCalled())
     expect(settingsApi.update.mock.calls[0][0].smtp_password).toBe("new-secret")
+  })
+
+  it("downloads a backup when 'Download backup' is clicked", async () => {
+    setup()
+    settingsApi.downloadBackup.mockClear()
+
+    fireEvent.click(screen.getByRole("button", { name: /download backup/i }))
+
+    await waitFor(() => expect(settingsApi.downloadBackup).toHaveBeenCalled())
+  })
+
+  it("disables restore until a file is chosen and the confirmation phrase is typed", async () => {
+    setup()
+    settingsApi.restoreBackup.mockClear()
+
+    const restoreButton = screen.getByRole("button", { name: /restore from backup/i })
+    expect(restoreButton).toBeDisabled()
+
+    const file = new File([new Uint8Array([0x50, 0x4b, 0x03, 0x04])], "backup.zip",
+      { type: "application/zip" })
+    const fileInput = document.querySelector('input[type="file"]')
+    fireEvent.change(fileInput, { target: { files: [file] } })
+    expect(restoreButton).toBeDisabled()
+
+    const confirm = screen.getByPlaceholderText("REPLACE ALL DATA")
+    fireEvent.change(confirm, { target: { value: "REPLACE ALL DATA" } })
+    expect(restoreButton).not.toBeDisabled()
+
+    fireEvent.click(restoreButton)
+    await waitFor(() => expect(settingsApi.restoreBackup).toHaveBeenCalledWith(file))
   })
 })
