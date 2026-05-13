@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from testjam.core.config import settings
+from testjam.core.middleware import SecurityHeadersMiddleware
 from testjam.database import SessionLocal
 from testjam.realtime import set_main_loop
 from testjam.routers import auth, users, groups, projects, suites, cases, testplans, executions, versions, members, tokens, notifications, notification_preferences, settings as settings_router, ws
@@ -35,6 +36,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(SecurityHeadersMiddleware)
 
 app.include_router(auth.router, prefix=settings.API_V1_PREFIX)
 app.include_router(users.router, prefix=settings.API_V1_PREFIX)
