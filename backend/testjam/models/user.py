@@ -18,6 +18,8 @@ class User(Base):
     api_key: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True, index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    failed_login_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False, server_default="0")
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     group_memberships: Mapped[list[GroupMember]] = relationship(back_populates="user")
