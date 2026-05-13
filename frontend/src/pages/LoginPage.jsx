@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLogin } from '../hooks/useAuth'
 import { Logo } from '../components/ui/logo'
+import { loginErrorMessage } from '../lib/auth-errors'
 
 export function LoginPage() {
   const [username, setUsername] = useState('')
@@ -9,17 +10,22 @@ export function LoginPage() {
   const login = useLogin()
   const navigate = useNavigate()
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
-    await login.mutateAsync({ username, password })
-    navigate('/projects')
+    login.mutate({ username, password }, {
+      onSuccess: () => navigate('/projects'),
+    })
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-xl p-8 w-80 space-y-4">
         <div className="flex justify-center pb-2"><Logo size={32} /></div>
-        {login.isError && <p className="text-sm text-red-500">Invalid credentials</p>}
+        {login.isError && (
+          <p className="text-sm text-red-500" role="alert">
+            {loginErrorMessage(login.error)}
+          </p>
+        )}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="username">Username</label>
           <input
