@@ -21,6 +21,7 @@ def _to_admin_out(s) -> AppSettingsOut:
         site_url=s.site_url,
         app_name=s.app_name,
         allow_registration=s.allow_registration,
+        allow_user_self_delete=s.allow_user_self_delete,
         default_environment=s.default_environment,
         default_version_pattern=s.default_version_pattern,
         max_upload_mb=s.max_upload_mb,
@@ -44,6 +45,7 @@ def public_settings(db: Session = Depends(get_db)):
     return AppSettingsPublicOut(
         app_name=s.app_name,
         allow_registration=s.allow_registration,
+        allow_user_self_delete=s.allow_user_self_delete,
         site_url=s.site_url,
         smtp_configured=smtp_configured(s),
     )

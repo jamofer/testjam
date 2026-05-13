@@ -1,5 +1,7 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr
+from typing import Literal
+
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserBase(BaseModel):
@@ -16,11 +18,30 @@ class UserUpdate(BaseModel):
     full_name: str | None = None
     email: EmailStr | None = None
     is_active: bool | None = None
+    password: str | None = None
+    failed_login_count: int | None = None
+    clear_lockout: bool | None = None
 
 
 class PasswordChange(BaseModel):
     current_password: str
     new_password: str
+
+
+class OwnedProjectAction(BaseModel):
+    project_id: int
+    action: Literal["reassign", "archive"]
+    new_owner_id: int | None = None
+
+
+class UserDeleteRequest(BaseModel):
+    owned_projects: list[OwnedProjectAction] = Field(default_factory=list)
+
+
+class UnresolvedOwnedProject(BaseModel):
+    project_id: int
+    project_name: str
+    candidate_member_ids: list[int]
 
 
 class UserOut(UserBase):

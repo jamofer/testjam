@@ -20,6 +20,9 @@ class AppSettings(Base):
     site_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     app_name: Mapped[str] = mapped_column(String(64), nullable=False, server_default="Testjam")
     allow_registration: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")
+    allow_user_self_delete: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False, server_default="false",
+    )
 
     default_environment: Mapped[str | None] = mapped_column(String(64), nullable=True)
     default_version_pattern: Mapped[str | None] = mapped_column(String(64), nullable=True)

@@ -69,8 +69,10 @@ def list_projects(
     db: Session = Depends(get_db),
     current: User = Depends(get_current_user),
 ):
-    member_project_ids = db.query(ProjectMember.project_id).filter(ProjectMember.user_id == current.id)
-    query = db.query(Project).filter(Project.id.in_(member_project_ids))
+    query = db.query(Project)
+    if not current.is_admin:
+        member_project_ids = db.query(ProjectMember.project_id).filter(ProjectMember.user_id == current.id)
+        query = query.filter(Project.id.in_(member_project_ids))
     if not include_archived:
         query = query.filter(Project.archived_at.is_(None))
     return [_project_out(p, db) for p in query.all()]

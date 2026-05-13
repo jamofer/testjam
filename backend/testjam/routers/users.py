@@ -1,13 +1,19 @@
-from datetime import datetime, timezone
-
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import get_current_user, require_admin
 from testjam.auth.security import hash_password, verify_password
 from testjam.database import get_db
 from testjam.models.user import User
-from testjam.schemas.user import UserCreate, UserOut, UserUpdate, PasswordChange
+from testjam.schemas.user import (
+    PasswordChange,
+    UserCreate,
+    UserDeleteRequest,
+    UserOut,
+    UserUpdate,
+)
+from testjam.services.settings import get_settings as get_app_settings
+from testjam.services.user_lifecycle import soft_delete_user
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -59,6 +65,17 @@ def change_my_password(body: PasswordChange, db: Session = Depends(get_db), curr
     db.commit()
 
 
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def delete_my_account(
+    body: UserDeleteRequest = Body(default_factory=UserDeleteRequest),
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    if not get_app_settings(db).allow_user_self_delete:
+        raise HTTPException(status_code=403, detail="Self-account deletion is disabled by the administrator")
+    soft_delete_user(db, current, body.owned_projects)
+
+
 @router.get("/{id}", response_model=UserOut)
 def get_user(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
     user = db.get(User, id)
@@ -74,7 +91,13 @@ def update_user(id: int, body: UserUpdate, db: Session = Depends(get_db), _: Use
     user = db.get(User, id)
     if not user:
         raise HTTPException(status_code=404, detail="Not found")
-    for field, value in body.model_dump(exclude_none=True).items():
+    payload = body.model_dump(exclude_none=True)
+    if payload.pop("clear_lockout", False):
+        user.locked_until = None
+        user.failed_login_count = 0
+    if "password" in payload:
+        user.hashed_password = hash_password(payload.pop("password"))
+    for field, value in payload.items():
         setattr(user, field, value)
     db.commit()
     db.refresh(user)
@@ -82,15 +105,18 @@ def update_user(id: int, body: UserUpdate, db: Session = Depends(get_db), _: Use
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(id: int, db: Session = Depends(get_db), current: User = Depends(require_admin)):
+def delete_user(
+    id: int,
+    body: UserDeleteRequest = Body(default_factory=UserDeleteRequest),
+    db: Session = Depends(get_db),
+    current: User = Depends(require_admin),
+):
     user = db.get(User, id)
     if not user or user.deleted_at is not None:
         raise HTTPException(status_code=404, detail="Not found")
     if user.id == current.id:
         raise HTTPException(status_code=400, detail="Admins cannot delete their own account")
-    user.deleted_at = datetime.now(timezone.utc)
-    user.is_active = False
-    db.commit()
+    soft_delete_user(db, user, body.owned_projects)
 
 
 @router.post("/{id}/restore", response_model=UserOut)
