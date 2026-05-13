@@ -28,6 +28,22 @@ describe("scrubEvent", () => {
     expect(scrubbed.request.headers["Content-Type"]).toBe("application/json")
   })
 
+  it("scrubs password and token fields in the query string and URL", () => {
+    const event = {
+      request: {
+        query_string: "username=alice&password=hunter2&keep=visible",
+        url: "https://api.example.com/login?password=hunter2&user=alice",
+      },
+    }
+
+    const scrubbed = scrubEvent(event)
+
+    expect(scrubbed.request.query_string).toContain("password=%5Bscrubbed%5D")
+    expect(scrubbed.request.query_string).toContain("keep=visible")
+    expect(scrubbed.request.url).toContain("password=%5Bscrubbed%5D")
+    expect(scrubbed.request.url.startsWith("https://api.example.com/login?")).toBe(true)
+  })
+
   it("scrubs password and token fields in the request body", () => {
     const event = {
       request: {

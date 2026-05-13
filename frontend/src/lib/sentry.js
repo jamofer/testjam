@@ -24,6 +24,7 @@ export function configureSentry() {
     tracesSampleRate: parseFloat(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE || '0'),
     sendDefaultPii: false,
     beforeSend: scrubEvent,
+    beforeSendTransaction: scrubEvent,
   })
 }
 
@@ -32,8 +33,34 @@ export function scrubEvent(event) {
   if (request) {
     request.headers = scrubMap(request.headers, SCRUB_HEADER_KEYS, (key) => key.toLowerCase())
     request.data = scrubMap(request.data, SCRUB_BODY_KEYS, (key) => key.toLowerCase())
+    if (typeof request.query_string === 'string') {
+      request.query_string = scrubQueryString(request.query_string)
+    }
+    if (typeof request.url === 'string') {
+      request.url = scrubUrl(request.url)
+    }
   }
   return event
+}
+
+function scrubQueryString(query) {
+  const params = new URLSearchParams(query)
+  let mutated = false
+  for (const key of [...params.keys()]) {
+    if (SCRUB_BODY_KEYS.has(key.toLowerCase())) {
+      params.set(key, '[scrubbed]')
+      mutated = true
+    }
+  }
+  return mutated ? params.toString() : query
+}
+
+function scrubUrl(url) {
+  const queryStart = url.indexOf('?')
+  if (queryStart < 0) return url
+  const base = url.slice(0, queryStart)
+  const cleaned = scrubQueryString(url.slice(queryStart + 1))
+  return `${base}?${cleaned}`
 }
 
 function releaseTag() {

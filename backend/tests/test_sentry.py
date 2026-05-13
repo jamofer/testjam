@@ -29,6 +29,8 @@ def test_init_runs_when_dsn_provided(monkeypatch):
     kwargs = fake_sdk.init.call_args.kwargs
     assert kwargs["dsn"] == "https://public@example.ingest.sentry.io/123"
     assert kwargs["send_default_pii"] is False
+    assert kwargs["include_local_variables"] is False
+    assert kwargs["max_request_body_size"] == "never"
 
 
 def test_before_send_attaches_request_id_tag(monkeypatch):
@@ -65,6 +67,22 @@ def test_before_send_scrubs_sensitive_headers():
     assert scrubbed["request"]["headers"]["X-API-Key"] == "[scrubbed]"
     assert scrubbed["request"]["headers"]["Cookie"] == "[scrubbed]"
     assert scrubbed["request"]["headers"]["Content-Type"] == "application/json"
+
+
+def test_before_send_scrubs_password_fields_in_query_string():
+    event = {
+        "request": {
+            "query_string": "username=alice&password=hunter2&keep=visible",
+            "url": "https://api.example.com/login?password=hunter2&user=alice",
+        },
+    }
+
+    scrubbed = _before_send(event, {})
+
+    assert "password=%5Bscrubbed%5D" in scrubbed["request"]["query_string"]
+    assert "keep=visible" in scrubbed["request"]["query_string"]
+    assert "password=%5Bscrubbed%5D" in scrubbed["request"]["url"]
+    assert scrubbed["request"]["url"].startswith("https://api.example.com/login?")
 
 
 def test_before_send_scrubs_password_fields_in_body():

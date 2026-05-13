@@ -1,7 +1,9 @@
 import os
+import re
 import subprocess
 from importlib.metadata import PackageNotFoundError, version
 from typing import Any
+from urllib.parse import parse_qsl, urlencode
 
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
@@ -15,6 +17,7 @@ SCRUBBED_BODY_KEYS = {
     "password", "new_password", "current_password", "token", "access_token",
     "refresh_token", "api_key", "secret",
 }
+URL_QUERY_PATTERN = re.compile(r"^([^?]*)\?(.*)$")
 
 
 def configure_sentry() -> None:
@@ -26,6 +29,8 @@ def configure_sentry() -> None:
         release=_release(),
         environment=os.environ.get("SENTRY_ENVIRONMENT", "production"),
         send_default_pii=False,
+        include_local_variables=False,
+        max_request_body_size="never",
         traces_sample_rate=_float_env("SENTRY_TRACES_SAMPLE_RATE", 0.0),
         profiles_sample_rate=_float_env("SENTRY_PROFILES_SAMPLE_RATE", 0.0),
         integrations=[
@@ -58,6 +63,29 @@ def _scrub_request(request: dict[str, Any] | None) -> None:
         for key in list(data):
             if key.lower() in SCRUBBED_BODY_KEYS:
                 data[key] = "[scrubbed]"
+    if isinstance(request.get("query_string"), str):
+        request["query_string"] = _scrub_query_string(request["query_string"])
+    if isinstance(request.get("url"), str):
+        request["url"] = _scrub_url(request["url"])
+
+
+def _scrub_query_string(query: str) -> str:
+    pairs = parse_qsl(query, keep_blank_values=True)
+    if not pairs:
+        return query
+    cleaned = [
+        (key, "[scrubbed]" if key.lower() in SCRUBBED_BODY_KEYS else value)
+        for key, value in pairs
+    ]
+    return urlencode(cleaned)
+
+
+def _scrub_url(url: str) -> str:
+    match = URL_QUERY_PATTERN.match(url)
+    if not match:
+        return url
+    base, query = match.group(1), match.group(2)
+    return f"{base}?{_scrub_query_string(query)}"
 
 
 def _release() -> str:
