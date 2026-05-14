@@ -8,6 +8,27 @@ from testjam.models.testcase import TestCase
 from testjam.models.user import User
 
 
+def write_revision(db: Session, case: TestCase, actor: User | None, kind: str) -> CaseRevision | None:
+    """Insert a CaseRevision row for this case unless the snapshot is unchanged.
+
+    Returns the existing latest revision (without inserting) when the case
+    definition matches the previously-stored snapshot. Caller commits.
+    """
+    snapshot = case_snapshot(case)
+    latest = _latest_revision(db, case.id)
+    if latest is not None and latest.snapshot == snapshot:
+        return latest
+
+    rev = CaseRevision(
+        case_id=case.id,
+        change_kind=kind,
+        actor_id=actor.id if actor else None,
+        snapshot=snapshot,
+    )
+    db.add(rev)
+    return rev
+
+
 def case_snapshot(case: TestCase) -> dict:
     return {
         "name": case.name,
@@ -29,13 +50,10 @@ def case_snapshot(case: TestCase) -> dict:
     }
 
 
-def write_revision(db: Session, case: TestCase, actor: User | None, kind: str) -> CaseRevision:
-    """Insert a CaseRevision row for this case. Caller commits."""
-    rev = CaseRevision(
-        case_id=case.id,
-        change_kind=kind,
-        actor_id=actor.id if actor else None,
-        snapshot=case_snapshot(case),
+def _latest_revision(db: Session, case_id: int) -> CaseRevision | None:
+    return (
+        db.query(CaseRevision)
+        .filter(CaseRevision.case_id == case_id)
+        .order_by(CaseRevision.created_at.desc(), CaseRevision.id.desc())
+        .first()
     )
-    db.add(rev)
-    return rev

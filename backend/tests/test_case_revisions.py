@@ -70,6 +70,69 @@ def test_case_out_includes_authors(auth_client, suite_id):
     assert case["updated_by"]["username"] == "u"
 
 
+def test_no_op_update_skips_new_revision(auth_client, suite_id):
+    case_id = auth_client.post(f"/api/v1/suites/{suite_id}/cases", json={
+        "name": "Login", "suite_id": suite_id, "description": "v1", "tags": ["smoke"],
+    }).json()["id"]
+
+    auth_client.put(f"/api/v1/cases/{case_id}", json={"description": "v1", "tags": ["smoke"]})
+
+    revs = auth_client.get(f"/api/v1/cases/{case_id}/revisions").json()
+    assert len(revs) == 1
+    assert revs[0]["change_kind"] == "created"
+
+
+def test_reorder_with_same_order_skips_revision(auth_client, suite_id):
+    case_id = auth_client.post(f"/api/v1/suites/{suite_id}/cases", json={
+        "name": "Login", "suite_id": suite_id,
+    }).json()["id"]
+    step_ids = [
+        auth_client.post(f"/api/v1/cases/{case_id}/steps", json={
+            "action": f"Step {i}", "order": i,
+        }).json()["id"]
+        for i in (1, 2)
+    ]
+    revs_before = auth_client.get(f"/api/v1/cases/{case_id}/revisions").json()
+
+    auth_client.post(f"/api/v1/cases/{case_id}/steps/reorder", json={"step_ids": step_ids})
+
+    revs_after = auth_client.get(f"/api/v1/cases/{case_id}/revisions").json()
+    assert len(revs_after) == len(revs_before)
+
+
+def test_bulk_replace_writes_single_revision(auth_client, suite_id):
+    case_id = auth_client.post(f"/api/v1/suites/{suite_id}/cases", json={
+        "name": "Login", "suite_id": suite_id,
+    }).json()["id"]
+    initial_revs = len(auth_client.get(f"/api/v1/cases/{case_id}/revisions").json())
+
+    resp = auth_client.post(f"/api/v1/cases/{case_id}/steps/replace", json={"steps": [
+        {"action": "Open", "step_type": "setup", "order": 1},
+        {"action": "Click", "step_type": "action", "order": 2},
+        {"action": "Close", "step_type": "teardown", "order": 3},
+    ]})
+
+    assert resp.status_code == 200
+    revs = auth_client.get(f"/api/v1/cases/{case_id}/revisions").json()
+    assert len(revs) == initial_revs + 1
+    assert revs[0]["change_kind"] == "updated"
+
+
+def test_bulk_replace_same_payload_skips_revision(auth_client, suite_id):
+    case_id = auth_client.post(f"/api/v1/suites/{suite_id}/cases", json={
+        "name": "Login", "suite_id": suite_id,
+    }).json()["id"]
+    payload = {"steps": [{"action": "Open", "step_type": "setup", "order": 1}]}
+
+    auth_client.post(f"/api/v1/cases/{case_id}/steps/replace", json=payload)
+    revs_after_first = auth_client.get(f"/api/v1/cases/{case_id}/revisions").json()
+
+    auth_client.post(f"/api/v1/cases/{case_id}/steps/replace", json=payload)
+    revs_after_second = auth_client.get(f"/api/v1/cases/{case_id}/revisions").json()
+
+    assert len(revs_after_second) == len(revs_after_first)
+
+
 def test_get_revision_404_when_wrong_case(auth_client, suite_id):
     case_a = auth_client.post(f"/api/v1/suites/{suite_id}/cases", json={
         "name": "A", "suite_id": suite_id,

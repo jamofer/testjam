@@ -274,33 +274,29 @@ def _final_step_result_payload(result: Any, log_buffer: list[str]) -> dict[str, 
 def _sync_steps_from_rf_test(
     client: TestjamClient, case_id: int, data: Any,
 ) -> list[tuple[str, int]]:
-    client.delete_all_case_steps(case_id)
-    step_ids: list[tuple[str, int]] = []
-    order = 1
+    payload: list[dict[str, Any]] = []
+    step_types: list[str] = []
+
+    def append(action: str, step_type: str) -> None:
+        payload.append({"action": action, "step_type": step_type, "order": len(payload) + 1})
+        step_types.append(step_type)
 
     setup = getattr(data, "setup", None)
     if setup and getattr(setup, "name", None):
-        step_id = client.create_step(case_id, action=setup.name, order=order, step_type="setup")
-        if step_id is not None:
-            step_ids.append(("setup", step_id))
-        order += 1
+        append(setup.name, "setup")
 
     for item in getattr(data, "body", []):
         item_type = getattr(item, "type", "KEYWORD")
         action = getattr(item, "name", None) or f"[{item_type}]"
         step_type = "teardown" if item_type == "TEARDOWN" else "action"
-        step_id = client.create_step(case_id, action=action, order=order, step_type=step_type)
-        if step_id is not None:
-            step_ids.append((step_type, step_id))
-        order += 1
+        append(action, step_type)
 
     teardown = getattr(data, "teardown", None)
     if teardown and getattr(teardown, "name", None):
-        step_id = client.create_step(case_id, action=teardown.name, order=order, step_type="teardown")
-        if step_id is not None:
-            step_ids.append(("teardown", step_id))
+        append(teardown.name, "teardown")
 
-    return step_ids
+    created = client.replace_case_steps(case_id, payload)
+    return list(zip(step_types, [row["id"] for row in created]))
 
 
 def _locate_artefact(output_dir: str | None, filename: str) -> Path | None:

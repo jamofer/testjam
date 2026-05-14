@@ -115,23 +115,17 @@ class TestjamClient:
         )
         return created.json()["id"] if created.ok else None
 
-    def delete_all_case_steps(self, case_id: int) -> None:
-        self.session.delete(self._url(f"/cases/{case_id}/steps"), timeout=self.timeout)
-
-    def create_step(
+    def replace_case_steps(
         self,
         case_id: int,
-        *,
-        action: str,
-        order: int,
-        step_type: str = "action",
-    ) -> int | None:
+        steps: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
         response = self.session.post(
-            self._url(f"/cases/{case_id}/steps"),
-            json={"action": action, "step_type": step_type, "order": order},
+            self._url(f"/cases/{case_id}/steps/replace"),
+            json={"steps": steps},
             timeout=self.timeout,
         )
-        return response.json()["id"] if response.ok else None
+        return response.json() if response.ok else []
 
     def create_execution(
         self,

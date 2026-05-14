@@ -185,6 +185,55 @@ def test_reorder_unknown_case_returns_404(auth_client):
     assert resp.status_code == 404
 
 
+def test_replace_steps_creates_full_set(auth_client, case_ids):
+    case_id = case_ids[0]
+
+    resp = auth_client.post(f"/api/v1/cases/{case_id}/steps/replace", json={"steps": [
+        {"action": "Setup", "step_type": "setup", "order": 1},
+        {"action": "Do thing", "step_type": "action", "order": 2},
+        {"action": "Cleanup", "step_type": "teardown", "order": 3},
+    ]})
+
+    assert resp.status_code == 200
+    rows = resp.json()
+    assert [s["action"] for s in rows] == ["Setup", "Do thing", "Cleanup"]
+    assert [s["step_type"] for s in rows] == ["setup", "action", "teardown"]
+    assert [s["order"] for s in rows] == [1, 2, 3]
+
+
+def test_replace_steps_wipes_existing(auth_client, case_ids):
+    case_id = case_ids[0]
+    for i in range(3):
+        auth_client.post(f"/api/v1/cases/{case_id}/steps", json={
+            "action": f"Old {i}", "order": i + 1,
+        })
+
+    resp = auth_client.post(f"/api/v1/cases/{case_id}/steps/replace", json={"steps": [
+        {"action": "Fresh", "step_type": "action", "order": 1},
+    ]})
+
+    assert resp.status_code == 200
+    rows = resp.json()
+    assert len(rows) == 1
+    assert rows[0]["action"] == "Fresh"
+
+
+def test_replace_steps_empty_clears_all(auth_client, case_ids):
+    case_id = case_ids[0]
+    auth_client.post(f"/api/v1/cases/{case_id}/steps", json={"action": "x", "order": 1})
+
+    resp = auth_client.post(f"/api/v1/cases/{case_id}/steps/replace", json={"steps": []})
+
+    assert resp.status_code == 200
+    assert resp.json() == []
+    assert auth_client.get(f"/api/v1/cases/{case_id}/steps").json() == []
+
+
+def test_replace_steps_unknown_case_returns_404(auth_client):
+    resp = auth_client.post("/api/v1/cases/99999/steps/replace", json={"steps": []})
+    assert resp.status_code == 404
+
+
 # ─── Search ───────────────────────────────────────────────────────────────────
 
 def test_search_cases_by_name(auth_client, project_id, suite_id, case_ids):

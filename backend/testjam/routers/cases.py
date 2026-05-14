@@ -229,6 +229,39 @@ def delete_all_steps(id: int, db: Session = Depends(get_db), current: User = Dep
     db.commit()
 
 
+class StepsReplace(BaseModel):
+    steps: list[TestStepCreate]
+
+
+@cases_router.post("/{id}/steps/replace", response_model=list[TestStepOut])
+def replace_case_steps(
+    id: int,
+    body: StepsReplace,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    case = db.get(TestCase, id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Not found")
+    db.query(TestStep).filter(TestStep.test_case_id == id).delete()
+    db.flush()
+    for index, step in enumerate(body.steps, start=1):
+        order = step.order if step.order is not None else index
+        db.add(TestStep(
+            test_case_id=id,
+            order=order,
+            action=step.action,
+            expected_result=step.expected_result,
+            step_type=step.step_type,
+        ))
+    case.updated_by_id = current.id
+    db.flush()
+    db.refresh(case)
+    write_revision(db, case, current, "updated")
+    db.commit()
+    return db.query(TestStep).filter(TestStep.test_case_id == id).order_by(TestStep.order).all()
+
+
 @cases_router.post("/{id}/steps", response_model=TestStepOut, status_code=status.HTTP_201_CREATED)
 def create_step(id: int, body: TestStepCreate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
     order = body.order
