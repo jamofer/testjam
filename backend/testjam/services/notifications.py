@@ -59,9 +59,7 @@ def _persist_and_push(
 def _recent_duplicate_exists(
     db: Session, user_id: int, event_type: str, link: str | None,
 ) -> bool:
-    threshold = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(
-        seconds=DEDUPE_WINDOW_SECONDS,
-    )
+    threshold = datetime.now(timezone.utc) - timedelta(seconds=DEDUPE_WINDOW_SECONDS)
     return (
         db.query(Notification)
         .filter(

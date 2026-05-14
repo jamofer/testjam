@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from datetime import datetime
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from testjam.database import Base
+from testjam.models._types import UTCDateTime
 
 
 class User(Base):
@@ -19,9 +20,9 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     failed_login_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False, server_default="0")
-    locked_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    locked_until: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
 
     group_memberships: Mapped[list[GroupMember]] = relationship(back_populates="user")
     project_memberships: Mapped[list[ProjectMember]] = relationship(back_populates="user")
@@ -33,7 +34,7 @@ class Group(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
     description: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
 
     members: Mapped[list[GroupMember]] = relationship(
         back_populates="group", cascade="all, delete-orphan",

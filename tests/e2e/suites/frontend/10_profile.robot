@@ -26,6 +26,7 @@ A user can change their password from the Profile page
     I should land on the projects page
 
 A user can mint a personal token from the Profile page
+    [Teardown]    The personal tokens of profile-token with password pw12345678 are cleaned up
     # Given
     I create a user named profile-token with password pw12345678
     I switch the UI session to profile-token with password pw12345678
@@ -38,6 +39,7 @@ A user can mint a personal token from the Profile page
     The personal tokens table should list ci-bot
 
 Toggling an email preference persists the new state
+    [Teardown]    The notification preferences of profile-pref with password pw12345678 are reset
     # Given
     I configure SMTP host mailpit port 1025 from qa@example.com
     I create a user named profile-pref with password pw12345678

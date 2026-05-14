@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from datetime import datetime
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from testjam.database import Base
+from testjam.models._types import UTCDateTime
 
 
 class Notification(Base):
@@ -16,6 +17,6 @@ class Notification(Base):
     message: Mapped[str] = mapped_column(Text, nullable=False)
     link: Mapped[str | None] = mapped_column(String(512), nullable=True)
     is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now(), index=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), nullable=False, server_default=func.now(), index=True)
 
     user: Mapped["User"] = relationship()  # noqa: F821

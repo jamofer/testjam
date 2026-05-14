@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from datetime import datetime
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from testjam.database import Base
+from testjam.models._types import UTCDateTime
 
 
 class AppSettings(Base):
@@ -47,7 +48,7 @@ class AppSettings(Base):
     )
 
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
+        UTCDateTime(), nullable=False, server_default=func.now(), onupdate=func.now()
     )
     updated_by_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True

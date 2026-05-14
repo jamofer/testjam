@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from datetime import datetime
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from testjam.database import Base
+from testjam.models._types import UTCDateTime
 
 
 class TestExecution(Base):
@@ -32,9 +33,9 @@ class TestExecution(Base):
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
     token_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)
+    started_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
+    finished_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now(), index=True)
 
     project: Mapped[Project] = relationship(back_populates="executions")
     test_plan: Mapped[TestPlan | None] = relationship(back_populates="executions")
@@ -58,7 +59,7 @@ class TestResult(Base):
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="not_run")
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     executed_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    executed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    executed_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     execution: Mapped[TestExecution] = relationship(back_populates="results")
@@ -80,7 +81,7 @@ class TestStepResult(Base):
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="not_run")
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    started_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
     log_output: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     test_result: Mapped[TestResult] = relationship(back_populates="step_results")
@@ -96,7 +97,7 @@ class ResultAttachment(Base):
     content_type: Mapped[str | None] = mapped_column(String(128), nullable=True)
     size_bytes: Mapped[int | None] = mapped_column(Integer, nullable=True)
     file_path: Mapped[str] = mapped_column(String(512), nullable=False)
-    uploaded_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    uploaded_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
     uploaded_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
 
@@ -112,7 +113,7 @@ class ExecutionAttachment(Base):
     content_type: Mapped[str | None] = mapped_column(String(128), nullable=True)
     size_bytes: Mapped[int | None] = mapped_column(Integer, nullable=True)
     file_path: Mapped[str] = mapped_column(String(512), nullable=False)
-    uploaded_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    uploaded_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
     uploaded_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
     execution: Mapped[TestExecution] = relationship(back_populates="attachments")

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from datetime import datetime
-from sqlalchemy import DateTime, ForeignKey, Integer, JSON, String, Text, func
+from sqlalchemy import ForeignKey, Integer, JSON, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from testjam.database import Base
+from testjam.models._types import UTCDateTime
 
 
 class TestSuite(Base):
@@ -19,8 +20,8 @@ class TestSuite(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     tags: Mapped[list | None] = mapped_column(JSON, nullable=True)
     order: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now(), onupdate=func.now())
 
     project: Mapped[Project] = relationship(back_populates="suites")
     children: Mapped[list[TestSuite]] = relationship(back_populates="parent")
@@ -55,8 +56,8 @@ class TestCase(Base):
     updated_by_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now(), onupdate=func.now())
 
     suite: Mapped[TestSuite] = relationship(back_populates="cases")
     steps: Mapped[list[TestStep]] = relationship(
@@ -112,7 +113,7 @@ class Attachment(Base):
     content_type: Mapped[str | None] = mapped_column(String(128), nullable=True)
     size_bytes: Mapped[int | None] = mapped_column(Integer, nullable=True)
     file_path: Mapped[str] = mapped_column(String(512), nullable=False)
-    uploaded_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    uploaded_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
     uploaded_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
     test_case: Mapped[TestCase] = relationship(back_populates="attachments")

@@ -40,6 +40,41 @@ class CleanupMixin:
         self.authenticate_as_admin()
         self.purge_my_tokens()
 
+    @keyword("the personal tokens of ${username} with password ${password} are cleaned up")
+    def clean_up_user_tokens(self, username: str, password: str) -> None:
+        if not self._restore_user_if_needed(username):
+            return
+        self.log_in(username, password)
+        tokens = self.client.get("/users/me/tokens")
+        if tokens.status_code == 200:
+            for token in tokens.json():
+                self.client.delete(f"/users/me/tokens/{token['id']}")
+        self.authenticate_as_admin()
+
+    @keyword("the notification preferences of ${username} with password ${password} are reset")
+    def reset_user_notification_preferences(self, username: str, password: str) -> None:
+        if not self._restore_user_if_needed(username):
+            return
+        self.log_in(username, password)
+        preferences = self.client.get("/users/me/notification-preferences")
+        if preferences.status_code == 200:
+            for preference in preferences.json():
+                self.client.put(
+                    f"/users/me/notification-preferences/{preference['event_type']}",
+                    json={"in_app": True, "email": True},
+                )
+        self.authenticate_as_admin()
+
+    def _restore_user_if_needed(self, username: str) -> bool:
+        self.authenticate_as_admin()
+        users = self.client.get("/users", params={"include_deleted": "true"}).json()
+        target = next((user for user in users if user["username"] == username), None)
+        if target is None:
+            return False
+        if target["deleted_at"] is not None:
+            self.client.post(f"/users/{target['id']}/restore")
+        return True
+
     @keyword("the settings and current project are cleaned up")
     def clean_up_settings_and_project(self) -> None:
         self.authenticate_as_admin()
