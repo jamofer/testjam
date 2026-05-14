@@ -18,6 +18,9 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: str = DEFAULT_CORS_ORIGINS
 
+    REDIS_URL: str | None = None
+    REALTIME_CHANNEL_PREFIX: str = "testjam:rt"
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]

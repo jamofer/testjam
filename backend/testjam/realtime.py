@@ -7,8 +7,9 @@ rest of the app is:
 - ``project:{id}``    — execution lifecycle within a project
 - ``execution:{id}``  — result/step updates while a run is active
 
-Single in-process registry — fine for single-replica dev. For HA swap the
-broadcast helper with a Redis pub/sub fanout (P2.11.12).
+Single in-process registry by default. When a Redis backplane is active
+(``REDIS_URL`` configured) ``broadcast`` publishes to the backplane and each
+worker's consumer task delivers locally — enabling multi-worker fan-out.
 """
 from __future__ import annotations
 
@@ -17,6 +18,8 @@ from collections import defaultdict
 from typing import Any
 
 from fastapi import WebSocket
+
+from testjam.realtime_backplane import get_backplane
 
 
 class ConnectionManager:
@@ -40,6 +43,13 @@ class ConnectionManager:
                 self._discard_locked(topic, ws)
 
     async def broadcast(self, topic: str, payload: dict[str, Any]) -> None:
+        backplane = get_backplane()
+        if backplane is not None and backplane.enabled:
+            await backplane.publish(topic, payload)
+            return
+        await self.deliver_local(topic, payload)
+
+    async def deliver_local(self, topic: str, payload: dict[str, Any]) -> None:
         async with self._lock:
             sockets = list(self._by_topic.get(topic, ()))
         dead: list[WebSocket] = []

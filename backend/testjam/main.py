@@ -16,7 +16,8 @@ from testjam.core.sentry import configure_sentry
 configure_logging()
 configure_sentry()
 from testjam.database import SessionLocal
-from testjam.realtime import set_main_loop
+from testjam.realtime import manager, set_main_loop
+from testjam.realtime_backplane import build_backplane, set_backplane
 from testjam.routers import auth, users, groups, projects, suites, cases, testplans, executions, versions, members, tokens, notifications, notification_preferences, settings as settings_router, ws, health
 from testjam.services.log_flusher import configure_from_settings as configure_log_flusher
 from testjam.services.settings import get_settings as get_app_settings
@@ -27,7 +28,23 @@ async def lifespan(_app: FastAPI):
     set_main_loop(asyncio.get_running_loop())
     with SessionLocal() as db:
         configure_log_flusher(get_app_settings(db))
-    yield
+
+    backplane = None
+    if settings.REDIS_URL:
+        backplane = build_backplane(
+            settings.REDIS_URL,
+            settings.REALTIME_CHANNEL_PREFIX,
+            manager.deliver_local,
+        )
+        await backplane.start()
+        set_backplane(backplane)
+
+    try:
+        yield
+    finally:
+        if backplane is not None:
+            set_backplane(None)
+            await backplane.stop()
 
 
 app = FastAPI(

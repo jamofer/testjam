@@ -14,6 +14,15 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   api:
     build:
       context: ./backend
@@ -22,10 +31,13 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-testjam}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-testjam}
       SECRET_KEY: ${SECRET_KEY}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-480}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
     volumes:
       - uploads:/app/uploads
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
