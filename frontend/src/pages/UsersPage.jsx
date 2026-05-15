@@ -1,28 +1,32 @@
 import { useEffect, useMemo, useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { UserPlus, Trash2, Users, Shield, RotateCcw } from "lucide-react"
+import { Activity, FolderKanban, Pencil, RotateCcw, Shield, Trash2, UserPlus, Users } from "lucide-react"
+import { toast } from "sonner"
+
 import { api } from "../api/client"
 import { usersApi } from "../api/users"
+import { AdminProjectsTab } from "../components/admin/AdminProjectsTab"
+import { EditUserDialog } from "../components/admin/EditUserDialog"
+import { UserActivityDialog } from "../components/admin/UserActivityDialog"
+import { Badge } from "../components/ui/badge"
 import { Button } from "../components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog"
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
-import { Badge } from "../components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs"
-import { toast } from "sonner"
 
 const groupsApi = {
   list: () => api.get("/groups").then(r => r.data),
   create: (data) => api.post("/groups", data).then(r => r.data),
   delete: (id) => api.delete(`/groups/${id}`),
-  addMember: (groupId, userId, role) => api.post(`/groups/${groupId}/members`, null, { params: { user_id: userId, role } }),
-  removeMember: (groupId, userId) => api.delete(`/groups/${groupId}/members/${userId}`),
 }
 
 export function UsersPage() {
-  const qc = useQueryClient()
+  const queryClient = useQueryClient()
   const [includeDeleted, setIncludeDeleted] = useState(false)
   const [pendingDelete, setPendingDelete] = useState(null)
+  const [editTarget, setEditTarget] = useState(null)
+  const [activityTarget, setActivityTarget] = useState(null)
 
   const { data: users = [] } = useQuery({
     queryKey: ["users", { includeDeleted }],
@@ -32,28 +36,29 @@ export function UsersPage() {
 
   const restoreUser = useMutation({
     mutationFn: usersApi.restore,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["users"] }); toast.success("User restored") },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["users"] }); toast.success("User restored") },
     onError: () => toast.error("Failed to restore user"),
   })
 
   const deleteGroup = useMutation({
     mutationFn: groupsApi.delete,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["groups"] }); toast.success("Group deleted") },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["groups"] }); toast.success("Group deleted") },
   })
 
   const handleDeleted = () => {
-    qc.invalidateQueries({ queryKey: ["users"] })
+    queryClient.invalidateQueries({ queryKey: ["users"] })
     setPendingDelete(null)
   }
 
   return (
-    <div className="pl-14 pr-4 py-4 md:p-8 max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">Users & Groups</h1>
+    <div className="pl-14 pr-4 py-4 md:p-8 max-w-2xl xl:max-w-4xl 2xl:max-w-6xl space-y-6">
+      <h1 className="text-2xl font-bold text-gray-800">Admin</h1>
 
       <Tabs defaultValue="users">
         <TabsList>
           <TabsTrigger value="users"><Users size={13} className="mr-1" /> Users ({users.length})</TabsTrigger>
           <TabsTrigger value="groups"><Shield size={13} className="mr-1" /> Groups ({groups.length})</TabsTrigger>
+          <TabsTrigger value="projects"><FolderKanban size={13} className="mr-1" /> Projects</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users">
@@ -65,12 +70,14 @@ export function UsersPage() {
             <CreateUserDialog />
           </div>
           <ul className="space-y-2">
-            {users.map(u => (
+            {users.map(user => (
               <UserRow
-                key={u.id}
-                user={u}
-                onDeleteRequest={() => setPendingDelete(u)}
-                onRestore={() => restoreUser.mutate(u.id)}
+                key={user.id}
+                user={user}
+                onEdit={() => setEditTarget(user)}
+                onActivity={() => setActivityTarget(user)}
+                onDeleteRequest={() => setPendingDelete(user)}
+                onRestore={() => restoreUser.mutate(user.id)}
               />
             ))}
           </ul>
@@ -79,18 +86,22 @@ export function UsersPage() {
         <TabsContent value="groups">
           <div className="flex justify-end mb-3"><CreateGroupDialog /></div>
           <ul className="space-y-2">
-            {groups.map(g => (
-              <li key={g.id} className="flex items-center justify-between bg-white border rounded-lg px-4 py-3 shadow-sm">
+            {groups.map(group => (
+              <li key={group.id} className="flex items-center justify-between bg-white border rounded-lg px-4 py-3 shadow-sm">
                 <div>
-                  <p className="font-medium text-gray-800">{g.name}</p>
-                  <p className="text-xs text-gray-400">{g.members?.length ?? 0} members</p>
+                  <p className="font-medium text-gray-800">{group.name}</p>
+                  <p className="text-xs text-gray-400">{group.members?.length ?? 0} members</p>
                 </div>
-                <Button size="icon" variant="ghost" onClick={() => deleteGroup.mutate(g.id)}>
+                <Button size="icon" variant="ghost" onClick={() => deleteGroup.mutate(group.id)}>
                   <Trash2 size={14} />
                 </Button>
               </li>
             ))}
           </ul>
+        </TabsContent>
+
+        <TabsContent value="projects">
+          <AdminProjectsTab users={users} />
         </TabsContent>
       </Tabs>
 
@@ -102,16 +113,32 @@ export function UsersPage() {
           onDeleted={handleDeleted}
         />
       )}
+      {editTarget && (
+        <EditUserDialog
+          user={editTarget}
+          open
+          onOpenChange={(open) => { if (!open) setEditTarget(null) }}
+        />
+      )}
+      {activityTarget && (
+        <UserActivityDialog
+          user={activityTarget}
+          onClose={() => setActivityTarget(null)}
+        />
+      )}
     </div>
   )
 }
 
-function UserRow({ user, onDeleteRequest, onRestore }) {
+function UserRow({ user, onEdit, onActivity, onDeleteRequest, onRestore }) {
   const isDeleted = !!user.deleted_at
   return (
     <li className="flex items-center justify-between bg-white border rounded-lg px-4 py-3 shadow-sm">
       <div>
-        <p className="font-medium text-gray-800">{user.username}</p>
+        <p className="font-medium text-gray-800">
+          {user.username}
+          {user.is_admin && <Badge variant="outline" className="ml-2 text-[10px]">admin</Badge>}
+        </p>
         <p className="text-xs text-gray-400">{user.email}</p>
       </div>
       <div className="flex items-center gap-2">
@@ -127,7 +154,13 @@ function UserRow({ user, onDeleteRequest, onRestore }) {
             <Badge variant={user.is_active ? "success" : "secondary"}>
               {user.is_active ? "active" : "inactive"}
             </Badge>
-            <Button size="icon" variant="ghost" onClick={onDeleteRequest}>
+            <Button size="icon" variant="ghost" title="Activity" onClick={onActivity}>
+              <Activity size={14} />
+            </Button>
+            <Button size="icon" variant="ghost" title="Edit" onClick={onEdit}>
+              <Pencil size={14} />
+            </Button>
+            <Button size="icon" variant="ghost" title="Delete" onClick={onDeleteRequest}>
               <Trash2 size={14} />
             </Button>
           </>
@@ -270,12 +303,12 @@ function initialActions(projects) {
 function CreateUserDialog() {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({ username: "", email: "", password: "", full_name: "" })
-  const qc = useQueryClient()
+  const queryClient = useQueryClient()
 
   const create = useMutation({
     mutationFn: usersApi.create,
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["users"] })
+      queryClient.invalidateQueries({ queryKey: ["users"] })
       toast.success("User created")
       setOpen(false)
       setForm({ username: "", email: "", password: "", full_name: "" })
@@ -309,12 +342,12 @@ function CreateUserDialog() {
 function CreateGroupDialog() {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
-  const qc = useQueryClient()
+  const queryClient = useQueryClient()
 
   const create = useMutation({
     mutationFn: groupsApi.create,
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["groups"] })
+      queryClient.invalidateQueries({ queryKey: ["groups"] })
       toast.success("Group created")
       setOpen(false)
       setName("")

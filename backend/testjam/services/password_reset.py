@@ -25,6 +25,14 @@ def request_password_reset(
     )
     if not user:
         return
+    issue_reset_email_for_user(db, user, background)
+
+
+def issue_reset_email_for_user(
+    db: Session,
+    user: User,
+    background: BackgroundTasks | None = None,
+) -> None:
     raw_token, _, _ = _create_reset_token(db, user)
     _dispatch_reset_email(db, user, raw_token, background)
 

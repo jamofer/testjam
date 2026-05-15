@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import get_current_user, require_admin
@@ -6,13 +6,19 @@ from testjam.auth.security import hash_password, verify_password
 from testjam.database import get_db
 from testjam.models.user import User
 from testjam.schemas.user import (
+    AdminUserUpdate,
     PasswordChange,
+    ResetPasswordRequest,
+    ResetPasswordResponse,
+    UserActivity,
     UserCreate,
     UserDeleteRequest,
     UserOut,
     UserUpdate,
 )
+from testjam.services.admin_reset import issue_temporary_password, send_reset_email
 from testjam.services.settings import get_settings as get_app_settings
+from testjam.services.user_activity import collect_user_activity
 from testjam.services.user_lifecycle import soft_delete_user
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -87,11 +93,16 @@ def get_user(id: int, db: Session = Depends(get_db), current: User = Depends(get
 
 
 @router.put("/{id}", response_model=UserOut)
-def update_user(id: int, body: UserUpdate, db: Session = Depends(get_db), _: User = Depends(require_admin)):
+def update_user(id: int, body: AdminUserUpdate, db: Session = Depends(get_db), _: User = Depends(require_admin)):
     user = db.get(User, id)
     if not user:
         raise HTTPException(status_code=404, detail="Not found")
     payload = body.model_dump(exclude_none=True)
+    new_username = payload.get("username")
+    if new_username and new_username != user.username:
+        clash = db.query(User).filter(User.username == new_username, User.id != id).first()
+        if clash:
+            raise HTTPException(status_code=409, detail="Username already exists")
     if payload.pop("clear_lockout", False):
         user.locked_until = None
         user.failed_login_count = 0
@@ -102,6 +113,32 @@ def update_user(id: int, body: UserUpdate, db: Session = Depends(get_db), _: Use
     db.commit()
     db.refresh(user)
     return user
+
+
+@router.post("/{id}/reset-password", response_model=ResetPasswordResponse)
+def admin_reset_password(
+    id: int,
+    body: ResetPasswordRequest,
+    background: BackgroundTasks,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
+):
+    user = db.get(User, id)
+    if not user or user.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="Not found")
+    if body.mode == "temporary_password":
+        temporary = issue_temporary_password(db, user)
+        return ResetPasswordResponse(mode="temporary_password", temporary_password=temporary)
+    send_reset_email(db, user, background)
+    return ResetPasswordResponse(mode="email")
+
+
+@router.get("/{id}/activity", response_model=UserActivity)
+def get_user_activity(id: int, db: Session = Depends(get_db), _: User = Depends(require_admin)):
+    user = db.get(User, id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Not found")
+    return collect_user_activity(db, user)
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)

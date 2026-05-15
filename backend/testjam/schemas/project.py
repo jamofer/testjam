@@ -53,3 +53,22 @@ class ProjectMemberOut(BaseModel):
 
 class ProjectMemberUpdate(BaseModel):
     role: str
+
+
+class AdminProjectRow(BaseModel):
+    id: int
+    name: str
+    description: str | None = None
+    archived_at: datetime | None = None
+    owner_id: int | None = None
+    owner_username: str | None = None
+    member_count: int = 0
+    case_count: int = 0
+    last_execution_at: datetime | None = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class TransferOwnershipRequest(BaseModel):
+    new_owner_id: int

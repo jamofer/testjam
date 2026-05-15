@@ -23,6 +23,8 @@ class User(Base):
     locked_until: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
+    last_login_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
+    last_login_ip: Mapped[str | None] = mapped_column(String(45), nullable=True)
     timezone: Mapped[str | None] = mapped_column(String(64), nullable=True)
     use_relative_dates: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, server_default="true",

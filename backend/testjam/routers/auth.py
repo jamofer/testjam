@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr, Field
@@ -50,11 +52,21 @@ def login(request: Request, form: OAuth2PasswordRequestForm = Depends(), db: Ses
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user")
     clear_lockout(db, user)
+    user.last_login_at = datetime.now(timezone.utc)
+    user.last_login_ip = _client_ip(request)
+    db.commit()
     token = create_access_token(subject=user.username)
     return TokenResponse(
         access_token=token,
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
+
+
+def _client_ip(request: Request) -> str | None:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else None
 
 
 @router.post("/password-reset/request", status_code=status.HTTP_204_NO_CONTENT)

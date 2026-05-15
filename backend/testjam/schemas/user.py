@@ -68,10 +68,61 @@ class UserOut(UserBase):
     is_admin: bool
     created_at: datetime
     deleted_at: datetime | None = None
+    last_login_at: datetime | None = None
     timezone: str | None = None
     use_relative_dates: bool = True
 
     model_config = {"from_attributes": True}
+
+
+class AdminUserUpdate(BaseModel):
+    username: str | None = None
+    email: EmailStr | None = None
+    full_name: str | None = None
+    is_active: bool | None = None
+    is_admin: bool | None = None
+    timezone: str | None = None
+    password: str | None = None
+    clear_lockout: bool | None = None
+    failed_login_count: int | None = None
+
+    @field_validator("timezone")
+    @classmethod
+    def _timezone_must_be_iana(cls, value: str | None) -> str | None:
+        return _validate_iana_timezone(value)
+
+
+class ResetPasswordRequest(BaseModel):
+    mode: Literal["email", "temporary_password"]
+
+
+class ResetPasswordResponse(BaseModel):
+    mode: Literal["email", "temporary_password"]
+    temporary_password: str | None = None
+
+
+class ActivityExecution(BaseModel):
+    id: int
+    project_id: int
+    project_name: str
+    title: str
+    status: str
+    created_at: datetime
+
+
+class ActivityCase(BaseModel):
+    id: int
+    project_id: int
+    project_name: str
+    name: str
+    created_at: datetime
+
+
+class UserActivity(BaseModel):
+    last_login_at: datetime | None = None
+    last_login_ip: str | None = None
+    recent_executions: list[ActivityExecution] = []
+    recent_cases: list[ActivityCase] = []
 
 
 class TokenResponse(BaseModel):

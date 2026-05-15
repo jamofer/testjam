@@ -11,8 +11,15 @@ from testjam.models.execution import TestExecution, TestResult
 from testjam.models.project import Project, ProjectMember
 from testjam.models.testcase import TestCase, TestSuite
 from testjam.models.user import User
-from testjam.schemas.project import ProjectCreate, ProjectOut, ProjectUpdate, RecentExecutionSummary
+from testjam.schemas.project import (
+    ProjectCreate,
+    ProjectOut,
+    ProjectUpdate,
+    RecentExecutionSummary,
+    TransferOwnershipRequest,
+)
 from testjam.services.project_export import cleanup_archive, export_project
+from testjam.services.project_ownership import transfer_ownership
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -154,6 +161,22 @@ def export_project_zip(
     artifact = export_project(db, project)
     background_tasks.add_task(cleanup_archive, artifact.path)
     return FileResponse(artifact.path, media_type="application/zip", filename=artifact.filename)
+
+
+@router.post("/{id}/transfer-ownership", response_model=ProjectOut)
+def transfer_project_ownership(
+    id: int,
+    body: TransferOwnershipRequest,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_project_access),
+):
+    project = db.get(Project, id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Not found")
+    _require_owner_or_admin(project, current, db)
+    transfer_ownership(db, project, body.new_owner_id)
+    db.refresh(project)
+    return _project_out(project, db)
 
 
 @router.post("/{id}/unarchive", response_model=ProjectOut)
