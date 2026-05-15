@@ -71,7 +71,7 @@ function ProjectActions({ projectId }) {
     <div className="flex flex-wrap items-center gap-2">
       <Button asChild size="sm">
         <Link to={`/projects/${projectId}/executions/new`}>
-          <PlayCircle size={14} /> Run plan
+          <PlayCircle size={14} /> New execution
         </Link>
       </Button>
       <Button asChild size="sm" variant="outline">

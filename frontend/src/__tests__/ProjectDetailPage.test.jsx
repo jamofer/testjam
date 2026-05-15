@@ -49,11 +49,11 @@ describe("ProjectDetailPage (overview)", () => {
     expect(screen.getByText("Pass rate")).toBeInTheDocument()
   })
 
-  it("shows Run plan / Test cases / Import results actions", async () => {
+  it("shows New execution / Test cases / Import results actions", async () => {
     setup()
 
     await screen.findByText("Project")
-    expect(screen.getByRole("link", { name: /run plan/i })).toHaveAttribute("href", "/projects/1/executions/new")
+    expect(screen.getByRole("link", { name: /new execution/i })).toHaveAttribute("href", "/projects/1/executions/new")
     expect(screen.getByRole("link", { name: /test cases/i })).toHaveAttribute("href", "/projects/1/cases")
     expect(screen.getByRole("button", { name: /import results/i })).toBeInTheDocument()
   })
