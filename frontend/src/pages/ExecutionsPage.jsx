@@ -16,6 +16,7 @@ import { DateLabel } from "../components/ui/date-label"
 import { EmptyState } from "../components/ui/empty-state"
 import { LiveIndicator } from "../components/ui/live-indicator"
 import { SkeletonList } from "../components/ui/skeleton"
+import { ImportExecutionDialog } from "../components/execution/ImportExecutionDialog"
 
 const statusIcon = {
   completed:  <CheckCircle2 size={15} className="text-green-500" />,
@@ -84,9 +85,12 @@ export function ExecutionsPage() {
               Executions
               <LiveIndicator connected={live} />
             </h1>
-            <Link to={`/projects/${projectId}/executions/new`} className="self-start sm:self-auto">
-              <Button size="sm"><Plus size={14} /> New execution</Button>
-            </Link>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <ImportExecutionDialog projectId={projectId} />
+              <Link to={`/projects/${projectId}/executions/new`}>
+                <Button size="sm"><Plus size={14} /> New execution</Button>
+              </Link>
+            </div>
           </div>
           {!isLoading && (executions.length > 0 || hasFiltersActive) && (
             <div className="flex flex-wrap gap-2 items-center">

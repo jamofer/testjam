@@ -24,6 +24,17 @@ from testjam.schemas.execution import (
 from testjam.services import execution_events
 
 STEP_RESULT_LOG_SEPARATOR = "\n\n"
+TERMINAL_EXECUTION_STATUSES = {"completed", "aborted"}
+
+
+def _reject_if_terminal(execution: TestExecution | None) -> None:
+    if execution is None:
+        return
+    if execution.status in TERMINAL_EXECUTION_STATUSES:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Execution is {execution.status}; results are read-only",
+        )
 
 
 def _result_out(result: TestResult) -> TestResultOut:
@@ -173,6 +184,7 @@ def update_result(
     result = db.get(TestResult, id)
     if not result:
         raise HTTPException(status_code=404, detail="Not found")
+    _reject_if_terminal(db.get(TestExecution, result.execution_id))
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(result, field, value)
     db.commit()
@@ -196,6 +208,7 @@ def start_step_result(
     result = db.get(TestResult, id)
     if not result:
         raise HTTPException(status_code=404, detail="Result not found")
+    _reject_if_terminal(db.get(TestExecution, result.execution_id))
 
     now = datetime.now(timezone.utc)
     existing = (
@@ -257,6 +270,8 @@ def update_step_result(
     sr = _load_step_result(db, id, step_result_id)
     if not sr:
         raise HTTPException(status_code=404, detail="Not found")
+    execution_id = _resolve_execution_id(db, id)
+    _reject_if_terminal(db.get(TestExecution, execution_id) if execution_id else None)
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(sr, field, value)
     db.commit()
@@ -282,6 +297,8 @@ def append_step_result_log(
     step_result = _load_step_result(db, id, step_result_id)
     if not step_result:
         raise HTTPException(status_code=404, detail="Not found")
+    execution_id_pre = _resolve_execution_id(db, id)
+    _reject_if_terminal(db.get(TestExecution, execution_id_pre) if execution_id_pre else None)
 
     entry = _format_log_entry(body.level, body.message)
     _append_log_output(step_result, entry)

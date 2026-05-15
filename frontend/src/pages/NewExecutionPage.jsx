@@ -3,12 +3,14 @@ import { useParams, useNavigate } from "react-router-dom"
 import { useCreateExecution } from "../hooks/useExecutions"
 import { useVersions } from "../hooks/useVersions"
 import { useMembers } from "../hooks/useMembers"
+import { useProject } from "../hooks/useProjects"
 import { useQuery } from "@tanstack/react-query"
 import { plansApi } from "../api/testplans"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { MdEditor } from "../components/MdEditor"
+import { PageBody, PageHeader } from "../components/ui/page-header"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import { CasePicker } from "../components/ui/case-picker"
 import { toast } from "sonner"
@@ -17,6 +19,7 @@ export function NewExecutionPage() {
   const { id: projectId } = useParams()
   const navigate = useNavigate()
   const createExecution = useCreateExecution(projectId)
+  const { data: project } = useProject(projectId)
   const { data: versions = [] } = useVersions(projectId)
   const { data: members = [] } = useMembers(projectId)
 
@@ -73,9 +76,20 @@ export function NewExecutionPage() {
   }
 
   return (
-    <div className="pl-14 pr-4 py-4 md:p-8 max-w-xl space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">New Execution</h1>
-      <form onSubmit={handleSubmit} className="space-y-5">
+    <>
+      <PageHeader crumbs={[
+        { label: "Projects", to: "/projects" },
+        { label: project?.name ?? "…", to: `/projects/${projectId}` },
+        { label: "Executions", to: `/projects/${projectId}/executions` },
+        { label: "New" },
+      ]}>
+        <div className="max-w-2xl xl:max-w-3xl">
+          <h1 className="text-2xl font-bold text-gray-800">New Execution</h1>
+        </div>
+      </PageHeader>
+      <PageBody>
+        <div className="max-w-2xl xl:max-w-3xl">
+          <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-1.5">
           <Label>Title *</Label>
           <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Sprint 23 regression…" />
@@ -178,10 +192,12 @@ export function NewExecutionPage() {
           )}
         </div>
 
-        <Button type="submit" className="w-full" disabled={createExecution.isPending}>
-          {createExecution.isPending ? "Creating…" : "Create & start execution"}
-        </Button>
-      </form>
-    </div>
+          <Button type="submit" className="w-full" disabled={createExecution.isPending}>
+            {createExecution.isPending ? "Creating…" : "Create & start execution"}
+          </Button>
+          </form>
+        </div>
+      </PageBody>
+    </>
   )
 }

@@ -11,11 +11,11 @@ const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage").then(
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage").then(m => ({ default: m.ResetPasswordPage })))
 const ProjectsPage = lazy(() => import("./pages/ProjectsPage").then(m => ({ default: m.ProjectsPage })))
 const ProjectDetailPage = lazy(() => import("./pages/ProjectDetailPage").then(m => ({ default: m.ProjectDetailPage })))
+const SuitesPage = lazy(() => import("./pages/SuitesPage").then(m => ({ default: m.SuitesPage })))
 const TestCasePage = lazy(() => import("./pages/TestCasePage").then(m => ({ default: m.TestCasePage })))
 const TestPlansPage = lazy(() => import("./pages/TestPlansPage").then(m => ({ default: m.TestPlansPage })))
 const PlanDetailPage = lazy(() => import("./pages/PlanDetailPage").then(m => ({ default: m.PlanDetailPage })))
 const ExecutionsPage = lazy(() => import("./pages/ExecutionsPage").then(m => ({ default: m.ExecutionsPage })))
-const ExecutionDetailPage = lazy(() => import("./pages/ExecutionDetailPage").then(m => ({ default: m.ExecutionDetailPage })))
 const ExecutionRunPage = lazy(() => import("./pages/ExecutionRunPage").then(m => ({ default: m.ExecutionRunPage })))
 const NewExecutionPage = lazy(() => import("./pages/NewExecutionPage").then(m => ({ default: m.NewExecutionPage })))
 const UsersPage = lazy(() => import("./pages/UsersPage").then(m => ({ default: m.UsersPage })))
@@ -57,6 +57,7 @@ export default function App() {
               <Route index element={<Navigate to="/projects" replace />} />
               <Route path="/projects" element={<ProjectsPage />} />
               <Route path="/projects/:id" element={<ProjectDetailPage />} />
+              <Route path="/projects/:id/cases" element={<SuitesPage />} />
               <Route path="/projects/:id/plans" element={<TestPlansPage />} />
               <Route path="/plans/:id" element={<PlanDetailPage />} />
               <Route path="/projects/:id/executions" element={<ExecutionsPage />} />
@@ -64,7 +65,7 @@ export default function App() {
               <Route path="/projects/:id/members" element={<MembersPage />} />
               <Route path="/projects/:id/versions" element={<VersionsPage />} />
               <Route path="/cases/:id" element={<TestCasePage />} />
-              <Route path="/executions/:id" element={<ExecutionDetailPage />} />
+              <Route path="/executions/:id" element={<Navigate to="run" replace />} />
               <Route path="/executions/:id/run" element={<ExecutionRunPage />} />
               <Route path="/users" element={<UsersPage />} />
               <Route path="/profile" element={<ProfilePage />} />

@@ -264,10 +264,13 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
                     <span className="text-xs bg-white border px-1.5 py-0.5 rounded text-gray-500 shrink-0">
                       {a.content_type ?? "file"}
                     </span>
-                    <a href={a.url} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-gray-700 hover:text-primary-600 min-w-0 flex-1 truncate">
+                    <button type="button"
+                      onClick={() => executionsApi
+                        .downloadResultAttachment(result.id, a.id, a.filename)
+                        .catch(() => toast.error("Download failed"))}
+                      className="flex items-center gap-1 text-left text-gray-700 hover:text-primary-600 min-w-0 flex-1 truncate">
                       {a.filename}<ExternalLink size={11} className="shrink-0" />
-                    </a>
+                    </button>
                     <span className="text-xs text-gray-400 shrink-0">
                       {a.size_bytes ? `${Math.round(a.size_bytes / 1024)} KB` : ""}
                     </span>

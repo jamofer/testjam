@@ -17,9 +17,11 @@ import { LiveIndicator } from "../components/ui/live-indicator"
 import { Skeleton, SkeletonList } from "../components/ui/skeleton"
 import { ResultCard, ResultExpandContext } from "../components/execution/ResultCard"
 import { RunSuiteGroup } from "../components/execution/RunSuiteGroup"
+import { ImportResultsButton } from "../components/execution/ImportResultsButton"
 import { ShortcutHelpDialog, SHORTCUT_TO_STATUS } from "../components/execution/ShortcutHelpDialog"
 
 const STATUS_FILTER_KEY = { F: "failed", B: "blocked", U: "not_run" }
+const TERMINAL_STATUSES = new Set(["completed", "aborted"])
 import { mapSuiteByCase } from "../components/ui/test-case-item"
 import { fmtDuration, fmtDateTime } from "../lib/format"
 import { ContextPanel } from "../components/ui/context-panel"
@@ -52,17 +54,21 @@ function UserLink({ user }) {
   return <Link to="/users" className="text-primary-600 hover:underline">{user.full_name || user.username}</Link>
 }
 
-function PanelExecutionAttachments({ attachments = [] }) {
+function PanelExecutionAttachments({ executionId, attachments = [] }) {
   if (attachments.length === 0) return <p className="text-[11px] text-gray-400">No attachments</p>
+  const download = (att) =>
+    executionsApi
+      .downloadExecutionAttachment(executionId, att.id, att.filename)
+      .catch(() => toast.error("Download failed"))
   return (
     <ul className="space-y-1">
       {attachments.map(att => (
         <li key={att.id} className="flex items-center gap-1.5 text-xs">
-          <a href={att.url} target="_blank" rel="noopener noreferrer"
-            className="flex-1 min-w-0 truncate text-gray-700 hover:text-primary-600 flex items-center gap-1">
+          <button type="button" onClick={() => download(att)}
+            className="flex-1 min-w-0 truncate text-left text-gray-700 hover:text-primary-600 flex items-center gap-1">
             {att.filename}
             <ExternalLink size={10} className="shrink-0 text-gray-400" />
-          </a>
+          </button>
           {att.size_bytes != null && (
             <span className="text-[10px] text-gray-400 shrink-0">{Math.round(att.size_bytes / 1024)} KB</span>
           )}
@@ -80,6 +86,7 @@ export function ExecutionRunPage() {
   const qc = useQueryClient()
   const [finishing, setFinishing] = useState(false)
   const { exportPdf, exportHtml } = useExportExecution()
+  const [reopening, setReopening] = useState(false)
 
   const finishExecution = async () => {
     setFinishing(true)
@@ -90,6 +97,20 @@ export function ExecutionRunPage() {
     } catch {
       toast.error("Failed to finish execution")
       setFinishing(false)
+    }
+  }
+
+  const reopenExecution = async () => {
+    setReopening(true)
+    try {
+      await executionsApi.reopen(id)
+      qc.invalidateQueries({ queryKey: ["executions", id] })
+      qc.invalidateQueries({ queryKey: ["results", id] })
+      toast.success("Execution reopened")
+    } catch (error) {
+      toast.error(error?.response?.data?.detail ?? "Failed to reopen")
+    } finally {
+      setReopening(false)
     }
   }
 
@@ -112,10 +133,10 @@ export function ExecutionRunPage() {
     ? new Date(execution.finished_at) - new Date(execution.started_at)
     : null
 
-  return <ExecutionRunBody {...{ execution, results, id, summary, done, totalMs, finishExecution, finishing, exportPdf, exportHtml, live }} />
+  return <ExecutionRunBody {...{ execution, results, id, summary, done, totalMs, finishExecution, finishing, reopenExecution, reopening, exportPdf, exportHtml, live }} />
 }
 
-function ExecutionRunBody({ execution, results, id, summary, done, totalMs, finishExecution, finishing, exportPdf, exportHtml, live }) {
+function ExecutionRunBody({ execution, results, id, summary, done, totalMs, finishExecution, finishing, reopenExecution, reopening, exportPdf, exportHtml, live }) {
   const { data: project } = useProject(execution.project_id)
   const { data: allSuites = [] } = useSuitesAll(execution.project_id)
   const updateResult = useUpdateResult(id)
@@ -125,6 +146,8 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
   const [followLive, setFollowLive] = useState(true)
   const [expandState, setExpandState] = useState({ version: 0, desiredOpen: null })
   const isAutomated = execution.type === "automatic"
+  const isTerminal = TERMINAL_STATUSES.has(execution.status)
+  const isLocked = isAutomated || isTerminal
 
   const suiteByCase = useMemo(() => mapSuiteByCase(allSuites), [allSuites])
   const { groups, topLevelIds, childrenOf, orderedResults } = useMemo(() => {
@@ -324,7 +347,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
     L: () => setFollowLive(v => !v),
     r: resumeFollowLive,
     "?": () => setHelpOpen(o => !o),
-    ...(isAutomated ? {} : Object.fromEntries(
+    ...(isLocked ? {} : Object.fromEntries(
       Object.entries(SHORTCUT_TO_STATUS).map(([key, status]) => [
         key,
         async () => {
@@ -369,7 +392,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
     },
     {
       title: `Attachments (${(execution.attachments ?? []).length})`,
-      body: <PanelExecutionAttachments attachments={execution.attachments ?? []} />,
+      body: <PanelExecutionAttachments executionId={id} attachments={execution.attachments ?? []} />,
     },
   ]
 
@@ -419,19 +442,33 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
             <Button variant="ghost" size="sm" onClick={() => setHelpOpen(true)} title="Keyboard shortcuts (?)">
               <Keyboard size={14} />
             </Button>
+            {isAutomated && !isTerminal && (
+              <ImportResultsButton executionId={id} />
+            )}
             <Button variant="outline" size="sm" onClick={() => exportPdf(execution, results, project?.name)}>
               <Download size={13} /> PDF
             </Button>
             <Button variant="outline" size="sm" onClick={() => exportHtml(id, execution.title)}>
               <Download size={13} /> HTML
             </Button>
-            <Button
-              onClick={finishExecution}
-              disabled={execution.status === "completed" || finishing}
-              loading={finishing}
-            >
-              {execution.status === "completed" ? "Completed" : <><span className="sm:hidden">Finish</span><span className="hidden sm:inline">Finish execution</span></>}
-            </Button>
+            {isTerminal ? (
+              <Button
+                variant="outline"
+                onClick={reopenExecution}
+                loading={reopening}
+                disabled={reopening}
+              >
+                Reopen
+              </Button>
+            ) : (
+              <Button
+                onClick={finishExecution}
+                disabled={finishing}
+                loading={finishing}
+              >
+                <span className="sm:hidden">Finish</span><span className="hidden sm:inline">Finish execution</span>
+              </Button>
+            )}
           </div>
         </div>
       </PageHeader>
@@ -439,12 +476,17 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
       <PageBody>
         <div className="flex gap-6" {...swipe}>
           <div className="flex-1 min-w-0 max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-4">
+            {isTerminal && !isAutomated && (
+              <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                Read-only — this execution is <b>{execution.status}</b>. Use <b>Reopen</b> to edit results.
+              </div>
+            )}
             <ResultExpandContext.Provider value={expandState}>
               <div className="space-y-2">
                 {topLevelIds.map(suiteId => (
                   <RunSuiteGroup key={suiteId} suiteId={suiteId} groups={groups} childrenOf={childrenOf}
                     orderedResults={orderedResults} focusedResultId={focusedResultId} setFocusedResultId={setFocusedResultId}
-                    id={id} isAutomated={isAutomated} focusedStepId={focusedStepId} />
+                    id={id} isAutomated={isLocked} focusedStepId={focusedStepId} />
                 ))}
                 {groups[0] && (
                   <div className="space-y-2">
@@ -452,7 +494,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
                       const treeIdx = orderedResults.findIndex(r => r.id === result.id)
                       return (
                         <ResultCard key={result.id} result={result} executionId={id} index={treeIdx} total={orderedResults.length}
-                          isAutomated={isAutomated}
+                          isAutomated={isLocked}
                           focused={result.id === focusedResultId}
                           focusedStepId={result.id === focusedResultId ? focusedStepId : null}
                           onFocus={() => setFocusedResultId(result.id)} />
@@ -462,7 +504,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
                 )}
                 {topLevelIds.length === 0 && !groups[0] && orderedResults.map((result, treeIdx) => (
                   <ResultCard key={result.id} result={result} executionId={id} index={treeIdx} total={orderedResults.length}
-                    isAutomated={isAutomated}
+                    isAutomated={isLocked}
                     focused={result.id === focusedResultId}
                     focusedStepId={result.id === focusedResultId ? focusedStepId : null}
                     onFocus={() => setFocusedResultId(result.id)} />
@@ -485,7 +527,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
         </button>
       )}
 
-      <ShortcutHelpDialog open={helpOpen} onOpenChange={setHelpOpen} isAutomated={isAutomated} />
+      <ShortcutHelpDialog open={helpOpen} onOpenChange={setHelpOpen} isAutomated={isLocked} />
     </>
   )
 }

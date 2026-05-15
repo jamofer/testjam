@@ -31,11 +31,13 @@ export function PanelAttachments({ caseId, attachments }) {
       <ul className="space-y-1">
         {attachments.map(att => (
           <li key={att.id} className="flex items-center gap-1.5 text-xs">
-            <a href={att.url} target="_blank" rel="noopener noreferrer"
-              className="flex-1 min-w-0 truncate text-gray-700 hover:text-primary-600 flex items-center gap-1">
+            <button type="button"
+              onClick={() => casesApi.downloadAttachment(caseId, att.id, att.filename)
+                .catch(() => toast.error("Download failed"))}
+              className="flex-1 min-w-0 truncate text-left text-gray-700 hover:text-primary-600 flex items-center gap-1">
               {att.filename}
               <ExternalLink size={10} className="shrink-0 text-gray-400" />
-            </a>
+            </button>
             <button onClick={() => remove(att.id)}
               title="Delete"
               className="text-gray-300 hover:text-red-500 shrink-0">

@@ -1,19 +1,12 @@
 import { api } from './client'
-
-function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
-}
+import { downloadBlob, downloadFromApi } from '../lib/download'
 
 export const executionsApi = {
   list: (projectId, params) => api.get(`/projects/${projectId}/executions`, { params }).then(r => r.data),
   get: (id) => api.get(`/executions/${id}`).then(r => r.data),
   create: (projectId, data) => api.post(`/projects/${projectId}/executions`, data).then(r => r.data),
   update: (id, data) => api.put(`/executions/${id}`, data).then(r => r.data),
+  reopen: (id) => api.post(`/executions/${id}/reopen`).then(r => r.data),
   delete: (id) => api.delete(`/executions/${id}`),
 
   listResults: (executionId, params) => api.get(`/executions/${executionId}/results`, { params }).then(r => r.data),
@@ -30,6 +23,11 @@ export const executionsApi = {
   },
   deleteResultAttachment: (resultId, attachmentId) =>
     api.delete(`/results/${resultId}/attachments/${attachmentId}`),
+
+  downloadExecutionAttachment: (executionId, attachmentId, filename) =>
+    downloadFromApi(`/executions/${executionId}/attachments/${attachmentId}/download`, filename),
+  downloadResultAttachment: (resultId, attachmentId, filename) =>
+    downloadFromApi(`/results/${resultId}/attachments/${attachmentId}/download`, filename),
 
   importJunit: (executionId, file) => {
     const form = new FormData()

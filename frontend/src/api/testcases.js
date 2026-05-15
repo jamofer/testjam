@@ -1,4 +1,5 @@
 import { api } from './client'
+import { downloadFromApi } from '../lib/download'
 
 export const suitesApi = {
   list: (projectId) => api.get(`/projects/${projectId}/suites`).then(r => r.data),
@@ -48,6 +49,8 @@ export const casesApi = {
   },
   deleteAttachment: (caseId, attachmentId) =>
     api.delete(`/cases/${caseId}/attachments/${attachmentId}`),
+  downloadAttachment: (caseId, attachmentId, filename) =>
+    downloadFromApi(`/cases/${caseId}/attachments/${attachmentId}/download`, filename),
 
   listRevisions: (caseId) =>
     api.get(`/cases/${caseId}/revisions`).then(r => r.data),

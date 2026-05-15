@@ -25,6 +25,22 @@ from testjam.schemas.execution import (
     TestExecutionUpdate,
 )
 from testjam.services import execution_events
+from testjam.services.permissions import effective_role
+
+REOPENABLE_STATUSES = {"completed", "aborted"}
+
+
+def _require_reopen_permission(db: Session, execution: TestExecution, user: User) -> None:
+    if user.is_admin:
+        return
+    if execution.created_by_id == user.id:
+        return
+    if effective_role(db, user.id, execution.project_id) == "owner":
+        return
+    raise HTTPException(
+        status_code=403,
+        detail="Only admins, project owners, or the user who created the execution can reopen it",
+    )
 
 
 @projects_router.get("/{id}/executions", response_model=list[TestExecutionOut])
@@ -115,6 +131,35 @@ def update_execution(
         db, ex, current, background,
         previous_status=previous_status,
         previous_assignee_id=previous_assignee_id,
+    )
+    db.commit()
+    return execution_out(load_execution_full(db, ex.id))
+
+
+@executions_router.post("/{id}/reopen", response_model=TestExecutionOut)
+def reopen_execution(
+    id: int,
+    background: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    ex = db.get(TestExecution, id)
+    if not ex:
+        raise HTTPException(status_code=404, detail="Not found")
+    _require_reopen_permission(db, ex, current)
+    if ex.status not in REOPENABLE_STATUSES:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Execution is {ex.status}; only completed or aborted runs can be reopened",
+        )
+    previous_status = ex.status
+    ex.status = "in_progress"
+    ex.finished_at = None
+    db.flush()
+    execution_events.on_execution_updated(
+        db, ex, current, background,
+        previous_status=previous_status,
+        previous_assignee_id=ex.assigned_to_id,
     )
     db.commit()
     return execution_out(load_execution_full(db, ex.id))

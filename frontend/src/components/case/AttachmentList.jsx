@@ -60,11 +60,13 @@ export function AttachmentList({ caseId, attachments }) {
             <span className="text-xs bg-white border px-1.5 py-0.5 rounded text-gray-500 shrink-0">
               {att.content_type ?? "file"}
             </span>
-            <a href={att.url} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1 text-gray-700 hover:text-primary-600 min-w-0 flex-1 truncate">
+            <button type="button"
+              onClick={() => casesApi.downloadAttachment(caseId, att.id, att.filename)
+                .catch(() => toast.error("Download failed"))}
+              className="flex items-center gap-1 text-left text-gray-700 hover:text-primary-600 min-w-0 flex-1 truncate">
               {att.filename}
               <ExternalLink size={11} className="shrink-0" />
-            </a>
+            </button>
             <span className="text-xs text-gray-400 shrink-0">
               {att.size_bytes ? `${Math.round(att.size_bytes / 1024)} KB` : ""}
             </span>

@@ -65,7 +65,7 @@ function renderExecution(item) {
   return (
     <li key={item.id} className="flex items-center justify-between gap-4 px-3 py-2">
       <Link
-        to={`/projects/${item.project_id}/executions/${item.id}`}
+        to={`/executions/${item.id}/run`}
         className="grow truncate hover:underline"
       >
         {item.title}

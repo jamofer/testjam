@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { NavLink, Link, useMatch } from "react-router-dom"
-import { FolderKanban, Users, LogOut, UserCircle, FolderOpen, PlayCircle, ClipboardList, ChevronLeft, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon, X } from "lucide-react"
+import { FolderKanban, Users, LogOut, UserCircle, FolderOpen, LayoutDashboard, PlayCircle, ClipboardList, ChevronLeft, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon, X } from "lucide-react"
 import { useLogout } from "../../hooks/useAuth"
 import { useProject } from "../../hooks/useProjects"
 import { useExecution } from "../../hooks/useExecutions"
@@ -13,11 +13,12 @@ import { NotificationsBell } from "./NotificationsBell"
 // ── Project-scoped nav items ───────────────────────────────────────────────────
 
 const PROJECT_NAV = [
-  { to: (id) => `/projects/${id}`,            icon: FolderOpen,    label: "Test Cases",  end: true },
-  { to: (id) => `/projects/${id}/plans`,       icon: ClipboardList, label: "Test Plans"            },
-  { to: (id) => `/projects/${id}/executions`,  icon: PlayCircle,    label: "Executions"            },
-  { to: (id) => `/projects/${id}/versions`,    icon: Tag,           label: "Versions"              },
-  { to: (id) => `/projects/${id}/members`,     icon: Shield,        label: "Members"               },
+  { to: (id) => `/projects/${id}`,            icon: LayoutDashboard, label: "Overview",    end: true },
+  { to: (id) => `/projects/${id}/cases`,       icon: FolderOpen,      label: "Test Cases"            },
+  { to: (id) => `/projects/${id}/plans`,       icon: ClipboardList,   label: "Test Plans"            },
+  { to: (id) => `/projects/${id}/executions`,  icon: PlayCircle,      label: "Executions"            },
+  { to: (id) => `/projects/${id}/versions`,    icon: Tag,             label: "Versions"              },
+  { to: (id) => `/projects/${id}/members`,     icon: Shield,          label: "Members"               },
 ]
 
 const GLOBAL_NAV = [
