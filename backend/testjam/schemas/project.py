@@ -72,3 +72,23 @@ class AdminProjectRow(BaseModel):
 
 class TransferOwnershipRequest(BaseModel):
     new_owner_id: int
+
+
+class ProjectGroupAssignmentAdd(BaseModel):
+    group_id: int
+    role: str
+
+
+class ProjectGroupAssignmentUpdate(BaseModel):
+    role: str
+
+
+class ProjectGroupAssignmentOut(BaseModel):
+    id: int
+    group_id: int
+    group_name: str
+    role: str
+    member_count: int = 0
+    added_at: datetime
+
+    model_config = {"from_attributes": True}

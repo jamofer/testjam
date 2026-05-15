@@ -3,10 +3,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Activity, FolderKanban, Pencil, RotateCcw, Shield, Trash2, UserPlus, Users } from "lucide-react"
 import { toast } from "sonner"
 
-import { api } from "../api/client"
+import { groupsApi } from "../api/groups"
 import { usersApi } from "../api/users"
 import { AdminProjectsTab } from "../components/admin/AdminProjectsTab"
 import { EditUserDialog } from "../components/admin/EditUserDialog"
+import { GroupEditDialog } from "../components/admin/GroupEditDialog"
 import { UserActivityDialog } from "../components/admin/UserActivityDialog"
 import { Badge } from "../components/ui/badge"
 import { Button } from "../components/ui/button"
@@ -15,18 +16,13 @@ import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs"
 
-const groupsApi = {
-  list: () => api.get("/groups").then(r => r.data),
-  create: (data) => api.post("/groups", data).then(r => r.data),
-  delete: (id) => api.delete(`/groups/${id}`),
-}
-
 export function UsersPage() {
   const queryClient = useQueryClient()
   const [includeDeleted, setIncludeDeleted] = useState(false)
   const [pendingDelete, setPendingDelete] = useState(null)
   const [editTarget, setEditTarget] = useState(null)
   const [activityTarget, setActivityTarget] = useState(null)
+  const [groupTarget, setGroupTarget] = useState(null)
 
   const { data: users = [] } = useQuery({
     queryKey: ["users", { includeDeleted }],
@@ -88,13 +84,20 @@ export function UsersPage() {
           <ul className="space-y-2">
             {groups.map(group => (
               <li key={group.id} className="flex items-center justify-between bg-white border rounded-lg px-4 py-3 shadow-sm">
-                <div>
+                <div className="min-w-0">
                   <p className="font-medium text-gray-800">{group.name}</p>
-                  <p className="text-xs text-gray-400">{group.members?.length ?? 0} members</p>
+                  <p className="text-xs text-gray-400 truncate">
+                    {group.description ?? "(no description)"} · {group.members?.length ?? 0} members
+                  </p>
                 </div>
-                <Button size="icon" variant="ghost" onClick={() => deleteGroup.mutate(group.id)}>
-                  <Trash2 size={14} />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button size="icon" variant="ghost" title="Edit" onClick={() => setGroupTarget(group)}>
+                    <Pencil size={14} />
+                  </Button>
+                  <Button size="icon" variant="ghost" title="Delete" onClick={() => deleteGroup.mutate(group.id)}>
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
               </li>
             ))}
           </ul>
@@ -124,6 +127,12 @@ export function UsersPage() {
         <UserActivityDialog
           user={activityTarget}
           onClose={() => setActivityTarget(null)}
+        />
+      )}
+      {groupTarget && (
+        <GroupEditDialog
+          group={groupTarget}
+          onClose={() => setGroupTarget(null)}
         />
       )}
     </div>

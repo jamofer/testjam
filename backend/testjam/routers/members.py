@@ -6,6 +6,7 @@ from testjam.database import get_db
 from testjam.models.project import Project, ProjectMember
 from testjam.models.user import User
 from testjam.schemas.members import ProjectMemberAdd, ProjectMemberOut, ProjectMemberUpdate, VALID_ROLES
+from testjam.services.permissions import effective_role
 
 router = APIRouter(prefix="/projects/{id}/members", tags=["Members"])
 
@@ -24,9 +25,9 @@ def _out(m: ProjectMember) -> ProjectMemberOut:
 def _require_owner(project: Project, current: User, db: Session) -> None:
     if current.is_admin:
         return
-    m = db.query(ProjectMember).filter_by(project_id=project.id, user_id=current.id).first()
-    if not m or m.role != "owner":
-        raise HTTPException(status_code=403, detail="Project owner or admin required")
+    if effective_role(db, current.id, project.id) == "owner":
+        return
+    raise HTTPException(status_code=403, detail="Project owner or admin required")
 
 
 @router.get("", response_model=list[ProjectMemberOut])

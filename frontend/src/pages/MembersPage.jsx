@@ -10,6 +10,7 @@ import { api } from "../api/client"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { EmptyState } from "../components/ui/empty-state"
+import { ProjectGroupsSection } from "../components/project/ProjectGroupsSection"
 import { toast } from "sonner"
 
 const ROLES = ["owner", "tester", "viewer"]
@@ -265,6 +266,8 @@ export function MembersPage() {
           </form>
         )}
       </section>
+
+      <ProjectGroupsSection projectId={projectId} />
 
       <TokensSection projectId={projectId} />
     </div>

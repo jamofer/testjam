@@ -18,6 +18,7 @@ from testjam.schemas.project import (
     RecentExecutionSummary,
     TransferOwnershipRequest,
 )
+from testjam.services.permissions import accessible_project_ids, effective_role
 from testjam.services.project_export import cleanup_archive, export_project
 from testjam.services.project_ownership import transfer_ownership
 
@@ -80,8 +81,10 @@ def list_projects(
 ):
     query = db.query(Project)
     if not current.is_admin:
-        member_project_ids = db.query(ProjectMember.project_id).filter(ProjectMember.user_id == current.id)
-        query = query.filter(Project.id.in_(member_project_ids))
+        accessible_ids = accessible_project_ids(db, current.id)
+        if not accessible_ids:
+            return []
+        query = query.filter(Project.id.in_(accessible_ids))
     if not include_archived:
         query = query.filter(Project.archived_at.is_(None))
     return [_project_out(p, db) for p in query.all()]
@@ -200,10 +203,6 @@ def _reject_if_archived(project: Project) -> None:
 def _require_owner_or_admin(project: Project, current: User, db: Session) -> None:
     if current.is_admin:
         return
-    membership = (
-        db.query(ProjectMember)
-        .filter_by(project_id=project.id, user_id=current.id)
-        .first()
-    )
-    if not membership or membership.role != "owner":
-        raise HTTPException(status_code=403, detail="Project owner or admin required")
+    if effective_role(db, current.id, project.id) == "owner":
+        return
+    raise HTTPException(status_code=403, detail="Project owner or admin required")

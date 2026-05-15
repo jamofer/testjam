@@ -45,6 +45,9 @@ class Group(Base):
     members: Mapped[list[GroupMember]] = relationship(
         back_populates="group", cascade="all, delete-orphan",
     )
+    project_assignments: Mapped[list[ProjectGroup]] = relationship(
+        back_populates="group", cascade="all, delete-orphan",
+    )
 
 
 class GroupMember(Base):

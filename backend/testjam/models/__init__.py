@@ -1,5 +1,5 @@
 from testjam.models.user import User, Group, GroupMember
-from testjam.models.project import Project, ProjectMember
+from testjam.models.project import Project, ProjectGroup, ProjectMember
 from testjam.models.version import ProjectVersion
 from testjam.models.testcase import TestSuite, SuiteStep, TestCase, TestStep, Attachment
 from testjam.models.testplan import TestPlan
