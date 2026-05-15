@@ -33,9 +33,23 @@ const STATUS_LABEL = {
   passed: "Passed", failed: "Failed", blocked: "Blocked", not_run: "Not run",
 }
 
-function fmtDate(iso) {
+function fmtDate(iso, timezone) {
   if (!iso) return "—"
-  return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
+  return new Date(iso).toLocaleString(undefined, {
+    dateStyle: "medium", timeStyle: "short",
+    timeZone: timezone || undefined,
+  })
+}
+
+function fmtTimezoneAbbreviation(timezone) {
+  try {
+    const parts = new Intl.DateTimeFormat(undefined, {
+      timeZone: timezone, timeZoneName: "short",
+    }).formatToParts(new Date())
+    return parts.find(part => part.type === "timeZoneName")?.value || timezone
+  } catch {
+    return timezone || "UTC"
+  }
 }
 
 function fmtDuration(ms) {
@@ -50,7 +64,8 @@ function launchedBy(execution) {
   return execution.triggered_by || "—"
 }
 
-export function exportExecutionPdf(execution, results, projectName = "") {
+export function exportExecutionPdf(execution, results, projectName = "", options = {}) {
+  const { timezone = "UTC", username = "" } = options
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
   const pageW = doc.internal.pageSize.getWidth()
   const margin = 14
@@ -82,8 +97,8 @@ export function exportExecutionPdf(execution, results, projectName = "") {
     ["Environment", execution.environment || "—"],
     ["Version",     execution.version || "—"],
     ["Launched by", launchedBy(execution)],
-    ["Started",     fmtDate(execution.started_at)],
-    ["Finished",    fmtDate(execution.finished_at)],
+    ["Started",     fmtDate(execution.started_at, timezone)],
+    ["Finished",    fmtDate(execution.finished_at, timezone)],
   ]
 
   doc.setFontSize(7)
@@ -136,7 +151,7 @@ export function exportExecutionPdf(execution, results, projectName = "") {
     STATUS_LABEL[r.status] ?? r.status,
     r.executed_by || "—",
     fmtDuration(r.duration_ms),
-    fmtDate(r.executed_at),
+    fmtDate(r.executed_at, timezone),
     r.comment || "",
   ])
 
@@ -186,7 +201,12 @@ export function exportExecutionPdf(execution, results, projectName = "") {
   // Draw footers after autoTable so total page count is known
   const totalPages = doc.internal.getNumberOfPages()
   const pageH = doc.internal.pageSize.getHeight()
-  const generated = new Date().toLocaleString()
+  const generatedAt = new Date().toLocaleString(undefined, {
+    dateStyle: "medium", timeStyle: "short", timeZone: timezone,
+  })
+  const tzAbbreviation = fmtTimezoneAbbreviation(timezone)
+  const byClause = username ? ` by ${username}` : ""
+  const generated = `${generatedAt} ${tzAbbreviation}${byClause}`
   for (let p = 1; p <= totalPages; p++) {
     doc.setPage(p)
     doc.setFontSize(7)

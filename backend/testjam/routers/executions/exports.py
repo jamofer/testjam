@@ -37,15 +37,21 @@ from testjam.models.user import User
 from testjam.routers.executions import executions_router, projects_router
 from testjam.routers.executions._helpers import load_execution_full
 from testjam.services.settings import get_settings as get_app_settings
+from testjam.services.timezones import format_in_user_zone, user_zone, user_zone_label
 
 
 @executions_router.get("/{id}/export/xlsx")
-def export_execution_xlsx(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def export_execution_xlsx(
+    id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
     ex = load_execution_full(db, id)
     if not ex:
         raise HTTPException(status_code=404, detail="Not found")
 
     wb = openpyxl.Workbook()
+    tz_label = user_zone_label(current)
 
     # Summary sheet
     ws_sum = wb.active
@@ -57,19 +63,23 @@ def export_execution_xlsx(id: int, db: Session = Depends(get_db), _: User = Depe
     ws_sum.append(["Environment", ex.environment or ""])
     ws_sum.append(["Version", ex.version or ""])
     ws_sum.append(["Launched by", launched_by])
-    ws_sum.append(["Started at", ex.started_at.isoformat() if ex.started_at else ""])
-    ws_sum.append(["Finished at", ex.finished_at.isoformat() if ex.finished_at else ""])
+    ws_sum.append([f"Started at ({tz_label})", format_in_user_zone(ex.started_at, current, "%Y-%m-%d %H:%M:%S")])
+    ws_sum.append([f"Finished at ({tz_label})", format_in_user_zone(ex.finished_at, current, "%Y-%m-%d %H:%M:%S")])
+    ws_sum.append([
+        "Generated",
+        f"{format_in_user_zone(datetime.now(timezone.utc), current, '%Y-%m-%d %H:%M %Z')} by {current.username}",
+    ])
 
     # Results sheet
     ws_res = wb.create_sheet("Results")
-    ws_res.append(["Test Case", "Status", "Executed by", "Executed at", "Duration (ms)", "Comment"])
+    ws_res.append(["Test Case", "Status", "Executed by", f"Executed at ({tz_label})", "Duration (ms)", "Comment"])
     for r in ex.results:
         tc_name = r.test_case.name if r.test_case else str(r.test_case_id)
         ws_res.append([
             tc_name,
             r.status,
             r.executed_by or "",
-            r.executed_at.isoformat() if r.executed_at else "",
+            format_in_user_zone(r.executed_at, current, "%Y-%m-%d %H:%M:%S"),
             r.duration_ms or "",
             r.comment or "",
         ])
@@ -86,7 +96,12 @@ def export_execution_xlsx(id: int, db: Session = Depends(get_db), _: User = Depe
 
 
 @executions_router.get("/{id}/export/html")
-def export_execution_html(id: int, request: Request, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def export_execution_html(
+    id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
     ex = (
         db.query(TestExecution)
         .options(
@@ -115,11 +130,14 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
 
     def e(s): return html_lib.escape(str(s)) if s is not None else ""
 
+    user_tz = user_zone(current)
+
     def fmt_date(dt):
         if not dt:
             return "—"
-        ms = dt.microsecond // 1000
-        return dt.strftime("%-d %b %Y, %H:%M:%S") + f".{ms:03d}"
+        local = dt.astimezone(user_tz)
+        ms = local.microsecond // 1000
+        return local.strftime("%-d %b %Y, %H:%M:%S") + f".{ms:03d}"
 
     def fmt_dur(ms):
         if ms is None: return ""
@@ -338,7 +356,9 @@ def export_execution_html(id: int, request: Request, db: Session = Depends(get_d
   </details>"""
 
     suites_html = "\n  ".join(render_suite(rid) for rid in root_order)
-    generated = datetime.now(timezone.utc).strftime("%-d %b %Y, %H:%M:%S UTC")
+    tz_label = user_zone_label(current)
+    generated_at = datetime.now(timezone.utc).astimezone(user_tz).strftime("%-d %b %Y, %H:%M:%S")
+    generated = f"{generated_at} {tz_label} by {e(current.username)}"
     overall_passed = total > 0 and counts["failed"] == 0 and counts["blocked"] == 0
     header_class = "pass" if overall_passed else "fail"
 
@@ -474,7 +494,11 @@ footer{{text-align:center;padding:20px;font-size:11px;color:#9ca3af;border-top:1
 
 
 @projects_router.get("/{id}/cases/export/xlsx")
-def export_cases_xlsx(id: int, db: Session = Depends(get_db), _: User = Depends(require_project_access)):
+def export_cases_xlsx(
+    id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_project_access),
+):
     from testjam.models.project import Project
     project = db.get(Project, id)
     suites = db.query(TestSuite).filter(TestSuite.project_id == id, TestSuite.parent_suite_id == None).all()  # noqa: E711
@@ -506,7 +530,10 @@ def export_cases_xlsx(id: int, db: Session = Depends(get_db), _: User = Depends(
     ws.row_dimensions[1].height = 22
 
     ws.merge_cells("A2:H2")
-    ws["A2"].value = f"Exported {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}"
+    generated_at = format_in_user_zone(
+        datetime.now(timezone.utc), current, "%Y-%m-%d %H:%M %Z",
+    )
+    ws["A2"].value = f"Exported {generated_at} by {current.username}"
     ws["A2"].font = Font(size=8, color="6B7280")
     ws["A2"].alignment = Alignment(indent=1)
     ws.row_dimensions[2].height = 14
