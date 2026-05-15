@@ -16,12 +16,8 @@ import {
   DetailSuiteGroup,
   ResultListResponsive,
 } from '../components/execution/DetailSuiteGroup'
+import { DateLabel } from '../components/ui/date-label'
 import { buildResultTree } from '../lib/buildResultTree'
-
-function fmtDate(iso) {
-  if (!iso) return null
-  return new Date(iso).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })
-}
 
 export function ExecutionDetailPage() {
   const { id } = useParams()
@@ -88,9 +84,9 @@ export function ExecutionDetailPage() {
             {(execution.started_at || execution.finished_at) && (
               <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
                 {execution.started_at && (
-                  <span className="flex items-center gap-1"><Clock size={10} /> {fmtDate(execution.started_at)}</span>
+                  <span className="flex items-center gap-1"><Clock size={10} /> <DateLabel iso={execution.started_at} /></span>
                 )}
-                {execution.finished_at && <span>→ {fmtDate(execution.finished_at)}</span>}
+                {execution.finished_at && <span>→ <DateLabel iso={execution.finished_at} /></span>}
               </div>
             )}
           </div>

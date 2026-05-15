@@ -10,7 +10,9 @@ import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { EmptyState } from "../components/ui/empty-state"
-import { Trash2, Plus, Key, Copy, Eye, EyeOff, Clock, Bell, AlertTriangle } from "lucide-react"
+import { TimezonePicker } from "../components/ui/timezone-picker"
+import { browserTimezone } from "../lib/format"
+import { Trash2, Plus, Key, Copy, Eye, EyeOff, Clock, Bell, AlertTriangle, Globe } from "lucide-react"
 import { toast } from "sonner"
 
 const NOTIFICATION_EVENT_LABELS = {
@@ -133,6 +135,61 @@ function UserTokensSection() {
     </div>
   )
 }
+
+function DatePreferencesSection() {
+  const { data: user } = useMe()
+  const updateMe = useUpdateMe()
+  const detectedBrowserTimezone = browserTimezone()
+  const [timezone, setTimezone] = useState("")
+  const [useRelative, setUseRelative] = useState(true)
+
+  useEffect(() => {
+    if (!user) return
+    setTimezone(user.timezone ?? detectedBrowserTimezone ?? "UTC")
+    setUseRelative(user.use_relative_dates ?? true)
+  }, [user, detectedBrowserTimezone])
+
+  const handleSave = async (event) => {
+    event.preventDefault()
+    try {
+      await updateMe.mutateAsync({ timezone, use_relative_dates: useRelative })
+      toast.success("Date preferences saved")
+    } catch (err) {
+      toast.error(err?.response?.data?.detail ?? "Failed to save preferences")
+    }
+  }
+
+  if (!user) return null
+
+  return (
+    <form onSubmit={handleSave} className="bg-white border rounded-xl p-6 space-y-4 shadow-sm">
+      <div className="flex items-center gap-2">
+        <Globe size={15} className="text-gray-500" />
+        <h2 className="font-semibold text-gray-700">Dates &amp; timezone</h2>
+      </div>
+      <div className="space-y-1.5">
+        <Label>Timezone</Label>
+        <TimezonePicker value={timezone} onChange={setTimezone} />
+        <p className="text-xs text-gray-400">All dates in the UI render in this timezone.</p>
+      </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <Label className="font-medium text-gray-800">Show relative dates</Label>
+          <p className="text-xs text-gray-400">e.g. &ldquo;2 hours ago&rdquo;; hover shows the absolute timestamp.</p>
+        </div>
+        <input
+          type="checkbox"
+          aria-label="Show relative dates"
+          checked={useRelative}
+          onChange={event => setUseRelative(event.target.checked)}
+          className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+        />
+      </div>
+      <Button type="submit" loading={updateMe.isPending}>Save preferences</Button>
+    </form>
+  )
+}
+
 
 function NotificationPreferencesSection() {
   const { data: preferences = [], isLoading } = useNotificationPreferences()
@@ -311,6 +368,8 @@ export function ProfilePage() {
       </form>
 
       <UserTokensSection />
+
+      <DatePreferencesSection />
 
       <NotificationPreferencesSection />
 

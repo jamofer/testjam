@@ -5,8 +5,12 @@ import { MemoryRouter, Routes, Route } from "react-router-dom"
 import { AppLayout } from "../components/layout/AppLayout"
 
 vi.mock("../hooks/useAuth", () => ({
-  useMe: () => ({ data: { id: 1, username: "u", full_name: "U Ser", is_admin: false }, isLoading: false, isError: false }),
+  useMe: () => ({
+    data: { id: 1, username: "u", full_name: "U Ser", is_admin: false, timezone: "UTC" },
+    isLoading: false, isError: false,
+  }),
   useLogout: () => () => {},
+  useUpdateMe: () => ({ mutate: () => {}, isPending: false }),
 }))
 
 vi.mock("../hooks/useProjects", () => ({

@@ -1,7 +1,18 @@
 from datetime import datetime
 from typing import Literal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
+
+
+def _validate_iana_timezone(value: str | None) -> str | None:
+    if value is None or value == "":
+        return None
+    try:
+        ZoneInfo(value)
+    except ZoneInfoNotFoundError as exc:
+        raise ValueError(f"Unknown IANA timezone: {value!r}") from exc
+    return value
 
 
 class UserBase(BaseModel):
@@ -21,6 +32,13 @@ class UserUpdate(BaseModel):
     password: str | None = None
     failed_login_count: int | None = None
     clear_lockout: bool | None = None
+    timezone: str | None = None
+    use_relative_dates: bool | None = None
+
+    @field_validator("timezone")
+    @classmethod
+    def _timezone_must_be_iana(cls, value: str | None) -> str | None:
+        return _validate_iana_timezone(value)
 
 
 class PasswordChange(BaseModel):
@@ -50,6 +68,8 @@ class UserOut(UserBase):
     is_admin: bool
     created_at: datetime
     deleted_at: datetime | None = None
+    timezone: str | None = None
+    use_relative_dates: bool = True
 
     model_config = {"from_attributes": True}
 

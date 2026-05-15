@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { fmtDuration, fmtTime, fmtDate } from "../lib/format"
+import { fmtDuration, fmtTime, fmtDate, fmtRelative, browserTimezone } from "../lib/format"
 
 describe("fmtDuration", () => {
   it("returns null for null/undefined input", () => {
@@ -50,5 +50,38 @@ describe("fmtDate", () => {
     const result = fmtDate("2024-06-01T10:00:00Z")
     expect(typeof result).toBe("string")
     expect(result.length).toBeGreaterThan(0)
+  })
+
+  it("respects an explicit timezone argument", () => {
+    const inTokyo = fmtDate("2024-06-01T10:00:00Z", "Asia/Tokyo")
+    const inNewYork = fmtDate("2024-06-01T10:00:00Z", "America/New_York")
+    expect(inTokyo).not.toBe(inNewYork)
+  })
+})
+
+describe("fmtRelative", () => {
+  it("returns null for falsy input", () => {
+    expect(fmtRelative(null)).toBeNull()
+  })
+
+  it("formats minutes ago", () => {
+    const now = new Date("2024-06-01T12:00:00Z")
+    const fiveMinutesAgo = "2024-06-01T11:55:00Z"
+    const result = fmtRelative(fiveMinutesAgo, now)
+    expect(result).toMatch(/5 minutes ago|5 min/)
+  })
+
+  it("formats days ago", () => {
+    const now = new Date("2024-06-10T12:00:00Z")
+    const threeDaysAgo = "2024-06-07T12:00:00Z"
+    expect(fmtRelative(threeDaysAgo, now)).toMatch(/3 days ago|3 d/)
+  })
+})
+
+describe("browserTimezone", () => {
+  it("returns a non-empty IANA-like string", () => {
+    const tz = browserTimezone()
+    expect(typeof tz).toBe("string")
+    expect(tz.length).toBeGreaterThan(0)
   })
 })

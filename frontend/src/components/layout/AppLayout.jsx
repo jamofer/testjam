@@ -1,15 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Outlet, Navigate, useLocation } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { Sidebar } from './Sidebar'
 import { CommandPalette } from '../ui/command-palette'
-import { useMe } from '../../hooks/useAuth'
+import { useMe, useUpdateMe } from '../../hooks/useAuth'
+import { browserTimezone } from '../../lib/format'
 
 export function AppLayout() {
   const { data: user, isLoading, isError } = useMe()
+  const updateMe = useUpdateMe()
+  const detectedTimezoneBootstrapped = useRef(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
+
+  useEffect(() => {
+    if (!user || detectedTimezoneBootstrapped.current) return
+    if (user.timezone) return
+    const detected = browserTimezone()
+    if (!detected) return
+    detectedTimezoneBootstrapped.current = true
+    updateMe.mutate({ timezone: detected })
+  }, [user, updateMe])
 
   useEffect(() => {
     const onKey = (e) => {

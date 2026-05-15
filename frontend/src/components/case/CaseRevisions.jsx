@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react"
 import { Clock, ChevronRight, RotateCcw } from "lucide-react"
 import { useCaseRevisions, useCaseRevision } from "../../hooks/useSuites"
-import { fmtDate } from "../../lib/format"
 import { lineDiff } from "../../lib/diff"
 import { Button } from "../ui/button"
+import { DateLabel } from "../ui/date-label"
 import { Skeleton, SkeletonList } from "../ui/skeleton"
 
 const TEXT_FIELDS = [
@@ -130,7 +130,7 @@ function RevisionRow({ rev, prevRev, expanded, onToggle, caseId }) {
         </span>
         <span className="text-sm text-gray-700 flex-1 truncate">{actorLabel(rev)}</span>
         <span className="flex items-center gap-1 text-xs text-gray-400 shrink-0">
-          <Clock size={11} /> {fmtDate(rev.created_at)}
+          <Clock size={11} /> <DateLabel iso={rev.created_at} />
         </span>
       </button>
       {expanded && (

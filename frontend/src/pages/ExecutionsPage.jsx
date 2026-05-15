@@ -12,15 +12,10 @@ import { Button } from "../components/ui/button"
 import { Badge } from "../components/ui/badge"
 import { SearchInput } from "../components/ui/search-input"
 import { PageHeader, PageBody } from "../components/ui/page-header"
+import { DateLabel } from "../components/ui/date-label"
 import { EmptyState } from "../components/ui/empty-state"
 import { LiveIndicator } from "../components/ui/live-indicator"
 import { SkeletonList } from "../components/ui/skeleton"
-
-function fmtDate(iso) {
-  if (!iso) return null
-  const d = new Date(iso)
-  return d.toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })
-}
 
 const statusIcon = {
   completed:  <CheckCircle2 size={15} className="text-green-500" />,
@@ -171,10 +166,10 @@ export function ExecutionsPage() {
               )}
               {(ex.started_at || ex.created_at) && (
                 <span className="flex items-center gap-1">
-                  <Clock size={10} /> {fmtDate(ex.started_at ?? ex.created_at)}
+                  <Clock size={10} /> <DateLabel iso={ex.started_at ?? ex.created_at} />
                 </span>
               )}
-              {ex.finished_at && <span>→ {fmtDate(ex.finished_at)}</span>}
+              {ex.finished_at && <span>→ <DateLabel iso={ex.finished_at} /></span>}
             </div>
             <div className="flex gap-3 mt-1.5 text-xs">
               <span className="text-green-600">✓ {ex.summary?.passed ?? 0}</span>
