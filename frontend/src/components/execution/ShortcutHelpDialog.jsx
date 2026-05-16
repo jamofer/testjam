@@ -1,59 +1,61 @@
+import { useTranslation } from "react-i18next"
 import { ShortcutsDialog } from "../ui/shortcuts-dialog"
 import { STATUS_CONFIG } from "../../lib/statusConfig"
 
 export const SHORTCUT_TO_STATUS = { p: "passed", f: "failed", b: "blocked", n: "not_run" }
 
-const NAV_ROWS = [
-  { keys: ["j", "↓"], description: "Next result" },
-  { keys: ["k", "↑"], description: "Previous result" },
-  { keys: ["Shift+J"], description: "Next step in focused result" },
-  { keys: ["Shift+K"], description: "Previous step" },
-  { keys: ["Home"], description: "First result" },
-  { keys: ["End"], description: "Last result" },
-  { keys: ["PgDn"], description: "Jump to next suite group" },
-  { keys: ["PgUp"], description: "Jump to previous suite group" },
-]
-
-const FILTER_ROWS = [
-  { keys: ["F"], description: "Jump to next failed" },
-  { keys: ["B"], description: "Jump to next blocked" },
-  { keys: ["U"], description: "Jump to next not run" },
-]
-
-const VIEW_ROWS = [
-  { keys: ["→", "l"], description: "Expand focused result" },
-  { keys: ["←", "h"], description: "Collapse focused result" },
-  { keys: ["o"], description: "Toggle expand focused result" },
-  { keys: ["+"], description: "Expand all results" },
-  { keys: ["-"], description: "Collapse all results" },
-  { keys: ["L"], description: "Toggle follow-live" },
-  { keys: ["r"], description: "Resume follow-live" },
-]
-
-const HELP_ROWS = [
-  { keys: ["?"], description: "Toggle this help" },
-]
-
-function statusRows() {
-  return Object.entries(SHORTCUT_TO_STATUS).map(([key, status]) => ({
-    keys: [key],
-    description: `Mark result as ${STATUS_CONFIG[status].label}`,
-  }))
-}
-
 export function ShortcutHelpDialog({ open, onOpenChange, isAutomated }) {
+  const { t } = useTranslation(["executions", "common"])
+  const statusLabel = (status) => t(`common:status.${status}`, STATUS_CONFIG[status]?.label ?? status)
+
+  const navigationRows = [
+    { keys: ["j", "↓"], description: t("run.shortcuts.rows.nextResult") },
+    { keys: ["k", "↑"], description: t("run.shortcuts.rows.prevResult") },
+    { keys: ["Shift+J"], description: t("run.shortcuts.rows.nextStep") },
+    { keys: ["Shift+K"], description: t("run.shortcuts.rows.prevStep") },
+    { keys: ["Home"], description: t("run.shortcuts.rows.firstResult") },
+    { keys: ["End"], description: t("run.shortcuts.rows.lastResult") },
+    { keys: ["PgDn"], description: t("run.shortcuts.rows.nextSuite") },
+    { keys: ["PgUp"], description: t("run.shortcuts.rows.prevSuite") },
+  ]
+
+  const filterRows = [
+    { keys: ["F"], description: t("run.shortcuts.rows.jumpFailed") },
+    { keys: ["B"], description: t("run.shortcuts.rows.jumpBlocked") },
+    { keys: ["U"], description: t("run.shortcuts.rows.jumpNotRun") },
+  ]
+
+  const viewRows = [
+    { keys: ["→", "l"], description: t("run.shortcuts.rows.expand") },
+    { keys: ["←", "h"], description: t("run.shortcuts.rows.collapse") },
+    { keys: ["o"], description: t("run.shortcuts.rows.toggle") },
+    { keys: ["+"], description: t("run.shortcuts.rows.expandAll") },
+    { keys: ["-"], description: t("run.shortcuts.rows.collapseAll") },
+    { keys: ["L"], description: t("run.shortcuts.rows.toggleFollow") },
+    { keys: ["r"], description: t("run.shortcuts.rows.resumeFollow") },
+  ]
+
+  const helpRows = [
+    { keys: ["?"], description: t("run.shortcuts.rows.toggleHelp") },
+  ]
+
+  const statusRows = Object.entries(SHORTCUT_TO_STATUS).map(([key, status]) => ({
+    keys: [key],
+    description: t("run.shortcuts.rows.mark", { status: statusLabel(status) }),
+  }))
+
   const sections = [
-    { title: "Navigation", rows: NAV_ROWS },
-    { title: "Filter", rows: FILTER_ROWS },
-    { title: "View", rows: VIEW_ROWS },
-    ...(isAutomated ? [] : [{ title: "Set status", rows: statusRows() }]),
-    { title: "Help", rows: HELP_ROWS },
+    { title: t("run.shortcuts.navigation"), rows: navigationRows },
+    { title: t("run.shortcuts.filter"), rows: filterRows },
+    { title: t("run.shortcuts.view"), rows: viewRows },
+    ...(isAutomated ? [] : [{ title: t("run.shortcuts.setStatus"), rows: statusRows }]),
+    { title: t("run.shortcuts.help"), rows: helpRows },
   ]
   return (
     <ShortcutsDialog
       open={open}
       onOpenChange={onOpenChange}
-      description="Navigate and update results without the mouse."
+      description={t("run.shortcuts.description")}
       sections={sections}
     />
   )

@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Upload } from "lucide-react"
 import { toast } from "sonner"
@@ -10,12 +11,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 
-const FORMATS = [
-  { value: "junit", label: "JUnit XML", accept: ".xml" },
-  { value: "robotframework", label: "Robot Framework XML", accept: ".xml" },
+const FORMAT_VALUES = [
+  { value: "junit", labelKey: "import.junit", accept: ".xml" },
+  { value: "robotframework", labelKey: "import.robot", accept: ".xml" },
 ]
 
 export function ImportExecutionDialog({ projectId }) {
+  const { t } = useTranslation("executions")
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -50,13 +52,16 @@ export function ImportExecutionDialog({ projectId }) {
     },
     onSuccess: ({ execution, result }) => {
       queryClient.invalidateQueries({ queryKey: ["executions", projectId] })
-      toast.success(`Imported: ${result.created} created, ${result.updated} updated${result.errors?.length ? `, ${result.errors.length} unmatched` : ""}`)
+      const message = result.errors?.length
+        ? t("import.successWithErrors", { created: result.created, updated: result.updated, errors: result.errors.length })
+        : t("import.successDetail", { created: result.created, updated: result.updated })
+      toast.success(message)
       setOpen(false)
       reset()
       navigate(`/executions/${execution.id}/run`)
     },
     onError: (error) => {
-      toast.error(`Import failed: ${error?.response?.data?.detail ?? error.message}`)
+      toast.error(t("import.failed", { message: error?.response?.data?.detail ?? error.message }))
     },
   })
 
@@ -66,33 +71,33 @@ export function ImportExecutionDialog({ projectId }) {
     <Dialog open={open} onOpenChange={(next) => { setOpen(next); if (!next) reset() }}>
       <DialogTrigger asChild>
         <Button size="sm" variant="outline">
-          <Upload size={14} /> Import results
+          <Upload size={14} /> {t("import.results")}
         </Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>Import test results</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t("import.title")}</DialogTitle></DialogHeader>
         <p className="text-sm text-gray-500 dark:text-gray-400 -mt-1">
-          Creates an automatic execution and ingests the file in one step.
+          {t("import.subtitle")}
         </p>
         <div className="space-y-3">
           <div className="space-y-1">
-            <Label>Title *</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nightly CI #482" />
+            <Label>{t("import.titleField")}</Label>
+            <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={t("import.titlePlaceholder")} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label>Version</Label>
-              <Input value={version} onChange={(e) => setVersion(e.target.value)} placeholder="1.4.2" />
+              <Label>{t("import.version")}</Label>
+              <Input value={version} onChange={(event) => setVersion(event.target.value)} placeholder={t("import.versionPlaceholder")} />
             </div>
             <div className="space-y-1">
-              <Label>Environment</Label>
-              <Input value={environment} onChange={(e) => setEnvironment(e.target.value)} placeholder="staging" />
+              <Label>{t("import.environment")}</Label>
+              <Input value={environment} onChange={(event) => setEnvironment(event.target.value)} placeholder={t("import.environmentPlaceholder")} />
             </div>
           </div>
           <div className="space-y-1">
-            <Label>Format</Label>
+            <Label>{t("import.format")}</Label>
             <div className="flex gap-3 text-sm">
-              {FORMATS.map((option) => (
+              {FORMAT_VALUES.map((option) => (
                 <label key={option.value} className="flex items-center gap-1.5 cursor-pointer">
                   <input
                     type="radio"
@@ -100,17 +105,17 @@ export function ImportExecutionDialog({ projectId }) {
                     checked={format === option.value}
                     onChange={() => setFormat(option.value)}
                   />
-                  {option.label}
+                  {t(option.labelKey)}
                 </label>
               ))}
             </div>
           </div>
           <div className="space-y-1">
-            <Label>File *</Label>
+            <Label>{t("import.file")}</Label>
             <Input
               type="file"
-              accept={FORMATS.find(option => option.value === format)?.accept}
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              accept={FORMAT_VALUES.find(option => option.value === format)?.accept}
+              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
             />
           </div>
           <Button
@@ -119,7 +124,7 @@ export function ImportExecutionDialog({ projectId }) {
             disabled={!canSubmit}
             loading={importMutation.isPending}
           >
-            Import & open execution
+            {t("import.submit")}
           </Button>
         </div>
       </DialogContent>

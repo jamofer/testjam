@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react"
 import { useParams, Link } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { PlayCircle, CheckCircle2, XCircle, MinusCircle, Plus, Clock, Search, User, Download, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { useExecutions, useDeleteExecution } from "../hooks/useExecutions"
@@ -34,6 +35,7 @@ const typeBadge = {
 const STATUS_FILTERS = ["all", "pending", "in_progress", "completed", "aborted"]
 
 export function ExecutionsPage() {
+  const { t } = useTranslation(["executions", "nav"])
   const { id: projectId } = useParams()
   const [statusFilter, setStatusFilter] = useState("all")
   const {
@@ -51,13 +53,13 @@ export function ExecutionsPage() {
   const [mineOnly, setMineOnly] = useState(false)
   const debouncedSearch = useDebounced(search, 150)
 
-  const handleDelete = async (ex) => {
-    if (!confirm(`Delete execution "${ex.title}"? This cannot be undone.`)) return
+  const handleDelete = async (execution) => {
+    if (!confirm(t("deleteConfirm", { title: execution.title }))) return
     try {
-      await deleteExecution.mutateAsync(ex.id)
-      toast.success("Execution deleted")
+      await deleteExecution.mutateAsync(execution.id)
+      toast.success(t("deleted"))
     } catch {
-      toast.error("Failed to delete execution")
+      toast.error(t("deleteFailed"))
     }
   }
 
@@ -65,10 +67,10 @@ export function ExecutionsPage() {
   const hasFiltersActive = statusFilter !== "all" || debouncedSearch.trim() !== "" || mineOnly
 
   const filtered = useMemo(() => {
-    const q = debouncedSearch.trim().toLowerCase()
-    return executions.filter(ex => {
-      if (mineOnly && ex.assigned_to?.id !== me?.id) return false
-      if (q && !ex.title.toLowerCase().includes(q)) return false
+    const query = debouncedSearch.trim().toLowerCase()
+    return executions.filter(execution => {
+      if (mineOnly && execution.assigned_to?.id !== me?.id) return false
+      if (query && !execution.title.toLowerCase().includes(query)) return false
       return true
     })
   }, [executions, debouncedSearch, mineOnly, me?.id])
@@ -76,35 +78,35 @@ export function ExecutionsPage() {
   return (
     <>
       <PageHeader crumbs={[
-        { label: "Projects", to: "/projects" },
+        { label: t("nav:global.projects"), to: "/projects" },
         { label: project?.name ?? "…", to: `/projects/${projectId}` },
-        { label: "Executions" },
+        { label: t("title") },
       ]}>
         <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-              Executions
+              {t("title")}
               <LiveIndicator connected={live} />
             </h1>
             <div className="flex items-center gap-2 self-start sm:self-auto">
               <ImportExecutionDialog projectId={projectId} />
               <Link to={`/projects/${projectId}/executions/new`}>
-                <Button size="sm"><Plus size={14} /> New execution</Button>
+                <Button size="sm"><Plus size={14} /> {t("newExecution")}</Button>
               </Link>
             </div>
           </div>
           {!isLoading && (executions.length > 0 || hasFiltersActive) && (
             <div className="flex flex-wrap gap-2 items-center">
-              <SearchInput value={search} onChange={setSearch} placeholder="Search by title…" className="flex-1 min-w-[180px]" />
+              <SearchInput value={search} onChange={setSearch} placeholder={t("searchPlaceholder")} className="flex-1 min-w-[180px]" />
               <div className="flex gap-1">
-                {STATUS_FILTERS.map(s => (
+                {STATUS_FILTERS.map(status => (
                   <Button
-                    key={s}
+                    key={status}
                     size="sm"
-                    variant={statusFilter === s ? "default" : "outline"}
-                    onClick={() => setStatusFilter(s)}
+                    variant={statusFilter === status ? "default" : "outline"}
+                    onClick={() => setStatusFilter(status)}
                   >
-                    {s === "all" ? "All" : s.replace("_", " ")}
+                    {t(`filters.${status}`)}
                   </Button>
                 ))}
               </div>
@@ -112,10 +114,10 @@ export function ExecutionsPage() {
                 <Button
                   size="sm"
                   variant={mineOnly ? "default" : "outline"}
-                  onClick={() => setMineOnly(v => !v)}
-                  title="Show only executions assigned to me"
+                  onClick={() => setMineOnly(value => !value)}
+                  title={t("mineOnlyTitle")}
                 >
-                  <User size={13} /> Mine
+                  <User size={13} /> {t("mineOnly")}
                 </Button>
               )}
             </div>
@@ -128,27 +130,27 @@ export function ExecutionsPage() {
       {isLoading && <SkeletonList count={3} />}
 
       <ul className="space-y-2">
-        {filtered.map(ex => (
-          <li key={ex.id} className="bg-white dark:bg-gray-900 border rounded-lg px-4 py-3 shadow-sm">
+        {filtered.map(execution => (
+          <li key={execution.id} className="bg-white dark:bg-gray-900 border rounded-lg px-4 py-3 shadow-sm">
             <div className="flex items-center justify-between gap-2">
-              <Link to={`/executions/${ex.id}/run`}
+              <Link to={`/executions/${execution.id}/run`}
                 className="font-medium text-gray-800 dark:text-gray-100 hover:underline flex items-center gap-2 min-w-0">
-                {statusIcon[ex.status]}
-                <span className="truncate">{ex.title}</span>
+                {statusIcon[execution.status]}
+                <span className="truncate">{execution.title}</span>
               </Link>
               <div className="flex items-center gap-2 shrink-0">
-                <Badge variant={typeBadge[ex.type]}>{ex.type}</Badge>
+                <Badge variant={typeBadge[execution.type]}>{execution.type}</Badge>
                 <button
-                  onClick={() => executionsApi.exportHtml(ex.id, ex.title)}
+                  onClick={() => executionsApi.exportHtml(execution.id, execution.title)}
                   className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                  title="Download HTML report"
+                  title={t("downloadHtml")}
                 >
                   <Download size={13} />
                 </button>
                 <button
-                  onClick={() => handleDelete(ex)}
+                  onClick={() => handleDelete(execution)}
                   className="text-gray-400 dark:text-gray-500 hover:text-red-600 p-1 rounded hover:bg-red-50"
-                  title="Delete execution"
+                  title={t("deleteTitle")}
                   disabled={deleteExecution.isPending}
                 >
                   <Trash2 size={13} />
@@ -156,33 +158,33 @@ export function ExecutionsPage() {
               </div>
             </div>
             <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-400 dark:text-gray-500">
-              {ex.version && <span>v{ex.version}</span>}
-              {ex.environment && <span>{ex.environment}</span>}
-              {(ex.token_name || ex.created_by || ex.triggered_by) && (
-                <span>{ex.token_name
-                  ? `via ${ex.token_name}`
-                  : `by ${ex.created_by?.username ?? ex.triggered_by}`}
+              {execution.version && <span>v{execution.version}</span>}
+              {execution.environment && <span>{execution.environment}</span>}
+              {(execution.token_name || execution.created_by || execution.triggered_by) && (
+                <span>{execution.token_name
+                  ? t("via", { token: execution.token_name })
+                  : t("by", { name: execution.created_by?.username ?? execution.triggered_by })}
                 </span>
               )}
-              {ex.assigned_to && (
+              {execution.assigned_to && (
                 <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
-                  <User size={10} /> {ex.assigned_to.username}
+                  <User size={10} /> {execution.assigned_to.username}
                 </span>
               )}
-              {(ex.started_at || ex.created_at) && (
+              {(execution.started_at || execution.created_at) && (
                 <span className="flex items-center gap-1">
-                  <Clock size={10} /> <DateLabel iso={ex.started_at ?? ex.created_at} />
+                  <Clock size={10} /> <DateLabel iso={execution.started_at ?? execution.created_at} />
                 </span>
               )}
-              {ex.finished_at && (ex.started_at || ex.created_at) && (
-                <span>· {fmtDuration(new Date(ex.finished_at) - new Date(ex.started_at ?? ex.created_at))}</span>
+              {execution.finished_at && (execution.started_at || execution.created_at) && (
+                <span>· {fmtDuration(new Date(execution.finished_at) - new Date(execution.started_at ?? execution.created_at))}</span>
               )}
             </div>
             <div className="flex gap-3 mt-1.5 text-xs">
-              <span className="text-green-600">✓ {ex.summary?.passed ?? 0}</span>
-              <span className="text-red-500">✗ {ex.summary?.failed ?? 0}</span>
-              <span className="text-yellow-600">⚠ {ex.summary?.blocked ?? 0}</span>
-              <span className="text-gray-400 dark:text-gray-500">— {ex.summary?.not_run ?? 0}</span>
+              <span className="text-green-600">✓ {execution.summary?.passed ?? 0}</span>
+              <span className="text-red-500">✗ {execution.summary?.failed ?? 0}</span>
+              <span className="text-yellow-600">⚠ {execution.summary?.blocked ?? 0}</span>
+              <span className="text-gray-400 dark:text-gray-500">— {execution.summary?.not_run ?? 0}</span>
             </div>
           </li>
         ))}
@@ -190,11 +192,11 @@ export function ExecutionsPage() {
       {!isLoading && executions.length === 0 && !hasFiltersActive && (
         <EmptyState
           icon={PlayCircle}
-          title="No executions yet"
-          description="Run a test plan or import results from JUnit / Robot Framework to track your test runs over time."
+          title={t("empty.title")}
+          description={t("empty.description")}
           action={
             <Link to={`/projects/${projectId}/executions/new`}>
-              <Button size="sm"><Plus size={14} /> New execution</Button>
+              <Button size="sm"><Plus size={14} /> {t("newExecution")}</Button>
             </Link>
           }
         />
@@ -202,15 +204,15 @@ export function ExecutionsPage() {
       {!isLoading && filtered.length === 0 && hasFiltersActive && (
         <EmptyState
           icon={Search}
-          title="No matches"
-          description="No executions match the current filters."
+          title={t("noMatches.title")}
+          description={t("noMatches.description")}
           compact
         />
       )}
       {hasNextPage && (
         <div className="flex justify-center">
           <Button variant="outline" size="sm" onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
-            {isFetchingNextPage ? "Loading…" : "Load more"}
+            {isFetchingNextPage ? t("loadingMore") : t("loadMore")}
           </Button>
         </div>
       )}

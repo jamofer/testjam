@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { Clock } from "lucide-react"
 import { MdViewer } from "../MdEditor"
 import { STATUS_CONFIG } from "../../lib/statusConfig"
 import { fmtDuration, fmtTime } from "../../lib/format"
 
 export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAutomated, focused = false }) {
+  const { t } = useTranslation(["executions", "common"])
   const [localStatus, setLocalStatus] = useState(stepResult?.status ?? "not_run")
   const [comment, setComment] = useState(stepResult?.comment ?? "")
   const [editComment, setEditComment] = useState(false)
@@ -40,6 +42,7 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
   }, [showLog, stepResult?.log_output])
 
   const config = STATUS_CONFIG[localStatus]
+  const statusLabel = (status) => t(`common:status.${status}`, STATUS_CONFIG[status]?.label ?? status)
 
   const handleStatus = async (status) => {
     setLocalStatus(status)
@@ -68,7 +71,7 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
         <div className="flex-1 min-w-0">
           <div className="prose prose-sm"><MdViewer value={step.action} /></div>
           {step.expected_result && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">Expected: <MdViewer value={step.expected_result} /></p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">{t("run.step.expected")} <MdViewer value={step.expected_result} /></p>
           )}
 
           {!isAutomated && (
@@ -77,8 +80,8 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
                 <div className="space-y-1">
                   <textarea
                     value={comment}
-                    onChange={e => setComment(e.target.value)}
-                    placeholder="Actual result / notes…"
+                    onChange={event => setComment(event.target.value)}
+                    placeholder={t("run.step.actualPlaceholder")}
                     rows={2}
                     autoFocus
                     className="w-full text-xs border border-gray-300 dark:border-gray-700 rounded px-2 py-1 resize-none focus:outline-none focus:ring-1 focus:ring-primary-400 bg-white dark:bg-gray-900"
@@ -86,11 +89,11 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
                   <div className="flex gap-1">
                     <button onClick={handleSaveComment} disabled={saving}
                       className="text-xs px-2 py-0.5 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50">
-                      {saving ? "Saving…" : "Save"}
+                      {saving ? t("run.step.saving") : t("run.step.save")}
                     </button>
                     <button onClick={() => { setEditComment(false); setComment(stepResult?.comment ?? "") }}
                       className="text-xs px-2 py-0.5 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100">
-                      Cancel
+                      {t("run.step.cancel")}
                     </button>
                   </div>
                 </div>
@@ -103,16 +106,16 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
               ) : (
                 <button onClick={() => setEditComment(true)}
                   className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                  + Add note
+                  {t("run.step.addNote")}
                 </button>
               )}
             </div>
           )}
 
           {stepResult?.log_output && (
-            <button onClick={() => setShowLog(l => !l)}
+            <button onClick={() => setShowLog(value => !value)}
               className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 mt-1 underline block">
-              {showLog ? "Hide log" : "Show log"}
+              {showLog ? t("run.step.hideLog") : t("run.step.showLog")}
             </button>
           )}
         </div>
@@ -138,7 +141,7 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
               return (
                 <button key={status}
                   onClick={() => handleStatus(status)}
-                  title={cfg.label}
+                  title={statusLabel(status)}
                   className={`p-1 rounded transition-opacity ${localStatus === status ? "opacity-100" : "opacity-25 hover:opacity-70"}`}>
                   <Ic size={16} className={cfg.iconColor} />
                 </button>

@@ -12,6 +12,7 @@ import enCases from "./locales/en/cases.json"
 import enPlans from "./locales/en/plans.json"
 import enVersions from "./locales/en/versions.json"
 import enMembers from "./locales/en/members.json"
+import enExecutions from "./locales/en/executions.json"
 import esCommon from "./locales/es/common.json"
 import esProfile from "./locales/es/profile.json"
 import esAuth from "./locales/es/auth.json"
@@ -23,6 +24,7 @@ import esCases from "./locales/es/cases.json"
 import esPlans from "./locales/es/plans.json"
 import esVersions from "./locales/es/versions.json"
 import esMembers from "./locales/es/members.json"
+import esExecutions from "./locales/es/executions.json"
 
 const STORAGE_KEY = "testjam.locale"
 
@@ -40,13 +42,13 @@ function detectLocale() {
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { common: enCommon, profile: enProfile, auth: enAuth, nav: enNav, projects: enProjects, dashboard: enDashboard, suites: enSuites, cases: enCases, plans: enPlans, versions: enVersions, members: enMembers },
-    es: { common: esCommon, profile: esProfile, auth: esAuth, nav: esNav, projects: esProjects, dashboard: esDashboard, suites: esSuites, cases: esCases, plans: esPlans, versions: esVersions, members: esMembers },
+    en: { common: enCommon, profile: enProfile, auth: enAuth, nav: enNav, projects: enProjects, dashboard: enDashboard, suites: enSuites, cases: enCases, plans: enPlans, versions: enVersions, members: enMembers, executions: enExecutions },
+    es: { common: esCommon, profile: esProfile, auth: esAuth, nav: esNav, projects: esProjects, dashboard: esDashboard, suites: esSuites, cases: esCases, plans: esPlans, versions: esVersions, members: esMembers, executions: esExecutions },
   },
   lng: detectLocale(),
   fallbackLng: DEFAULT_LOCALE,
   supportedLngs: SUPPORTED_LOCALES,
-  ns: ["common", "profile", "auth", "nav", "projects", "dashboard", "suites", "cases", "plans", "versions", "members"],
+  ns: ["common", "profile", "auth", "nav", "projects", "dashboard", "suites", "cases", "plans", "versions", "members", "executions"],
   defaultNS: "common",
   interpolation: { escapeValue: false },
   returnNull: false,

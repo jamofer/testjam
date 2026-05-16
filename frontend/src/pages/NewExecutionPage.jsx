@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { useCreateExecution } from "../hooks/useExecutions"
 import { useVersions } from "../hooks/useVersions"
 import { useMembers } from "../hooks/useMembers"
@@ -16,6 +17,7 @@ import { CasePicker } from "../components/ui/case-picker"
 import { toast } from "sonner"
 
 export function NewExecutionPage() {
+  const { t } = useTranslation(["executions", "nav"])
   const { id: projectId } = useParams()
   const navigate = useNavigate()
   const createExecution = useCreateExecution(projectId)
@@ -43,16 +45,16 @@ export function NewExecutionPage() {
   const toggleCase = (id) =>
     setSelectedCases(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!title.trim()) return toast.error("Title is required")
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    if (!title.trim()) return toast.error(t("new.titleRequired"))
 
     const selectedPlan = source === "plan" ? plans.find(p => String(p.id) === planId) : null
-    if (source === "plan" && !selectedPlan) return toast.error("Select a test plan")
+    if (source === "plan" && !selectedPlan) return toast.error(t("new.selectPlanFailure"))
 
     const trimmedVersion = versionInput.trim()
     const matchedVersion = trimmedVersion
-      ? versions.find(v => v.name.toLowerCase() === trimmedVersion.toLowerCase())
+      ? versions.find(version => version.name.toLowerCase() === trimmedVersion.toLowerCase())
       : null
     const payload = {
       title: title.trim(),
@@ -67,116 +69,116 @@ export function NewExecutionPage() {
     }
 
     try {
-      const exec = await createExecution.mutateAsync(payload)
-      toast.success("Execution created")
-      navigate(`/executions/${exec.id}/run`)
+      const execution = await createExecution.mutateAsync(payload)
+      toast.success(t("new.created"))
+      navigate(`/executions/${execution.id}/run`)
     } catch {
-      toast.error("Failed to create execution")
+      toast.error(t("new.createFailed"))
     }
   }
 
   return (
     <>
       <PageHeader crumbs={[
-        { label: "Projects", to: "/projects" },
+        { label: t("nav:global.projects"), to: "/projects" },
         { label: project?.name ?? "…", to: `/projects/${projectId}` },
-        { label: "Executions", to: `/projects/${projectId}/executions` },
-        { label: "New" },
+        { label: t("title"), to: `/projects/${projectId}/executions` },
+        { label: t("new.crumb") },
       ]}>
         <div className="max-w-2xl xl:max-w-3xl">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">New Execution</h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t("new.title")}</h1>
         </div>
       </PageHeader>
       <PageBody>
         <div className="max-w-2xl xl:max-w-3xl">
           <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-1.5">
-          <Label>Title *</Label>
-          <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Sprint 23 regression…" />
+          <Label>{t("new.titleField")}</Label>
+          <Input value={title} onChange={event => setTitle(event.target.value)} placeholder={t("new.titlePlaceholder")} />
         </div>
 
         <div className="space-y-1.5">
-          <Label>Description</Label>
+          <Label>{t("new.description")}</Label>
           <MdEditor value={description} onChange={setDescription} height={100} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label>Type</Label>
+            <Label>{t("new.type")}</Label>
             <Select value={type} onValueChange={setType}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="manual">Manual</SelectItem>
-                <SelectItem value="automatic">Automatic</SelectItem>
+                <SelectItem value="manual">{t("new.typeManual")}</SelectItem>
+                <SelectItem value="automatic">{t("new.typeAutomatic")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-1.5">
-            <Label>Version</Label>
+            <Label>{t("new.version")}</Label>
             <Input
               list="known-versions"
               value={versionInput}
-              onChange={e => setVersionInput(e.target.value)}
-              placeholder={versions.length > 0 ? "Pick or type… (e.g. 1.4.2)" : "e.g. 1.4.2 or sprint-23"}
+              onChange={event => setVersionInput(event.target.value)}
+              placeholder={versions.length > 0 ? t("new.versionPick") : t("new.versionType")}
             />
             {versions.length > 0 && (
               <datalist id="known-versions">
-                {versions.map(v => (
-                  <option key={v.id} value={v.name}>
-                    {v.vcs_tag ? `${v.vcs_tag}` : v.status}
+                {versions.map(version => (
+                  <option key={version.id} value={version.name}>
+                    {version.vcs_tag ? `${version.vcs_tag}` : version.status}
                   </option>
                 ))}
               </datalist>
             )}
-            <p className="text-[11px] text-gray-400 dark:text-gray-500">Optional. Existing versions auto-suggest as you type.</p>
+            <p className="text-[11px] text-gray-400 dark:text-gray-500">{t("new.versionHint")}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label>Environment</Label>
-            <Input value={environment} onChange={e => setEnvironment(e.target.value)} placeholder="staging" />
+            <Label>{t("new.environment")}</Label>
+            <Input value={environment} onChange={event => setEnvironment(event.target.value)} placeholder={t("new.environmentPlaceholder")} />
           </div>
           {type === "automatic" && (
             <div className="space-y-1.5">
-              <Label>Triggered by</Label>
-              <Input value={triggeredBy} onChange={e => setTriggeredBy(e.target.value)} placeholder="github-actions" />
+              <Label>{t("new.triggeredBy")}</Label>
+              <Input value={triggeredBy} onChange={event => setTriggeredBy(event.target.value)} placeholder={t("new.triggeredByPlaceholder")} />
             </div>
           )}
         </div>
 
         <div className="space-y-1.5">
-          <Label>Assignee</Label>
-          <Select value={assigneeId} onValueChange={v => setAssigneeId(v === "__none__" ? "" : v)}>
-            <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
+          <Label>{t("new.assignee")}</Label>
+          <Select value={assigneeId} onValueChange={value => setAssigneeId(value === "__none__" ? "" : value)}>
+            <SelectTrigger><SelectValue placeholder={t("new.unassigned")} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none__">Unassigned</SelectItem>
-              {members.map(m => (
-                <SelectItem key={m.user_id} value={String(m.user_id)}>{m.username}</SelectItem>
+              <SelectItem value="__none__">{t("new.unassigned")}</SelectItem>
+              {members.map(member => (
+                <SelectItem key={member.user_id} value={String(member.user_id)}>{member.username}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
-          <Label>Test cases source</Label>
+          <Label>{t("new.casesSource")}</Label>
           <div className="flex gap-4 text-sm">
             <label className="flex items-center gap-1.5 cursor-pointer">
               <input type="radio" value="cases" checked={source === "cases"} onChange={() => setSource("cases")} />
-              Pick manually
+              {t("new.pickManually")}
             </label>
             <label className="flex items-center gap-1.5 cursor-pointer">
               <input type="radio" value="plan" checked={source === "plan"} onChange={() => setSource("plan")} />
-              From test plan
+              {t("new.fromPlan")}
             </label>
           </div>
 
           {source === "plan" ? (
             <Select value={planId} onValueChange={setPlanId}>
-              <SelectTrigger><SelectValue placeholder="Select plan…" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("new.selectPlan")} /></SelectTrigger>
               <SelectContent>
-                {plans.map(p => <SelectItem key={p.id} value={String(p.id)}>{p.title}</SelectItem>)}
+                {plans.map(plan => <SelectItem key={plan.id} value={String(plan.id)}>{plan.title}</SelectItem>)}
               </SelectContent>
             </Select>
           ) : (
@@ -188,12 +190,12 @@ export function NewExecutionPage() {
             />
           )}
           {source === "cases" && (
-            <p className="text-xs text-gray-400 dark:text-gray-500">{selectedCases.length} cases selected</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">{t("new.selectedCount", { count: selectedCases.length })}</p>
           )}
         </div>
 
           <Button type="submit" className="w-full" disabled={createExecution.isPending}>
-            {createExecution.isPending ? "Creating…" : "Create & start execution"}
+            {createExecution.isPending ? t("new.creating") : t("new.create")}
           </Button>
           </form>
         </div>
