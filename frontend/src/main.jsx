@@ -3,9 +3,11 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import { configureSentry } from './lib/sentry'
+import { initTheme } from './hooks/useTheme'
 import './index.css'
 
 configureSentry()
+initTheme()
 
 class ErrorBoundary extends React.Component {
   state = { error: null }

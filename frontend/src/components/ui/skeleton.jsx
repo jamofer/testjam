@@ -6,7 +6,7 @@ export function Skeleton({ className, ...props }) {
       role="status"
       aria-busy="true"
       aria-label="Loading"
-      className={cn("animate-pulse rounded-md bg-gray-200/70", className)}
+      className={cn("animate-pulse rounded-md bg-gray-200/70 dark:bg-gray-700/60", className)}
       {...props}
     />
   )
@@ -19,7 +19,7 @@ export function SkeletonText({ lines = 3, className }) {
         <div
           key={i}
           className={cn(
-            "h-3 animate-pulse rounded bg-gray-200/70",
+            "h-3 animate-pulse rounded bg-gray-200/70 dark:bg-gray-700/60",
             i === lines - 1 ? "w-2/3" : "w-full"
           )}
         />
@@ -34,7 +34,7 @@ export function SkeletonList({ count = 3, itemClassName, className }) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className={cn("h-16 animate-pulse rounded-xl border border-gray-100 bg-gray-50", itemClassName)}
+          className={cn("h-16 animate-pulse rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/60", itemClassName)}
         />
       ))}
     </div>

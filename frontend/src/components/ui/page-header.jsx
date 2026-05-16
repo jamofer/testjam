@@ -37,7 +37,7 @@ export function PageHeader({ crumbs = [], children, className, contentClassName 
   return (
     <div ref={ref} className={cn(
       "sticky top-0 z-30 pl-16 pr-4 md:px-8 pt-3 pb-4",
-      "bg-gray-50 border-b border-gray-200",
+      "bg-gray-50 dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800",
       className,
     )}>
       <div className="h-[18px] mb-1.5">

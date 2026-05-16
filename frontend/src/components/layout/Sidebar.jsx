@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react"
 import { NavLink, Link, useMatch } from "react-router-dom"
-import { FolderKanban, Users, LogOut, UserCircle, FolderOpen, LayoutDashboard, PlayCircle, ClipboardList, ChevronLeft, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon, X } from "lucide-react"
+import { FolderKanban, Users, LogOut, UserCircle, FolderOpen, LayoutDashboard, PlayCircle, ClipboardList, ChevronLeft, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon, X, Sun, Moon, Monitor } from "lucide-react"
 import { useLogout } from "../../hooks/useAuth"
+import { useTheme } from "../../hooks/useTheme"
 import { useProject } from "../../hooks/useProjects"
 import { useExecution } from "../../hooks/useExecutions"
 import { useCase, useSuite } from "../../hooks/useSuites"
@@ -84,12 +85,12 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
 
   return (
     <aside
-      className={`w-56 bg-white border-r border-gray-200 flex flex-col h-full shrink-0 z-50
+      className={`w-56 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col h-full shrink-0 z-50
         fixed inset-y-0 left-0 transform transition-transform duration-200
         md:relative md:translate-x-0
         ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
     >
-      <div className="px-5 py-4 border-b border-gray-100 shrink-0 flex items-center justify-between gap-2">
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 shrink-0 flex items-center justify-between gap-2">
         <Link to="/projects" className="inline-flex">
           <Logo size={26} />
         </Link>
@@ -100,7 +101,7 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
               type="button"
               aria-label="Close menu"
               onClick={onCloseMobile}
-              className="md:hidden w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100"
+              className="md:hidden w-8 h-8 flex items-center justify-center rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               <X size={16} />
             </button>
@@ -111,10 +112,10 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
       {onOpenPalette && (
         <div className="px-3 pt-3">
           <button type="button" onClick={onOpenPalette}
-            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100 text-xs text-gray-500 transition-colors">
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-xs text-gray-500 dark:text-gray-400 transition-colors">
             <Search size={13} />
             <span className="flex-1 text-left">Search…</span>
-            <kbd className="text-[10px] font-mono bg-white border border-gray-200 rounded px-1 text-gray-400">
+            <kbd className="text-[10px] font-mono bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded px-1 text-gray-400 dark:text-gray-500">
               {isMac ? "⌘K" : "Ctrl K"}
             </kbd>
           </button>
@@ -127,11 +128,11 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
         {activeProjectId && (
           <div className="mb-2">
             <Link to="/projects"
-              className="flex items-center gap-1.5 px-3 py-1.5 mb-1 text-xs text-gray-400 hover:text-gray-700 rounded-md hover:bg-gray-100 transition-colors">
+              className="flex items-center gap-1.5 px-3 py-1.5 mb-1 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
               <ChevronLeft size={12} /> All projects
             </Link>
             <div className="px-3 py-1 mb-2">
-              <p className="font-semibold text-gray-900 text-sm truncate" title={project?.name}>
+              <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate" title={project?.name}>
                 {project?.name ?? "…"}
               </p>
             </div>
@@ -141,14 +142,14 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       isActive
-                        ? "bg-primary-50 text-primary-600"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                        ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300"
+                        : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
                     }`}>
                   <Icon size={15} />{label}
                 </NavLink>
               ))}
             </div>
-            <div className="border-t border-gray-100 my-3" />
+            <div className="border-t border-gray-100 dark:border-gray-800 my-3" />
           </div>
         )}
 
@@ -159,8 +160,8 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-primary-50 text-primary-600"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300"
+                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
                 }`}>
               <Icon size={15} />{label}
             </NavLink>
@@ -171,6 +172,44 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
       {/* User menu + footer */}
       <UserMenu user={user} logout={logout} isAdmin={!!user?.is_admin} />
     </aside>
+  )
+}
+
+const THEME_OPTIONS = [
+  { value: "light",  label: "Light",  icon: Sun },
+  { value: "dark",   label: "Dark",   icon: Moon },
+  { value: "system", label: "System", icon: Monitor },
+]
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme()
+  return (
+    <div className="px-3 py-2">
+      <p className="text-[11px] uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-1.5">Theme</p>
+      <div role="radiogroup" aria-label="Theme" className="flex gap-1">
+        {THEME_OPTIONS.map(({ value, label, icon: Icon }) => {
+          const active = theme === value
+          return (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              aria-label={label}
+              title={label}
+              onClick={() => setTheme(value)}
+              className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs transition-colors ${
+                active
+                  ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300"
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              }`}
+            >
+              <Icon size={13} />
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
@@ -193,32 +232,34 @@ function UserMenu({ user, logout, isAdmin }) {
   }, [open])
 
   return (
-    <div ref={wrapRef} className="relative border-t border-gray-100 p-3 shrink-0 flex items-center gap-1">
+    <div ref={wrapRef} className="relative border-t border-gray-100 dark:border-gray-800 p-3 shrink-0 flex items-center gap-1">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
         className={`flex-1 flex items-center gap-2 px-2 py-2 rounded-lg transition-colors ${
-          open ? "bg-gray-100" : "hover:bg-gray-50"
+          open ? "bg-gray-100 dark:bg-gray-800" : "hover:bg-gray-50 dark:hover:bg-gray-800"
         }`}
       >
         <UserAvatar user={user} />
         <div className="flex-1 min-w-0 text-left">
-          <p className="text-sm font-medium text-gray-800 truncate">
+          <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">
             {user?.full_name || user?.username}
           </p>
           {user?.full_name && (
-            <p className="text-xs text-gray-400 truncate">@{user.username}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 truncate">@{user.username}</p>
           )}
         </div>
         <ChevronUp size={14}
-          className={`text-gray-400 shrink-0 transition-transform ${open ? "" : "rotate-180"}`} />
+          className={`text-gray-400 dark:text-gray-500 shrink-0 transition-transform ${open ? "" : "rotate-180"}`} />
       </button>
       {isAdmin && (
         <NavLink to="/settings" title="Settings"
           className={({ isActive }) => `w-9 h-9 flex items-center justify-center rounded-md transition-colors ${
-            isActive ? "bg-primary-50 text-primary-600" : "text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+            isActive
+              ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300"
+              : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-800 dark:hover:text-gray-100"
           }`}>
           <SettingsIcon size={15} />
         </NavLink>
@@ -226,15 +267,17 @@ function UserMenu({ user, logout, isAdmin }) {
 
       {open && (
         <div role="menu"
-          className="absolute bottom-full left-3 right-3 mb-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-40">
+          className="absolute bottom-full left-3 right-3 mb-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 z-40">
           <Link to="/profile" role="menuitem" onClick={() => setOpen(false)}
-            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
             <UserCircle size={14} /> Profile
           </Link>
-          <div className="my-1 border-t border-gray-100" />
+          <div className="my-1 border-t border-gray-100 dark:border-gray-800" />
+          <ThemeToggle />
+          <div className="my-1 border-t border-gray-100 dark:border-gray-800" />
           <button type="button" role="menuitem"
             onClick={() => { setOpen(false); logout() }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600">
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400">
             <LogOut size={14} /> Logout
           </button>
         </div>

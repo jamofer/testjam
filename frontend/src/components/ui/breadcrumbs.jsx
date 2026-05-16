@@ -9,21 +9,21 @@ import { cn } from "../../lib/utils"
 export function Breadcrumbs({ crumbs = [], className }) {
   if (crumbs.length === 0) return null
   return (
-    <nav aria-label="Breadcrumb" className={cn("flex items-center gap-1 text-sm text-gray-500", className)}>
+    <nav aria-label="Breadcrumb" className={cn("flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400", className)}>
       {crumbs.map((c, i) => {
         const isLast = i === crumbs.length - 1
         return (
           <span key={i} className="flex items-center gap-1 min-w-0">
-            {i > 0 && <ChevronRight size={12} className="text-gray-300 shrink-0" />}
+            {i > 0 && <ChevronRight size={12} className="text-gray-300 dark:text-gray-600 shrink-0" />}
             {isLast || !c.to ? (
               <span
-                className={cn("truncate", isLast && "text-gray-700 font-medium")}
+                className={cn("truncate", isLast && "text-gray-700 dark:text-gray-200 font-medium")}
                 aria-current={isLast ? "page" : undefined}
               >
                 {c.label}
               </span>
             ) : (
-              <Link to={c.to} className="hover:text-gray-800 transition-colors truncate">
+              <Link to={c.to} className="hover:text-gray-800 dark:hover:text-gray-200 transition-colors truncate">
                 {c.label}
               </Link>
             )}

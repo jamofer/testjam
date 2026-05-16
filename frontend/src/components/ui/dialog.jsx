@@ -23,7 +23,7 @@ export const DialogContent = forwardRef(({ className, children, ...props }, ref)
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-6 shadow-xl",
+        "fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 p-6 shadow-xl",
         className
       )}
       {...props}
@@ -47,6 +47,6 @@ export const DialogTitle = forwardRef(({ className, ...props }, ref) => (
 DialogTitle.displayName = "DialogTitle"
 
 export const DialogDescription = forwardRef(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description ref={ref} className={cn("text-sm text-gray-500", className)} {...props} />
+  <DialogPrimitive.Description ref={ref} className={cn("text-sm text-gray-500 dark:text-gray-400", className)} {...props} />
 ))
 DialogDescription.displayName = "DialogDescription"

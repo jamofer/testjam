@@ -36,16 +36,16 @@ export function AppLayout() {
 
   useEffect(() => { setMobileOpen(false) }, [location.pathname])
 
-  if (isLoading) return <div className="flex items-center justify-center h-screen text-gray-500">Loading…</div>
+  if (isLoading) return <div className="flex items-center justify-center h-screen text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-950">Loading…</div>
   if (isError) return <Navigate to="/login" replace />
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
       <button
         type="button"
         aria-label="Open menu"
         onClick={() => setMobileOpen(true)}
-        className="md:hidden fixed top-2.5 left-2.5 z-40 w-9 h-9 flex items-center justify-center rounded-md bg-white border border-gray-200 shadow-sm text-gray-700 hover:bg-gray-50"
+        className="md:hidden fixed top-2.5 left-2.5 z-40 w-9 h-9 flex items-center justify-center rounded-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
       >
         <Menu size={18} />
       </button>
