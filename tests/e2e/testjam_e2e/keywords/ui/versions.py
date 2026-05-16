@@ -9,19 +9,19 @@ VERSION_ADD_BUTTON = 'button[type="submit"]:has-text("Add")'
 
 
 def _version_row(name: str) -> str:
-    return f'li:has(span:text-is("{name}"))'
+    return f'li:has(a:text-is("{name}"))'
 
 
 def _version_delete(name: str) -> str:
     return f'{_version_row(name)} button:last-child'
 
 
-def _version_status_toggle(name: str) -> str:
-    return f'{_version_row(name)} button[title="Click to change status"]'
+def _version_status_trigger(name: str) -> str:
+    return f'{_version_row(name)} button[title="Change status"]'
 
 
 def _version_status_label(name: str, label: str) -> str:
-    return f'{_version_row(name)}:has-text("{label}")'
+    return f'{_version_status_trigger(name)}:has-text("{label}")'
 
 
 class VersionsUIMixin:
@@ -63,7 +63,10 @@ class VersionsUIMixin:
 
     @keyword("I cycle the status of version ${name}")
     def cycle_version_status(self, name: str) -> None:
-        BuiltIn().run_keyword("Click", _version_status_toggle(name))
+        BuiltIn().run_keyword("Click", _version_status_trigger(name))
+        BuiltIn().run_keyword(
+            "Click", 'div[role="option"]:has-text("Released")',
+        )
 
     @keyword("the versions list should contain ${name}")
     def versions_should_contain(self, name: str) -> None:

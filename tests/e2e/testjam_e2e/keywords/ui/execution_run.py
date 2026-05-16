@@ -84,7 +84,7 @@ class ExecutionRunUIMixin:
         BuiltIn().run_keyword("Click", FINISH_BUTTON)
         BuiltIn().run_keyword(
             "Wait For Elements State",
-            'button:has-text("Completed")', "visible", "timeout=5s",
+            'span.uppercase:has-text("Completed")', "visible", "timeout=5s",
         )
 
 

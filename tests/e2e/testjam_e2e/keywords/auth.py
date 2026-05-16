@@ -25,6 +25,14 @@ class AuthMixin:
         password = os.getenv("TESTJAM_PASS", "admin123")
         self.log_in(user, password)
 
+    @keyword("the admin locale is en")
+    def force_admin_locale_english(self) -> None:
+        self.authenticate_as_admin()
+        response = self.client.put("/users/me", json={"locale": "en"})
+        assert response.status_code == 200, (
+            f"Failed to reset admin locale ({response.status_code}): {response.text}"
+        )
+
     @keyword("I authenticate using api key ${api_key}")
     def authenticate_with_api_key(self, api_key: str) -> None:
         self.client.set_api_key(api_key)
