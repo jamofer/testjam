@@ -1,0 +1,39 @@
+{
+  "title": "Proyectos",
+  "searchPlaceholder": "Buscar proyectos…",
+  "showArchived": "Mostrar archivados",
+  "createName": "Nombre del nuevo proyecto…",
+  "create": "Crear",
+  "archived": "ARCHIVADO",
+  "archive": "Archivar proyecto",
+  "unarchive": "Desarchivar proyecto",
+  "delete": "Eliminar proyecto",
+  "empty": {
+    "title": "Aún no hay proyectos",
+    "description": "Los proyectos agrupan tus suites, casos y ejecuciones. Crea uno arriba para empezar."
+  },
+  "noMatches": {
+    "title": "Sin resultados",
+    "description": "Ningún proyecto coincide con «{{query}}». Prueba otra búsqueda."
+  },
+  "detail": {
+    "newExecution": "Nueva ejecución",
+    "testCases": "Casos de prueba",
+    "export": "Exportar",
+    "exportTitle": "Descargar proyecto como ZIP",
+    "exported": "Proyecto exportado",
+    "exportFailed": "Falló la exportación"
+  },
+  "panel": {
+    "library": "Biblioteca",
+    "suites": "Suites",
+    "cases": "Casos",
+    "executions": "Ejecuciones",
+    "passRate": "Tasa de éxito",
+    "lastN": "últimas {{count}}",
+    "avg": "promedio",
+    "notEnough": "Aún no hay datos suficientes.",
+    "recentRuns": "Ejecuciones recientes",
+    "noExecutions": "Aún no hay ejecuciones."
+  }
+}

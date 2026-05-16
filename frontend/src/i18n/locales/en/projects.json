@@ -1,0 +1,39 @@
+{
+  "title": "Projects",
+  "searchPlaceholder": "Search projects…",
+  "showArchived": "Show archived",
+  "createName": "New project name…",
+  "create": "Create",
+  "archived": "ARCHIVED",
+  "archive": "Archive project",
+  "unarchive": "Unarchive project",
+  "delete": "Delete project",
+  "empty": {
+    "title": "No projects yet",
+    "description": "Projects group your test suites, cases and executions. Create one above to get started."
+  },
+  "noMatches": {
+    "title": "No matches",
+    "description": "No projects match \"{{query}}\". Try a different search."
+  },
+  "detail": {
+    "newExecution": "New execution",
+    "testCases": "Test cases",
+    "export": "Export",
+    "exportTitle": "Download project as ZIP",
+    "exported": "Project exported",
+    "exportFailed": "Export failed"
+  },
+  "panel": {
+    "library": "Library",
+    "suites": "Suites",
+    "cases": "Cases",
+    "executions": "Executions",
+    "passRate": "Pass rate",
+    "lastN": "last {{count}}",
+    "avg": "avg",
+    "notEnough": "Not enough data yet.",
+    "recentRuns": "Recent runs",
+    "noExecutions": "No executions yet."
+  }
+}

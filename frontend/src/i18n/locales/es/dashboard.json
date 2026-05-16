@@ -1,0 +1,21 @@
+{
+  "aria": "Panel del proyecto",
+  "lastDays": "Últimos {{count}} días",
+  "range": "Rango",
+  "rangeDays": "{{count}}d",
+  "project": "Proyecto",
+  "suites": "Suites",
+  "cases": "Casos",
+  "plans": "Planes",
+  "inFlight": "En curso",
+  "passRate": "Tasa de éxito",
+  "results_one": "{{count}} resultado",
+  "results_other": "{{count}} resultados",
+  "topFail": "Casos con más fallos",
+  "viewAll": "Ver todos",
+  "noFailures": "Sin fallos en este periodo.",
+  "fail_one": "{{count}} fallo",
+  "fail_other": "{{count}} fallos",
+  "recentExecutions": "Ejecuciones recientes",
+  "noExecutions": "Sin ejecuciones en este periodo."
+}

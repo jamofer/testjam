@@ -1,0 +1,21 @@
+{
+  "aria": "Project dashboard",
+  "lastDays": "Last {{count}} days",
+  "range": "Range",
+  "rangeDays": "{{count}}d",
+  "project": "Project",
+  "suites": "Suites",
+  "cases": "Cases",
+  "plans": "Plans",
+  "inFlight": "In flight",
+  "passRate": "Pass rate",
+  "results_one": "{{count}} result",
+  "results_other": "{{count}} results",
+  "topFail": "Top fail-prone cases",
+  "viewAll": "View all",
+  "noFailures": "No failures in this window.",
+  "fail_one": "{{count}} fail",
+  "fail_other": "{{count}} fails",
+  "recentExecutions": "Recent executions",
+  "noExecutions": "No executions in this window."
+}

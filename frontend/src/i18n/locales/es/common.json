@@ -14,6 +14,17 @@
     "en": "Inglés",
     "es": "Español"
   },
+  "status": {
+    "running": "Ejecutando",
+    "passed": "Pasa",
+    "failed": "Falla",
+    "blocked": "Bloqueado",
+    "not_run": "Sin ejecutar",
+    "pending": "Pendiente",
+    "in_progress": "En curso",
+    "completed": "Completada",
+    "aborted": "Abortada"
+  },
   "time": {
     "never": "Nunca"
   },

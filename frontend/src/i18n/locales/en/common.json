@@ -14,6 +14,17 @@
     "en": "English",
     "es": "Spanish"
   },
+  "status": {
+    "running": "Running",
+    "passed": "Pass",
+    "failed": "Fail",
+    "blocked": "Blocked",
+    "not_run": "Not run",
+    "pending": "Pending",
+    "in_progress": "In progress",
+    "completed": "Completed",
+    "aborted": "Aborted"
+  },
   "time": {
     "never": "Never"
   },

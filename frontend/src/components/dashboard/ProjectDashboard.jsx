@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { FileText, FolderOpen, Layers, PlayCircle } from "lucide-react"
 
 import { useDashboard } from "../../hooks/useDashboard"
@@ -11,10 +12,11 @@ import { Sparkline } from "./Sparkline"
 const RANGES = [7, 30, 90]
 
 export function ProjectDashboard({ projectId, range, onRangeChange }) {
+  const { t } = useTranslation("dashboard")
   const { data, isPending } = useDashboard(projectId, { range })
 
   return (
-    <section className="space-y-4" aria-label="Project dashboard">
+    <section className="space-y-4" aria-label={t("aria")}>
       <DashboardHeader range={range} onRangeChange={onRangeChange} />
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -31,12 +33,13 @@ export function ProjectDashboard({ projectId, range, onRangeChange }) {
 }
 
 function DashboardHeader({ range, onRangeChange }) {
+  const { t } = useTranslation("dashboard")
   return (
     <div className="flex items-center justify-between">
       <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-        Last {range} days
+        {t("lastDays", { count: range })}
       </h2>
-      <div role="radiogroup" aria-label="Range" className="flex items-center rounded-md border bg-white dark:bg-gray-900 text-xs overflow-hidden">
+      <div role="radiogroup" aria-label={t("range")} className="flex items-center rounded-md border bg-white dark:bg-gray-900 text-xs overflow-hidden">
         {RANGES.map(option => (
           <button
             key={option}
@@ -50,7 +53,7 @@ function DashboardHeader({ range, onRangeChange }) {
                 : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800")
             }
           >
-            {option}d
+            {t("rangeDays", { count: option })}
           </button>
         ))}
       </div>
@@ -71,15 +74,16 @@ function Card({ title, action, children }) {
 }
 
 function CountsCard({ counts, loading }) {
-  if (loading) return <Card title="Project"><Skeleton className="h-24 w-full" /></Card>
+  const { t } = useTranslation("dashboard")
+  if (loading) return <Card title={t("project")}><Skeleton className="h-24 w-full" /></Card>
   if (!counts) return null
   return (
-    <Card title="Project">
+    <Card title={t("project")}>
       <div className="grid grid-cols-2 gap-4">
-        <Stat icon={FolderOpen} label="Suites" value={counts.suites} />
-        <Stat icon={FileText} label="Cases" value={counts.cases} />
-        <Stat icon={Layers} label="Plans" value={counts.plans} />
-        <Stat icon={PlayCircle} label="In flight" value={counts.executions_in_flight} />
+        <Stat icon={FolderOpen} label={t("suites")} value={counts.suites} />
+        <Stat icon={FileText} label={t("cases")} value={counts.cases} />
+        <Stat icon={Layers} label={t("plans")} value={counts.plans} />
+        <Stat icon={PlayCircle} label={t("inFlight")} value={counts.executions_in_flight} />
       </div>
     </Card>
   )
@@ -100,21 +104,22 @@ function Stat({ icon: Icon, label, value }) {
 }
 
 function PassRateCard({ passRate, loading }) {
-  if (loading) return <Card title="Pass rate"><Skeleton className="h-24 w-full" /></Card>
+  const { t } = useTranslation("dashboard")
+  if (loading) return <Card title={t("passRate")}><Skeleton className="h-24 w-full" /></Card>
   if (!passRate) return null
   const overall = passRate.overall_pass_rate
   const points = passRate.series.map(point => point.passed + point.failed === 0
     ? 0
     : point.passed / (point.passed + point.failed))
   return (
-    <Card title="Pass rate">
+    <Card title={t("passRate")}>
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="text-3xl font-bold text-gray-800 dark:text-gray-100 leading-none">
             {overall == null ? "—" : `${Math.round(overall * 100)}%`}
           </p>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-            {passRate.total_results} result{passRate.total_results === 1 ? "" : "s"}
+            {t("results", { count: passRate.total_results })}
           </p>
         </div>
         <div className="grow max-w-[60%]">
@@ -126,19 +131,20 @@ function PassRateCard({ passRate, loading }) {
 }
 
 function TopFailCard({ topFail, loading, projectId }) {
-  if (loading) return <Card title="Top fail-prone cases"><Skeleton className="h-24 w-full" /></Card>
+  const { t } = useTranslation("dashboard")
+  if (loading) return <Card title={t("topFail")}><Skeleton className="h-24 w-full" /></Card>
   const rows = topFail?.cases ?? []
   return (
     <Card
-      title="Top fail-prone cases"
+      title={t("topFail")}
       action={
         <Link to={`/projects/${projectId}/cases`} className="text-xs text-primary-600 hover:underline">
-          View all
+          {t("viewAll")}
         </Link>
       }
     >
       {rows.length === 0 ? (
-        <p className="text-sm text-gray-400 dark:text-gray-500 py-2">No failures in this window.</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500 py-2">{t("noFailures")}</p>
       ) : (
         <ul className="space-y-2">
           {rows.map(row => (
@@ -151,7 +157,7 @@ function TopFailCard({ topFail, loading, projectId }) {
                 {row.case_name}
               </Link>
               <span className="shrink-0 text-xs font-medium text-red-600">
-                {row.fail_count} fail{row.fail_count === 1 ? "" : "s"}
+                {t("fail", { count: row.fail_count })}
               </span>
             </li>
           ))}
@@ -162,19 +168,20 @@ function TopFailCard({ topFail, loading, projectId }) {
 }
 
 function RecentExecutionsCard({ recent, loading, projectId }) {
-  if (loading) return <Card title="Recent executions"><Skeleton className="h-24 w-full" /></Card>
+  const { t } = useTranslation("dashboard")
+  if (loading) return <Card title={t("recentExecutions")}><Skeleton className="h-24 w-full" /></Card>
   const items = recent?.executions ?? []
   return (
     <Card
-      title="Recent executions"
+      title={t("recentExecutions")}
       action={
         <Link to={`/projects/${projectId}/executions`} className="text-xs text-primary-600 hover:underline">
-          View all
+          {t("viewAll")}
         </Link>
       }
     >
       {items.length === 0 ? (
-        <p className="text-sm text-gray-400 dark:text-gray-500 py-2">No executions in this window.</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500 py-2">{t("noExecutions")}</p>
       ) : (
         <ul className="space-y-2">
           {items.map(item => <RecentExecutionRow key={item.id} item={item} />)}
@@ -185,11 +192,12 @@ function RecentExecutionsCard({ recent, loading, projectId }) {
 }
 
 function RecentExecutionRow({ item }) {
+  const { t } = useTranslation("common")
   const status = STATUS_CONFIG[item.status] ?? STATUS_CONFIG.not_run
   return (
     <li className="flex items-center gap-2">
       <span className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded ${status.pill}`}>
-        {status.label}
+        {t(`status.${item.status}`, status.label)}
       </span>
       <Link
         to={`/executions/${item.id}/run`}

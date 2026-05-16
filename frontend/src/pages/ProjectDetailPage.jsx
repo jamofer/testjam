@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Link, useParams } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { Download, FolderOpen, PlayCircle } from "lucide-react"
 
 import { useProject } from "../hooks/useProjects"
@@ -12,6 +13,7 @@ import { ImportExecutionDialog } from "../components/execution/ImportExecutionDi
 import { toast } from "sonner"
 
 export function ProjectDetailPage() {
+  const { t } = useTranslation(["projects", "nav"])
   const { id } = useParams()
   const { data: project, isLoading } = useProject(id)
   const [range, setRange] = useState(30)
@@ -29,7 +31,7 @@ export function ProjectDetailPage() {
 
   return (
     <>
-      <PageHeader crumbs={[{ label: "Projects", to: "/projects" }, { label: project?.name ?? "…" }]}>
+      <PageHeader crumbs={[{ label: t("nav:global.projects"), to: "/projects" }, { label: project?.name ?? "…" }]}>
         <div className="max-w-4xl xl:max-w-5xl 2xl:max-w-6xl space-y-3">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
             <div className="min-w-0">
@@ -53,15 +55,16 @@ export function ProjectDetailPage() {
 }
 
 function ProjectActions({ projectId }) {
+  const { t } = useTranslation("projects")
   const [downloading, setDownloading] = useState(false)
 
   const exportZip = async () => {
     setDownloading(true)
     try {
       await projectsApi.exportZip(projectId)
-      toast.success("Project exported")
+      toast.success(t("detail.exported"))
     } catch {
-      toast.error("Export failed")
+      toast.error(t("detail.exportFailed"))
     } finally {
       setDownloading(false)
     }
@@ -71,17 +74,17 @@ function ProjectActions({ projectId }) {
     <div className="flex flex-wrap items-center gap-2">
       <Button asChild size="sm">
         <Link to={`/projects/${projectId}/executions/new`}>
-          <PlayCircle size={14} /> New execution
+          <PlayCircle size={14} /> {t("detail.newExecution")}
         </Link>
       </Button>
       <Button asChild size="sm" variant="outline">
         <Link to={`/projects/${projectId}/cases`}>
-          <FolderOpen size={14} /> Test cases
+          <FolderOpen size={14} /> {t("detail.testCases")}
         </Link>
       </Button>
       <ImportExecutionDialog projectId={projectId} />
-      <Button size="sm" variant="ghost" onClick={exportZip} loading={downloading} title="Download project as ZIP">
-        <Download size={14} /> Export
+      <Button size="sm" variant="ghost" onClick={exportZip} loading={downloading} title={t("detail.exportTitle")}>
+        <Download size={14} /> {t("detail.export")}
       </Button>
     </div>
   )
