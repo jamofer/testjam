@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { FileText, FolderOpen, Layers, PlayCircle } from "lucide-react"
+import { FileText, FolderOpen, Layers, PlayCircle, Tag } from "lucide-react"
 
 import { useDashboard } from "../../hooks/useDashboard"
 import { fmtDuration } from "../../lib/format"
@@ -28,6 +28,8 @@ export function ProjectDashboard({ projectId, range, onRangeChange }) {
         <RecentExecutionsCard recent={data?.recent_executions} loading={isPending} projectId={projectId} />
         <TopFailCard topFail={data?.top_fail} loading={isPending} projectId={projectId} />
       </div>
+
+      <VersionsCard versions={data?.versions} loading={isPending} projectId={projectId} />
     </section>
   )
 }
@@ -188,6 +190,53 @@ function RecentExecutionsCard({ recent, loading, projectId }) {
         </ul>
       )}
     </Card>
+  )
+}
+
+function VersionsCard({ versions, loading, projectId }) {
+  const { t } = useTranslation("dashboard")
+  if (loading) return <Card title={t("versions")}><Skeleton className="h-24 w-full" /></Card>
+  const items = versions?.items ?? []
+  return (
+    <Card
+      title={t("versions")}
+      action={
+        <Link to={`/projects/${projectId}/versions`} className="text-xs text-primary-600 hover:underline">
+          {t("viewAll")}
+        </Link>
+      }
+    >
+      {items.length === 0 ? (
+        <p className="text-sm text-gray-400 dark:text-gray-500 py-2">{t("noVersions")}</p>
+      ) : (
+        <ul className="space-y-2">
+          {items.map(item => <VersionsCardRow key={item.id} item={item} projectId={projectId} />)}
+        </ul>
+      )}
+    </Card>
+  )
+}
+
+function VersionsCardRow({ item, projectId }) {
+  const { t } = useTranslation("dashboard")
+  const passPercent = item.pass_rate == null ? null : Math.round(item.pass_rate * 100)
+  return (
+    <li className="flex items-center gap-3 text-sm">
+      <Tag size={13} className="text-gray-400 dark:text-gray-500 shrink-0" />
+      <Link
+        to={`/projects/${projectId}/versions/${item.id}`}
+        className="truncate text-gray-800 dark:text-gray-100 hover:underline flex-1"
+        title={item.name}
+      >
+        {item.name}
+      </Link>
+      <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">
+        {t("runs", { count: item.total_runs })}
+      </span>
+      <span className={`text-xs font-medium shrink-0 ${passPercent == null ? "text-gray-400 dark:text-gray-500" : passPercent >= 80 ? "text-green-600" : passPercent >= 50 ? "text-yellow-600" : "text-red-500"}`}>
+        {passPercent == null ? t("neverRun") : `${passPercent}%`}
+      </span>
+    </li>
   )
 }
 

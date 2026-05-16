@@ -14,6 +14,7 @@ from testjam.database import get_db
 from testjam.models.execution import TestExecution, TestResult
 from testjam.models.project import Project
 from testjam.models.user import User
+from testjam.models.version import ProjectVersion
 from testjam.routers.executions import executions_router, projects_router
 from testjam.routers.executions._helpers import (
     execution_out,
@@ -28,6 +29,20 @@ from testjam.services import execution_events
 from testjam.services.permissions import effective_role
 
 REOPENABLE_STATUSES = {"completed", "aborted"}
+
+
+def _resolve_or_create_version(db: Session, project_id: int, name: str) -> ProjectVersion:
+    existing = (
+        db.query(ProjectVersion)
+        .filter(ProjectVersion.project_id == project_id, ProjectVersion.name.ilike(name))
+        .first()
+    )
+    if existing:
+        return existing
+    row = ProjectVersion(project_id=project_id, name=name, status="active")
+    db.add(row)
+    db.flush()
+    return row
 
 
 def _require_reopen_permission(db: Session, execution: TestExecution, user: User) -> None:
@@ -49,6 +64,7 @@ def list_executions(
     type: str | None = None,
     status: str | None = None,
     assigned_to_id: int | None = None,
+    version_id: int | None = None,
     skip: int = 0,
     limit: int = 50,
     db: Session = Depends(get_db),
@@ -60,6 +76,7 @@ def list_executions(
         .options(
             selectinload(TestExecution.results),
             selectinload(TestExecution.attachments),
+            selectinload(TestExecution.project_version),
         )
         .filter(TestExecution.project_id == id)
     )
@@ -69,6 +86,8 @@ def list_executions(
         q = q.filter(TestExecution.status == status)
     if assigned_to_id is not None:
         q = q.filter(TestExecution.assigned_to_id == assigned_to_id)
+    if version_id is not None:
+        q = q.filter(TestExecution.version_id == version_id)
     rows = q.order_by(TestExecution.created_at.desc()).offset(skip).limit(limit).all()
     return [execution_out(ex) for ex in rows]
 
@@ -90,6 +109,11 @@ def create_execution(
     data["project_id"] = id
     data["created_by_id"] = ctx.user.id
     data["token_name"] = ctx.token_name
+    free_text_version = data.pop("version", None)
+    if data.get("version_id") is None and free_text_version:
+        name = free_text_version.strip()
+        if name:
+            data["version_id"] = _resolve_or_create_version(db, id, name).id
     if body.type == "manual" and not data.get("triggered_by"):
         data["triggered_by"] = ctx.user.username
     ex = TestExecution(**data, started_at=datetime.now(timezone.utc))
@@ -124,7 +148,11 @@ def update_execution(
         raise HTTPException(status_code=404, detail="Not found")
     previous_status = ex.status
     previous_assignee_id = ex.assigned_to_id
-    for field, value in body.model_dump(exclude_none=True).items():
+    update_data = body.model_dump(exclude_none=True)
+    free_text_version = update_data.pop("version", None)
+    if free_text_version and not update_data.get("version_id"):
+        update_data["version_id"] = _resolve_or_create_version(db, ex.project_id, free_text_version.strip()).id
+    for field, value in update_data.items():
         setattr(ex, field, value)
     db.flush()
     execution_events.on_execution_updated(

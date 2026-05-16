@@ -158,7 +158,7 @@ export function ExecutionsPage() {
               </div>
             </div>
             <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-400 dark:text-gray-500">
-              {execution.version && <span>v{execution.version}</span>}
+              {execution.version_name && <span>v{execution.version_name}</span>}
               {execution.environment && <span>{execution.environment}</span>}
               {(execution.token_name || execution.created_by || execution.triggered_by) && (
                 <span>{execution.token_name

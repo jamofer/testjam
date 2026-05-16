@@ -17,5 +17,10 @@
   "fail_one": "{{count}} fallo",
   "fail_other": "{{count}} fallos",
   "recentExecutions": "Ejecuciones recientes",
-  "noExecutions": "Sin ejecuciones en este periodo."
+  "noExecutions": "Sin ejecuciones en este periodo.",
+  "versions": "Versiones activas",
+  "noVersions": "Sin versiones activas.",
+  "runs_one": "{{count}} ejecución",
+  "runs_other": "{{count}} ejecuciones",
+  "neverRun": "Sin ejecutar"
 }

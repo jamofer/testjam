@@ -61,7 +61,7 @@ def export_execution_xlsx(
     ws_sum.append(["Status", ex.status])
     ws_sum.append(["Type", ex.type])
     ws_sum.append(["Environment", ex.environment or ""])
-    ws_sum.append(["Version", ex.version or ""])
+    ws_sum.append(["Version", ex.project_version.name if ex.project_version else ""])
     ws_sum.append(["Launched by", launched_by])
     ws_sum.append([f"Started at ({tz_label})", format_in_user_zone(ex.started_at, current, "%Y-%m-%d %H:%M:%S")])
     ws_sum.append([f"Finished at ({tz_label})", format_in_user_zone(ex.finished_at, current, "%Y-%m-%d %H:%M:%S")])
@@ -175,8 +175,8 @@ def export_execution_html(
         meta_items.append(e(project_name))
     if ex.environment:
         meta_items.append(e(ex.environment))
-    if ex.version:
-        meta_items.append(f"v{e(ex.version)}")
+    if ex.project_version:
+        meta_items.append(f"v{e(ex.project_version.name)}")
     if launched_by and launched_by != "—":
         meta_items.append(f"by {e(launched_by)}")
     dates_str = fmt_date(ex.started_at)

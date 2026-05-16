@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from testjam.auth.dependencies import require_project_access
 from testjam.database import get_db
@@ -13,6 +13,7 @@ from testjam.models.execution import TestExecution, TestResult
 from testjam.models.testcase import TestCase, TestSuite
 from testjam.models.testplan import TestPlan
 from testjam.models.user import User
+from testjam.models.version import ProjectVersion
 from testjam.schemas.dashboard import (
     CountsCard,
     DashboardOut,
@@ -22,12 +23,15 @@ from testjam.schemas.dashboard import (
     RecentExecutionsCard,
     TopFailCard,
     TopFailCase,
+    VersionsCard,
+    VersionsCardItem,
 )
 
 ALLOWED_RANGES = {7, 30, 90}
-ALL_CARDS = {"counts", "pass_rate", "top_fail", "recent_executions"}
+ALL_CARDS = {"counts", "pass_rate", "top_fail", "recent_executions", "versions"}
 RECENT_LIMIT = 5
 TOP_FAIL_LIMIT = 5
+VERSIONS_CARD_LIMIT = 6
 IN_FLIGHT_STATUSES = ("pending", "in_progress")
 RESULT_STATUSES = ("passed", "failed", "blocked", "not_run")
 
@@ -58,6 +62,8 @@ def get_dashboard(
         payload.top_fail = _top_fail_card(db, id, since)
     if "recent_executions" in requested:
         payload.recent_executions = _recent_executions_card(db, id, since)
+    if "versions" in requested:
+        payload.versions = _versions_card(db, id)
     return payload
 
 
@@ -167,6 +173,7 @@ def _top_fail_card(db: Session, project_id: int, since: datetime) -> TopFailCard
 def _recent_executions_card(db: Session, project_id: int, since: datetime) -> RecentExecutionsCard:
     executions = (
         db.query(TestExecution)
+        .options(selectinload(TestExecution.project_version))
         .filter(
             TestExecution.project_id == project_id,
             TestExecution.created_at >= since,
@@ -196,7 +203,7 @@ def _recent_executions_card(db: Session, project_id: int, since: datetime) -> Re
             id=ex.id,
             title=ex.title,
             status=ex.status,
-            version=ex.version,
+            version_name=ex.project_version.name if ex.project_version else None,
             environment=ex.environment,
             created_at=ex.created_at,
             started_at=ex.started_at,
@@ -211,3 +218,83 @@ def _duration_ms(started: datetime | None, finished: datetime | None) -> int | N
     if not started or not finished:
         return None
     return int((finished - started).total_seconds() * 1000)
+
+
+def _versions_card(db: Session, project_id: int) -> VersionsCard:
+    versions = (
+        db.query(ProjectVersion)
+        .filter(
+            ProjectVersion.project_id == project_id,
+            ProjectVersion.status != "archived",
+        )
+        .all()
+    )
+    if not versions:
+        return VersionsCard(items=[])
+
+    version_ids = [v.id for v in versions]
+    run_counts = dict(
+        db.query(TestExecution.version_id, func.count(TestExecution.id))
+        .filter(
+            TestExecution.project_id == project_id,
+            TestExecution.version_id.in_(version_ids),
+        )
+        .group_by(TestExecution.version_id)
+        .all()
+    )
+
+    result_rows = (
+        db.query(TestExecution.version_id, TestResult.status, func.count(TestResult.id))
+        .join(TestResult, TestResult.execution_id == TestExecution.id)
+        .filter(
+            TestExecution.project_id == project_id,
+            TestExecution.version_id.in_(version_ids),
+        )
+        .group_by(TestExecution.version_id, TestResult.status)
+        .all()
+    )
+    result_counts: dict[int, dict[str, int]] = defaultdict(lambda: {s: 0 for s in RESULT_STATUSES})
+    for version_id, status, count in result_rows:
+        if status in result_counts[version_id]:
+            result_counts[version_id][status] = count
+
+    latest_rows = (
+        db.query(
+            TestExecution.version_id,
+            TestExecution.status,
+            TestExecution.started_at,
+            TestExecution.created_at,
+        )
+        .filter(
+            TestExecution.project_id == project_id,
+            TestExecution.version_id.in_(version_ids),
+        )
+        .order_by(
+            TestExecution.version_id,
+            TestExecution.started_at.desc().nullslast(),
+            TestExecution.created_at.desc(),
+        )
+        .all()
+    )
+    last_run: dict[int, tuple[str, datetime | None]] = {}
+    for version_id, status, started_at, created_at in latest_rows:
+        if version_id not in last_run:
+            last_run[version_id] = (status, started_at or created_at)
+
+    items: list[VersionsCardItem] = []
+    for v in versions:
+        counts = result_counts[v.id]
+        completed = counts["passed"] + counts["failed"]
+        pass_rate = (counts["passed"] / completed) if completed else None
+        last_status, last_at = last_run.get(v.id, (None, None))
+        items.append(VersionsCardItem(
+            id=v.id,
+            name=v.name,
+            status=v.status,
+            last_run_status=last_status,
+            last_run_at=last_at,
+            total_runs=run_counts.get(v.id, 0),
+            pass_rate=pass_rate,
+        ))
+    items.sort(key=lambda item: item.last_run_at or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+    return VersionsCard(items=items[:VERSIONS_CARD_LIMIT])

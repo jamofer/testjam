@@ -22,6 +22,8 @@ const UsersPage = lazy(() => import("./pages/UsersPage").then(m => ({ default: m
 const ProfilePage = lazy(() => import("./pages/ProfilePage").then(m => ({ default: m.ProfilePage })))
 const MembersPage = lazy(() => import("./pages/MembersPage").then(m => ({ default: m.MembersPage })))
 const VersionsPage = lazy(() => import("./pages/VersionsPage").then(m => ({ default: m.VersionsPage })))
+const VersionDetailPage = lazy(() => import("./pages/VersionDetailPage").then(m => ({ default: m.VersionDetailPage })))
+const CoverageMatrixPage = lazy(() => import("./pages/CoverageMatrixPage").then(m => ({ default: m.CoverageMatrixPage })))
 const SettingsPage = lazy(() => import("./pages/SettingsPage").then(m => ({ default: m.SettingsPage })))
 
 let DevTools = () => null
@@ -64,6 +66,8 @@ export default function App() {
               <Route path="/projects/:id/executions/new" element={<NewExecutionPage />} />
               <Route path="/projects/:id/members" element={<MembersPage />} />
               <Route path="/projects/:id/versions" element={<VersionsPage />} />
+              <Route path="/projects/:id/coverage" element={<CoverageMatrixPage />} />
+              <Route path="/projects/:id/versions/:versionId" element={<VersionDetailPage />} />
               <Route path="/cases/:id" element={<TestCasePage />} />
               <Route path="/executions/:id" element={<Navigate to="run" replace />} />
               <Route path="/executions/:id/run" element={<ExecutionRunPage />} />

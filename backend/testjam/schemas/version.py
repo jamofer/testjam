@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from pydantic import BaseModel
 
 
@@ -7,6 +7,7 @@ class ProjectVersionCreate(BaseModel):
     description: str | None = None
     status: str = "active"
     vcs_tag: str | None = None
+    release_date: date | None = None
 
 
 class ProjectVersionUpdate(BaseModel):
@@ -14,6 +15,7 @@ class ProjectVersionUpdate(BaseModel):
     description: str | None = None
     status: str | None = None
     vcs_tag: str | None = None
+    release_date: date | None = None
 
 
 class ProjectVersionOut(BaseModel):
@@ -23,6 +25,8 @@ class ProjectVersionOut(BaseModel):
     description: str | None
     status: str
     vcs_tag: str | None
+    release_date: date | None
+    released_at: datetime | None
     created_at: datetime
 
     model_config = {"from_attributes": True}

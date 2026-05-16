@@ -17,5 +17,10 @@
   "fail_one": "{{count}} fail",
   "fail_other": "{{count}} fails",
   "recentExecutions": "Recent executions",
-  "noExecutions": "No executions in this window."
+  "noExecutions": "No executions in this window.",
+  "versions": "Active versions",
+  "noVersions": "No active versions.",
+  "runs_one": "{{count}} run",
+  "runs_other": "{{count}} runs",
+  "neverRun": "Never run"
 }

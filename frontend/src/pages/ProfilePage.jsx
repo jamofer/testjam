@@ -11,6 +11,7 @@ import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { EmptyState } from "../components/ui/empty-state"
+import { PageHeader, PageBody } from "../components/ui/page-header"
 import { TimezonePicker } from "../components/ui/timezone-picker"
 import { browserTimezone } from "../lib/format"
 import { useTheme, DARK_VARIANTS } from "../hooks/useTheme"
@@ -445,12 +446,15 @@ export function ProfilePage() {
     .split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
 
   return (
-    <div className="pl-14 pr-4 py-4 md:p-8 max-w-lg space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t("title")}</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{t("subtitle")}</p>
-      </div>
-
+    <>
+      <PageHeader>
+        <div className="max-w-2xl">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t("title")}</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{t("subtitle")}</p>
+        </div>
+      </PageHeader>
+      <PageBody>
+        <div className="max-w-2xl space-y-8">
       <div className="flex items-center gap-4">
         <div className="w-16 h-16 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-2xl font-bold">
           {initials}
@@ -502,6 +506,8 @@ export function ProfilePage() {
         </div>
         <Button type="submit" loading={changePassword.isPending}>{t("password.submit")}</Button>
       </form>
-    </div>
+        </div>
+      </PageBody>
+    </>
   )
 }

@@ -153,8 +153,8 @@ class TestExecutionOut(BaseModel):
     description: str | None
     type: str
     status: str
-    version: str | None
     version_id: int | None = None
+    version_name: str | None = None
     environment: str | None
     assigned_to: UserOut | None = None
     created_by: UserOut | None = None

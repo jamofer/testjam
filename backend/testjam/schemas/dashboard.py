@@ -43,7 +43,7 @@ class RecentExecutionItem(BaseModel):
     id: int
     title: str
     status: str
-    version: str | None
+    version_name: str | None
     environment: str | None
     created_at: datetime
     started_at: datetime | None
@@ -59,6 +59,20 @@ class RecentExecutionsCard(BaseModel):
     executions: list[RecentExecutionItem]
 
 
+class VersionsCardItem(BaseModel):
+    id: int
+    name: str
+    status: str
+    last_run_status: str | None = None
+    last_run_at: datetime | None = None
+    total_runs: int = 0
+    pass_rate: float | None = None
+
+
+class VersionsCard(BaseModel):
+    items: list[VersionsCardItem]
+
+
 class DashboardOut(BaseModel):
     range_days: int
     generated_at: datetime
@@ -66,3 +80,4 @@ class DashboardOut(BaseModel):
     pass_rate: PassRateCard | None = None
     top_fail: TopFailCard | None = None
     recent_executions: RecentExecutionsCard | None = None
+    versions: VersionsCard | None = None

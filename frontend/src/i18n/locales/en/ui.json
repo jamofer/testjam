@@ -19,6 +19,7 @@
       "newSuite": "New test suite",
       "goToPlans": "Go to test plans",
       "goToVersions": "Go to versions",
+      "goToCoverage": "Go to coverage matrix",
       "goToMembers": "Go to members"
     }
   },

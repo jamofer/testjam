@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from datetime import datetime
-from sqlalchemy import ForeignKey, Integer, String, Text, func
+from datetime import date, datetime
+from sqlalchemy import Date, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from testjam.database import Base
@@ -18,6 +18,8 @@ class ProjectVersion(Base):
     # "active" | "released" | "archived"
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="active")
     vcs_tag: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    release_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    released_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
 
     project: Mapped[Project] = relationship(back_populates="versions")

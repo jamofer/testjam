@@ -9,6 +9,14 @@ export function useVersions(projectId) {
   })
 }
 
+export function useVersion(id) {
+  return useQuery({
+    queryKey: ['version', id],
+    queryFn: () => versionsApi.get(id),
+    enabled: !!id,
+  })
+}
+
 export function useCreateVersion(projectId) {
   const qc = useQueryClient()
   return useMutation({
@@ -21,7 +29,10 @@ export function useUpdateVersion(projectId) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, data }) => versionsApi.update(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['versions', projectId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['versions', projectId] })
+      qc.invalidateQueries({ queryKey: ['version'] })
+    },
   })
 }
 

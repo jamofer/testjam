@@ -23,7 +23,6 @@ class TestExecution(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     type: Mapped[str] = mapped_column(String(16), nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="pending")
-    version: Mapped[str | None] = mapped_column(String(64), nullable=True)
     environment: Mapped[str | None] = mapped_column(String(64), nullable=True)
     assigned_to_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True

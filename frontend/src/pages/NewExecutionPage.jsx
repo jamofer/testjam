@@ -23,6 +23,7 @@ export function NewExecutionPage() {
   const createExecution = useCreateExecution(projectId)
   const { data: project } = useProject(projectId)
   const { data: versions = [] } = useVersions(projectId)
+  const activeVersions = versions.filter(version => version.status === "active")
   const { data: members = [] } = useMembers(projectId)
 
   const [title, setTitle] = useState("")
@@ -53,15 +54,11 @@ export function NewExecutionPage() {
     if (source === "plan" && !selectedPlan) return toast.error(t("new.selectPlanFailure"))
 
     const trimmedVersion = versionInput.trim()
-    const matchedVersion = trimmedVersion
-      ? versions.find(version => version.name.toLowerCase() === trimmedVersion.toLowerCase())
-      : null
     const payload = {
       title: title.trim(),
       description,
       type,
-      version_id: matchedVersion ? matchedVersion.id : undefined,
-      version: !matchedVersion && trimmedVersion ? trimmedVersion : undefined,
+      version: trimmedVersion || undefined,
       environment: environment || undefined,
       triggered_by: type === "automatic" ? triggeredBy || undefined : undefined,
       assigned_to_id: assigneeId ? parseInt(assigneeId) : undefined,
@@ -120,13 +117,13 @@ export function NewExecutionPage() {
               list="known-versions"
               value={versionInput}
               onChange={event => setVersionInput(event.target.value)}
-              placeholder={versions.length > 0 ? t("new.versionPick") : t("new.versionType")}
+              placeholder={activeVersions.length > 0 ? t("new.versionPick") : t("new.versionType")}
             />
-            {versions.length > 0 && (
+            {activeVersions.length > 0 && (
               <datalist id="known-versions">
-                {versions.map(version => (
+                {activeVersions.map(version => (
                   <option key={version.id} value={version.name}>
-                    {version.vcs_tag ? `${version.vcs_tag}` : version.status}
+                    {version.vcs_tag ?? ""}
                   </option>
                 ))}
               </datalist>

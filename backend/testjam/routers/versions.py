@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -18,7 +20,10 @@ def list_versions(id: int, db: Session = Depends(get_db), _: User = Depends(requ
 
 @projects_router.post("/{id}/versions", response_model=ProjectVersionOut, status_code=status.HTTP_201_CREATED)
 def create_version(id: int, body: ProjectVersionCreate, db: Session = Depends(get_db), _: User = Depends(require_writable_project_access)):
-    version = ProjectVersion(project_id=id, **body.model_dump())
+    data = body.model_dump()
+    version = ProjectVersion(project_id=id, **data)
+    if version.status == "released":
+        version.released_at = datetime.now(timezone.utc)
     db.add(version)
     db.commit()
     db.refresh(version)
@@ -38,8 +43,15 @@ def update_version(id: int, body: ProjectVersionUpdate, db: Session = Depends(ge
     v = db.get(ProjectVersion, id)
     if not v:
         raise HTTPException(status_code=404, detail="Not found")
-    for field, value in body.model_dump(exclude_none=True).items():
+    update_data = body.model_dump(exclude_unset=True)
+    previous_status = v.status
+    new_status = update_data.get("status")
+    for field, value in update_data.items():
         setattr(v, field, value)
+    if new_status == "released" and previous_status != "released":
+        v.released_at = datetime.now(timezone.utc)
+    elif new_status and new_status != "released" and previous_status == "released":
+        v.released_at = None
     db.commit()
     db.refresh(v)
     return v

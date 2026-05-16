@@ -16,6 +16,7 @@ def execution_out(ex: TestExecution) -> TestExecutionOut:
     data = TestExecutionOut.model_validate(ex)
     data.summary = compute_summary(ex)
     data.attachments = [ExecutionAttachmentOut.model_validate(a) for a in ex.attachments]
+    data.version_name = ex.project_version.name if ex.project_version else None
     return data
 
 
@@ -29,6 +30,7 @@ def load_execution_full(db: Session, ex_id: int) -> TestExecution | None:
             selectinload(TestExecution.results).selectinload(TestResult.step_results),
             selectinload(TestExecution.results).selectinload(TestResult.attachments),
             selectinload(TestExecution.attachments),
+            selectinload(TestExecution.project_version),
         )
         .filter(TestExecution.id == ex_id)
         .first()

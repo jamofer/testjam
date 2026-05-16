@@ -34,7 +34,7 @@ const PAYLOAD = {
   recent_executions: {
     executions: [
       {
-        id: 99, title: "Nightly", status: "completed", version: null, environment: null,
+        id: 99, title: "Nightly", status: "completed", version_name: null, environment: null,
         created_at: "2026-05-15T00:00:00Z", started_at: null, finished_at: null,
         duration_ms: 12000, passed: 5, failed: 0, blocked: 0, not_run: 0,
       },

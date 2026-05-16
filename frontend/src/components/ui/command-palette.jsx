@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useMatch } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { Search, FolderOpen, FileText, PlayCircle, Plus, ClipboardList, Tag, Shield } from "lucide-react"
+import { Search, FolderOpen, FileText, PlayCircle, Plus, ClipboardList, Tag, Shield, Grid3x3 } from "lucide-react"
 import { useProjects } from "../../hooks/useProjects"
 import { useExecutions } from "../../hooks/useExecutions"
 import { useSearchCases } from "../../hooks/useSuites"
@@ -94,6 +94,12 @@ export function CommandPalette({ open, onOpenChange, onAction }) {
         title: t("commandPalette.actions.goToVersions"),
         icon: Tag,
         run: () => navigate(`/projects/${activeProjectId}/versions`),
+      },
+      {
+        key: "go-coverage",
+        title: t("commandPalette.actions.goToCoverage"),
+        icon: Grid3x3,
+        run: () => navigate(`/projects/${activeProjectId}/coverage`),
       },
       {
         key: "go-members",

@@ -19,6 +19,7 @@
       "newSuite": "Nueva suite de pruebas",
       "goToPlans": "Ir a planes",
       "goToVersions": "Ir a versiones",
+      "goToCoverage": "Ir a matriz de cobertura",
       "goToMembers": "Ir a miembros"
     }
   },

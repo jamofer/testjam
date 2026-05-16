@@ -375,7 +375,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
         { label: t("run.context.project"), value: project?.name },
         { label: t("run.context.status"), value: <StatusPill status={execution.status} /> },
         { label: t("run.context.type"), value: <TypePill type={execution.type} /> },
-        { label: t("run.context.version"), value: execution.version },
+        { label: t("run.context.version"), value: execution.version_name },
         { label: t("run.context.environment"), value: execution.environment },
         { label: t("run.context.createdBy"), value: <UserLink user={execution.created_by} /> },
         { label: t("run.context.triggeredBy"), value: execution.triggered_by },
@@ -417,7 +417,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
               <LiveIndicator connected={live} />
             </h1>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {execution.version && <span>v{execution.version}</span>}
+              {execution.version_name && <span>v{execution.version_name}</span>}
               {execution.environment && <span>{execution.environment}</span>}
               {(execution.token_name || execution.created_by || execution.triggered_by) && (
                 <span>{execution.token_name

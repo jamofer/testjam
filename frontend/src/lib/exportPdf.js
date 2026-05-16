@@ -95,7 +95,7 @@ export function exportExecutionPdf(execution, results, projectName = "", options
   const meta = [
     ["Project",     projectName || "—"],
     ["Environment", execution.environment || "—"],
-    ["Version",     execution.version || "—"],
+    ["Version",     execution.version_name || "—"],
     ["Launched by", launchedBy(execution)],
     ["Started",     fmtDate(execution.started_at, timezone)],
     ["Finished",    fmtDate(execution.finished_at, timezone)],

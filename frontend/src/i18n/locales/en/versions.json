@@ -5,7 +5,11 @@
   "add": "Add",
   "created": "Version created",
   "deleted": "Version deleted",
-  "cycleStatus": "Click to change status",
+  "changeStatus": "Change status",
+  "openDetail": "Open version detail",
+  "showArchived_one": "Show 1 archived",
+  "showArchived_other": "Show {{count}} archived",
+  "hideArchived": "Hide archived",
   "statuses": {
     "active": "Active",
     "released": "Released",
@@ -14,5 +18,54 @@
   "empty": {
     "title": "No versions yet",
     "description": "Versions tag releases or sprints. Tie executions to a version to see test results per release."
+  },
+  "detail": {
+    "metadata": "Metadata",
+    "executions": "Executions",
+    "nameLabel": "Name",
+    "releaseDateLabel": "Release date",
+    "releasedOn": "Released",
+    "descriptionLabel": "Release notes",
+    "save": "Save",
+    "saved": "Version updated",
+    "statRuns": "Runs",
+    "statPassRate": "Pass rate",
+    "statPassed": "Passed",
+    "statFailed": "Failed",
+    "statBlocked": "Blocked",
+    "noExecutionsTitle": "No executions for this version",
+    "noExecutionsDescription": "Pick this version when creating an execution to see it listed here."
+  },
+  "coverage": {
+    "title": "Coverage matrix",
+    "openButton": "Coverage matrix",
+    "caseColumn": "Test case",
+    "includeArchived": "Include archived versions",
+    "emptyTitle": "Not enough data for a matrix",
+    "emptyDescription": "Create versions and link executions to them to populate the matrix.",
+    "filterPlaceholder": "Filter suites and cases…",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "shortcutsButton": "Keyboard shortcuts",
+    "shortcutsDescription": "Navigate the matrix without the mouse.",
+    "shortcutSections": {
+      "navigation": "Navigation",
+      "actions": "Actions"
+    },
+    "shortcutRows": {
+      "next": "Next row",
+      "prev": "Previous row",
+      "collapse": "Collapse suite",
+      "expand": "Expand suite",
+      "nextSuite": "Jump to next suite",
+      "prevSuite": "Jump to previous suite",
+      "first": "First row",
+      "last": "Last row",
+      "toggle": "Toggle suite",
+      "expandAll": "Expand all suites",
+      "collapseAll": "Collapse all suites",
+      "focusFilter": "Focus filter",
+      "help": "Show shortcuts"
+    }
   }
 }

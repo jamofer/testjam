@@ -212,7 +212,7 @@ def _execution_dict(
         "description": ex.description,
         "type": ex.type,
         "status": ex.status,
-        "version": ex.version,
+        "version": ex.project_version.name if ex.project_version else None,
         "environment": ex.environment,
         "started_at": ex.started_at,
         "finished_at": ex.finished_at,
