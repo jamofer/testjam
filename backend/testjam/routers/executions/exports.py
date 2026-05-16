@@ -367,9 +367,12 @@ def export_execution_html(
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
 <title>{e(ex.title)} — {e(app_settings.app_name)}</title>
 <style>
+:root{{color-scheme:light}}
 *{{box-sizing:border-box;margin:0;padding:0}}
+html,body{{color-scheme:light}}
 body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f9fafb;color:#111827;font-size:14px;line-height:1.5}}
 header{{padding:22px 40px 20px;border-bottom:1px solid}}
 header.fail{{background:#fff8f9;border-bottom-color:#fecdd3}}
