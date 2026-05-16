@@ -1,0 +1,63 @@
+{
+  "title": "Miembros y accesos",
+  "loading": "Cargando…",
+  "members": "Miembros",
+  "roles": {
+    "owner": "propietario",
+    "tester": "tester",
+    "viewer": "lectura"
+  },
+  "member": {
+    "added": "Miembro añadido",
+    "addFailed": "No se pudo añadir el miembro",
+    "removed": "Miembro eliminado",
+    "removeFailed": "No se pudo eliminar el miembro",
+    "roleFailed": "No se pudo actualizar el rol",
+    "selectUser": "Selecciona un usuario…",
+    "add": "Añadir",
+    "removeAria": "Quitar miembro"
+  },
+  "membersEmpty": {
+    "title": "Aún no hay miembros",
+    "description": "Añade testers o lectores para darles acceso al proyecto."
+  },
+  "groups": {
+    "title": "Acceso por grupos",
+    "assigned": "Grupo asignado",
+    "assignFailed": "No se pudo asignar el grupo",
+    "removed": "Grupo eliminado",
+    "removeFailed": "No se pudo eliminar el grupo",
+    "roleFailed": "No se pudo actualizar el rol",
+    "selectGroup": "Selecciona un grupo…",
+    "assign": "Asignar",
+    "removeAria": "Quitar grupo",
+    "memberCount_one": "{{count}} miembro",
+    "memberCount_other": "{{count}} miembros",
+    "empty": {
+      "title": "Sin grupos asignados",
+      "description": "Asigna un grupo para dar a todos sus miembros el mismo rol en este proyecto."
+    }
+  },
+  "tokens": {
+    "title": "Tokens de API del proyecto",
+    "created": "Token creado — cópialo ahora, no se mostrará otra vez.",
+    "copied": "Token copiado",
+    "createFailed": "No se pudo crear el token",
+    "revoked": "Token revocado",
+    "revokeFailed": "No se pudo revocar el token",
+    "namePlaceholder": "Nombre del token (p. ej. pipeline CI)",
+    "newToken": "Nuevo token",
+    "done": "Hecho",
+    "headers": {
+      "name": "Nombre",
+      "prefix": "Prefijo",
+      "lastUsed": "Último uso",
+      "created": "Creado"
+    },
+    "never": "Nunca",
+    "empty": {
+      "title": "Sin tokens de proyecto",
+      "description": "Crea un token para que CI ejecute o importe resultados en este proyecto."
+    }
+  }
+}

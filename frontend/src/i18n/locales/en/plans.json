@@ -1,0 +1,34 @@
+{
+  "title": "Test Plans",
+  "newPlan": "New plan",
+  "newPlanTitle": "New test plan",
+  "planTitle": "Plan title…",
+  "selectCases": "Select test cases",
+  "selectedCases": "{{count}} cases selected",
+  "create": "Create plan",
+  "created": "Test plan created",
+  "deleted": "Plan deleted",
+  "loading": "Loading…",
+  "cases": "({{count}} cases)",
+  "empty": {
+    "title": "No test plans yet",
+    "description": "Test plans group cases for a release or milestone. Create one above to start orchestrating test runs."
+  },
+  "detail": {
+    "selectedCount": "{{count}} selected",
+    "addCases": "Add cases",
+    "addCasesTitle": "Add test cases",
+    "addToPlan": "Add to plan",
+    "added": "{{count}} cases added",
+    "casesLabel": "{{count}} test cases",
+    "save": "Save",
+    "cancel": "Cancel",
+    "run": "Run",
+    "updated": "Plan updated",
+    "caseRemoved": "Case removed",
+    "empty": {
+      "title": "No test cases",
+      "description": "Add test cases to this plan to run them together."
+    }
+  }
+}

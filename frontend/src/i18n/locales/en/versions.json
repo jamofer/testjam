@@ -1,0 +1,18 @@
+{
+  "title": "Versions",
+  "namePlaceholder": "Version name (e.g. 1.4.0, sprint-23)…",
+  "tagPlaceholder": "VCS tag (optional)",
+  "add": "Add",
+  "created": "Version created",
+  "deleted": "Version deleted",
+  "cycleStatus": "Click to change status",
+  "statuses": {
+    "active": "Active",
+    "released": "Released",
+    "archived": "Archived"
+  },
+  "empty": {
+    "title": "No versions yet",
+    "description": "Versions tag releases or sprints. Tie executions to a version to see test results per release."
+  }
+}

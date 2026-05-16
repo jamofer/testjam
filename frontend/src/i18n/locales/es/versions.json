@@ -1,0 +1,18 @@
+{
+  "title": "Versiones",
+  "namePlaceholder": "Nombre de la versión (p. ej. 1.4.0, sprint-23)…",
+  "tagPlaceholder": "Tag de VCS (opcional)",
+  "add": "Añadir",
+  "created": "Versión creada",
+  "deleted": "Versión eliminada",
+  "cycleStatus": "Pulsa para cambiar el estado",
+  "statuses": {
+    "active": "Activa",
+    "released": "Publicada",
+    "archived": "Archivada"
+  },
+  "empty": {
+    "title": "Aún no hay versiones",
+    "description": "Las versiones etiquetan releases o sprints. Vincula ejecuciones a una versión para ver resultados por release."
+  }
+}

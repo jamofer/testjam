@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react"
-import { useParams, useNavigate, Link } from "react-router-dom"
+import { useParams, Link } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Plus, ClipboardList, PlayCircle, Trash2, FolderOpen, ChevronRight } from "lucide-react"
 import { plansApi } from "../api/testplans"
@@ -16,19 +17,18 @@ import { TestCaseItem, mapSuiteByCase } from "../components/ui/test-case-item"
 import { toast } from "sonner"
 
 function buildSuiteTree(groups, allSuites) {
-  const order = sortSuitesHierarchically(allSuites).map(s => s.id)
-  const suiteMap = Object.fromEntries(allSuites.map(s => [s.id, s]))
+  const order = sortSuitesHierarchically(allSuites).map(suite => suite.id)
+  const suiteMap = Object.fromEntries(allSuites.map(suite => [suite.id, suite]))
 
-  // Add ancestor suites needed for hierarchy even if they have no direct plan cases
   const full = { ...groups }
   Object.values(groups).forEach(({ suite }) => {
     if (!suite) return
-    let pid = suite.parent_suite_id
-    while (pid && !full[pid]) {
-      const ancestor = suiteMap[pid]
+    let parentId = suite.parent_suite_id
+    while (parentId && !full[parentId]) {
+      const ancestor = suiteMap[parentId]
       if (!ancestor) break
-      full[pid] = { suite: ancestor, cases: [] }
-      pid = ancestor.parent_suite_id
+      full[parentId] = { suite: ancestor, cases: [] }
+      parentId = ancestor.parent_suite_id
     }
   })
 
@@ -48,7 +48,7 @@ function buildSuiteTree(groups, allSuites) {
 
   const sort = (ids) => ids.sort((a, b) => order.indexOf(a) - order.indexOf(b))
   sort(topLevelIds)
-  Object.keys(childrenOf).forEach(pid => sort(childrenOf[pid]))
+  Object.keys(childrenOf).forEach(parentId => sort(childrenOf[parentId]))
 
   return { topLevelIds, childrenOf, full }
 }
@@ -96,6 +96,7 @@ function PlanSuiteGroup({ suiteId, groups, childrenOf, removeCase }) {
 }
 
 function AddCasesDialog({ plan, projectId }) {
+  const { t } = useTranslation("plans")
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState([])
   const qc = useQueryClient()
@@ -107,7 +108,7 @@ function AddCasesDialog({ plan, projectId }) {
     if (!selected.length) return
     await plansApi.addCases(plan.id, selected)
     qc.invalidateQueries({ queryKey: ["plan", plan.id] })
-    toast.success(`${selected.length} cases added`)
+    toast.success(t("detail.added", { count: selected.length }))
     setSelected([])
     setOpen(false)
   }
@@ -115,10 +116,10 @@ function AddCasesDialog({ plan, projectId }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm"><Plus size={14} /> Add cases</Button>
+        <Button size="sm"><Plus size={14} /> {t("detail.addCases")}</Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
-        <DialogHeader><DialogTitle>Add test cases</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t("detail.addCasesTitle")}</DialogTitle></DialogHeader>
         <div className="space-y-4">
           <CasePicker
             projectId={projectId}
@@ -126,8 +127,8 @@ function AddCasesDialog({ plan, projectId }) {
             onToggle={toggle}
             excludeIds={plan.test_case_ids}
           />
-          <p className="text-xs text-gray-400 dark:text-gray-500">{selected.length} selected</p>
-          <Button onClick={handleAdd} className="w-full" disabled={!selected.length}>Add to plan</Button>
+          <p className="text-xs text-gray-400 dark:text-gray-500">{t("detail.selectedCount", { count: selected.length })}</p>
+          <Button onClick={handleAdd} className="w-full" disabled={!selected.length}>{t("detail.addToPlan")}</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -135,8 +136,8 @@ function AddCasesDialog({ plan, projectId }) {
 }
 
 export function PlanDetailPage() {
+  const { t } = useTranslation(["plans", "nav"])
   const { id } = useParams()
-  const navigate = useNavigate()
   const qc = useQueryClient()
 
   const { data: plan, isLoading } = useQuery({
@@ -160,7 +161,7 @@ export function PlanDetailPage() {
     queryKey: ["plan-cases", parseInt(id), plan?.test_case_ids],
     queryFn: async () => {
       if (!plan?.test_case_ids?.length) return []
-      const results = await Promise.all(plan.test_case_ids.map(cid => casesApi.get(cid)))
+      const results = await Promise.all(plan.test_case_ids.map(caseId => casesApi.get(caseId)))
       return results
     },
     enabled: !!plan,
@@ -181,38 +182,38 @@ export function PlanDetailPage() {
     return { groups: full, topLevelIds, childrenOf }
   }, [cases, suiteByCase, allSuites])
 
-  if (isLoading) return <p className="text-gray-500 dark:text-gray-400">Loading…</p>
+  if (isLoading) return <p className="text-gray-500 dark:text-gray-400">{t("loading")}</p>
   if (!plan) return null
 
   const startEditTitle = () => { setTitle(plan.title); setEditingTitle(true) }
   const saveTitle = async () => {
     await updatePlan.mutateAsync({ title })
-    toast.success("Plan updated")
+    toast.success(t("detail.updated"))
     setEditingTitle(false)
   }
 
   const removeCase = async (caseId) => {
-    const remaining = plan.test_case_ids.filter(id => id !== caseId)
+    const remaining = plan.test_case_ids.filter(planCaseId => planCaseId !== caseId)
     await updatePlan.mutateAsync({ test_case_ids: remaining })
-    toast.success("Case removed")
+    toast.success(t("detail.caseRemoved"))
   }
 
   return (
     <div className="pl-14 pr-4 py-4 md:p-8 max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-6">
       <Breadcrumbs
         crumbs={[
-          { label: "Projects", to: "/projects" },
+          { label: t("nav:global.projects"), to: "/projects" },
           { label: project?.name ?? "…", to: `/projects/${plan.project_id}` },
-          { label: "Test Plans", to: `/projects/${plan.project_id}/plans` },
+          { label: t("title"), to: `/projects/${plan.project_id}/plans` },
           { label: plan.title },
         ]}
       />
 
       {editingTitle ? (
         <div className="flex gap-2 items-center">
-          <Input value={title} onChange={e => setTitle(e.target.value)} className="text-lg font-bold" />
-          <Button size="sm" onClick={saveTitle}>Save</Button>
-          <Button size="sm" variant="ghost" onClick={() => setEditingTitle(false)}>Cancel</Button>
+          <Input value={title} onChange={event => setTitle(event.target.value)} className="text-lg font-bold" />
+          <Button size="sm" onClick={saveTitle}>{t("detail.save")}</Button>
+          <Button size="sm" variant="ghost" onClick={() => setEditingTitle(false)}>{t("detail.cancel")}</Button>
         </div>
       ) : (
         <div className="flex items-center justify-between">
@@ -221,21 +222,21 @@ export function PlanDetailPage() {
             {plan.title}
           </h1>
           <Link to={`/projects/${plan.project_id}/executions/new?planId=${plan.id}`}>
-            <Button size="sm"><PlayCircle size={14} /> Run</Button>
+            <Button size="sm"><PlayCircle size={14} /> {t("detail.run")}</Button>
           </Link>
         </div>
       )}
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500 dark:text-gray-400">{plan.test_case_ids.length} test cases</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{t("detail.casesLabel", { count: plan.test_case_ids.length })}</p>
         <AddCasesDialog plan={plan} projectId={plan.project_id} />
       </div>
 
       {cases.length === 0 ? (
         <EmptyState
           icon={ClipboardList}
-          title="No test cases"
-          description="Add test cases to this plan to run them together."
+          title={t("detail.empty.title")}
+          description={t("detail.empty.description")}
         />
       ) : (
         <div className="space-y-2">

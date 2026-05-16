@@ -1,0 +1,34 @@
+{
+  "title": "Planes de prueba",
+  "newPlan": "Nuevo plan",
+  "newPlanTitle": "Nuevo plan de pruebas",
+  "planTitle": "Título del plan…",
+  "selectCases": "Selecciona casos de prueba",
+  "selectedCases": "{{count}} casos seleccionados",
+  "create": "Crear plan",
+  "created": "Plan creado",
+  "deleted": "Plan eliminado",
+  "loading": "Cargando…",
+  "cases": "({{count}} casos)",
+  "empty": {
+    "title": "Aún no hay planes",
+    "description": "Los planes agrupan casos para una release o hito. Crea uno arriba para orquestar ejecuciones."
+  },
+  "detail": {
+    "selectedCount": "{{count}} seleccionado(s)",
+    "addCases": "Añadir casos",
+    "addCasesTitle": "Añadir casos de prueba",
+    "addToPlan": "Añadir al plan",
+    "added": "{{count}} casos añadidos",
+    "casesLabel": "{{count}} casos de prueba",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "run": "Ejecutar",
+    "updated": "Plan actualizado",
+    "caseRemoved": "Caso eliminado",
+    "empty": {
+      "title": "Sin casos de prueba",
+      "description": "Añade casos a este plan para ejecutarlos juntos."
+    }
+  }
+}

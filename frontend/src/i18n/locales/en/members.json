@@ -1,0 +1,63 @@
+{
+  "title": "Members & Access",
+  "loading": "Loading…",
+  "members": "Members",
+  "roles": {
+    "owner": "owner",
+    "tester": "tester",
+    "viewer": "viewer"
+  },
+  "member": {
+    "added": "Member added",
+    "addFailed": "Failed to add member",
+    "removed": "Member removed",
+    "removeFailed": "Failed to remove member",
+    "roleFailed": "Failed to update role",
+    "selectUser": "Select user…",
+    "add": "Add",
+    "removeAria": "Remove member"
+  },
+  "membersEmpty": {
+    "title": "No members yet",
+    "description": "Add testers or viewers to give them access to this project."
+  },
+  "groups": {
+    "title": "Group access",
+    "assigned": "Group assigned",
+    "assignFailed": "Failed to assign group",
+    "removed": "Group removed",
+    "removeFailed": "Failed to remove group",
+    "roleFailed": "Failed to update role",
+    "selectGroup": "Select group…",
+    "assign": "Assign",
+    "removeAria": "Remove group",
+    "memberCount_one": "{{count}} member",
+    "memberCount_other": "{{count}} members",
+    "empty": {
+      "title": "No groups assigned",
+      "description": "Assign a group to give every member of it the same role on this project."
+    }
+  },
+  "tokens": {
+    "title": "Project API Tokens",
+    "created": "Token created — copy it now, it won't be shown again.",
+    "copied": "Token copied",
+    "createFailed": "Failed to create token",
+    "revoked": "Token revoked",
+    "revokeFailed": "Failed to revoke token",
+    "namePlaceholder": "Token name (e.g. CI pipeline)",
+    "newToken": "New token",
+    "done": "Done",
+    "headers": {
+      "name": "Name",
+      "prefix": "Prefix",
+      "lastUsed": "Last used",
+      "created": "Created"
+    },
+    "never": "Never",
+    "empty": {
+      "title": "No project tokens",
+      "description": "Create a token to let CI run executions or import results for this project."
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useParams, Link } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Plus, Trash2, ClipboardList } from "lucide-react"
 import { plansApi } from "../api/testplans"
@@ -17,6 +18,7 @@ function usePlans(projectId) {
 }
 
 function CreatePlanDialog({ projectId }) {
+  const { t } = useTranslation("plans")
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [selectedCases, setSelectedCases] = useState([])
@@ -29,7 +31,7 @@ function CreatePlanDialog({ projectId }) {
     if (!title.trim()) return
     await plansApi.create(projectId, { title: title.trim(), test_case_ids: selectedCases })
     qc.invalidateQueries({ queryKey: ["plans", projectId] })
-    toast.success("Test plan created")
+    toast.success(t("created"))
     setTitle("")
     setSelectedCases([])
     setOpen(false)
@@ -38,18 +40,18 @@ function CreatePlanDialog({ projectId }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm"><Plus size={14} /> New plan</Button>
+        <Button size="sm"><Plus size={14} /> {t("newPlan")}</Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
-        <DialogHeader><DialogTitle>New test plan</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t("newPlanTitle")}</DialogTitle></DialogHeader>
         <div className="space-y-4">
-          <Input placeholder="Plan title…" value={title} onChange={e => setTitle(e.target.value)} />
+          <Input placeholder={t("planTitle")} value={title} onChange={event => setTitle(event.target.value)} />
           <div>
-            <p className="text-sm font-medium mb-2">Select test cases</p>
+            <p className="text-sm font-medium mb-2">{t("selectCases")}</p>
             <CasePicker projectId={projectId} selected={selectedCases} onToggle={toggle} />
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{selectedCases.length} cases selected</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{t("selectedCases", { count: selectedCases.length })}</p>
           </div>
-          <Button onClick={handleCreate} className="w-full" disabled={!title.trim()}>Create plan</Button>
+          <Button onClick={handleCreate} className="w-full" disabled={!title.trim()}>{t("create")}</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -57,6 +59,7 @@ function CreatePlanDialog({ projectId }) {
 }
 
 export function TestPlansPage() {
+  const { t } = useTranslation(["plans", "nav"])
   const { id: projectId } = useParams()
   const { data: plans = [], isLoading } = usePlans(projectId)
   const qc = useQueryClient()
@@ -65,23 +68,23 @@ export function TestPlansPage() {
     mutationFn: plansApi.delete,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["plans", projectId] })
-      toast.success("Plan deleted")
+      toast.success(t("deleted"))
     },
   })
 
   const { data: project } = useProject(projectId)
 
-  if (isLoading) return <p className="text-gray-500 dark:text-gray-400">Loading…</p>
+  if (isLoading) return <p className="text-gray-500 dark:text-gray-400">{t("loading")}</p>
 
   return (
     <>
       <PageHeader crumbs={[
-        { label: "Projects", to: "/projects" },
+        { label: t("nav:global.projects"), to: "/projects" },
         { label: project?.name ?? "…", to: `/projects/${projectId}` },
-        { label: "Test Plans" },
+        { label: t("title") },
       ]}>
         <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Test Plans</h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t("title")}</h1>
           <div className="self-start sm:self-auto">
             <CreatePlanDialog projectId={projectId} />
           </div>
@@ -96,7 +99,7 @@ export function TestPlansPage() {
             <Link to={`/plans/${plan.id}`} className="flex items-center gap-2 font-medium text-gray-800 dark:text-gray-100 hover:underline">
               <ClipboardList size={15} className="text-blue-500" />
               {plan.title}
-              <span className="text-xs text-gray-400 dark:text-gray-500">({plan.test_case_ids?.length ?? 0} cases)</span>
+              <span className="text-xs text-gray-400 dark:text-gray-500">{t("cases", { count: plan.test_case_ids?.length ?? 0 })}</span>
             </Link>
             <Button size="icon" variant="ghost" onClick={() => deletePlan.mutate(plan.id)}>
               <Trash2 size={14} />
@@ -106,8 +109,8 @@ export function TestPlansPage() {
         {plans.length === 0 && (
           <EmptyState
             icon={ClipboardList}
-            title="No test plans yet"
-            description="Test plans group cases for a release or milestone. Create one above to start orchestrating test runs."
+            title={t("empty.title")}
+            description={t("empty.description")}
           />
         )}
       </ul>
