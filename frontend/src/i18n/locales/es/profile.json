@@ -1,0 +1,106 @@
+{
+  "title": "Perfil",
+  "subtitle": "Gestiona tu cuenta",
+  "account": {
+    "title": "Datos de la cuenta",
+    "username": "Usuario",
+    "fullName": "Nombre completo",
+    "fullNamePlaceholder": "Juana Pérez",
+    "email": "Email",
+    "saved": "Perfil actualizado"
+  },
+  "tokens": {
+    "title": "Tokens de API",
+    "namePlaceholder": "Nombre del token",
+    "newToken": "Nuevo token",
+    "created": "Token creado — cópialo ahora, no se mostrará otra vez.",
+    "copied": "Token copiado",
+    "createFailed": "No se pudo crear el token",
+    "revoked": "Token revocado",
+    "revokeFailed": "No se pudo revocar el token",
+    "headers": {
+      "name": "Nombre",
+      "prefix": "Prefijo",
+      "lastUsed": "Último uso"
+    },
+    "empty": {
+      "title": "Sin tokens personales",
+      "description": "Crea uno para autenticarte desde el CI o el listener."
+    }
+  },
+  "dates": {
+    "title": "Fechas y zona horaria",
+    "timezone": "Zona horaria",
+    "timezoneHint": "Todas las fechas se muestran en esta zona horaria.",
+    "showRelative": "Mostrar fechas relativas",
+    "showRelativeHint": "Por ejemplo, «hace 2 horas»; al pasar el ratón se muestra la fecha absoluta.",
+    "savePreferences": "Guardar preferencias",
+    "saved": "Preferencias de fecha guardadas",
+    "saveFailed": "No se pudieron guardar las preferencias"
+  },
+  "appearance": {
+    "title": "Apariencia",
+    "mode": "Modo",
+    "modes": {
+      "light": "Claro",
+      "dark": "Oscuro",
+      "system": "Sistema"
+    },
+    "language": "Idioma",
+    "variant": "Variante oscura",
+    "variantHint": "Se aplica en modo oscuro (Oscuro, o Sistema con SO oscuro).",
+    "selected": "Seleccionado",
+    "variants": {
+      "default": {
+        "label": "Clásico",
+        "description": "Negro + texto brillante. Máximo contraste."
+      },
+      "navy": {
+        "label": "Navy",
+        "description": "Superficies azul pizarra suaves. Contraste medio, tono azul."
+      },
+      "dim": {
+        "label": "Dim",
+        "description": "Grises medios estilo GitHub. Bajo contraste, descanso visual."
+      }
+    }
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "smtpDisabledWarning": "SMTP no está configurado. No se enviarán emails aunque actives la opción.",
+    "headers": {
+      "event": "Evento",
+      "inApp": "En la app",
+      "email": "Email"
+    },
+    "saved": "Preferencias guardadas",
+    "saveFailed": "No se pudo guardar la preferencia",
+    "events": {
+      "execution_assigned": {
+        "title": "Ejecución asignada a ti",
+        "description": "Cuando alguien te asigna una ejecución de pruebas."
+      },
+      "execution_finished": {
+        "title": "Ejecución terminada",
+        "description": "Cuando una ejecución que creaste o te asignaron finaliza."
+      },
+      "execution_failed": {
+        "title": "Ejecución con fallos",
+        "description": "Cuando una ejecución terminada tuvo al menos un test fallido."
+      }
+    },
+    "inAppFor": "En la app para {{title}}",
+    "emailFor": "Email para {{title}}"
+  },
+  "password": {
+    "title": "Cambiar contraseña",
+    "current": "Contraseña actual",
+    "new": "Nueva contraseña",
+    "confirm": "Confirmar nueva contraseña",
+    "submit": "Cambiar contraseña",
+    "saved": "Contraseña cambiada",
+    "mismatch": "Las contraseñas no coinciden",
+    "tooShort": "La contraseña debe tener al menos 8 caracteres",
+    "failed": "No se pudo cambiar la contraseña"
+  }
+}

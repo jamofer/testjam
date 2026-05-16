@@ -1,0 +1,20 @@
+{
+  "actions": {
+    "save": "Save",
+    "saveChanges": "Save changes",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "create": "Create",
+    "done": "Done",
+    "loading": "Loading…",
+    "copy": "Copy"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "es": "Spanish"
+  },
+  "time": {
+    "never": "Never"
+  }
+}

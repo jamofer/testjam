@@ -1,0 +1,106 @@
+{
+  "title": "Profile",
+  "subtitle": "Manage your account settings",
+  "account": {
+    "title": "Account details",
+    "username": "Username",
+    "fullName": "Full name",
+    "fullNamePlaceholder": "Jane Doe",
+    "email": "Email",
+    "saved": "Profile updated"
+  },
+  "tokens": {
+    "title": "API Tokens",
+    "namePlaceholder": "Token name",
+    "newToken": "New token",
+    "created": "Token created — copy it now, it won't be shown again.",
+    "copied": "Token copied",
+    "createFailed": "Failed to create token",
+    "revoked": "Token revoked",
+    "revokeFailed": "Failed to revoke token",
+    "headers": {
+      "name": "Name",
+      "prefix": "Prefix",
+      "lastUsed": "Last used"
+    },
+    "empty": {
+      "title": "No personal tokens",
+      "description": "Create one to authenticate from CI scripts or the listener."
+    }
+  },
+  "dates": {
+    "title": "Dates & timezone",
+    "timezone": "Timezone",
+    "timezoneHint": "All dates in the UI render in this timezone.",
+    "showRelative": "Show relative dates",
+    "showRelativeHint": "e.g. “2 hours ago”; hover shows the absolute timestamp.",
+    "savePreferences": "Save preferences",
+    "saved": "Date preferences saved",
+    "saveFailed": "Failed to save preferences"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "mode": "Mode",
+    "modes": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "language": "Language",
+    "variant": "Dark variant",
+    "variantHint": "Applied when the resolved mode is dark (Dark, or System on a dark OS).",
+    "selected": "Selected",
+    "variants": {
+      "default": {
+        "label": "Classic",
+        "description": "Black + bright text. Highest contrast."
+      },
+      "navy": {
+        "label": "Navy",
+        "description": "Mid-tone slate-blue surfaces. Soft contrast, blue cast."
+      },
+      "dim": {
+        "label": "Dim",
+        "description": "GitHub-style mid-greys. Low contrast, easy on the eyes."
+      }
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "smtpDisabledWarning": "SMTP is not configured. Emails will not be sent regardless of your preferences here.",
+    "headers": {
+      "event": "Event",
+      "inApp": "In-app",
+      "email": "Email"
+    },
+    "saved": "Preferences saved",
+    "saveFailed": "Failed to save preference",
+    "events": {
+      "execution_assigned": {
+        "title": "Execution assigned to you",
+        "description": "When someone assigns you to a test execution."
+      },
+      "execution_finished": {
+        "title": "Execution finished",
+        "description": "When a run you created or are assigned to completes."
+      },
+      "execution_failed": {
+        "title": "Execution had failed tests",
+        "description": "When a completed run had at least one failed test."
+      }
+    },
+    "inAppFor": "In-app for {{title}}",
+    "emailFor": "Email for {{title}}"
+  },
+  "password": {
+    "title": "Change password",
+    "current": "Current password",
+    "new": "New password",
+    "confirm": "Confirm new password",
+    "submit": "Change password",
+    "saved": "Password changed",
+    "mismatch": "Passwords don't match",
+    "tooShort": "Password must be at least 8 characters",
+    "failed": "Failed to change password"
+  }
+}

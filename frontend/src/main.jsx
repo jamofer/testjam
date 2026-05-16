@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import { configureSentry } from './lib/sentry'
 import { initTheme } from './hooks/useTheme'
+import './i18n'
 import './index.css'
 
 configureSentry()
