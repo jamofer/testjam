@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html { color-scheme: light; background-color: #f9fafb; }
+  html.dark { color-scheme: dark; background-color: #030712; }
+  body { background-color: inherit; color: #111827; }
+  html.dark body { color: #f3f4f6; }
+}
+
 /* Outside @layer — wins over Tailwind preflight (base layer) and library CSS */
 /* @uiw/react-md-editor sets a white bg on .wmde-markdown via CSS vars — let it inherit from the parent */
 .md, .md .wmde-markdown, .md.wmde-markdown {
