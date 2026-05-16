@@ -12,7 +12,7 @@ import {
 } from "../../hooks/useNotifications"
 import { fmtDate } from "../../lib/format"
 
-/** Compact icon-only trigger that opens a right-side drawer. */
+/** Compact icon-only trigger that opens a left-side drawer. */
 export function NotificationsBell({ enabled = true }) {
   const { t } = useTranslation("ui")
   const [open, setOpen] = useState(false)
@@ -72,7 +72,7 @@ function NotificationsDrawer({ open, onClose }) {
         className="absolute inset-0 bg-black/20"
       />
       <aside
-        className="absolute right-0 top-0 h-full w-full sm:w-96 bg-white dark:bg-gray-900 shadow-xl border-l border-gray-200 dark:border-gray-700 flex flex-col"
+        className="absolute left-0 top-0 h-full w-full sm:w-96 bg-white dark:bg-gray-900 shadow-xl border-r border-gray-200 dark:border-gray-700 flex flex-col"
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
           <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{t("notifications.title")}</p>

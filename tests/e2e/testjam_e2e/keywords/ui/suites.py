@@ -43,7 +43,7 @@ class SuitesUIMixin:
                 self.client.delete(f"/projects/{project['id']}")
         created = self.client.post("/projects", json={"name": name}).json()
         self.current_project_id = created["id"]
-        BuiltIn().run_keyword("Go To", f"{self.frontend_url}/projects/{created['id']}")
+        BuiltIn().run_keyword("Go To", f"{self.frontend_url}/projects/{created['id']}/cases")
         BuiltIn().run_keyword(
             "Wait For Elements State",
             f'h1:has-text("{name}")', "visible", "timeout=10s",

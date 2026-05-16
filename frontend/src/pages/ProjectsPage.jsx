@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus, Trash2, FolderOpen, Search, Archive, ArchiveRestore } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   useProjects,
   useCreateProject,
@@ -12,8 +13,10 @@ import {
 import { useDebounced } from '../hooks/useDebounced'
 import { Button } from '../components/ui/button'
 import { Badge } from '../components/ui/badge'
+import { Input } from '../components/ui/input'
 import { SearchInput } from '../components/ui/search-input'
 import { PageHeader, PageBody } from '../components/ui/page-header'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog'
 import { EmptyState } from '../components/ui/empty-state'
 import { SkeletonList } from '../components/ui/skeleton'
 import { DashboardPanel } from '../components/project/DashboardPanel'
@@ -22,11 +25,9 @@ export function ProjectsPage() {
   const { t } = useTranslation('projects')
   const [includeArchived, setIncludeArchived] = useState(false)
   const { data: projects = [], isLoading } = useProjects({ includeArchived })
-  const createProject = useCreateProject()
   const deleteProject = useDeleteProject()
   const archiveProject = useArchiveProject()
   const unarchiveProject = useUnarchiveProject()
-  const [newName, setNewName] = useState('')
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebounced(search, 150)
 
@@ -38,13 +39,6 @@ export function ProjectsPage() {
       (project.description ?? '').toLowerCase().includes(q)
     )
   }, [projects, debouncedSearch])
-
-  const handleCreate = async (event) => {
-    event.preventDefault()
-    if (!newName.trim()) return
-    await createProject.mutateAsync({ name: newName.trim() })
-    setNewName('')
-  }
 
   return (
     <>
@@ -62,17 +56,7 @@ export function ProjectsPage() {
               />
               {t('showArchived')}
             </label>
-            <form onSubmit={handleCreate} className="flex gap-2">
-              <input
-                className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 w-48"
-                placeholder={t('createName')}
-                value={newName}
-                onChange={event => setNewName(event.target.value)}
-              />
-              <Button type="submit" size="sm" loading={createProject.isPending}>
-                <Plus size={14} /> {t('create')}
-              </Button>
-            </form>
+            <CreateProjectDialog />
           </div>
         </div>
       </PageHeader>
@@ -145,5 +129,39 @@ export function ProjectsPage() {
       </div>
       </PageBody>
     </>
+  )
+}
+
+function CreateProjectDialog() {
+  const { t } = useTranslation('projects')
+  const createProject = useCreateProject()
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState('')
+
+  const submit = async (event) => {
+    event.preventDefault()
+    if (!name.trim()) return
+    await createProject.mutateAsync({ name: name.trim() })
+    toast.success(t('created'))
+    setName('')
+    setOpen(false)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm"><Plus size={14} /> {t('newProject')}</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader><DialogTitle>{t('newProjectTitle')}</DialogTitle></DialogHeader>
+        <form onSubmit={submit} className="space-y-3">
+          <Input autoFocus placeholder={t('projectName')} value={name}
+            onChange={event => setName(event.target.value)} />
+          <Button type="submit" className="w-full" disabled={!name.trim() || createProject.isPending}>
+            {t('createProject')}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

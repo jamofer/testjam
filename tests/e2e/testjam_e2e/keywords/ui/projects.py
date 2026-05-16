@@ -2,9 +2,9 @@ from robot.api.deco import keyword
 from robot.libraries.BuiltIn import BuiltIn
 
 
-NEW_PROJECT_INPUT = 'input[placeholder="New project name…"]'
+NEW_PROJECT_TRIGGER = 'button:has-text("New project")'
+NEW_PROJECT_INPUT = 'input[placeholder="Project name…"]'
 SEARCH_INPUT = 'input[placeholder="Search projects…"]'
-CREATE_BUTTON = 'button[type="submit"]:has-text("Create")'
 PROJECTS_HEADING = 'h1:has-text("Projects")'
 DELETE_BUTTON = 'button[title="Delete project"]'
 LIST_LOADING = '[role="status"][aria-busy="true"]'
@@ -45,6 +45,10 @@ class ProjectsUIMixin:
 
     @keyword("I create a project via the UI named ${name}")
     def create_project_ui(self, name: str) -> None:
+        BuiltIn().run_keyword("Click", NEW_PROJECT_TRIGGER)
+        BuiltIn().run_keyword(
+            "Wait For Elements State", NEW_PROJECT_INPUT, "visible", "timeout=10s",
+        )
         BuiltIn().run_keyword("Fill Text", NEW_PROJECT_INPUT, name)
         BuiltIn().run_keyword("Press Keys", NEW_PROJECT_INPUT, "Enter")
         BuiltIn().run_keyword(
