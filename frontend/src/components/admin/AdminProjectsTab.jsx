@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Archive, ArchiveRestore, Download, Trash2, UserCog } from "lucide-react"
 import { toast } from "sonner"
@@ -13,6 +14,7 @@ import { TransferOwnershipDialog } from "./TransferOwnershipDialog"
 import { DeleteProjectDialog } from "./DeleteProjectDialog"
 
 export function AdminProjectsTab({ users }) {
+  const { t } = useTranslation("admin")
   const queryClient = useQueryClient()
   const [transferProject, setTransferProject] = useState(null)
   const [deleteProject, setDeleteProject] = useState(null)
@@ -28,11 +30,11 @@ export function AdminProjectsTab({ users }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-projects"] })
     },
-    onError: () => toast.error("Failed to update archive state"),
+    onError: () => toast.error(t("projects.archiveFailed")),
   })
 
   if (isPending) return <SkeletonList count={4} />
-  if (!projects.length) return <p className="text-gray-500 dark:text-gray-400 text-sm">No projects.</p>
+  if (!projects.length) return <p className="text-gray-500 dark:text-gray-400 text-sm">{t("projects.empty")}</p>
 
   return (
     <>
@@ -40,13 +42,13 @@ export function AdminProjectsTab({ users }) {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 dark:bg-gray-900 text-left text-xs uppercase text-gray-500 dark:text-gray-400">
             <tr>
-              <th className="px-3 py-2">Project</th>
-              <th className="px-3 py-2">Owner</th>
-              <th className="px-3 py-2 text-right">Members</th>
-              <th className="px-3 py-2 text-right">Cases</th>
-              <th className="px-3 py-2">Last execution</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2 text-right">Actions</th>
+              <th className="px-3 py-2">{t("projects.headers.project")}</th>
+              <th className="px-3 py-2">{t("projects.headers.owner")}</th>
+              <th className="px-3 py-2 text-right">{t("projects.headers.members")}</th>
+              <th className="px-3 py-2 text-right">{t("projects.headers.cases")}</th>
+              <th className="px-3 py-2">{t("projects.headers.lastExecution")}</th>
+              <th className="px-3 py-2">{t("projects.headers.status")}</th>
+              <th className="px-3 py-2 text-right">{t("projects.headers.actions")}</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -80,6 +82,7 @@ export function AdminProjectsTab({ users }) {
 }
 
 function ProjectRow({ project, onTransfer, onArchive, onDelete }) {
+  const { t } = useTranslation("admin")
   return (
     <tr className="hover:bg-gray-50 dark:hover:bg-gray-800">
       <td className="px-3 py-2 font-medium text-gray-800 dark:text-gray-100">{project.name}</td>
@@ -91,23 +94,23 @@ function ProjectRow({ project, onTransfer, onArchive, onDelete }) {
       </td>
       <td className="px-3 py-2">
         {project.archived_at
-          ? <Badge variant="secondary">archived</Badge>
-          : <Badge variant="success">active</Badge>}
+          ? <Badge variant="secondary">{t("projects.statuses.archived")}</Badge>
+          : <Badge variant="success">{t("projects.statuses.active")}</Badge>}
       </td>
       <td className="px-3 py-2">
         <div className="flex justify-end gap-1">
-          <IconAction title="Transfer ownership" onClick={onTransfer}><UserCog size={14} /></IconAction>
+          <IconAction title={t("projects.actions.transfer")} onClick={onTransfer}><UserCog size={14} /></IconAction>
           <IconAction
-            title={project.archived_at ? "Unarchive" : "Archive"}
+            title={project.archived_at ? t("projects.actions.unarchive") : t("projects.actions.archive")}
             onClick={onArchive}
           >
             {project.archived_at ? <ArchiveRestore size={14} /> : <Archive size={14} />}
           </IconAction>
           <IconAction
-            title="Export"
+            title={t("projects.actions.export")}
             onClick={() => projectsApi.exportZip(project.id)}
           ><Download size={14} /></IconAction>
-          <IconAction title="Delete" onClick={onDelete}><Trash2 size={14} /></IconAction>
+          <IconAction title={t("projects.actions.delete")} onClick={onDelete}><Trash2 size={14} /></IconAction>
         </div>
       </td>
     </tr>

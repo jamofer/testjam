@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Activity, FolderKanban, Pencil, RotateCcw, Shield, Trash2, UserPlus, Users } from "lucide-react"
 import { toast } from "sonner"
@@ -17,6 +18,7 @@ import { Label } from "../components/ui/label"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs"
 
 export function UsersPage() {
+  const { t } = useTranslation("admin")
   const queryClient = useQueryClient()
   const [includeDeleted, setIncludeDeleted] = useState(false)
   const [pendingDelete, setPendingDelete] = useState(null)
@@ -32,13 +34,13 @@ export function UsersPage() {
 
   const restoreUser = useMutation({
     mutationFn: usersApi.restore,
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["users"] }); toast.success("User restored") },
-    onError: () => toast.error("Failed to restore user"),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["users"] }); toast.success(t("users.restored")) },
+    onError: () => toast.error(t("users.restoreFailed")),
   })
 
   const deleteGroup = useMutation({
     mutationFn: groupsApi.delete,
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["groups"] }); toast.success("Group deleted") },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["groups"] }); toast.success(t("groups.deleted")) },
   })
 
   const handleDeleted = () => {
@@ -48,20 +50,20 @@ export function UsersPage() {
 
   return (
     <div className="pl-14 pr-4 py-4 md:p-8 max-w-2xl xl:max-w-4xl 2xl:max-w-6xl space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Admin</h1>
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t("title")}</h1>
 
       <Tabs defaultValue="users">
         <TabsList>
-          <TabsTrigger value="users"><Users size={13} className="mr-1" /> Users ({users.length})</TabsTrigger>
-          <TabsTrigger value="groups"><Shield size={13} className="mr-1" /> Groups ({groups.length})</TabsTrigger>
-          <TabsTrigger value="projects"><FolderKanban size={13} className="mr-1" /> Projects</TabsTrigger>
+          <TabsTrigger value="users"><Users size={13} className="mr-1" /> {t("tabs.users", { count: users.length })}</TabsTrigger>
+          <TabsTrigger value="groups"><Shield size={13} className="mr-1" /> {t("tabs.groups", { count: groups.length })}</TabsTrigger>
+          <TabsTrigger value="projects"><FolderKanban size={13} className="mr-1" /> {t("tabs.projects")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users">
           <div className="flex items-center justify-between mb-3">
             <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-              <input type="checkbox" checked={includeDeleted} onChange={e => setIncludeDeleted(e.target.checked)} />
-              Show deleted
+              <input type="checkbox" checked={includeDeleted} onChange={event => setIncludeDeleted(event.target.checked)} />
+              {t("users.showDeleted")}
             </label>
             <CreateUserDialog />
           </div>
@@ -87,14 +89,14 @@ export function UsersPage() {
                 <div className="min-w-0">
                   <p className="font-medium text-gray-800 dark:text-gray-100">{group.name}</p>
                   <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
-                    {group.description ?? "(no description)"} · {group.members?.length ?? 0} members
+                    {group.description ?? t("groups.row.noDescription")} · {t("groups.row.members", { count: group.members?.length ?? 0 })}
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Button size="icon" variant="ghost" title="Edit" onClick={() => setGroupTarget(group)}>
+                  <Button size="icon" variant="ghost" title={t("groups.row.edit")} onClick={() => setGroupTarget(group)}>
                     <Pencil size={14} />
                   </Button>
-                  <Button size="icon" variant="ghost" title="Delete" onClick={() => deleteGroup.mutate(group.id)}>
+                  <Button size="icon" variant="ghost" title={t("groups.row.delete")} onClick={() => deleteGroup.mutate(group.id)}>
                     <Trash2 size={14} />
                   </Button>
                 </div>
@@ -140,36 +142,37 @@ export function UsersPage() {
 }
 
 function UserRow({ user, onEdit, onActivity, onDeleteRequest, onRestore }) {
+  const { t } = useTranslation("admin")
   const isDeleted = !!user.deleted_at
   return (
     <li className="flex items-center justify-between bg-white dark:bg-gray-900 border rounded-lg px-4 py-3 shadow-sm">
       <div>
         <p className="font-medium text-gray-800 dark:text-gray-100">
           {user.username}
-          {user.is_admin && <Badge variant="outline" className="ml-2 text-[10px]">admin</Badge>}
+          {user.is_admin && <Badge variant="outline" className="ml-2 text-[10px]">{t("users.row.admin")}</Badge>}
         </p>
         <p className="text-xs text-gray-400 dark:text-gray-500">{user.email}</p>
       </div>
       <div className="flex items-center gap-2">
         {isDeleted ? (
           <>
-            <Badge variant="secondary">DELETED</Badge>
+            <Badge variant="secondary">{t("users.row.deletedBadge")}</Badge>
             <Button size="sm" variant="outline" onClick={onRestore}>
-              <RotateCcw size={12} /> Restore
+              <RotateCcw size={12} /> {t("users.row.restore")}
             </Button>
           </>
         ) : (
           <>
             <Badge variant={user.is_active ? "success" : "secondary"}>
-              {user.is_active ? "active" : "inactive"}
+              {user.is_active ? t("users.row.active") : t("users.row.inactive")}
             </Badge>
-            <Button size="icon" variant="ghost" title="Activity" onClick={onActivity}>
+            <Button size="icon" variant="ghost" title={t("users.row.activityTitle")} onClick={onActivity}>
               <Activity size={14} />
             </Button>
-            <Button size="icon" variant="ghost" title="Edit" onClick={onEdit}>
+            <Button size="icon" variant="ghost" title={t("users.row.editTitle")} onClick={onEdit}>
               <Pencil size={14} />
             </Button>
-            <Button size="icon" variant="ghost" title="Delete" onClick={onDeleteRequest}>
+            <Button size="icon" variant="ghost" title={t("users.row.deleteTitle")} onClick={onDeleteRequest}>
               <Trash2 size={14} />
             </Button>
           </>
@@ -180,18 +183,19 @@ function UserRow({ user, onEdit, onActivity, onDeleteRequest, onRestore }) {
 }
 
 function DeleteUserDialog({ user, allUsers, onCancel, onDeleted }) {
+  const { t } = useTranslation("admin")
   const [unresolved, setUnresolved] = useState(null)
   const [actions, setActions] = useState({})
 
   const candidates = useMemo(
-    () => Object.fromEntries(allUsers.map(u => [u.id, u.username])),
+    () => Object.fromEntries(allUsers.map(item => [item.id, item.username])),
     [allUsers],
   )
 
   const deleteMutation = useMutation({
     mutationFn: (body) => usersApi.delete(user.id, body),
     onSuccess: () => {
-      toast.success("User deleted")
+      toast.success(t("users.deleted"))
       onDeleted()
     },
     onError: (error) => {
@@ -200,7 +204,7 @@ function DeleteUserDialog({ user, allUsers, onCancel, onDeleted }) {
         setUnresolved(detail.owned_projects)
         setActions(initialActions(detail.owned_projects))
       } else {
-        toast.error("Failed to delete user")
+        toast.error(t("users.deleteFailed"))
         onCancel()
       }
     },
@@ -232,11 +236,9 @@ function DeleteUserDialog({ user, allUsers, onCancel, onDeleted }) {
     <Dialog open onOpenChange={(open) => { if (!open) onCancel() }}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete user "{user.username}"</DialogTitle>
+          <DialogTitle>{t("users.deleteDialog.title", { username: user.username })}</DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-gray-600 dark:text-gray-300">
-          This user uniquely owns the projects below. Choose what to do with each one.
-        </p>
+        <p className="text-sm text-gray-600 dark:text-gray-300">{t("users.deleteDialog.intro")}</p>
         <div className="space-y-3">
           {unresolved.map(project => (
             <ProjectActionRow
@@ -249,9 +251,9 @@ function DeleteUserDialog({ user, allUsers, onCancel, onDeleted }) {
           ))}
         </div>
         <div className="flex justify-end gap-2 pt-2">
-          <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+          <Button variant="ghost" onClick={onCancel}>{t("users.deleteDialog.cancel")}</Button>
           <Button onClick={submit} disabled={!allResolved || deleteMutation.isPending}>
-            Delete user
+            {t("users.deleteDialog.confirm")}
           </Button>
         </div>
       </DialogContent>
@@ -260,6 +262,7 @@ function DeleteUserDialog({ user, allUsers, onCancel, onDeleted }) {
 }
 
 function ProjectActionRow({ project, candidates, spec, onChange }) {
+  const { t } = useTranslation("admin")
   const validCandidates = project.candidate_member_ids.filter(id => candidates[id])
   return (
     <div className="border rounded-md p-3 space-y-2">
@@ -272,15 +275,15 @@ function ProjectActionRow({ project, candidates, spec, onChange }) {
             onChange={() => onChange({ action: "reassign", new_owner_id: spec.new_owner_id ?? validCandidates[0] ?? null })}
             disabled={validCandidates.length === 0}
           />
-          Reassign to
+          {t("users.deleteDialog.reassign")}
         </label>
         <select
           className="text-sm border rounded px-2 py-1"
           disabled={spec.action !== "reassign" || validCandidates.length === 0}
           value={spec.new_owner_id ?? ""}
-          onChange={e => onChange({ action: "reassign", new_owner_id: Number(e.target.value) })}
+          onChange={event => onChange({ action: "reassign", new_owner_id: Number(event.target.value) })}
         >
-          {validCandidates.length === 0 && <option value="">No candidates</option>}
+          {validCandidates.length === 0 && <option value="">{t("users.deleteDialog.noCandidates")}</option>}
           {validCandidates.map(id => (
             <option key={id} value={id}>{candidates[id]}</option>
           ))}
@@ -291,7 +294,7 @@ function ProjectActionRow({ project, candidates, spec, onChange }) {
             checked={spec.action === "archive"}
             onChange={() => onChange({ action: "archive" })}
           />
-          Archive project
+          {t("users.deleteDialog.archiveProject")}
         </label>
       </div>
     </div>
@@ -310,6 +313,7 @@ function initialActions(projects) {
 }
 
 function CreateUserDialog() {
+  const { t } = useTranslation("admin")
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({ username: "", email: "", password: "", full_name: "" })
   const queryClient = useQueryClient()
@@ -318,29 +322,29 @@ function CreateUserDialog() {
     mutationFn: usersApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] })
-      toast.success("User created")
+      toast.success(t("users.created"))
       setOpen(false)
       setForm({ username: "", email: "", password: "", full_name: "" })
     },
-    onError: () => toast.error("Failed to create user"),
+    onError: () => toast.error(t("users.createFailed")),
   })
 
-  const field = (key) => ({ value: form[key], onChange: e => setForm(f => ({ ...f, [key]: e.target.value })) })
+  const field = (key) => ({ value: form[key], onChange: event => setForm(prev => ({ ...prev, [key]: event.target.value })) })
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm"><UserPlus size={14} /> New user</Button>
+        <Button size="sm"><UserPlus size={14} /> {t("users.newUser")}</Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>Create user</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t("users.createTitle")}</DialogTitle></DialogHeader>
         <div className="space-y-3">
-          <div className="space-y-1"><Label>Username *</Label><Input {...field("username")} /></div>
-          <div className="space-y-1"><Label>Email *</Label><Input type="email" {...field("email")} /></div>
-          <div className="space-y-1"><Label>Full name</Label><Input {...field("full_name")} /></div>
-          <div className="space-y-1"><Label>Password *</Label><Input type="password" {...field("password")} /></div>
+          <div className="space-y-1"><Label>{t("users.fields.username")}</Label><Input {...field("username")} /></div>
+          <div className="space-y-1"><Label>{t("users.fields.email")}</Label><Input type="email" {...field("email")} /></div>
+          <div className="space-y-1"><Label>{t("users.fields.fullName")}</Label><Input {...field("full_name")} /></div>
+          <div className="space-y-1"><Label>{t("users.fields.password")}</Label><Input type="password" {...field("password")} /></div>
           <Button className="w-full" onClick={() => create.mutate(form)} disabled={create.isPending}>
-            Create
+            {t("users.create")}
           </Button>
         </div>
       </DialogContent>
@@ -349,6 +353,7 @@ function CreateUserDialog() {
 }
 
 function CreateGroupDialog() {
+  const { t } = useTranslation("admin")
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const queryClient = useQueryClient()
@@ -357,7 +362,7 @@ function CreateGroupDialog() {
     mutationFn: groupsApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] })
-      toast.success("Group created")
+      toast.success(t("groups.created"))
       setOpen(false)
       setName("")
     },
@@ -366,15 +371,15 @@ function CreateGroupDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline"><Shield size={14} /> New group</Button>
+        <Button size="sm" variant="outline"><Shield size={14} /> {t("groups.newGroup")}</Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>Create group</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{t("groups.createTitle")}</DialogTitle></DialogHeader>
         <div className="space-y-3">
-          <div className="space-y-1"><Label>Name *</Label>
-            <Input value={name} onChange={e => setName(e.target.value)} /></div>
+          <div className="space-y-1"><Label>{t("groups.fields.name")}</Label>
+            <Input value={name} onChange={event => setName(event.target.value)} /></div>
           <Button className="w-full" onClick={() => create.mutate({ name })} disabled={!name.trim()}>
-            Create
+            {t("groups.create")}
           </Button>
         </div>
       </DialogContent>

@@ -13,6 +13,7 @@ import enPlans from "./locales/en/plans.json"
 import enVersions from "./locales/en/versions.json"
 import enMembers from "./locales/en/members.json"
 import enExecutions from "./locales/en/executions.json"
+import enAdmin from "./locales/en/admin.json"
 import esCommon from "./locales/es/common.json"
 import esProfile from "./locales/es/profile.json"
 import esAuth from "./locales/es/auth.json"
@@ -25,6 +26,7 @@ import esPlans from "./locales/es/plans.json"
 import esVersions from "./locales/es/versions.json"
 import esMembers from "./locales/es/members.json"
 import esExecutions from "./locales/es/executions.json"
+import esAdmin from "./locales/es/admin.json"
 
 const STORAGE_KEY = "testjam.locale"
 
@@ -42,13 +44,13 @@ function detectLocale() {
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { common: enCommon, profile: enProfile, auth: enAuth, nav: enNav, projects: enProjects, dashboard: enDashboard, suites: enSuites, cases: enCases, plans: enPlans, versions: enVersions, members: enMembers, executions: enExecutions },
-    es: { common: esCommon, profile: esProfile, auth: esAuth, nav: esNav, projects: esProjects, dashboard: esDashboard, suites: esSuites, cases: esCases, plans: esPlans, versions: esVersions, members: esMembers, executions: esExecutions },
+    en: { common: enCommon, profile: enProfile, auth: enAuth, nav: enNav, projects: enProjects, dashboard: enDashboard, suites: enSuites, cases: enCases, plans: enPlans, versions: enVersions, members: enMembers, executions: enExecutions, admin: enAdmin },
+    es: { common: esCommon, profile: esProfile, auth: esAuth, nav: esNav, projects: esProjects, dashboard: esDashboard, suites: esSuites, cases: esCases, plans: esPlans, versions: esVersions, members: esMembers, executions: esExecutions, admin: esAdmin },
   },
   lng: detectLocale(),
   fallbackLng: DEFAULT_LOCALE,
   supportedLngs: SUPPORTED_LOCALES,
-  ns: ["common", "profile", "auth", "nav", "projects", "dashboard", "suites", "cases", "plans", "versions", "members", "executions"],
+  ns: ["common", "profile", "auth", "nav", "projects", "dashboard", "suites", "cases", "plans", "versions", "members", "executions", "admin"],
   defaultNS: "common",
   interpolation: { escapeValue: false },
   returnNull: false,

@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
@@ -11,6 +12,7 @@ import { TimezonePicker } from "../ui/timezone-picker"
 import { ResetPasswordDialog } from "./ResetPasswordDialog"
 
 export function EditUserDialog({ user, open, onOpenChange }) {
+  const { t } = useTranslation("admin")
   const queryClient = useQueryClient()
   const [form, setForm] = useState(() => formFromUser(user))
   const [resetOpen, setResetOpen] = useState(false)
@@ -19,12 +21,12 @@ export function EditUserDialog({ user, open, onOpenChange }) {
     mutationFn: (payload) => usersApi.update(user.id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] })
-      toast.success("User updated")
+      toast.success(t("users.edit.updated"))
       onOpenChange(false)
     },
     onError: (error) => {
       const detail = error?.response?.data?.detail
-      toast.error(typeof detail === "string" ? detail : "Failed to update user")
+      toast.error(typeof detail === "string" ? detail : t("users.edit.updateFailed"))
     },
   })
 
@@ -40,35 +42,35 @@ export function EditUserDialog({ user, open, onOpenChange }) {
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit user "{user.username}"</DialogTitle>
+            <DialogTitle>{t("users.edit.title", { username: user.username })}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <Field label="Username">
+            <Field label={t("users.edit.username")}>
               <Input value={form.username} onChange={handleField("username")} />
             </Field>
-            <Field label="Email">
+            <Field label={t("users.edit.email")}>
               <Input type="email" value={form.email} onChange={handleField("email")} />
             </Field>
-            <Field label="Full name">
+            <Field label={t("users.edit.fullName")}>
               <Input value={form.full_name} onChange={handleField("full_name")} />
             </Field>
-            <Field label="Timezone">
+            <Field label={t("users.edit.timezone")}>
               <TimezonePicker
                 value={form.timezone}
                 onChange={(zone) => setForm((current) => ({ ...current, timezone: zone }))}
               />
             </Field>
             <div className="flex gap-6 pt-1 text-sm">
-              <Toggle label="Active" checked={form.is_active} onChange={handleField("is_active")} />
-              <Toggle label="Admin" checked={form.is_admin} onChange={handleField("is_admin")} />
+              <Toggle label={t("users.edit.active")} checked={form.is_active} onChange={handleField("is_active")} />
+              <Toggle label={t("users.edit.admin")} checked={form.is_admin} onChange={handleField("is_admin")} />
             </div>
             <div className="flex justify-between pt-3 border-t">
               <Button variant="outline" size="sm" onClick={() => setResetOpen(true)}>
-                Reset password…
+                {t("users.edit.resetPassword")}
               </Button>
               <div className="flex gap-2">
-                <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-                <Button onClick={submit} disabled={update.isPending}>Save</Button>
+                <Button variant="ghost" onClick={() => onOpenChange(false)}>{t("users.edit.cancel")}</Button>
+                <Button onClick={submit} disabled={update.isPending}>{t("users.edit.save")}</Button>
               </div>
             </div>
           </div>

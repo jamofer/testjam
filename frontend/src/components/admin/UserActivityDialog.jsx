@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { useQuery } from "@tanstack/react-query"
 
 import { usersApi } from "../../api/users"
@@ -7,6 +8,7 @@ import { DateLabel } from "../ui/date-label"
 import { SkeletonText } from "../ui/skeleton"
 
 export function UserActivityDialog({ user, onClose }) {
+  const { t } = useTranslation("admin")
   const { data, isPending } = useQuery({
     queryKey: ["user-activity", user.id],
     queryFn: () => usersApi.activity(user.id),
@@ -16,7 +18,7 @@ export function UserActivityDialog({ user, onClose }) {
     <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Activity — {user.username}</DialogTitle>
+          <DialogTitle>{t("users.activity.title", { username: user.username })}</DialogTitle>
         </DialogHeader>
         {isPending ? <SkeletonText lines={6} /> : <Body data={data} />}
       </DialogContent>
@@ -25,23 +27,24 @@ export function UserActivityDialog({ user, onClose }) {
 }
 
 function Body({ data }) {
+  const { t } = useTranslation("admin")
   return (
     <div className="space-y-5 text-sm">
-      <Section title="Last login">
+      <Section title={t("users.activity.lastLogin")}>
         {data.last_login_at ? (
           <p>
             <DateLabel iso={data.last_login_at} />
-            {data.last_login_ip && <span className="ml-2 text-gray-400 dark:text-gray-500">from {data.last_login_ip}</span>}
+            {data.last_login_ip && <span className="ml-2 text-gray-400 dark:text-gray-500">{t("users.activity.lastLoginFrom", { ip: data.last_login_ip })}</span>}
           </p>
         ) : (
-          <p className="text-gray-400 dark:text-gray-500">Never logged in.</p>
+          <p className="text-gray-400 dark:text-gray-500">{t("users.activity.neverLoggedIn")}</p>
         )}
       </Section>
-      <Section title="Recent executions">
-        <ActivityList items={data.recent_executions} render={renderExecution} emptyLabel="No executions started yet." />
+      <Section title={t("users.activity.recentExecutions")}>
+        <ActivityList items={data.recent_executions} render={renderExecution} emptyLabel={t("users.activity.noExecutions")} />
       </Section>
-      <Section title="Recent cases">
-        <ActivityList items={data.recent_cases} render={renderCase} emptyLabel="No cases authored yet." />
+      <Section title={t("users.activity.recentCases")}>
+        <ActivityList items={data.recent_cases} render={renderCase} emptyLabel={t("users.activity.noCases")} />
       </Section>
     </div>
   )

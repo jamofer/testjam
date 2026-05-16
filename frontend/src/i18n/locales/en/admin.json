@@ -1,0 +1,224 @@
+{
+  "title": "Admin",
+  "tabs": {
+    "users": "Users ({{count}})",
+    "groups": "Groups ({{count}})",
+    "projects": "Projects"
+  },
+  "users": {
+    "showDeleted": "Show deleted",
+    "newUser": "New user",
+    "createTitle": "Create user",
+    "create": "Create",
+    "created": "User created",
+    "createFailed": "Failed to create user",
+    "deleted": "User deleted",
+    "deleteFailed": "Failed to delete user",
+    "restored": "User restored",
+    "restoreFailed": "Failed to restore user",
+    "fields": {
+      "username": "Username *",
+      "email": "Email *",
+      "fullName": "Full name",
+      "password": "Password *"
+    },
+    "row": {
+      "admin": "admin",
+      "deletedBadge": "DELETED",
+      "restore": "Restore",
+      "active": "active",
+      "inactive": "inactive",
+      "activityTitle": "Activity",
+      "editTitle": "Edit",
+      "deleteTitle": "Delete"
+    },
+    "deleteDialog": {
+      "title": "Delete user \"{{username}}\"",
+      "intro": "This user uniquely owns the projects below. Choose what to do with each one.",
+      "reassign": "Reassign to",
+      "noCandidates": "No candidates",
+      "archiveProject": "Archive project",
+      "cancel": "Cancel",
+      "confirm": "Delete user"
+    },
+    "edit": {
+      "title": "Edit user \"{{username}}\"",
+      "updated": "User updated",
+      "updateFailed": "Failed to update user",
+      "username": "Username",
+      "email": "Email",
+      "fullName": "Full name",
+      "timezone": "Timezone",
+      "active": "Active",
+      "admin": "Admin",
+      "resetPassword": "Reset password…",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "activity": {
+      "title": "Activity — {{username}}",
+      "lastLogin": "Last login",
+      "lastLoginFrom": "from {{ip}}",
+      "neverLoggedIn": "Never logged in.",
+      "recentExecutions": "Recent executions",
+      "noExecutions": "No executions started yet.",
+      "recentCases": "Recent cases",
+      "noCases": "No cases authored yet."
+    },
+    "resetPassword": {
+      "title": "Reset password for \"{{username}}\"",
+      "intro": "Sending an email keeps a self-serve audit trail. Showing a temporary password works even when SMTP is down, but only once — copy it before closing.",
+      "sendEmail": "Send reset email",
+      "showTemporary": "Show temporary password",
+      "emailQueued": "Reset email queued",
+      "sent": "Sent. The link is valid for 24 hours and arrives at {{email}}.",
+      "share": "Share this password securely. It will not be shown again.",
+      "copied": "Copied to clipboard",
+      "failed": "Failed to reset password",
+      "done": "Done"
+    }
+  },
+  "groups": {
+    "newGroup": "New group",
+    "createTitle": "Create group",
+    "create": "Create",
+    "created": "Group created",
+    "deleted": "Group deleted",
+    "fields": {
+      "name": "Name *"
+    },
+    "row": {
+      "noDescription": "(no description)",
+      "members": "{{count}} members",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "edit": {
+      "title": "Group — {{name}}",
+      "updated": "Group updated",
+      "updateFailed": "Failed to update group",
+      "addMemberFailed": "Failed to add member",
+      "removeMemberFailed": "Failed to remove member",
+      "name": "Name",
+      "description": "Description",
+      "descriptionPlaceholder": "What is this group for?",
+      "saveDetails": "Save details",
+      "membersCount": "Members ({{count}})",
+      "noMembers": "No members in this group yet.",
+      "selectUser": "Select user…",
+      "addMember": "Add member",
+      "removeAria": "Remove {{username}}"
+    }
+  },
+  "projects": {
+    "empty": "No projects.",
+    "headers": {
+      "project": "Project",
+      "owner": "Owner",
+      "members": "Members",
+      "cases": "Cases",
+      "lastExecution": "Last execution",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "statuses": {
+      "archived": "archived",
+      "active": "active"
+    },
+    "actions": {
+      "transfer": "Transfer ownership",
+      "archive": "Archive",
+      "unarchive": "Unarchive",
+      "export": "Export",
+      "delete": "Delete"
+    },
+    "archiveFailed": "Failed to update archive state",
+    "deleteDialog": {
+      "title": "Delete project \"{{name}}\"",
+      "intro": "This permanently removes the project, its suites, cases, and executions. Type the project name to confirm.",
+      "name": "Project name",
+      "deleted": "Project deleted",
+      "deleteFailed": "Failed to delete project",
+      "cancel": "Cancel",
+      "confirm": "Delete project"
+    },
+    "transfer": {
+      "title": "Transfer ownership of \"{{name}}\"",
+      "intro": "The current owner becomes an editor. The new owner gets the owner role.",
+      "newOwner": "New owner",
+      "cancel": "Cancel",
+      "transferred": "Ownership transferred",
+      "transferFailed": "Failed to transfer ownership",
+      "submit": "Transfer"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "adminOnly": "Admin only",
+    "adminOnlyDescription": "Settings are only visible to administrators.",
+    "save": "Save",
+    "saved": "Settings saved",
+    "saveFailed": "Failed to save settings",
+    "sections": {
+      "general": {
+        "title": "General",
+        "description": "Branding and the public URL used in shared links and HTML reports.",
+        "siteUrl": "Site URL",
+        "siteUrlHint": "If set, attachments and 'View in app' links use this URL instead of the request host.",
+        "siteUrlPlaceholder": "https://qa.example.com",
+        "appName": "App name",
+        "allowRegistration": "Allow new user self-registration",
+        "allowSelfDelete": "Allow users to delete their own account"
+      },
+      "executionDefaults": {
+        "title": "Execution defaults",
+        "defaultEnvironment": "Default environment",
+        "defaultEnvironmentPlaceholder": "staging",
+        "defaultVersionPattern": "Default version pattern",
+        "defaultVersionPatternPlaceholder": "vYYYY.MM.DD"
+      },
+      "limits": {
+        "title": "Limits",
+        "maxUpload": "Max upload size (MB)",
+        "notificationsRetention": "Notifications retention (days)",
+        "notificationsRetentionHint": "Older notifications are purged."
+      },
+      "smtp": {
+        "title": "Email (SMTP)",
+        "description": "Outgoing notifications. Leave host empty to disable email.",
+        "host": "SMTP host",
+        "hostPlaceholder": "smtp.example.com",
+        "port": "Port",
+        "portPlaceholder": "587",
+        "from": "From address",
+        "fromPlaceholder": "noreply@example.com",
+        "user": "Username",
+        "password": "Password",
+        "passwordSetHint": "A password is configured. Type a new one to replace it, or check 'Clear password' to remove.",
+        "noPasswordHint": "No password set.",
+        "passwordPlaceholderSet": "•••••••• (set)",
+        "clearPassword": "Clear stored password on save",
+        "useTls": "Use STARTTLS"
+      },
+      "realtime": {
+        "title": "Real-time",
+        "description": "Tuning for WebSocket broadcasts during live test runs.",
+        "logFlush": "Log flush interval (ms)",
+        "logFlushHint": "How often buffered log lines are pushed to subscribers. 0 disables batching."
+      }
+    },
+    "backup": {
+      "title": "Backup & Restore",
+      "intro": "Download a ZIP containing the database dump and uploaded files. Restore replaces all data.",
+      "download": "Download backup",
+      "downloaded": "Backup downloaded",
+      "downloadFailed": "Backup failed",
+      "destructive": "Restore is destructive. The current database and uploads are overwritten.",
+      "confirmLabel": "Type {{phrase}} to confirm",
+      "confirmPlaceholder": "REPLACE ALL DATA",
+      "restoreButton": "Restore from backup",
+      "restored": "Restored ({{count}} files)",
+      "restoreFailed": "Restore failed"
+    }
+  }
+}

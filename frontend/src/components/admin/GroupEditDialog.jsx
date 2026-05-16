@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Plus, Trash2 } from "lucide-react"
 import { toast } from "sonner"
@@ -11,6 +12,7 @@ import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 
 export function GroupEditDialog({ group, onClose }) {
+  const { t } = useTranslation("admin")
   const queryClient = useQueryClient()
   const [name, setName] = useState(group.name)
   const [description, setDescription] = useState(group.description ?? "")
@@ -36,18 +38,18 @@ export function GroupEditDialog({ group, onClose }) {
 
   const update = useMutation({
     mutationFn: () => groupsApi.update(group.id, { name, description: description || null }),
-    onSuccess: () => { invalidate(); toast.success("Group updated") },
-    onError: () => toast.error("Failed to update group"),
+    onSuccess: () => { invalidate(); toast.success(t("groups.edit.updated")) },
+    onError: () => toast.error(t("groups.edit.updateFailed")),
   })
   const addMember = useMutation({
     mutationFn: (userId) => groupsApi.addMember(group.id, userId),
     onSuccess: invalidate,
-    onError: (error) => toast.error(error?.response?.data?.detail ?? "Failed to add member"),
+    onError: (error) => toast.error(error?.response?.data?.detail ?? t("groups.edit.addMemberFailed")),
   })
   const removeMember = useMutation({
     mutationFn: (userId) => groupsApi.removeMember(group.id, userId),
     onSuccess: invalidate,
-    onError: () => toast.error("Failed to remove member"),
+    onError: () => toast.error(t("groups.edit.removeMemberFailed")),
   })
 
   const memberIds = new Set(members.map(member => member.user_id))
@@ -57,28 +59,28 @@ export function GroupEditDialog({ group, onClose }) {
     <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Group — {group.name}</DialogTitle>
+          <DialogTitle>{t("groups.edit.title", { name: group.name })}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
-          <Field label="Name">
+          <Field label={t("groups.edit.name")}>
             <Input value={name} onChange={event => setName(event.target.value)} />
           </Field>
-          <Field label="Description">
+          <Field label={t("groups.edit.description")}>
             <Input
               value={description}
               onChange={event => setDescription(event.target.value)}
-              placeholder="What is this group for?"
+              placeholder={t("groups.edit.descriptionPlaceholder")}
             />
           </Field>
           <div className="flex justify-end">
             <Button size="sm" onClick={() => update.mutate()} disabled={update.isPending}>
-              Save details
+              {t("groups.edit.saveDetails")}
             </Button>
           </div>
         </div>
 
         <div className="pt-4 mt-4 border-t space-y-2">
-          <p className="font-medium text-gray-800 dark:text-gray-100">Members ({members.length})</p>
+          <p className="font-medium text-gray-800 dark:text-gray-100">{t("groups.edit.membersCount", { count: members.length })}</p>
           <MemberList members={members} onRemove={(userId) => removeMember.mutate(userId)} />
           <AddMemberRow candidates={candidates} onAdd={(userId) => addMember.mutate(userId)} />
         </div>
@@ -97,8 +99,9 @@ function Field({ label, children }) {
 }
 
 function MemberList({ members, onRemove }) {
+  const { t } = useTranslation("admin")
   if (!members.length) {
-    return <p className="text-sm text-gray-400 dark:text-gray-500 py-2">No members in this group yet.</p>
+    return <p className="text-sm text-gray-400 dark:text-gray-500 py-2">{t("groups.edit.noMembers")}</p>
   }
   return (
     <ul className="divide-y border rounded-md max-h-60 overflow-y-auto">
@@ -108,7 +111,7 @@ function MemberList({ members, onRemove }) {
           <button
             onClick={() => onRemove(member.user_id)}
             className="text-gray-300 dark:text-gray-600 hover:text-red-500 transition-colors p-1"
-            aria-label={`Remove ${member.username}`}
+            aria-label={t("groups.edit.removeAria", { username: member.username })}
           >
             <Trash2 size={13} />
           </button>
@@ -119,6 +122,7 @@ function MemberList({ members, onRemove }) {
 }
 
 function AddMemberRow({ candidates, onAdd }) {
+  const { t } = useTranslation("admin")
   const [userId, setUserId] = useState("")
 
   if (!candidates.length) return null
@@ -137,13 +141,13 @@ function AddMemberRow({ candidates, onAdd }) {
         onChange={event => setUserId(event.target.value)}
         className="flex-1 text-sm border rounded-md px-2 py-1.5 bg-white dark:bg-gray-900"
       >
-        <option value="">Select user…</option>
+        <option value="">{t("groups.edit.selectUser")}</option>
         {candidates.map(user => (
           <option key={user.id} value={user.id}>{user.username}</option>
         ))}
       </select>
       <Button type="submit" size="sm">
-        <Plus size={14} /> Add member
+        <Plus size={14} /> {t("groups.edit.addMember")}
       </Button>
     </form>
   )
