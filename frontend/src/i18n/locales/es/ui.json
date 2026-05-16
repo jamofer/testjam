@@ -1,0 +1,49 @@
+{
+  "commandPalette": {
+    "title": "Paleta de comandos",
+    "description": "Busca proyectos, casos, ejecuciones y ejecuta acciones rápidas.",
+    "placeholder": "Buscar proyectos, casos, acciones… (↑↓ Enter)",
+    "esc": "esc",
+    "noMatches": "Sin coincidencias",
+    "groups": {
+      "projects": "Proyectos",
+      "recentExecutions": "Ejecuciones recientes",
+      "testCases": "Casos de prueba",
+      "actions": "Acciones"
+    },
+    "hints": {
+      "cases": "{{count}} casos"
+    },
+    "actions": {
+      "newExecution": "Nueva ejecución en este proyecto",
+      "newSuite": "Nueva suite de pruebas",
+      "goToPlans": "Ir a planes",
+      "goToVersions": "Ir a versiones",
+      "goToMembers": "Ir a miembros"
+    }
+  },
+  "shortcuts": {
+    "title": "Atajos de teclado"
+  },
+  "timezone": {
+    "placeholder": "Escribe para buscar…"
+  },
+  "contextPanel": {
+    "title": "Contexto",
+    "expand": "Expandir panel de contexto",
+    "collapse": "Colapsar panel de contexto"
+  },
+  "live": {
+    "label": "en vivo"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "ariaUnread_zero": "Notificaciones",
+    "ariaUnread_one": "Notificaciones, {{count}} sin leer",
+    "ariaUnread_other": "Notificaciones, {{count}} sin leer",
+    "markAllRead": "Marcar todas como leídas",
+    "close": "Cerrar notificaciones",
+    "empty": "Sin notificaciones",
+    "markRead": "Marcar como leída"
+  }
+}

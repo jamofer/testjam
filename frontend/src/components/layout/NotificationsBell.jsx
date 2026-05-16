@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { Link } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { Bell, Check, CheckCheck, X } from "lucide-react"
 import {
   useNotifications,
@@ -13,6 +14,7 @@ import { fmtDate } from "../../lib/format"
 
 /** Compact icon-only trigger that opens a right-side drawer. */
 export function NotificationsBell({ enabled = true }) {
+  const { t } = useTranslation("ui")
   const [open, setOpen] = useState(false)
   const { data: count } = useUnreadCount()
 
@@ -34,7 +36,7 @@ export function NotificationsBell({ enabled = true }) {
         onClick={() => setOpen(o => !o)}
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ""}`}
+        aria-label={t("notifications.ariaUnread", { count: unread })}
         className={`relative w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
           open ? "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200" : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-800 dark:hover:text-gray-100"
         }`}
@@ -54,6 +56,7 @@ export function NotificationsBell({ enabled = true }) {
 }
 
 function NotificationsDrawer({ open, onClose }) {
+  const { t } = useTranslation("ui")
   const { data: list = [] } = useNotifications()
   const markRead = useMarkRead()
   const markAllRead = useMarkAllRead()
@@ -63,7 +66,7 @@ function NotificationsDrawer({ open, onClose }) {
   const unread = list.filter(n => !n.is_read).length
 
   return createPortal(
-    <div className="fixed inset-0 z-[100]" role="dialog" aria-label="Notifications">
+    <div className="fixed inset-0 z-[100]" role="dialog" aria-label={t("notifications.title")}>
       <div
         onClick={onClose}
         className="absolute inset-0 bg-black/20"
@@ -72,18 +75,18 @@ function NotificationsDrawer({ open, onClose }) {
         className="absolute right-0 top-0 h-full w-full sm:w-96 bg-white dark:bg-gray-900 shadow-xl border-l border-gray-200 dark:border-gray-700 flex flex-col"
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
-          <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Notifications</p>
+          <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{t("notifications.title")}</p>
           <div className="flex items-center gap-3">
             {unread > 0 && (
               <button type="button"
                 onClick={() => markAllRead.mutate()}
                 className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 flex items-center gap-1">
-                <CheckCheck size={12} /> Mark all read
+                <CheckCheck size={12} /> {t("notifications.markAllRead")}
               </button>
             )}
             <button type="button"
               onClick={onClose}
-              aria-label="Close notifications"
+              aria-label={t("notifications.close")}
               className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200">
               <X size={16} />
             </button>
@@ -92,7 +95,7 @@ function NotificationsDrawer({ open, onClose }) {
 
         <div className="flex-1 overflow-y-auto">
           {list.length === 0 ? (
-            <p className="px-4 py-10 text-sm text-gray-400 dark:text-gray-500 text-center">No notifications</p>
+            <p className="px-4 py-10 text-sm text-gray-400 dark:text-gray-500 text-center">{t("notifications.empty")}</p>
           ) : (
             <ul className="divide-y divide-gray-100">
               {list.map(n => (
@@ -113,7 +116,7 @@ function NotificationsDrawer({ open, onClose }) {
                     {!n.is_read && (
                       <button type="button"
                         onClick={() => markRead.mutate(n.id)}
-                        title="Mark as read"
+                        title={t("notifications.markRead")}
                         className="text-gray-300 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-300 mt-0.5">
                         <Check size={14} />
                       </button>

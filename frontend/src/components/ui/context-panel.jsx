@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ChevronRight, PanelRightClose, PanelRightOpen } from "lucide-react"
 
 /**
@@ -6,6 +7,7 @@ import { ChevronRight, PanelRightClose, PanelRightOpen } from "lucide-react"
  * <ContextPanel sections={[{ title: "About", rows: [{label, value, icon?}] }, ...]} />
  */
 export function ContextPanel({ sections = [], children, defaultCollapsed = false, className = "" }) {
+  const { t } = useTranslation("ui")
   const [collapsed, setCollapsed] = useState(defaultCollapsed)
 
   // Sit just below the sticky PageHeader (if any), otherwise top-20 (5rem).
@@ -16,7 +18,7 @@ export function ContextPanel({ sections = [], children, defaultCollapsed = false
       <aside className={`hidden lg:flex shrink-0 ${className}`}>
         <button type="button"
           onClick={() => setCollapsed(false)}
-          aria-label="Expand context panel"
+          aria-label={t("contextPanel.expand")}
           style={stickyStyle}
           className="self-start sticky px-1.5 py-2 border border-gray-200 dark:border-gray-700 rounded-l-md bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200">
           <PanelRightOpen size={14} />
@@ -29,10 +31,10 @@ export function ContextPanel({ sections = [], children, defaultCollapsed = false
     <aside className={`hidden lg:block w-72 shrink-0 ${className}`}>
       <div className="sticky space-y-4" style={stickyStyle}>
         <div className="flex items-center justify-between">
-          <p className="text-[11px] uppercase tracking-wide font-bold text-gray-400 dark:text-gray-500">Context</p>
+          <p className="text-[11px] uppercase tracking-wide font-bold text-gray-400 dark:text-gray-500">{t("contextPanel.title")}</p>
           <button type="button"
             onClick={() => setCollapsed(true)}
-            aria-label="Collapse context panel"
+            aria-label={t("contextPanel.collapse")}
             className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200">
             <PanelRightClose size={14} />
           </button>

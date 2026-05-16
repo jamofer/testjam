@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useMatch } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { Search, FolderOpen, FileText, PlayCircle, Plus, ClipboardList, Tag, Shield } from "lucide-react"
 import { useProjects } from "../../hooks/useProjects"
 import { useExecutions } from "../../hooks/useExecutions"
@@ -41,6 +42,7 @@ function Group({ label, children }) {
 }
 
 export function CommandPalette({ open, onOpenChange, onAction }) {
+  const { t } = useTranslation("ui")
   const navigate = useNavigate()
   const activeProjectId = useActiveProjectIdFromUrl()
   const [q, setQ] = useState("")
@@ -71,45 +73,45 @@ export function CommandPalette({ open, onOpenChange, onAction }) {
     const all = [
       {
         key: "new-exec",
-        title: "New execution in this project",
+        title: t("commandPalette.actions.newExecution"),
         icon: PlayCircle,
         run: () => navigate(`/projects/${activeProjectId}/executions/new`),
       },
       {
         key: "new-suite",
-        title: "New test suite",
+        title: t("commandPalette.actions.newSuite"),
         icon: Plus,
         run: () => { onAction?.("new-suite", { projectId: activeProjectId }); navigate(`/projects/${activeProjectId}`) },
       },
       {
         key: "go-plans",
-        title: "Go to test plans",
+        title: t("commandPalette.actions.goToPlans"),
         icon: ClipboardList,
         run: () => navigate(`/projects/${activeProjectId}/plans`),
       },
       {
         key: "go-versions",
-        title: "Go to versions",
+        title: t("commandPalette.actions.goToVersions"),
         icon: Tag,
         run: () => navigate(`/projects/${activeProjectId}/versions`),
       },
       {
         key: "go-members",
-        title: "Go to members",
+        title: t("commandPalette.actions.goToMembers"),
         icon: Shield,
         run: () => navigate(`/projects/${activeProjectId}/members`),
       },
     ]
     if (!ql) return all
-    return all.filter(a => a.title.toLowerCase().includes(ql))
-  }, [activeProjectId, navigate, onAction, ql])
+    return all.filter(action => action.title.toLowerCase().includes(ql))
+  }, [activeProjectId, navigate, onAction, ql, t])
 
   // Flat list of selectable items in render order
   const items = useMemo(() => {
     const flat = []
     filteredProjects.forEach(p => flat.push({
       kind: "project", id: `p-${p.id}`, title: p.name, icon: FolderOpen,
-      hint: `${p.case_count ?? 0} cases`,
+      hint: t("commandPalette.hints.cases", { count: p.case_count ?? 0 }),
       run: () => navigate(`/projects/${p.id}`),
     }))
     filteredExecutions.forEach(ex => flat.push({
@@ -127,7 +129,7 @@ export function CommandPalette({ open, onOpenChange, onAction }) {
       run: a.run,
     }))
     return flat
-  }, [filteredProjects, filteredExecutions, filteredCases, actions, navigate])
+  }, [filteredProjects, filteredExecutions, filteredCases, actions, navigate, t])
 
   useEffect(() => { setCursor(0) }, [q, items.length])
 
@@ -185,8 +187,8 @@ export function CommandPalette({ open, onOpenChange, onAction }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl p-0 gap-0 top-[20%] translate-y-0">
-        <DialogTitle className="sr-only">Command palette</DialogTitle>
-        <DialogDescription className="sr-only">Search projects, test cases, executions, and run quick actions.</DialogDescription>
+        <DialogTitle className="sr-only">{t("commandPalette.title")}</DialogTitle>
+        <DialogDescription className="sr-only">{t("commandPalette.description")}</DialogDescription>
         <div className="flex items-center gap-2 px-3 border-b border-gray-200 dark:border-gray-700">
           <Search size={15} className="text-gray-400 dark:text-gray-500 shrink-0" />
           <input
@@ -194,20 +196,20 @@ export function CommandPalette({ open, onOpenChange, onAction }) {
             value={q}
             onChange={e => setQ(e.target.value)}
             onKeyDown={onKey}
-            placeholder="Search projects, cases, actions… (↑↓ Enter)"
+            placeholder={t("commandPalette.placeholder")}
             className="flex-1 py-3 text-sm bg-transparent focus:outline-none"
           />
-          <kbd className="text-[10px] font-mono bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded px-1.5 py-0.5 text-gray-500 dark:text-gray-400">esc</kbd>
+          <kbd className="text-[10px] font-mono bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded px-1.5 py-0.5 text-gray-500 dark:text-gray-400">{t("commandPalette.esc")}</kbd>
         </div>
         <div className="max-h-[55vh] overflow-y-auto p-2">
           {items.length === 0 ? (
-            <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-8">No matches</p>
+            <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-8">{t("commandPalette.noMatches")}</p>
           ) : (
             <>
-              {renderGroup("Projects", projectItems)}
-              {renderGroup("Recent executions", execItems)}
-              {renderGroup("Test cases", caseItems)}
-              {renderGroup("Actions", actionItems)}
+              {renderGroup(t("commandPalette.groups.projects"), projectItems)}
+              {renderGroup(t("commandPalette.groups.recentExecutions"), execItems)}
+              {renderGroup(t("commandPalette.groups.testCases"), caseItems)}
+              {renderGroup(t("commandPalette.groups.actions"), actionItems)}
             </>
           )}
         </div>

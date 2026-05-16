@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Input } from "./input"
 import { Check } from "lucide-react"
 
@@ -13,7 +14,9 @@ const IANA_TIMEZONES = (() => {
   return []
 })()
 
-export function TimezonePicker({ value, onChange, disabled, placeholder = "Type to search…" }) {
+export function TimezonePicker({ value, onChange, disabled, placeholder }) {
+  const { t } = useTranslation("ui")
+  const resolvedPlaceholder = placeholder ?? t("timezone.placeholder")
   const [query, setQuery] = useState("")
   const [open, setOpen] = useState(false)
 
@@ -30,7 +33,7 @@ export function TimezonePicker({ value, onChange, disabled, placeholder = "Type 
         onChange={event => { setQuery(event.target.value); setOpen(true) }}
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
         disabled={disabled}
       />
       {open && filtered.length > 0 && (

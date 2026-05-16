@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./dialog"
 
 function ShortcutRow({ keys, description }) {
@@ -13,12 +14,14 @@ function ShortcutRow({ keys, description }) {
   )
 }
 
-export function ShortcutsDialog({ open, onOpenChange, title = "Keyboard shortcuts", description, sections }) {
+export function ShortcutsDialog({ open, onOpenChange, title, description, sections }) {
+  const { t } = useTranslation("ui")
+  const resolvedTitle = title ?? t("shortcuts.title")
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>{resolvedTitle}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         <div className="space-y-4 text-sm">

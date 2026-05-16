@@ -1,0 +1,49 @@
+{
+  "commandPalette": {
+    "title": "Command palette",
+    "description": "Search projects, test cases, executions, and run quick actions.",
+    "placeholder": "Search projects, cases, actions… (↑↓ Enter)",
+    "esc": "esc",
+    "noMatches": "No matches",
+    "groups": {
+      "projects": "Projects",
+      "recentExecutions": "Recent executions",
+      "testCases": "Test cases",
+      "actions": "Actions"
+    },
+    "hints": {
+      "cases": "{{count}} cases"
+    },
+    "actions": {
+      "newExecution": "New execution in this project",
+      "newSuite": "New test suite",
+      "goToPlans": "Go to test plans",
+      "goToVersions": "Go to versions",
+      "goToMembers": "Go to members"
+    }
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts"
+  },
+  "timezone": {
+    "placeholder": "Type to search…"
+  },
+  "contextPanel": {
+    "title": "Context",
+    "expand": "Expand context panel",
+    "collapse": "Collapse context panel"
+  },
+  "live": {
+    "label": "live"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "ariaUnread_zero": "Notifications",
+    "ariaUnread_one": "Notifications, {{count}} unread",
+    "ariaUnread_other": "Notifications, {{count}} unread",
+    "markAllRead": "Mark all read",
+    "close": "Close notifications",
+    "empty": "No notifications",
+    "markRead": "Mark as read"
+  }
+}
