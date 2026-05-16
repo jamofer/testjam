@@ -21,12 +21,12 @@ function Item({ icon: Icon, title, hint, onSelect, active, onMouseEnter }) {
       onMouseEnter={onMouseEnter}
       onClick={onSelect}
       className={`flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer text-sm ${
-        active ? "bg-primary-50 text-primary-700" : "text-gray-700 hover:bg-gray-50"
+        active ? "bg-primary-50 text-primary-700" : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
       }`}
     >
-      <Icon size={14} className={active ? "text-primary-600" : "text-gray-400"} />
+      <Icon size={14} className={active ? "text-primary-600" : "text-gray-400 dark:text-gray-500"} />
       <span className="flex-1 truncate">{title}</span>
-      {hint && <span className="text-xs text-gray-400 shrink-0">{hint}</span>}
+      {hint && <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">{hint}</span>}
     </li>
   )
 }
@@ -34,7 +34,7 @@ function Item({ icon: Icon, title, hint, onSelect, active, onMouseEnter }) {
 function Group({ label, children }) {
   return (
     <div className="mb-1">
-      <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">{label}</div>
+      <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">{label}</div>
       <ul role="listbox">{children}</ul>
     </div>
   )
@@ -187,8 +187,8 @@ export function CommandPalette({ open, onOpenChange, onAction }) {
       <DialogContent className="max-w-xl p-0 gap-0 top-[20%] translate-y-0">
         <DialogTitle className="sr-only">Command palette</DialogTitle>
         <DialogDescription className="sr-only">Search projects, test cases, executions, and run quick actions.</DialogDescription>
-        <div className="flex items-center gap-2 px-3 border-b border-gray-200">
-          <Search size={15} className="text-gray-400 shrink-0" />
+        <div className="flex items-center gap-2 px-3 border-b border-gray-200 dark:border-gray-700">
+          <Search size={15} className="text-gray-400 dark:text-gray-500 shrink-0" />
           <input
             autoFocus
             value={q}
@@ -197,11 +197,11 @@ export function CommandPalette({ open, onOpenChange, onAction }) {
             placeholder="Search projects, cases, actions… (↑↓ Enter)"
             className="flex-1 py-3 text-sm bg-transparent focus:outline-none"
           />
-          <kbd className="text-[10px] font-mono bg-gray-100 border border-gray-200 rounded px-1.5 py-0.5 text-gray-500">esc</kbd>
+          <kbd className="text-[10px] font-mono bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded px-1.5 py-0.5 text-gray-500 dark:text-gray-400">esc</kbd>
         </div>
         <div className="max-h-[55vh] overflow-y-auto p-2">
           {items.length === 0 ? (
-            <p className="text-center text-sm text-gray-400 py-8">No matches</p>
+            <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-8">No matches</p>
           ) : (
             <>
               {renderGroup("Projects", projectItems)}

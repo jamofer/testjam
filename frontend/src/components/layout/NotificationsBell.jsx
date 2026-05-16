@@ -36,7 +36,7 @@ export function NotificationsBell({ enabled = true }) {
         aria-expanded={open}
         aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ""}`}
         className={`relative w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
-          open ? "bg-gray-100 text-gray-700" : "text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+          open ? "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200" : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-800 dark:hover:text-gray-100"
         }`}
       >
         <Bell size={16} />
@@ -69,22 +69,22 @@ function NotificationsDrawer({ open, onClose }) {
         className="absolute inset-0 bg-black/20"
       />
       <aside
-        className="absolute right-0 top-0 h-full w-full sm:w-96 bg-white shadow-xl border-l border-gray-200 flex flex-col"
+        className="absolute right-0 top-0 h-full w-full sm:w-96 bg-white dark:bg-gray-900 shadow-xl border-l border-gray-200 dark:border-gray-700 flex flex-col"
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 shrink-0">
-          <p className="text-sm font-semibold text-gray-800">Notifications</p>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
+          <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Notifications</p>
           <div className="flex items-center gap-3">
             {unread > 0 && (
               <button type="button"
                 onClick={() => markAllRead.mutate()}
-                className="text-xs text-gray-500 hover:text-gray-800 flex items-center gap-1">
+                className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 flex items-center gap-1">
                 <CheckCheck size={12} /> Mark all read
               </button>
             )}
             <button type="button"
               onClick={onClose}
               aria-label="Close notifications"
-              className="text-gray-400 hover:text-gray-700">
+              className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200">
               <X size={16} />
             </button>
           </div>
@@ -92,7 +92,7 @@ function NotificationsDrawer({ open, onClose }) {
 
         <div className="flex-1 overflow-y-auto">
           {list.length === 0 ? (
-            <p className="px-4 py-10 text-sm text-gray-400 text-center">No notifications</p>
+            <p className="px-4 py-10 text-sm text-gray-400 dark:text-gray-500 text-center">No notifications</p>
           ) : (
             <ul className="divide-y divide-gray-100">
               {list.map(n => (
@@ -102,19 +102,19 @@ function NotificationsDrawer({ open, onClose }) {
                       {n.link ? (
                         <Link to={n.link}
                           onClick={() => { if (!n.is_read) markRead.mutate(n.id); onClose() }}
-                          className="text-sm text-gray-800 hover:text-primary-600 block">
+                          className="text-sm text-gray-800 dark:text-gray-100 hover:text-primary-600 block">
                           {n.message}
                         </Link>
                       ) : (
-                        <p className="text-sm text-gray-800">{n.message}</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-100">{n.message}</p>
                       )}
-                      <p className="text-xs text-gray-400 mt-0.5">{fmtDate(n.created_at)}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{fmtDate(n.created_at)}</p>
                     </div>
                     {!n.is_read && (
                       <button type="button"
                         onClick={() => markRead.mutate(n.id)}
                         title="Mark as read"
-                        className="text-gray-300 hover:text-gray-600 mt-0.5">
+                        className="text-gray-300 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-300 mt-0.5">
                         <Check size={14} />
                       </button>
                     )}

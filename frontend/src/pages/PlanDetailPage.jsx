@@ -60,15 +60,15 @@ function PlanSuiteGroup({ suiteId, groups, childrenOf, removeCase }) {
   return (
     <div className="border rounded-lg overflow-hidden">
       <details open className="group/suite">
-        <summary className="flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 cursor-pointer list-none font-medium text-sm text-gray-800">
+        <summary className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer list-none font-medium text-sm text-gray-800 dark:text-gray-100">
           <ChevronRight size={14} className="transition-transform shrink-0 group-open/suite:rotate-90" />
           <FolderOpen size={14} className="text-yellow-500 shrink-0" />
           <span className="truncate flex-1">{suite.name}</span>
-          <span className="text-xs text-gray-400 shrink-0">({suiteCases.length})</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">({suiteCases.length})</span>
         </summary>
         <div className="px-2 py-1">
           {children.length > 0 && (
-            <div className="pl-4 mt-2 space-y-2 border-l-2 border-gray-100">
+            <div className="pl-4 mt-2 space-y-2 border-l-2 border-gray-100 dark:border-gray-800">
               {children.map(childId => (
                 <PlanSuiteGroup key={childId} suiteId={childId} groups={groups} childrenOf={childrenOf} removeCase={removeCase} />
               ))}
@@ -77,12 +77,12 @@ function PlanSuiteGroup({ suiteId, groups, childrenOf, removeCase }) {
           {suiteCases.length > 0 && (
             <ul className="pl-4 space-y-0.5">
               {suiteCases.map(tc => (
-                <li key={tc.id} className="flex items-center justify-between rounded px-2 py-1.5 hover:bg-gray-50 group transition-colors">
+                <li key={tc.id} className="flex items-center justify-between rounded px-2 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 group transition-colors">
                   <Link to={`/cases/${tc.id}`} className="min-w-0 flex-1">
                     <TestCaseItem tc={tc} />
                   </Link>
                   <button onClick={() => removeCase(tc.id)}
-                    className="ml-2 shrink-0 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-colors">
+                    className="ml-2 shrink-0 opacity-0 group-hover:opacity-100 text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors">
                     <Trash2 size={13} />
                   </button>
                 </li>
@@ -126,7 +126,7 @@ function AddCasesDialog({ plan, projectId }) {
             onToggle={toggle}
             excludeIds={plan.test_case_ids}
           />
-          <p className="text-xs text-gray-400">{selected.length} selected</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">{selected.length} selected</p>
           <Button onClick={handleAdd} className="w-full" disabled={!selected.length}>Add to plan</Button>
         </div>
       </DialogContent>
@@ -181,7 +181,7 @@ export function PlanDetailPage() {
     return { groups: full, topLevelIds, childrenOf }
   }, [cases, suiteByCase, allSuites])
 
-  if (isLoading) return <p className="text-gray-500">Loading…</p>
+  if (isLoading) return <p className="text-gray-500 dark:text-gray-400">Loading…</p>
   if (!plan) return null
 
   const startEditTitle = () => { setTitle(plan.title); setEditingTitle(true) }
@@ -216,7 +216,7 @@ export function PlanDetailPage() {
         </div>
       ) : (
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-800 cursor-pointer hover:text-gray-600"
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300"
             onClick={startEditTitle}>
             {plan.title}
           </h1>
@@ -227,7 +227,7 @@ export function PlanDetailPage() {
       )}
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">{plan.test_case_ids.length} test cases</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{plan.test_case_ids.length} test cases</p>
         <AddCasesDialog plan={plan} projectId={plan.project_id} />
       </div>
 
@@ -245,12 +245,12 @@ export function PlanDetailPage() {
           {groups[0] && (
             <ul className="space-y-0.5">
               {groups[0].cases.map(tc => (
-                <li key={tc.id} className="flex items-center justify-between rounded px-2 py-1.5 hover:bg-gray-50 group transition-colors">
+                <li key={tc.id} className="flex items-center justify-between rounded px-2 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 group transition-colors">
                   <Link to={`/cases/${tc.id}`} className="min-w-0 flex-1">
                     <TestCaseItem tc={tc} />
                   </Link>
                   <button onClick={() => removeCase(tc.id)}
-                    className="ml-2 shrink-0 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-colors">
+                    className="ml-2 shrink-0 opacity-0 group-hover:opacity-100 text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors">
                     <Trash2 size={13} />
                   </button>
                 </li>

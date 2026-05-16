@@ -64,11 +64,11 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
     <div ref={rowRef} data-step-id={step.id}
       className={`relative border rounded-lg overflow-hidden ${config.bg} ${focused ? "ring-2 ring-red-400" : ""}`}>
       <div className="flex items-start gap-3 p-3">
-        <span className="text-xs font-mono text-gray-400 mt-0.5 w-5 shrink-0">{step.order}.</span>
+        <span className="text-xs font-mono text-gray-400 dark:text-gray-500 mt-0.5 w-5 shrink-0">{step.order}.</span>
         <div className="flex-1 min-w-0">
           <div className="prose prose-sm"><MdViewer value={step.action} /></div>
           {step.expected_result && (
-            <p className="text-xs text-gray-500 mt-1 italic">Expected: <MdViewer value={step.expected_result} /></p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">Expected: <MdViewer value={step.expected_result} /></p>
           )}
 
           {!isAutomated && (
@@ -81,7 +81,7 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
                     placeholder="Actual result / notes…"
                     rows={2}
                     autoFocus
-                    className="w-full text-xs border border-gray-300 rounded px-2 py-1 resize-none focus:outline-none focus:ring-1 focus:ring-primary-400 bg-white"
+                    className="w-full text-xs border border-gray-300 dark:border-gray-700 rounded px-2 py-1 resize-none focus:outline-none focus:ring-1 focus:ring-primary-400 bg-white dark:bg-gray-900"
                   />
                   <div className="flex gap-1">
                     <button onClick={handleSaveComment} disabled={saving}
@@ -89,20 +89,20 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
                       {saving ? "Saving…" : "Save"}
                     </button>
                     <button onClick={() => { setEditComment(false); setComment(stepResult?.comment ?? "") }}
-                      className="text-xs px-2 py-0.5 text-gray-500 hover:text-gray-800">
+                      className="text-xs px-2 py-0.5 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100">
                       Cancel
                     </button>
                   </div>
                 </div>
               ) : comment ? (
                 <button onClick={() => setEditComment(true)} className="text-left w-full group">
-                  <p className="text-xs text-gray-700 bg-black/5 rounded px-2 py-1 border border-black/10 group-hover:border-black/20 transition-colors">
+                  <p className="text-xs text-gray-700 dark:text-gray-200 bg-black/5 rounded px-2 py-1 border border-black/10 group-hover:border-black/20 transition-colors">
                     {comment}
                   </p>
                 </button>
               ) : (
                 <button onClick={() => setEditComment(true)}
-                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                  className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                   + Add note
                 </button>
               )}
@@ -111,14 +111,14 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
 
           {stepResult?.log_output && (
             <button onClick={() => setShowLog(l => !l)}
-              className="text-xs text-gray-400 hover:text-gray-700 mt-1 underline block">
+              className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 mt-1 underline block">
               {showLog ? "Hide log" : "Show log"}
             </button>
           )}
         </div>
 
         {hasMeta && (
-          <div className="flex items-center gap-2 text-[11px] text-gray-400 shrink-0 self-center whitespace-nowrap">
+          <div className="flex items-center gap-2 text-[11px] text-gray-400 dark:text-gray-500 shrink-0 self-center whitespace-nowrap">
             {stepResult?.duration_ms != null && (
               <span className="flex items-center gap-1"><Clock size={10} />{fmtDuration(stepResult.duration_ms)}</span>
             )}
@@ -157,7 +157,7 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
         <div
           ref={logRef}
           data-testid="step-log-output"
-          className="px-4 pb-3 border-t border-gray-100 bg-gray-900 text-gray-100 text-xs font-mono whitespace-pre-wrap rounded-b-lg max-h-48 overflow-y-auto"
+          className="px-4 pb-3 border-t border-gray-100 dark:border-gray-800 bg-gray-900 text-gray-100 text-xs font-mono whitespace-pre-wrap rounded-b-lg max-h-48 overflow-y-auto"
         >
           {stepResult.log_output}
         </div>

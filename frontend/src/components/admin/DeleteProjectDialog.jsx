@@ -31,7 +31,7 @@ export function DeleteProjectDialog({ project, onClose }) {
         <DialogHeader>
           <DialogTitle>Delete project "{project.name}"</DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-gray-600 mb-3">
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
           This permanently removes the project, its suites, cases, and executions. Type the
           project name to confirm.
         </p>

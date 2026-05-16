@@ -18,7 +18,7 @@ const ROLES = ["owner", "tester", "viewer"]
 const ROLE_BADGE = {
   owner:  "bg-purple-100 text-purple-700",
   tester: "bg-blue-100 text-blue-700",
-  viewer: "bg-gray-100 text-gray-600",
+  viewer: "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300",
 }
 
 function fmtDate(iso) {
@@ -34,13 +34,13 @@ function NewTokenValue({ token, onDone }) {
     <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
       <p className="text-sm font-medium text-green-800">Token created — copy it now, it won't be shown again.</p>
       <div className="flex items-center gap-2">
-        <code className="flex-1 bg-white border rounded px-3 py-1.5 text-sm font-mono text-gray-800 truncate">
+        <code className="flex-1 bg-white dark:bg-gray-900 border rounded px-3 py-1.5 text-sm font-mono text-gray-800 dark:text-gray-100 truncate">
           {visible ? token : token.slice(0, 4) + "•".repeat(token.length - 4)}
         </code>
-        <button onClick={() => setVisible(v => !v)} className="text-gray-400 hover:text-gray-700 p-1">
+        <button onClick={() => setVisible(v => !v)} className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 p-1">
           {visible ? <EyeOff size={15} /> : <Eye size={15} />}
         </button>
-        <button onClick={copy} className="text-gray-400 hover:text-gray-700 p-1">
+        <button onClick={copy} className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 p-1">
           <Copy size={15} />
         </button>
       </div>
@@ -78,10 +78,10 @@ function TokensSection({ projectId }) {
   }
 
   return (
-    <section className="bg-white border rounded-xl shadow-sm overflow-hidden">
+    <section className="bg-white dark:bg-gray-900 border rounded-xl shadow-sm overflow-hidden">
       <div className="px-5 py-4 border-b flex items-center gap-2">
-        <Key size={15} className="text-gray-500" />
-        <h2 className="font-semibold text-gray-800">Project API Tokens</h2>
+        <Key size={15} className="text-gray-500 dark:text-gray-400" />
+        <h2 className="font-semibold text-gray-800 dark:text-gray-100">Project API Tokens</h2>
       </div>
 
       <div className="p-5 space-y-4">
@@ -96,7 +96,7 @@ function TokensSection({ projectId }) {
 
         {tokens.length > 0 && (
           <table className="w-full text-sm">
-            <thead className="text-xs text-gray-400 uppercase">
+            <thead className="text-xs text-gray-400 dark:text-gray-500 uppercase">
               <tr>
                 <th className="text-left pb-2">Name</th>
                 <th className="text-left pb-2">Prefix</th>
@@ -108,15 +108,15 @@ function TokensSection({ projectId }) {
             <tbody className="divide-y divide-gray-50">
               {tokens.map(t => (
                 <tr key={t.id}>
-                  <td className="py-2 font-medium text-gray-800">{t.name}</td>
-                  <td className="py-2 font-mono text-gray-500">{t.prefix}…</td>
-                  <td className="py-2 text-gray-400 flex items-center gap-1">
+                  <td className="py-2 font-medium text-gray-800 dark:text-gray-100">{t.name}</td>
+                  <td className="py-2 font-mono text-gray-500 dark:text-gray-400">{t.prefix}…</td>
+                  <td className="py-2 text-gray-400 dark:text-gray-500 flex items-center gap-1">
                     <Clock size={11} />{fmtDate(t.last_used_at)}
                   </td>
-                  <td className="py-2 text-gray-400">{fmtDate(t.created_at)}</td>
+                  <td className="py-2 text-gray-400 dark:text-gray-500">{fmtDate(t.created_at)}</td>
                   <td className="py-2 text-right">
                     <button onClick={() => handleRevoke(t.id)}
-                      className="text-gray-300 hover:text-red-500 transition-colors p-1">
+                      className="text-gray-300 dark:text-gray-600 hover:text-red-500 transition-colors p-1">
                       <Trash2 size={14} />
                     </button>
                   </td>
@@ -186,7 +186,7 @@ export function MembersPage() {
     }
   }
 
-  if (isLoading) return <p className="text-gray-500">Loading…</p>
+  if (isLoading) return <p className="text-gray-500 dark:text-gray-400">Loading…</p>
 
   return (
     <div className="pl-14 pr-4 py-4 md:p-8 max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-6">
@@ -197,13 +197,13 @@ export function MembersPage() {
           { label: "Members" },
         ]}
       />
-      <h1 className="text-2xl font-bold text-gray-800">Members & Access</h1>
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Members & Access</h1>
 
       {/* Members */}
-      <section className="bg-white border rounded-xl shadow-sm overflow-hidden">
+      <section className="bg-white dark:bg-gray-900 border rounded-xl shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b flex items-center gap-2">
-          <Shield size={15} className="text-gray-500" />
-          <h2 className="font-semibold text-gray-800">Members</h2>
+          <Shield size={15} className="text-gray-500 dark:text-gray-400" />
+          <h2 className="font-semibold text-gray-800 dark:text-gray-100">Members</h2>
         </div>
 
         <div className="divide-y divide-gray-50">
@@ -213,8 +213,8 @@ export function MembersPage() {
                 {(m.full_name ?? m.username).split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800 truncate">{m.full_name ?? m.username}</p>
-                <p className="text-xs text-gray-400">@{m.username}</p>
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{m.full_name ?? m.username}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">@{m.username}</p>
               </div>
               <select
                 value={m.role}
@@ -224,7 +224,7 @@ export function MembersPage() {
                 {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
               </select>
               <button onClick={() => handleRemove(m.user_id)}
-                className="text-gray-300 hover:text-red-500 transition-colors p-1 shrink-0">
+                className="text-gray-300 dark:text-gray-600 hover:text-red-500 transition-colors p-1 shrink-0">
                 <Trash2 size={14} />
               </button>
             </div>
@@ -242,11 +242,11 @@ export function MembersPage() {
         </div>
 
         {addableUsers.length > 0 && (
-          <form onSubmit={handleAdd} className="px-5 py-4 border-t bg-gray-50 flex gap-2">
+          <form onSubmit={handleAdd} className="px-5 py-4 border-t bg-gray-50 dark:bg-gray-900 flex gap-2">
             <select
               value={selectedUserId}
               onChange={e => setSelectedUserId(e.target.value)}
-              className="flex-1 text-sm border border-gray-200 rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-primary-400"
+              className="flex-1 text-sm border border-gray-200 dark:border-gray-700 rounded-md px-3 py-1.5 bg-white dark:bg-gray-900 focus:outline-none focus:ring-1 focus:ring-primary-400"
             >
               <option value="">Select user…</option>
               {addableUsers.map(u => (
@@ -256,7 +256,7 @@ export function MembersPage() {
             <select
               value={selectedRole}
               onChange={e => setSelectedRole(e.target.value)}
-              className="text-sm border border-gray-200 rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-primary-400"
+              className="text-sm border border-gray-200 dark:border-gray-700 rounded-md px-3 py-1.5 bg-white dark:bg-gray-900 focus:outline-none focus:ring-1 focus:ring-primary-400"
             >
               {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
             </select>

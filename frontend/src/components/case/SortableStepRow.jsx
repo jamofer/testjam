@@ -10,7 +10,7 @@ import { Button } from "../ui/button"
 
 const STEP_TYPE_STYLE = {
   setup:    "bg-blue-50 text-blue-600 border-blue-200",
-  action:   "bg-gray-50 text-gray-500 border-gray-200",
+  action:   "bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700",
   teardown: "bg-orange-50 text-orange-600 border-orange-200",
 }
 
@@ -39,12 +39,12 @@ export function SortableStepRow({ step, caseId, onDelete }) {
   const typeStyle = STEP_TYPE_STYLE[step.step_type] ?? STEP_TYPE_STYLE.action
 
   return (
-    <div ref={setNodeRef} style={style} className="border rounded-lg p-3 space-y-2 bg-white">
+    <div ref={setNodeRef} style={style} className="border rounded-lg p-3 space-y-2 bg-white dark:bg-gray-900">
       <div className="flex items-start gap-2">
-        <button {...attributes} {...listeners} className="text-gray-300 hover:text-gray-500 mt-1 cursor-grab touch-none">
+        <button {...attributes} {...listeners} className="text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 mt-1 cursor-grab touch-none">
           <GripVertical size={14} />
         </button>
-        <span className="text-xs font-mono text-gray-400 mt-1 w-6">{step.order}.</span>
+        <span className="text-xs font-mono text-gray-400 dark:text-gray-500 mt-1 w-6">{step.order}.</span>
         <span className={`text-xs px-1.5 py-0.5 rounded border mt-0.5 shrink-0 ${typeStyle}`}>
           {step.step_type}
         </span>
@@ -52,11 +52,11 @@ export function SortableStepRow({ step, caseId, onDelete }) {
           {editing ? (
             <div className="space-y-2">
               <div>
-                <p className="text-xs text-gray-500 mb-1">Step</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Step</p>
                 <MdEditor value={action} onChange={setAction} height={120} />
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Expected result</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Expected result</p>
                 <MdEditor value={expected} onChange={setExpected} height={80} />
               </div>
               <div className="flex gap-2">
@@ -66,16 +66,16 @@ export function SortableStepRow({ step, caseId, onDelete }) {
             </div>
           ) : (
             <div className="cursor-pointer" onClick={() => setEditing(true)}>
-              <div className="prose prose-sm text-gray-800"><MdViewer value={step.action} /></div>
+              <div className="prose prose-sm text-gray-800 dark:text-gray-100"><MdViewer value={step.action} /></div>
               {step.expected_result && (
-                <div className="mt-1 text-xs text-gray-400 italic">
+                <div className="mt-1 text-xs text-gray-400 dark:text-gray-500 italic">
                   Expected: <MdViewer value={step.expected_result} />
                 </div>
               )}
             </div>
           )}
         </div>
-        <button onClick={onDelete} className="text-gray-300 hover:text-red-500 mt-1">
+        <button onClick={onDelete} className="text-gray-300 dark:text-gray-600 hover:text-red-500 mt-1">
           <Trash2 size={13} />
         </button>
       </div>

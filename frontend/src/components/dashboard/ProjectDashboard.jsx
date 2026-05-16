@@ -33,10 +33,10 @@ export function ProjectDashboard({ projectId, range, onRangeChange }) {
 function DashboardHeader({ range, onRangeChange }) {
   return (
     <div className="flex items-center justify-between">
-      <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+      <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
         Last {range} days
       </h2>
-      <div role="radiogroup" aria-label="Range" className="flex items-center rounded-md border bg-white text-xs overflow-hidden">
+      <div role="radiogroup" aria-label="Range" className="flex items-center rounded-md border bg-white dark:bg-gray-900 text-xs overflow-hidden">
         {RANGES.map(option => (
           <button
             key={option}
@@ -47,7 +47,7 @@ function DashboardHeader({ range, onRangeChange }) {
               "px-3 py-1.5 transition-colors " +
               (option === range
                 ? "bg-primary-600 text-white"
-                : "text-gray-600 hover:bg-gray-50")
+                : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800")
             }
           >
             {option}d
@@ -60,9 +60,9 @@ function DashboardHeader({ range, onRangeChange }) {
 
 function Card({ title, action, children }) {
   return (
-    <div className="rounded-xl border bg-white p-5 shadow-sm">
+    <div className="rounded-xl border bg-white dark:bg-gray-900 p-5 shadow-sm">
       <header className="flex items-center justify-between mb-3">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{title}</p>
+        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{title}</p>
         {action}
       </header>
       {children}
@@ -88,12 +88,12 @@ function CountsCard({ counts, loading }) {
 function Stat({ icon: Icon, label, value }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-lg bg-gray-50 text-gray-500 flex items-center justify-center">
+      <div className="w-10 h-10 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 flex items-center justify-center">
         <Icon size={18} />
       </div>
       <div>
-        <p className="text-xs text-gray-500">{label}</p>
-        <p className="text-xl font-semibold text-gray-800 leading-tight">{value}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
+        <p className="text-xl font-semibold text-gray-800 dark:text-gray-100 leading-tight">{value}</p>
       </div>
     </div>
   )
@@ -110,10 +110,10 @@ function PassRateCard({ passRate, loading }) {
     <Card title="Pass rate">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="text-3xl font-bold text-gray-800 leading-none">
+          <p className="text-3xl font-bold text-gray-800 dark:text-gray-100 leading-none">
             {overall == null ? "—" : `${Math.round(overall * 100)}%`}
           </p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
             {passRate.total_results} result{passRate.total_results === 1 ? "" : "s"}
           </p>
         </div>
@@ -138,14 +138,14 @@ function TopFailCard({ topFail, loading, projectId }) {
       }
     >
       {rows.length === 0 ? (
-        <p className="text-sm text-gray-400 py-2">No failures in this window.</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500 py-2">No failures in this window.</p>
       ) : (
         <ul className="space-y-2">
           {rows.map(row => (
             <li key={row.case_id} className="flex items-center justify-between gap-3">
               <Link
                 to={`/cases/${row.case_id}`}
-                className="truncate text-sm text-gray-800 hover:underline"
+                className="truncate text-sm text-gray-800 dark:text-gray-100 hover:underline"
                 title={row.case_name}
               >
                 {row.case_name}
@@ -174,7 +174,7 @@ function RecentExecutionsCard({ recent, loading, projectId }) {
       }
     >
       {items.length === 0 ? (
-        <p className="text-sm text-gray-400 py-2">No executions in this window.</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500 py-2">No executions in this window.</p>
       ) : (
         <ul className="space-y-2">
           {items.map(item => <RecentExecutionRow key={item.id} item={item} />)}
@@ -193,12 +193,12 @@ function RecentExecutionRow({ item }) {
       </span>
       <Link
         to={`/executions/${item.id}/run`}
-        className="grow truncate text-sm text-gray-800 hover:underline"
+        className="grow truncate text-sm text-gray-800 dark:text-gray-100 hover:underline"
         title={item.title}
       >
         {item.title}
       </Link>
-      <span className="shrink-0 text-xs text-gray-400">
+      <span className="shrink-0 text-xs text-gray-400 dark:text-gray-500">
         {fmtDuration(item.duration_ms) ?? <DateLabel iso={item.created_at} />}
       </span>
     </li>

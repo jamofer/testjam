@@ -5,10 +5,10 @@ function ShortcutRow({ keys, description }) {
     <div className="flex items-center justify-between gap-4">
       <div className="flex gap-1 shrink-0">
         {keys.map((k, i) => (
-          <kbd key={i} className="px-2 py-0.5 text-xs font-mono bg-gray-100 border border-gray-300 rounded">{k}</kbd>
+          <kbd key={i} className="px-2 py-0.5 text-xs font-mono bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded">{k}</kbd>
         ))}
       </div>
-      <span className="text-gray-600 text-right">{description}</span>
+      <span className="text-gray-600 dark:text-gray-300 text-right">{description}</span>
     </div>
   )
 }
@@ -25,7 +25,7 @@ export function ShortcutsDialog({ open, onOpenChange, title = "Keyboard shortcut
           {sections.map((section, i) => (
             <div key={i} className="space-y-2">
               {section.title && (
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
                   {section.title}
                 </p>
               )}

@@ -39,14 +39,14 @@ export function ResetPasswordPage() {
   if (confirmReset.isSuccess) {
     return (
       <CenteredCard>
-        <p className="text-sm text-gray-700">Password updated. Redirecting to sign in…</p>
+        <p className="text-sm text-gray-700 dark:text-gray-200">Password updated. Redirecting to sign in…</p>
       </CenteredCard>
     )
   }
 
   return (
     <CenteredCard>
-      <h1 className="text-base font-semibold text-gray-800 text-center">Choose a new password</h1>
+      <h1 className="text-base font-semibold text-gray-800 dark:text-gray-100 text-center">Choose a new password</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         {confirmReset.isError && (
           <p className="text-sm text-red-500" role="alert">
@@ -68,7 +68,7 @@ export function ResetPasswordPage() {
           autoComplete="new-password"
         />
         {!isLongEnough && newPassword.length > 0 && (
-          <p className="text-xs text-gray-500">Use at least {MIN_PASSWORD_LENGTH} characters.</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Use at least {MIN_PASSWORD_LENGTH} characters.</p>
         )}
         {!passwordsMatch && confirmation.length > 0 && (
           <p className="text-xs text-red-500">Passwords don't match.</p>
@@ -88,8 +88,8 @@ export function ResetPasswordPage() {
 
 function CenteredCard({ children }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white shadow-md rounded-xl p-8 w-80 space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+      <div className="bg-white dark:bg-gray-900 shadow-md rounded-xl p-8 w-80 space-y-4">
         <div className="flex justify-center pb-2"><Logo size={32} /></div>
         {children}
       </div>
@@ -100,7 +100,7 @@ function CenteredCard({ children }) {
 function PasswordField({ id, label, value, onChange, autoComplete }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor={id}>{label}</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor={id}>{label}</label>
       <input
         id={id}
         type="password"
@@ -117,7 +117,7 @@ function PasswordField({ id, label, value, onChange, autoComplete }) {
 function BackToLogin() {
   return (
     <p className="text-center text-sm">
-      <Link to="/login" className="text-gray-600 hover:text-gray-800">Back to sign in</Link>
+      <Link to="/login" className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100">Back to sign in</Link>
     </p>
   )
 }

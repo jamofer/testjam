@@ -42,13 +42,13 @@ function NewTokenBanner({ token, onDone }) {
     <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
       <p className="text-sm font-medium text-green-800">Token created — copy it now, it won't be shown again.</p>
       <div className="flex items-center gap-2">
-        <code className="flex-1 bg-white border rounded px-3 py-1.5 text-sm font-mono text-gray-800 truncate">
+        <code className="flex-1 bg-white dark:bg-gray-900 border rounded px-3 py-1.5 text-sm font-mono text-gray-800 dark:text-gray-100 truncate">
           {visible ? token : token.slice(0, 4) + "•".repeat(token.length - 4)}
         </code>
-        <button onClick={() => setVisible(v => !v)} className="text-gray-400 hover:text-gray-700 p-1">
+        <button onClick={() => setVisible(v => !v)} className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 p-1">
           {visible ? <EyeOff size={15} /> : <Eye size={15} />}
         </button>
-        <button onClick={copy} className="text-gray-400 hover:text-gray-700 p-1"><Copy size={15} /></button>
+        <button onClick={copy} className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 p-1"><Copy size={15} /></button>
       </div>
       <Button size="sm" variant="outline" onClick={onDone}>Done</Button>
     </div>
@@ -84,10 +84,10 @@ function UserTokensSection() {
   }
 
   return (
-    <div className="bg-white border rounded-xl p-6 space-y-4 shadow-sm">
+    <div className="bg-white dark:bg-gray-900 border rounded-xl p-6 space-y-4 shadow-sm">
       <div className="flex items-center gap-2">
-        <Key size={15} className="text-gray-500" />
-        <h2 className="font-semibold text-gray-700">API Tokens</h2>
+        <Key size={15} className="text-gray-500 dark:text-gray-400" />
+        <h2 className="font-semibold text-gray-700 dark:text-gray-200">API Tokens</h2>
       </div>
 
       {newToken && <NewTokenBanner token={newToken} onDone={() => setNewToken(null)} />}
@@ -99,7 +99,7 @@ function UserTokensSection() {
 
       {tokens.length > 0 && (
         <table className="w-full text-sm">
-          <thead className="text-xs text-gray-400 uppercase">
+          <thead className="text-xs text-gray-400 dark:text-gray-500 uppercase">
             <tr>
               <th className="text-left pb-2">Name</th>
               <th className="text-left pb-2">Prefix</th>
@@ -110,12 +110,12 @@ function UserTokensSection() {
           <tbody className="divide-y divide-gray-50">
             {tokens.map(t => (
               <tr key={t.id}>
-                <td className="py-2 font-medium text-gray-800">{t.name}</td>
-                <td className="py-2 font-mono text-gray-500">{t.prefix}…</td>
-                <td className="py-2 text-gray-400 flex items-center gap-1"><Clock size={11} />{fmtDate(t.last_used_at)}</td>
+                <td className="py-2 font-medium text-gray-800 dark:text-gray-100">{t.name}</td>
+                <td className="py-2 font-mono text-gray-500 dark:text-gray-400">{t.prefix}…</td>
+                <td className="py-2 text-gray-400 dark:text-gray-500 flex items-center gap-1"><Clock size={11} />{fmtDate(t.last_used_at)}</td>
                 <td className="py-2 text-right">
                   <button onClick={() => handleRevoke(t.id)}
-                    className="text-gray-300 hover:text-red-500 transition-colors p-1">
+                    className="text-gray-300 dark:text-gray-600 hover:text-red-500 transition-colors p-1">
                     <Trash2 size={14} />
                   </button>
                 </td>
@@ -162,27 +162,27 @@ function DatePreferencesSection() {
   if (!user) return null
 
   return (
-    <form onSubmit={handleSave} className="bg-white border rounded-xl p-6 space-y-4 shadow-sm">
+    <form onSubmit={handleSave} className="bg-white dark:bg-gray-900 border rounded-xl p-6 space-y-4 shadow-sm">
       <div className="flex items-center gap-2">
-        <Globe size={15} className="text-gray-500" />
-        <h2 className="font-semibold text-gray-700">Dates &amp; timezone</h2>
+        <Globe size={15} className="text-gray-500 dark:text-gray-400" />
+        <h2 className="font-semibold text-gray-700 dark:text-gray-200">Dates &amp; timezone</h2>
       </div>
       <div className="space-y-1.5">
         <Label>Timezone</Label>
         <TimezonePicker value={timezone} onChange={setTimezone} />
-        <p className="text-xs text-gray-400">All dates in the UI render in this timezone.</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500">All dates in the UI render in this timezone.</p>
       </div>
       <div className="flex items-center justify-between">
         <div>
-          <Label className="font-medium text-gray-800">Show relative dates</Label>
-          <p className="text-xs text-gray-400">e.g. &ldquo;2 hours ago&rdquo;; hover shows the absolute timestamp.</p>
+          <Label className="font-medium text-gray-800 dark:text-gray-100">Show relative dates</Label>
+          <p className="text-xs text-gray-400 dark:text-gray-500">e.g. &ldquo;2 hours ago&rdquo;; hover shows the absolute timestamp.</p>
         </div>
         <input
           type="checkbox"
           aria-label="Show relative dates"
           checked={useRelative}
           onChange={event => setUseRelative(event.target.checked)}
-          className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+          className="h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-primary-600 focus:ring-primary-500"
         />
       </div>
       <Button type="submit" loading={updateMe.isPending}>Save preferences</Button>
@@ -217,10 +217,10 @@ function NotificationPreferencesSection() {
   )
 
   return (
-    <div className="bg-white border rounded-xl p-6 space-y-4 shadow-sm">
+    <div className="bg-white dark:bg-gray-900 border rounded-xl p-6 space-y-4 shadow-sm">
       <div className="flex items-center gap-2">
-        <Bell size={15} className="text-gray-500" />
-        <h2 className="font-semibold text-gray-700">Notifications</h2>
+        <Bell size={15} className="text-gray-500 dark:text-gray-400" />
+        <h2 className="font-semibold text-gray-700 dark:text-gray-200">Notifications</h2>
       </div>
 
       {!smtpConfigured && (
@@ -233,11 +233,11 @@ function NotificationPreferencesSection() {
         </div>
       )}
 
-      {isLoading && <p className="text-sm text-gray-400">Loading…</p>}
+      {isLoading && <p className="text-sm text-gray-400 dark:text-gray-500">Loading…</p>}
 
       {!isLoading && sortedPreferences.length > 0 && (
         <table className="w-full text-sm">
-          <thead className="text-xs text-gray-400 uppercase">
+          <thead className="text-xs text-gray-400 dark:text-gray-500 uppercase">
             <tr>
               <th className="text-left pb-2">Event</th>
               <th className="pb-2 w-16 text-center">In-app</th>
@@ -253,9 +253,9 @@ function NotificationPreferencesSection() {
               return (
                 <tr key={preference.event_type}>
                   <td className="py-3 pr-2">
-                    <p className="font-medium text-gray-800">{meta.title}</p>
+                    <p className="font-medium text-gray-800 dark:text-gray-100">{meta.title}</p>
                     {meta.description && (
-                      <p className="text-xs text-gray-400 mt-0.5">{meta.description}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{meta.description}</p>
                     )}
                   </td>
                   <td className="py-3 text-center">
@@ -265,7 +265,7 @@ function NotificationPreferencesSection() {
                       checked={preference.in_app}
                       onChange={() => togglePreference(preference, "in_app")}
                       disabled={update.isPending}
-                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      className="h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-primary-600 focus:ring-primary-500"
                     />
                   </td>
                   <td className="py-3 text-center">
@@ -275,7 +275,7 @@ function NotificationPreferencesSection() {
                       checked={preference.email}
                       onChange={() => togglePreference(preference, "email")}
                       disabled={update.isPending || !smtpConfigured}
-                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 disabled:opacity-50"
+                      className="h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-primary-600 focus:ring-primary-500 disabled:opacity-50"
                     />
                   </td>
                 </tr>
@@ -336,8 +336,8 @@ export function ProfilePage() {
   return (
     <div className="pl-14 pr-4 py-4 md:p-8 max-w-lg space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Profile</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Manage your account settings</p>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Profile</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Manage your account settings</p>
       </div>
 
       <div className="flex items-center gap-4">
@@ -345,16 +345,16 @@ export function ProfilePage() {
           {initials}
         </div>
         <div>
-          <p className="font-semibold text-gray-800 text-lg">{user.full_name || user.username}</p>
-          <p className="text-sm text-gray-400">@{user.username}</p>
+          <p className="font-semibold text-gray-800 dark:text-gray-100 text-lg">{user.full_name || user.username}</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">@{user.username}</p>
         </div>
       </div>
 
-      <form onSubmit={handleSaveProfile} className="bg-white border rounded-xl p-6 space-y-4 shadow-sm">
-        <h2 className="font-semibold text-gray-700">Account details</h2>
+      <form onSubmit={handleSaveProfile} className="bg-white dark:bg-gray-900 border rounded-xl p-6 space-y-4 shadow-sm">
+        <h2 className="font-semibold text-gray-700 dark:text-gray-200">Account details</h2>
         <div className="space-y-1.5">
           <Label>Username</Label>
-          <Input value={user.username} disabled className="bg-gray-50 text-gray-400" />
+          <Input value={user.username} disabled className="bg-gray-50 dark:bg-gray-900 text-gray-400 dark:text-gray-500" />
         </div>
         <div className="space-y-1.5">
           <Label>Full name</Label>
@@ -373,8 +373,8 @@ export function ProfilePage() {
 
       <NotificationPreferencesSection />
 
-      <form onSubmit={handleChangePassword} className="bg-white border rounded-xl p-6 space-y-4 shadow-sm">
-        <h2 className="font-semibold text-gray-700">Change password</h2>
+      <form onSubmit={handleChangePassword} className="bg-white dark:bg-gray-900 border rounded-xl p-6 space-y-4 shadow-sm">
+        <h2 className="font-semibold text-gray-700 dark:text-gray-200">Change password</h2>
         <div className="space-y-1.5">
           <Label>Current password</Label>
           <Input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />

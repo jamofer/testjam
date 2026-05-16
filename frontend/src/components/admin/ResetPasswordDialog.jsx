@@ -37,7 +37,7 @@ export function ResetPasswordDialog({ user, onClose }) {
         </DialogHeader>
         {!temporary && !sent && (
           <>
-            <p className="text-sm text-gray-600 mb-3">
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
               Sending an email keeps a self-serve audit trail. Showing a temporary password
               works even when SMTP is down, but only once — copy it before closing.
             </p>
@@ -60,7 +60,7 @@ export function ResetPasswordDialog({ user, onClose }) {
         )}
         {sent && (
           <>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-gray-700 dark:text-gray-200">
               Sent. The link is valid for 24 hours and arrives at <b>{user.email}</b>.
             </p>
             <div className="flex justify-end pt-3">
@@ -70,10 +70,10 @@ export function ResetPasswordDialog({ user, onClose }) {
         )}
         {temporary && (
           <>
-            <p className="text-sm text-gray-700 mb-3">
+            <p className="text-sm text-gray-700 dark:text-gray-200 mb-3">
               Share this password securely. It will not be shown again.
             </p>
-            <div className="flex items-center gap-2 rounded-md border bg-gray-50 p-2 font-mono text-sm">
+            <div className="flex items-center gap-2 rounded-md border bg-gray-50 dark:bg-gray-900 p-2 font-mono text-sm">
               <span className="grow break-all">{temporary}</span>
               <Button size="icon" variant="ghost" onClick={copy}><Copy size={14} /></Button>
             </div>

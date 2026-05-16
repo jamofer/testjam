@@ -71,7 +71,7 @@ export function ImportExecutionDialog({ projectId }) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader><DialogTitle>Import test results</DialogTitle></DialogHeader>
-        <p className="text-sm text-gray-500 -mt-1">
+        <p className="text-sm text-gray-500 dark:text-gray-400 -mt-1">
           Creates an automatic execution and ingests the file in one step.
         </p>
         <div className="space-y-3">

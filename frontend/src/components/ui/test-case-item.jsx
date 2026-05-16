@@ -23,12 +23,12 @@ export function TestCaseItem({ tc, suites }) {
   const path = suites ? buildSuitePath(tc.suite_id, suites) : null
   return (
     <div className="flex items-start gap-2 min-w-0">
-      <FileText size={13} className="text-gray-400 shrink-0 mt-px" />
+      <FileText size={13} className="text-gray-400 dark:text-gray-500 shrink-0 mt-px" />
       <div className="min-w-0">
         {path && (
-          <p className="text-[11px] leading-none text-gray-400 truncate mb-0.5">{path}</p>
+          <p className="text-[11px] leading-none text-gray-400 dark:text-gray-500 truncate mb-0.5">{path}</p>
         )}
-        <p className="text-sm text-gray-800 leading-snug truncate">{tc.name}</p>
+        <p className="text-sm text-gray-800 dark:text-gray-100 leading-snug truncate">{tc.name}</p>
       </div>
     </div>
   )

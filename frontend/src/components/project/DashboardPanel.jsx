@@ -62,29 +62,29 @@ export function DashboardPanel({ project, compact = false }) {
 
   return (
     <div className={`grid gap-3 ${compact ? "grid-cols-3" : "grid-cols-1 sm:grid-cols-3"}`}>
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Library</p>
+      <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Library</p>
         <div className="mt-1.5 grid grid-cols-2 gap-y-1 text-xs">
-          <span className="flex items-center gap-1.5 text-gray-600"><FolderOpen size={11} className="text-yellow-500" /> Suites</span>
+          <span className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300"><FolderOpen size={11} className="text-yellow-500" /> Suites</span>
           <span className="text-right font-semibold">{totals.suites}</span>
-          <span className="flex items-center gap-1.5 text-gray-600"><FileText size={11} className="text-gray-400" /> Cases</span>
+          <span className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300"><FileText size={11} className="text-gray-400 dark:text-gray-500" /> Cases</span>
           <span className="text-right font-semibold">{totals.cases}</span>
-          <span className="flex items-center gap-1.5 text-gray-600"><PlayCircle size={11} className="text-blue-500" /> Executions</span>
+          <span className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300"><PlayCircle size={11} className="text-blue-500" /> Executions</span>
           <span className="text-right font-semibold">{totals.executions}</span>
         </div>
       </div>
 
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+      <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
         <div className="flex items-center justify-between">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Pass rate</p>
-          <span className="text-[10px] text-gray-400">last {passRates.length}</span>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Pass rate</p>
+          <span className="text-[10px] text-gray-400 dark:text-gray-500">last {passRates.length}</span>
         </div>
         <div className="mt-0.5 flex items-end gap-2">
-          <div className="text-xl font-bold text-gray-800">
+          <div className="text-xl font-bold text-gray-800 dark:text-gray-100">
             {avgPass != null ? `${Math.round(avgPass * 100)}%` : "—"}
           </div>
           {avgPass != null && (
-            <span className="text-[10px] text-gray-400 mb-1 flex items-center gap-1">
+            <span className="text-[10px] text-gray-400 dark:text-gray-500 mb-1 flex items-center gap-1">
               <TrendingUp size={10} /> avg
             </span>
           )}
@@ -93,27 +93,27 @@ export function DashboardPanel({ project, compact = false }) {
           {passRates.length >= 2 ? (
             <Sparkline values={passRates} />
           ) : (
-            <p className="text-[11px] text-gray-400 py-1">Not enough data yet.</p>
+            <p className="text-[11px] text-gray-400 dark:text-gray-500 py-1">Not enough data yet.</p>
           )}
         </div>
       </div>
 
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">Recent runs</p>
+      <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1.5">Recent runs</p>
         {recent.length === 0 ? (
-          <p className="text-[11px] text-gray-400 py-1">No executions yet.</p>
+          <p className="text-[11px] text-gray-400 dark:text-gray-500 py-1">No executions yet.</p>
         ) : (
           <ul className="space-y-1">
             {recent.slice(0, 3).map(ex => (
               <li key={ex.id}>
                 <Link to={`/executions/${ex.id}/run`} className="flex items-center gap-1.5 text-xs group">
                   <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${STATUS_DOT[ex.status] ?? "bg-gray-400"}`} />
-                  <span className="truncate flex-1 text-gray-700 group-hover:text-primary-600">{ex.title}</span>
-                  <span className="flex items-center gap-1 text-[10px] text-gray-400 shrink-0">
+                  <span className="truncate flex-1 text-gray-700 dark:text-gray-200 group-hover:text-primary-600">{ex.title}</span>
+                  <span className="flex items-center gap-1 text-[10px] text-gray-400 dark:text-gray-500 shrink-0">
                     <CheckCircle2 size={9} className="text-green-500" />{ex.passed ?? 0}
                     <XCircle size={9} className="text-red-500" />{ex.failed ?? 0}
                     <AlertTriangle size={9} className="text-yellow-500" />{ex.blocked ?? 0}
-                    <MinusCircle size={9} className="text-gray-400" />{ex.not_run ?? 0}
+                    <MinusCircle size={9} className="text-gray-400 dark:text-gray-500" />{ex.not_run ?? 0}
                   </span>
                 </Link>
               </li>

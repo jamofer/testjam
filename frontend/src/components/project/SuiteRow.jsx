@@ -86,10 +86,10 @@ function SortableCaseRow({ tc, suiteId, deleteCase, selected, toggle }) {
   })
   return (
     <li ref={setNodeRef} style={style}
-      className={`flex items-center justify-between rounded px-2 py-1.5 hover:bg-gray-50 group transition-colors ${selected.has(tc.id) ? "bg-blue-50" : ""}`}>
+      className={`flex items-center justify-between rounded px-2 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 group transition-colors ${selected.has(tc.id) ? "bg-blue-50" : ""}`}>
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <button {...attributes} {...listeners}
-          className="text-gray-300 hover:text-gray-500 cursor-grab touch-none shrink-0"
+          className="text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 cursor-grab touch-none shrink-0"
           aria-label="Drag to reorder">
           <GripVertical size={12} />
         </button>
@@ -103,13 +103,13 @@ function SortableCaseRow({ tc, suiteId, deleteCase, selected, toggle }) {
           data-suite-id={suiteId}
           data-case-id={tc.id}
           onKeyDown={handleKeyDown}
-          className="hover:text-gray-900 min-w-0 outline-none focus:ring-2 focus:ring-primary-300 rounded">
+          className="hover:text-gray-900 dark:hover:text-white min-w-0 outline-none focus:ring-2 focus:ring-primary-300 rounded">
           <TestCaseItem tc={tc} />
         </Link>
       </div>
       <button
         onClick={() => deleteCase.mutate(tc.id, { onSuccess: () => toast.success("Deleted") })}
-        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 shrink-0">
+        className="opacity-0 group-hover:opacity-100 text-gray-400 dark:text-gray-500 hover:text-red-500 shrink-0">
         <Trash2 size={13} />
       </button>
     </li>
@@ -168,12 +168,12 @@ function CaseList({ suiteId }) {
   }
 
   if (cases.length === 0)
-    return <p className="text-xs text-gray-400 pl-2 py-1">No test cases</p>
+    return <p className="text-xs text-gray-400 dark:text-gray-500 pl-2 py-1">No test cases</p>
 
   return (
     <div>
       {cases.length > 1 && (
-        <label className="flex items-center gap-2 pl-4 pr-2 py-1 text-xs text-gray-500 cursor-pointer">
+        <label className="flex items-center gap-2 pl-4 pr-2 py-1 text-xs text-gray-500 dark:text-gray-400 cursor-pointer">
           <input type="checkbox" checked={allSelected}
             onChange={toggleAll}
             ref={el => { if (el) el.indeterminate = selected.size > 0 && !allSelected }} />
@@ -205,8 +205,8 @@ function CaseList({ suiteId }) {
       </DndContext>
 
       {selected.size > 0 && (
-        <div className="ml-4 mt-2 flex items-center gap-2 p-2 rounded-lg border border-gray-200 bg-gray-50">
-          <span className="text-xs font-medium text-gray-600">
+        <div className="ml-4 mt-2 flex items-center gap-2 p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
             {selected.size} selected
           </span>
           <Button size="sm" variant="outline" onClick={handleBulkDelete}
@@ -259,11 +259,11 @@ function SortableSuiteStep({ step, stepType, onDelete }) {
     <div ref={setNodeRef} style={dragStyle}
       className={`flex items-start gap-2 border rounded-lg px-3 py-2 ${style}`}>
       <button {...attributes} {...listeners}
-        className="text-gray-300 hover:text-gray-500 mt-0.5 cursor-grab touch-none">
+        className="text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 mt-0.5 cursor-grab touch-none">
         <GripVertical size={12} />
       </button>
       <span className="flex-1 text-sm">{step.action}</span>
-      <button onClick={onDelete} className="text-gray-300 hover:text-red-500 shrink-0 mt-0.5">
+      <button onClick={onDelete} className="text-gray-300 dark:text-gray-600 hover:text-red-500 shrink-0 mt-0.5">
         <Trash2 size={12} />
       </button>
     </div>
@@ -344,17 +344,17 @@ function SuiteEditPanel({ suite, projectId, onClose, updateSuite }) {
   }
 
   return (
-    <div className="border-t bg-white px-4 py-4 space-y-4" onClick={e => e.stopPropagation()}>
+    <div className="border-t bg-white dark:bg-gray-900 px-4 py-4 space-y-4" onClick={e => e.stopPropagation()}>
       <div className="space-y-1">
-        <p className="text-xs text-gray-500">Name</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">Name</p>
         <Input value={name} onChange={e => setName(e.target.value)} />
       </div>
       <div className="space-y-1">
-        <p className="text-xs text-gray-500">Description</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">Description</p>
         <MdEditor value={description} onChange={setDescription} height={80} />
       </div>
       <div className="space-y-1">
-        <p className="text-xs text-gray-500">Tags <span className="text-gray-400">(comma-separated)</span></p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">Tags <span className="text-gray-400 dark:text-gray-500">(comma-separated)</span></p>
         <Input value={tagsInput} onChange={e => setTagsInput(e.target.value)} placeholder="smoke, regression…" />
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -396,7 +396,7 @@ function ChildSuites({ projectId, parentSuiteId }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
   if (children.length === 0) return null
   return (
-    <div className="pl-4 mt-2 space-y-2 border-l-2 border-gray-100">
+    <div className="pl-4 mt-2 space-y-2 border-l-2 border-gray-100 dark:border-gray-800">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -444,7 +444,7 @@ export function SuiteRow({ suite, projectId, dragHandleProps }) {
 
   return (
     <div className="border rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-300"
+      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-300"
         role="treeitem"
         tabIndex={0}
         aria-expanded={open}
@@ -453,10 +453,10 @@ export function SuiteRow({ suite, projectId, dragHandleProps }) {
         data-suite-id={suite.id}
         onKeyDown={handleKeyDown}
         onClick={() => setOpen(o => !o)}>
-        <div className="flex items-center gap-2 font-medium text-sm text-gray-800 flex-1 min-w-0">
+        <div className="flex items-center gap-2 font-medium text-sm text-gray-800 dark:text-gray-100 flex-1 min-w-0">
           {dragHandleProps && (
             <button {...dragHandleProps} onClick={e => e.stopPropagation()}
-              className="text-gray-300 hover:text-gray-500 cursor-grab touch-none shrink-0"
+              className="text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 cursor-grab touch-none shrink-0"
               aria-label="Drag suite to reorder">
               <GripVertical size={14} />
             </button>
@@ -464,7 +464,7 @@ export function SuiteRow({ suite, projectId, dragHandleProps }) {
           <ChevronRight size={14} className={`transition-transform shrink-0 ${open ? "rotate-90" : ""}`} />
           <FolderOpen size={14} className="text-yellow-500 shrink-0" />
           <span className="truncate">{suite.name}</span>
-          <span className="text-xs text-gray-400 shrink-0">({suite.test_case_ids?.length ?? 0})</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">({suite.test_case_ids?.length ?? 0})</span>
           {(suite.tags ?? []).map(t => (
             <span key={t} className="text-xs bg-blue-50 text-blue-600 border border-blue-200 px-1.5 py-0.5 rounded-full shrink-0">{t}</span>
           ))}
@@ -491,12 +491,12 @@ export function SuiteRow({ suite, projectId, dragHandleProps }) {
       {open && !editing && (
         <div className="px-2 py-1">
           {suite.description && (
-            <div className="px-2 pt-2 pb-1 text-xs text-gray-500 prose prose-sm">
+            <div className="px-2 pt-2 pb-1 text-xs text-gray-500 dark:text-gray-400 prose prose-sm">
               <MdViewer value={suite.description} />
             </div>
           )}
           {(suite.steps ?? []).length > 0 && (
-            <div className="flex gap-4 px-2 pb-2 text-xs text-gray-500">
+            <div className="flex gap-4 px-2 pb-2 text-xs text-gray-500 dark:text-gray-400">
               {["setup", "teardown"].map(t => {
                 const typeSteps = suite.steps.filter(s => s.step_type === t)
                 if (!typeSteps.length) return null

@@ -37,7 +37,7 @@ export function TestCasePage() {
   const [preconditions, setPreconditions] = useState("")
   const [newStepContent, setNewStepContent] = useState("")
 
-  if (isLoading) return <p className="text-gray-500">Loading…</p>
+  if (isLoading) return <p className="text-gray-500 dark:text-gray-400">Loading…</p>
   if (!tc) return null
 
   const startEditMeta = () => {
@@ -106,7 +106,7 @@ export function TestCasePage() {
             <span key={t} className="text-[11px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-200">{t}</span>
           ))}
         </div>
-      ) : <p className="text-[11px] text-gray-400">No tags</p>,
+      ) : <p className="text-[11px] text-gray-400 dark:text-gray-500">No tags</p>,
     },
     {
       title: `Attachments (${tc.attachments?.length ?? 0})`,
@@ -137,11 +137,11 @@ export function TestCasePage() {
             <div className="space-y-3">
               <Input value={title} onChange={e => setTitle(e.target.value)} className="text-lg font-bold" />
               <div>
-                <p className="text-xs text-gray-500 mb-1">Preconditions</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Preconditions</p>
                 <MdEditor value={preconditions} onChange={setPreconditions} height={80} />
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Description</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Description</p>
                 <MdEditor value={description} onChange={setDescription} height={120} />
               </div>
               <div className="flex gap-2">
@@ -151,8 +151,8 @@ export function TestCasePage() {
             </div>
           ) : (
             <div className="cursor-pointer group" onClick={startEditMeta}>
-              <h1 className="text-2xl font-bold text-gray-800 group-hover:text-gray-600">{tc.name}</h1>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-400">
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 group-hover:text-gray-600">{tc.name}</h1>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-400 dark:text-gray-500">
                 {tc.created_by && (
                   <span className="flex items-center gap-1">
                     <UserIcon size={11} /> Created by {tc.created_by.full_name || tc.created_by.username}
@@ -171,15 +171,15 @@ export function TestCasePage() {
               </div>
               {tc.preconditions && (
                 <div className="mt-2">
-                  <p className="text-xs text-gray-400 uppercase tracking-wide">Preconditions</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">Preconditions</p>
                   <div className="prose prose-sm mt-1"><MdViewer value={tc.preconditions} /></div>
                 </div>
               )}
               {tc.description && (
-                <div className="mt-2 prose prose-sm text-gray-600"><MdViewer value={tc.description} /></div>
+                <div className="mt-2 prose prose-sm text-gray-600 dark:text-gray-300"><MdViewer value={tc.description} /></div>
               )}
               {!tc.preconditions && !tc.description && (
-                <p className="text-sm text-gray-400 mt-1">Click to add description…</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Click to add description…</p>
               )}
             </div>
           )}
@@ -204,7 +204,7 @@ export function TestCasePage() {
                         <SortableStepRow key={step.id} step={step} caseId={id} onDelete={() => deleteStep(step.id)} />
                       ))}
                       <div className="border rounded-lg p-3 space-y-2">
-                        <p className="text-xs text-gray-500">New step</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">New step</p>
                         <MdEditor value={newStepContent} onChange={setNewStepContent} height={100} />
                         <Button size="sm" onClick={addStep} disabled={!newStepContent.trim()}>
                           <Plus size={13} /> Add step

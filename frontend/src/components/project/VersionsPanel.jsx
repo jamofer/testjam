@@ -9,7 +9,7 @@ import { toast } from "sonner"
 const VERSION_STATUS_CONFIG = {
   active:   { label: "Active",   icon: Circle,       color: "text-blue-500",  bg: "bg-blue-50"  },
   released: { label: "Released", icon: CheckCircle2, color: "text-green-600", bg: "bg-green-50" },
-  archived: { label: "Archived", icon: Archive,      color: "text-gray-400",  bg: "bg-gray-50"  },
+  archived: { label: "Archived", icon: Archive,      color: "text-gray-400 dark:text-gray-500",  bg: "bg-gray-50 dark:bg-gray-900"  },
 }
 
 function VersionRow({ version, projectId }) {
@@ -30,21 +30,21 @@ function VersionRow({ version, projectId }) {
       </button>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="font-medium text-sm text-gray-800">{version.name}</span>
+          <span className="font-medium text-sm text-gray-800 dark:text-gray-100">{version.name}</span>
           {version.vcs_tag && (
-            <span className="text-xs font-mono bg-white border px-1.5 py-0.5 rounded text-gray-500">
+            <span className="text-xs font-mono bg-white dark:bg-gray-900 border px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400">
               {version.vcs_tag}
             </span>
           )}
         </div>
         {version.description && (
-          <p className="text-xs text-gray-500 mt-0.5 truncate">{version.description}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{version.description}</p>
         )}
       </div>
       <span className={`text-xs font-medium ${cfg.color}`}>{cfg.label}</span>
       <button
         onClick={() => deleteVersion.mutate(version.id, { onSuccess: () => toast.success("Version deleted") })}
-        className="text-gray-300 hover:text-red-500 shrink-0">
+        className="text-gray-300 dark:text-gray-600 hover:text-red-500 shrink-0">
         <Trash2 size={13} />
       </button>
     </li>

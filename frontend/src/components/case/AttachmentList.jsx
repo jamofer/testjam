@@ -57,26 +57,26 @@ export function AttachmentList({ caseId, attachments }) {
       <ul className="space-y-1.5">
         {attachments.map(att => (
           <li key={att.id} className="flex items-center gap-2 text-sm bg-gray-50 rounded-lg px-3 py-2">
-            <span className="text-xs bg-white border px-1.5 py-0.5 rounded text-gray-500 shrink-0">
+            <span className="text-xs bg-white dark:bg-gray-900 border px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400 shrink-0">
               {att.content_type ?? "file"}
             </span>
             <button type="button"
               onClick={() => casesApi.downloadAttachment(caseId, att.id, att.filename)
                 .catch(() => toast.error("Download failed"))}
-              className="flex items-center gap-1 text-left text-gray-700 hover:text-primary-600 min-w-0 flex-1 truncate">
+              className="flex items-center gap-1 text-left text-gray-700 dark:text-gray-200 hover:text-primary-600 min-w-0 flex-1 truncate">
               {att.filename}
               <ExternalLink size={11} className="shrink-0" />
             </button>
-            <span className="text-xs text-gray-400 shrink-0">
+            <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">
               {att.size_bytes ? `${Math.round(att.size_bytes / 1024)} KB` : ""}
             </span>
-            <button onClick={() => copyUrl(att)} title="Copy URL" className="text-gray-400 hover:text-gray-700 shrink-0">
+            <button onClick={() => copyUrl(att)} title="Copy URL" className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 shrink-0">
               <Copy size={13} />
             </button>
             <button onClick={() => copyMarkdown(att)} title="Copy as Markdown"
-              className="text-xs text-gray-400 hover:text-gray-700 font-mono shrink-0">MD</button>
+              className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 font-mono shrink-0">MD</button>
             <button onClick={() => handleDelete(att.id)} title="Delete"
-              className="text-gray-300 hover:text-red-500 shrink-0">
+              className="text-gray-300 dark:text-gray-600 hover:text-red-500 shrink-0">
               <Trash2 size={13} />
             </button>
           </li>

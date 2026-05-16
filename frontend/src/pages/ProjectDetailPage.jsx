@@ -33,9 +33,9 @@ export function ProjectDetailPage() {
         <div className="max-w-4xl xl:max-w-5xl 2xl:max-w-6xl space-y-3">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold text-gray-800 break-words md:truncate">{project?.name}</h1>
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 break-words md:truncate">{project?.name}</h1>
               {project?.description && (
-                <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{project.description}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{project.description}</p>
               )}
             </div>
             <ProjectActions projectId={id} />

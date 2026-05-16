@@ -48,7 +48,7 @@ export function UsersPage() {
 
   return (
     <div className="pl-14 pr-4 py-4 md:p-8 max-w-2xl xl:max-w-4xl 2xl:max-w-6xl space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">Admin</h1>
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Admin</h1>
 
       <Tabs defaultValue="users">
         <TabsList>
@@ -59,7 +59,7 @@ export function UsersPage() {
 
         <TabsContent value="users">
           <div className="flex items-center justify-between mb-3">
-            <label className="flex items-center gap-2 text-sm text-gray-600">
+            <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
               <input type="checkbox" checked={includeDeleted} onChange={e => setIncludeDeleted(e.target.checked)} />
               Show deleted
             </label>
@@ -83,10 +83,10 @@ export function UsersPage() {
           <div className="flex justify-end mb-3"><CreateGroupDialog /></div>
           <ul className="space-y-2">
             {groups.map(group => (
-              <li key={group.id} className="flex items-center justify-between bg-white border rounded-lg px-4 py-3 shadow-sm">
+              <li key={group.id} className="flex items-center justify-between bg-white dark:bg-gray-900 border rounded-lg px-4 py-3 shadow-sm">
                 <div className="min-w-0">
-                  <p className="font-medium text-gray-800">{group.name}</p>
-                  <p className="text-xs text-gray-400 truncate">
+                  <p className="font-medium text-gray-800 dark:text-gray-100">{group.name}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
                     {group.description ?? "(no description)"} · {group.members?.length ?? 0} members
                   </p>
                 </div>
@@ -142,13 +142,13 @@ export function UsersPage() {
 function UserRow({ user, onEdit, onActivity, onDeleteRequest, onRestore }) {
   const isDeleted = !!user.deleted_at
   return (
-    <li className="flex items-center justify-between bg-white border rounded-lg px-4 py-3 shadow-sm">
+    <li className="flex items-center justify-between bg-white dark:bg-gray-900 border rounded-lg px-4 py-3 shadow-sm">
       <div>
-        <p className="font-medium text-gray-800">
+        <p className="font-medium text-gray-800 dark:text-gray-100">
           {user.username}
           {user.is_admin && <Badge variant="outline" className="ml-2 text-[10px]">admin</Badge>}
         </p>
-        <p className="text-xs text-gray-400">{user.email}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500">{user.email}</p>
       </div>
       <div className="flex items-center gap-2">
         {isDeleted ? (
@@ -234,7 +234,7 @@ function DeleteUserDialog({ user, allUsers, onCancel, onDeleted }) {
         <DialogHeader>
           <DialogTitle>Delete user "{user.username}"</DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-300">
           This user uniquely owns the projects below. Choose what to do with each one.
         </p>
         <div className="space-y-3">
@@ -263,7 +263,7 @@ function ProjectActionRow({ project, candidates, spec, onChange }) {
   const validCandidates = project.candidate_member_ids.filter(id => candidates[id])
   return (
     <div className="border rounded-md p-3 space-y-2">
-      <p className="font-medium text-sm text-gray-800">{project.project_name}</p>
+      <p className="font-medium text-sm text-gray-800 dark:text-gray-100">{project.project_name}</p>
       <div className="flex items-center gap-3 text-sm">
         <label className="flex items-center gap-1">
           <input

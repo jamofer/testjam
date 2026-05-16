@@ -18,7 +18,7 @@ export function ContextPanel({ sections = [], children, defaultCollapsed = false
           onClick={() => setCollapsed(false)}
           aria-label="Expand context panel"
           style={stickyStyle}
-          className="self-start sticky px-1.5 py-2 border border-gray-200 rounded-l-md bg-white hover:bg-gray-50 text-gray-400 hover:text-gray-700">
+          className="self-start sticky px-1.5 py-2 border border-gray-200 dark:border-gray-700 rounded-l-md bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200">
           <PanelRightOpen size={14} />
         </button>
       </aside>
@@ -29,11 +29,11 @@ export function ContextPanel({ sections = [], children, defaultCollapsed = false
     <aside className={`hidden lg:block w-72 shrink-0 ${className}`}>
       <div className="sticky space-y-4" style={stickyStyle}>
         <div className="flex items-center justify-between">
-          <p className="text-[11px] uppercase tracking-wide font-bold text-gray-400">Context</p>
+          <p className="text-[11px] uppercase tracking-wide font-bold text-gray-400 dark:text-gray-500">Context</p>
           <button type="button"
             onClick={() => setCollapsed(true)}
             aria-label="Collapse context panel"
-            className="text-gray-400 hover:text-gray-700">
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200">
             <PanelRightClose size={14} />
           </button>
         </div>
@@ -52,16 +52,16 @@ function ContextSection({ section }) {
   if (rows.length === 0 && !section.body) return null
 
   return (
-    <section className="border border-gray-200 rounded-lg bg-white">
+    <section className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900">
       <button type="button"
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 rounded-lg">
-        <p className="text-xs font-semibold text-gray-700">{section.title}</p>
+        className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg">
+        <p className="text-xs font-semibold text-gray-700 dark:text-gray-200">{section.title}</p>
         <ChevronRight size={12}
-          className={`text-gray-400 shrink-0 transition-transform ${open ? "rotate-90" : ""}`} />
+          className={`text-gray-400 dark:text-gray-500 shrink-0 transition-transform ${open ? "rotate-90" : ""}`} />
       </button>
       {open && (
-        <div className="border-t border-gray-100 px-3 py-2 space-y-1.5">
+        <div className="border-t border-gray-100 dark:border-gray-800 px-3 py-2 space-y-1.5">
           {rows.map((r, i) => (
             <ContextRow key={r.label ?? i} row={r} />
           ))}
@@ -76,9 +76,9 @@ function ContextRow({ row }) {
   const Icon = row.icon
   return (
     <div className="flex items-start gap-2 text-xs">
-      {Icon && <Icon size={11} className="text-gray-400 mt-0.5 shrink-0" />}
-      <span className="text-gray-500 w-20 shrink-0">{row.label}</span>
-      <span className="flex-1 min-w-0 text-gray-800 break-words">{row.value}</span>
+      {Icon && <Icon size={11} className="text-gray-400 dark:text-gray-500 mt-0.5 shrink-0" />}
+      <span className="text-gray-500 dark:text-gray-400 w-20 shrink-0">{row.label}</span>
+      <span className="flex-1 min-w-0 text-gray-800 dark:text-gray-100 break-words">{row.value}</span>
     </div>
   )
 }

@@ -177,27 +177,27 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
         onClick={() => { setOpen(o => !o); onFocus?.() }}>
         <div className="flex items-center gap-3 min-w-0">
           {open ? <ChevronDown size={14} className="shrink-0" /> : <ChevronRight size={14} className="shrink-0" />}
-          <span className="text-xs text-gray-400 shrink-0">{index + 1}/{total}</span>
-          <span className="font-medium text-gray-800 truncate">{result.test_case_title ?? tc?.name ?? "…"}</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">{index + 1}/{total}</span>
+          <span className="font-medium text-gray-800 dark:text-gray-100 truncate">{result.test_case_title ?? tc?.name ?? "…"}</span>
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-3">
           {result.duration_ms != null && (
-            <span className="text-xs text-gray-400 flex items-center gap-1">
+            <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
               <Clock size={10} />{fmtDuration(result.duration_ms)}
             </span>
           )}
           {result.executed_at && (
-            <span className="text-xs text-gray-400 hidden sm:block">{fmtTime(result.executed_at)}</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:block">{fmtTime(result.executed_at)}</span>
           )}
           <Badge variant={config.badgeVariant}><Icon size={11} className="mr-1" />{config.label}</Badge>
         </div>
       </div>
 
       {open && (
-        <div className="p-4 space-y-4 bg-white">
+        <div className="p-4 space-y-4 bg-white dark:bg-gray-900">
           {tc?.steps?.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Steps</p>
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Steps</p>
               <StepsSection
                 steps={tc.steps}
                 stepResults={result.step_results ?? []}
@@ -213,7 +213,7 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
             <>
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Comment</p>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Comment</p>
                   {commentDirty && (
                     <button type="button" onClick={saveComment}
                       className="text-xs text-primary-600 hover:underline disabled:opacity-50"
@@ -223,11 +223,11 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
                   )}
                 </div>
                 <MdEditor value={comment} onChange={setComment} height={80} />
-                <p className="text-[11px] text-gray-400">Tip: clicking a result below also saves the comment.</p>
+                <p className="text-[11px] text-gray-400 dark:text-gray-500">Tip: clicking a result below also saves the comment.</p>
               </div>
 
               <div className="space-y-1.5">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Overall result</p>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Overall result</p>
                 <div className="flex gap-2 flex-wrap">
                   {Object.entries(STATUS_CONFIG).map(([status, cfg]) => {
                     const Ic = cfg.icon
@@ -260,27 +260,27 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
             {(result.attachments ?? []).length > 0 && (
               <ul className="space-y-1.5">
                 {(result.attachments ?? []).map(a => (
-                  <li key={a.id} className="flex items-center gap-2 text-sm bg-gray-50 rounded-lg px-3 py-2">
-                    <span className="text-xs bg-white border px-1.5 py-0.5 rounded text-gray-500 shrink-0">
+                  <li key={a.id} className="flex items-center gap-2 text-sm bg-gray-50 dark:bg-gray-900 rounded-lg px-3 py-2">
+                    <span className="text-xs bg-white dark:bg-gray-900 border px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400 shrink-0">
                       {a.content_type ?? "file"}
                     </span>
                     <button type="button"
                       onClick={() => executionsApi
                         .downloadResultAttachment(result.id, a.id, a.filename)
                         .catch(() => toast.error("Download failed"))}
-                      className="flex items-center gap-1 text-left text-gray-700 hover:text-primary-600 min-w-0 flex-1 truncate">
+                      className="flex items-center gap-1 text-left text-gray-700 dark:text-gray-200 hover:text-primary-600 min-w-0 flex-1 truncate">
                       {a.filename}<ExternalLink size={11} className="shrink-0" />
                     </button>
-                    <span className="text-xs text-gray-400 shrink-0">
+                    <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">
                       {a.size_bytes ? `${Math.round(a.size_bytes / 1024)} KB` : ""}
                     </span>
-                    <button onClick={() => copyUrl(a)} title="Copy URL" className="text-gray-400 hover:text-gray-700 shrink-0">
+                    <button onClick={() => copyUrl(a)} title="Copy URL" className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 shrink-0">
                       <Copy size={13} />
                     </button>
                     <button onClick={() => copyMarkdown(a)} title="Copy as Markdown"
-                      className="text-xs text-gray-400 hover:text-gray-700 font-mono shrink-0">MD</button>
+                      className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 font-mono shrink-0">MD</button>
                     <button onClick={() => deleteAttachment(a.id)} title="Delete"
-                      className="text-gray-300 hover:text-red-500 shrink-0">
+                      className="text-gray-300 dark:text-gray-600 hover:text-red-500 shrink-0">
                       <Trash2 size={13} />
                     </button>
                   </li>

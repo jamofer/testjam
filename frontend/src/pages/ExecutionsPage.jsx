@@ -23,7 +23,7 @@ const statusIcon = {
   completed:  <CheckCircle2 size={15} className="text-green-500" />,
   in_progress: <PlayCircle size={15} className="text-blue-500" />,
   aborted:    <XCircle size={15} className="text-red-500" />,
-  pending:    <MinusCircle size={15} className="text-gray-400" />,
+  pending:    <MinusCircle size={15} className="text-gray-400 dark:text-gray-500" />,
 }
 
 const typeBadge = {
@@ -82,7 +82,7 @@ export function ExecutionsPage() {
       ]}>
         <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
               Executions
               <LiveIndicator connected={live} />
             </h1>
@@ -129,10 +129,10 @@ export function ExecutionsPage() {
 
       <ul className="space-y-2">
         {filtered.map(ex => (
-          <li key={ex.id} className="bg-white border rounded-lg px-4 py-3 shadow-sm">
+          <li key={ex.id} className="bg-white dark:bg-gray-900 border rounded-lg px-4 py-3 shadow-sm">
             <div className="flex items-center justify-between gap-2">
               <Link to={`/executions/${ex.id}/run`}
-                className="font-medium text-gray-800 hover:underline flex items-center gap-2 min-w-0">
+                className="font-medium text-gray-800 dark:text-gray-100 hover:underline flex items-center gap-2 min-w-0">
                 {statusIcon[ex.status]}
                 <span className="truncate">{ex.title}</span>
               </Link>
@@ -140,14 +140,14 @@ export function ExecutionsPage() {
                 <Badge variant={typeBadge[ex.type]}>{ex.type}</Badge>
                 <button
                   onClick={() => executionsApi.exportHtml(ex.id, ex.title)}
-                  className="text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-100"
+                  className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
                   title="Download HTML report"
                 >
                   <Download size={13} />
                 </button>
                 <button
                   onClick={() => handleDelete(ex)}
-                  className="text-gray-400 hover:text-red-600 p-1 rounded hover:bg-red-50"
+                  className="text-gray-400 dark:text-gray-500 hover:text-red-600 p-1 rounded hover:bg-red-50"
                   title="Delete execution"
                   disabled={deleteExecution.isPending}
                 >
@@ -155,7 +155,7 @@ export function ExecutionsPage() {
                 </button>
               </div>
             </div>
-            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-400">
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-400 dark:text-gray-500">
               {ex.version && <span>v{ex.version}</span>}
               {ex.environment && <span>{ex.environment}</span>}
               {(ex.token_name || ex.created_by || ex.triggered_by) && (
@@ -165,7 +165,7 @@ export function ExecutionsPage() {
                 </span>
               )}
               {ex.assigned_to && (
-                <span className="flex items-center gap-1 text-gray-500">
+                <span className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
                   <User size={10} /> {ex.assigned_to.username}
                 </span>
               )}
@@ -182,7 +182,7 @@ export function ExecutionsPage() {
               <span className="text-green-600">✓ {ex.summary?.passed ?? 0}</span>
               <span className="text-red-500">✗ {ex.summary?.failed ?? 0}</span>
               <span className="text-yellow-600">⚠ {ex.summary?.blocked ?? 0}</span>
-              <span className="text-gray-400">— {ex.summary?.not_run ?? 0}</span>
+              <span className="text-gray-400 dark:text-gray-500">— {ex.summary?.not_run ?? 0}</span>
             </div>
           </li>
         ))}

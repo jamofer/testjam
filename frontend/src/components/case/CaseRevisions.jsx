@@ -24,19 +24,19 @@ function DiffLines({ before, after }) {
   const allEqual = diff.every(d => d.type === "eq")
   if (allEqual) return null
   return (
-    <pre className="text-xs font-mono bg-gray-50 border border-gray-200 rounded-md overflow-x-auto">
+    <pre className="text-xs font-mono bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md overflow-x-auto">
       {diff.map((d, idx) => {
         const cls =
           d.type === "add" ? "bg-green-50 text-green-800" :
           d.type === "del" ? "bg-red-50 text-red-800 line-through opacity-80" :
-          "text-gray-500"
+          "text-gray-500 dark:text-gray-400"
         const sigil =
           d.type === "add" ? "+" :
           d.type === "del" ? "−" :
           " "
         return (
           <div key={idx} className={`px-2 py-0.5 ${cls}`}>
-            <span className="select-none mr-2 text-gray-400">{sigil}</span>
+            <span className="select-none mr-2 text-gray-400 dark:text-gray-500">{sigil}</span>
             {d.text || " "}
           </div>
         )
@@ -70,14 +70,14 @@ function TagsDiff({ before = [], after = [] }) {
 }
 
 function ChangeSummary({ before, after }) {
-  if (!before) return <p className="text-xs text-gray-500">Initial revision — no previous version to compare.</p>
+  if (!before) return <p className="text-xs text-gray-500 dark:text-gray-400">Initial revision — no previous version to compare.</p>
 
   const changedSections = []
   for (const [key, label] of TEXT_FIELDS) {
     if ((before[key] ?? "") !== (after[key] ?? "")) {
       changedSections.push(
         <div key={key} className="space-y-1">
-          <p className="text-[11px] uppercase tracking-wide font-semibold text-gray-500">{label}</p>
+          <p className="text-[11px] uppercase tracking-wide font-semibold text-gray-500 dark:text-gray-400">{label}</p>
           <DiffLines before={before[key]} after={after[key]} />
         </div>
       )
@@ -88,7 +88,7 @@ function ChangeSummary({ before, after }) {
   if (tagsChanged) {
     changedSections.push(
       <div key="tags" className="space-y-1">
-        <p className="text-[11px] uppercase tracking-wide font-semibold text-gray-500">Tags</p>
+        <p className="text-[11px] uppercase tracking-wide font-semibold text-gray-500 dark:text-gray-400">Tags</p>
         <TagsDiff before={before.tags} after={after.tags} />
       </div>
     )
@@ -98,14 +98,14 @@ function ChangeSummary({ before, after }) {
   if (stepsChanged) {
     changedSections.push(
       <div key="steps" className="space-y-1">
-        <p className="text-[11px] uppercase tracking-wide font-semibold text-gray-500">Steps</p>
+        <p className="text-[11px] uppercase tracking-wide font-semibold text-gray-500 dark:text-gray-400">Steps</p>
         <StepsDiff before={before.steps} after={after.steps} />
       </div>
     )
   }
 
   if (changedSections.length === 0) {
-    return <p className="text-xs text-gray-400">No textual changes detected.</p>
+    return <p className="text-xs text-gray-400 dark:text-gray-500">No textual changes detected.</p>
   }
   return <div className="space-y-3">{changedSections}</div>
 }
@@ -119,22 +119,22 @@ function RevisionRow({ rev, prevRev, expanded, onToggle, caseId }) {
     : "bg-blue-50 text-blue-700 border-blue-200"
 
   return (
-    <li className="border border-gray-200 rounded-lg bg-white">
+    <li className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900">
       <button type="button"
         onClick={onToggle}
-        className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 rounded-lg">
+        className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg">
         <ChevronRight size={13}
-          className={`text-gray-400 shrink-0 transition-transform ${expanded ? "rotate-90" : ""}`} />
+          className={`text-gray-400 dark:text-gray-500 shrink-0 transition-transform ${expanded ? "rotate-90" : ""}`} />
         <span className={`text-[10px] uppercase tracking-wide font-bold border px-1.5 py-0.5 rounded shrink-0 ${kindBadge}`}>
           {rev.change_kind}
         </span>
-        <span className="text-sm text-gray-700 flex-1 truncate">{actorLabel(rev)}</span>
-        <span className="flex items-center gap-1 text-xs text-gray-400 shrink-0">
+        <span className="text-sm text-gray-700 dark:text-gray-200 flex-1 truncate">{actorLabel(rev)}</span>
+        <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 shrink-0">
           <Clock size={11} /> <DateLabel iso={rev.created_at} />
         </span>
       </button>
       {expanded && (
-        <div className="border-t border-gray-100 p-3 space-y-3">
+        <div className="border-t border-gray-100 dark:border-gray-800 p-3 space-y-3">
           {!detail ? (
             <Skeleton className="h-12 w-full" />
           ) : (
@@ -151,7 +151,7 @@ export function CaseRevisions({ caseId, onRestore }) {
   const [expandedId, setExpandedId] = useState(null)
 
   if (isLoading) return <SkeletonList count={3} itemClassName="h-10" />
-  if (revs.length === 0) return <p className="text-sm text-gray-400">No history yet.</p>
+  if (revs.length === 0) return <p className="text-sm text-gray-400 dark:text-gray-500">No history yet.</p>
 
   return (
     <ul className="space-y-2">

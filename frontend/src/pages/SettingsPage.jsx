@@ -14,10 +14,10 @@ const RESTORE_CONFIRM_PHRASE = "REPLACE ALL DATA"
 
 function Section({ title, description, children }) {
   return (
-    <section className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+    <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-5 space-y-4">
       <div>
-        <h2 className="text-sm font-semibold text-gray-800">{title}</h2>
-        {description && <p className="text-xs text-gray-500 mt-0.5">{description}</p>}
+        <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100">{title}</h2>
+        {description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>}
       </div>
       <div className="space-y-3">{children}</div>
     </section>
@@ -27,9 +27,9 @@ function Section({ title, description, children }) {
 function Field({ label, hint, children }) {
   return (
     <div className="space-y-1">
-      <label className="text-xs font-medium text-gray-700">{label}</label>
+      <label className="text-xs font-medium text-gray-700 dark:text-gray-200">{label}</label>
       {children}
-      {hint && <p className="text-[11px] text-gray-400">{hint}</p>}
+      {hint && <p className="text-[11px] text-gray-400 dark:text-gray-500">{hint}</p>}
     </div>
   )
 }
@@ -129,7 +129,7 @@ export function SettingsPage() {
     <>
       <PageHeader crumbs={[{ label: "Settings" }]}>
         <div className="max-w-2xl flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-          <h1 className="text-2xl font-bold text-gray-800">Settings</h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Settings</h1>
           <Button size="sm" onClick={submit} loading={updateSettings.isPending} className="self-start sm:self-auto">
             <Save size={13} /> Save
           </Button>
@@ -274,10 +274,10 @@ function BackupRestoreSection() {
   }
 
   return (
-    <section className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+    <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-5 space-y-4">
       <div>
-        <h2 className="text-sm font-semibold text-gray-800">Backup &amp; Restore</h2>
-        <p className="text-xs text-gray-500 mt-0.5">
+        <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Backup &amp; Restore</h2>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
           Download a ZIP containing the database dump and uploaded files. Restore replaces all data.
         </p>
       </div>
@@ -300,8 +300,8 @@ function BackupRestoreSection() {
           className="text-xs"
         />
         <div className="space-y-1">
-          <label className="text-xs font-medium text-gray-700">
-            Type <code className="px-1 bg-gray-100 rounded">{RESTORE_CONFIRM_PHRASE}</code> to confirm
+          <label className="text-xs font-medium text-gray-700 dark:text-gray-200">
+            Type <code className="px-1 bg-gray-100 dark:bg-gray-800 rounded">{RESTORE_CONFIRM_PHRASE}</code> to confirm
           </label>
           <Input value={confirmText} onChange={e => setConfirmText(e.target.value)} placeholder={RESTORE_CONFIRM_PHRASE} />
         </div>

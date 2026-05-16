@@ -31,10 +31,10 @@ function Body({ data }) {
         {data.last_login_at ? (
           <p>
             <DateLabel iso={data.last_login_at} />
-            {data.last_login_ip && <span className="ml-2 text-gray-400">from {data.last_login_ip}</span>}
+            {data.last_login_ip && <span className="ml-2 text-gray-400 dark:text-gray-500">from {data.last_login_ip}</span>}
           </p>
         ) : (
-          <p className="text-gray-400">Never logged in.</p>
+          <p className="text-gray-400 dark:text-gray-500">Never logged in.</p>
         )}
       </Section>
       <Section title="Recent executions">
@@ -50,14 +50,14 @@ function Body({ data }) {
 function Section({ title, children }) {
   return (
     <div>
-      <h3 className="font-medium text-gray-800 mb-2">{title}</h3>
+      <h3 className="font-medium text-gray-800 dark:text-gray-100 mb-2">{title}</h3>
       {children}
     </div>
   )
 }
 
 function ActivityList({ items, render, emptyLabel }) {
-  if (!items?.length) return <p className="text-gray-400">{emptyLabel}</p>
+  if (!items?.length) return <p className="text-gray-400 dark:text-gray-500">{emptyLabel}</p>
   return <ul className="divide-y border rounded-md">{items.map(render)}</ul>
 }
 
@@ -70,10 +70,10 @@ function renderExecution(item) {
       >
         {item.title}
       </Link>
-      <span className="shrink-0 text-xs text-gray-400">
+      <span className="shrink-0 text-xs text-gray-400 dark:text-gray-500">
         {item.project_name} · {item.status}
       </span>
-      <DateLabel iso={item.created_at} className="shrink-0 text-xs text-gray-400" />
+      <DateLabel iso={item.created_at} className="shrink-0 text-xs text-gray-400 dark:text-gray-500" />
     </li>
   )
 }
@@ -87,8 +87,8 @@ function renderCase(item) {
       >
         {item.name}
       </Link>
-      <span className="shrink-0 text-xs text-gray-400">{item.project_name}</span>
-      <DateLabel iso={item.created_at} className="shrink-0 text-xs text-gray-400" />
+      <span className="shrink-0 text-xs text-gray-400 dark:text-gray-500">{item.project_name}</span>
+      <DateLabel iso={item.created_at} className="shrink-0 text-xs text-gray-400 dark:text-gray-500" />
     </li>
   )
 }

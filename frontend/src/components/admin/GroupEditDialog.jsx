@@ -78,7 +78,7 @@ export function GroupEditDialog({ group, onClose }) {
         </div>
 
         <div className="pt-4 mt-4 border-t space-y-2">
-          <p className="font-medium text-gray-800">Members ({members.length})</p>
+          <p className="font-medium text-gray-800 dark:text-gray-100">Members ({members.length})</p>
           <MemberList members={members} onRemove={(userId) => removeMember.mutate(userId)} />
           <AddMemberRow candidates={candidates} onAdd={(userId) => addMember.mutate(userId)} />
         </div>
@@ -98,16 +98,16 @@ function Field({ label, children }) {
 
 function MemberList({ members, onRemove }) {
   if (!members.length) {
-    return <p className="text-sm text-gray-400 py-2">No members in this group yet.</p>
+    return <p className="text-sm text-gray-400 dark:text-gray-500 py-2">No members in this group yet.</p>
   }
   return (
     <ul className="divide-y border rounded-md max-h-60 overflow-y-auto">
       {members.map(member => (
         <li key={member.user_id} className="flex items-center justify-between px-3 py-2 text-sm">
-          <span className="text-gray-800">{member.username}</span>
+          <span className="text-gray-800 dark:text-gray-100">{member.username}</span>
           <button
             onClick={() => onRemove(member.user_id)}
-            className="text-gray-300 hover:text-red-500 transition-colors p-1"
+            className="text-gray-300 dark:text-gray-600 hover:text-red-500 transition-colors p-1"
             aria-label={`Remove ${member.username}`}
           >
             <Trash2 size={13} />
@@ -135,7 +135,7 @@ function AddMemberRow({ candidates, onAdd }) {
       <select
         value={userId}
         onChange={event => setUserId(event.target.value)}
-        className="flex-1 text-sm border rounded-md px-2 py-1.5 bg-white"
+        className="flex-1 text-sm border rounded-md px-2 py-1.5 bg-white dark:bg-gray-900"
       >
         <option value="">Select user…</option>
         {candidates.map(user => (

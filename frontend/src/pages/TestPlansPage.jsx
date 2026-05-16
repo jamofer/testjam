@@ -47,7 +47,7 @@ function CreatePlanDialog({ projectId }) {
           <div>
             <p className="text-sm font-medium mb-2">Select test cases</p>
             <CasePicker projectId={projectId} selected={selectedCases} onToggle={toggle} />
-            <p className="text-xs text-gray-400 mt-1">{selectedCases.length} cases selected</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{selectedCases.length} cases selected</p>
           </div>
           <Button onClick={handleCreate} className="w-full" disabled={!title.trim()}>Create plan</Button>
         </div>
@@ -71,7 +71,7 @@ export function TestPlansPage() {
 
   const { data: project } = useProject(projectId)
 
-  if (isLoading) return <p className="text-gray-500">Loading…</p>
+  if (isLoading) return <p className="text-gray-500 dark:text-gray-400">Loading…</p>
 
   return (
     <>
@@ -81,7 +81,7 @@ export function TestPlansPage() {
         { label: "Test Plans" },
       ]}>
         <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-2xl font-bold text-gray-800">Test Plans</h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Test Plans</h1>
           <div className="self-start sm:self-auto">
             <CreatePlanDialog projectId={projectId} />
           </div>
@@ -92,11 +92,11 @@ export function TestPlansPage() {
       <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl">
       <ul className="space-y-2">
         {plans.map(plan => (
-          <li key={plan.id} className="flex items-center justify-between bg-white border rounded-lg px-4 py-3 shadow-sm">
-            <Link to={`/plans/${plan.id}`} className="flex items-center gap-2 font-medium text-gray-800 hover:underline">
+          <li key={plan.id} className="flex items-center justify-between bg-white dark:bg-gray-900 border rounded-lg px-4 py-3 shadow-sm">
+            <Link to={`/plans/${plan.id}`} className="flex items-center gap-2 font-medium text-gray-800 dark:text-gray-100 hover:underline">
               <ClipboardList size={15} className="text-blue-500" />
               {plan.title}
-              <span className="text-xs text-gray-400">({plan.test_case_ids?.length ?? 0} cases)</span>
+              <span className="text-xs text-gray-400 dark:text-gray-500">({plan.test_case_ids?.length ?? 0} cases)</span>
             </Link>
             <Button size="icon" variant="ghost" onClick={() => deletePlan.mutate(plan.id)}>
               <Trash2 size={14} />

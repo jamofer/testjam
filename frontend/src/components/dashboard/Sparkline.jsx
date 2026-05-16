@@ -4,7 +4,7 @@ const PADDING = 4
 
 export function Sparkline({ points }) {
   if (!points.length) {
-    return <p className="text-xs text-gray-400">No data in this window.</p>
+    return <p className="text-xs text-gray-400 dark:text-gray-500">No data in this window.</p>
   }
   const max = Math.max(...points, 1)
   const stepX = points.length === 1

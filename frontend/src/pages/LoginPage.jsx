@@ -18,8 +18,8 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-xl p-8 w-80 space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 shadow-md rounded-xl p-8 w-80 space-y-4">
         <div className="flex justify-center pb-2"><Logo size={32} /></div>
         {login.isError && (
           <p className="text-sm text-red-500" role="alert">
@@ -27,7 +27,7 @@ export function LoginPage() {
           </p>
         )}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="username">Username</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor="username">Username</label>
           <input
             id="username"
             name="username"
@@ -39,7 +39,7 @@ export function LoginPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">Password</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor="password">Password</label>
           <input
             id="password"
             name="password"
@@ -59,7 +59,7 @@ export function LoginPage() {
           {login.isPending ? 'Signing in…' : 'Sign in'}
         </button>
         <p className="text-center text-sm">
-          <Link to="/forgot-password" className="text-gray-600 hover:text-gray-800">
+          <Link to="/forgot-password" className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100">
             Forgot your password?
           </Link>
         </p>

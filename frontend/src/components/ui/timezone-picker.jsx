@@ -34,7 +34,7 @@ export function TimezonePicker({ value, onChange, disabled, placeholder = "Type 
         disabled={disabled}
       />
       {open && filtered.length > 0 && (
-        <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-white shadow-md">
+        <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-white dark:bg-gray-900 shadow-md">
           {filtered.map(zone => (
             <li key={zone}>
               <button
@@ -45,7 +45,7 @@ export function TimezonePicker({ value, onChange, disabled, placeholder = "Type 
                   setQuery("")
                   setOpen(false)
                 }}
-                className="flex w-full items-center justify-between px-3 py-1.5 text-left text-sm hover:bg-gray-50"
+                className="flex w-full items-center justify-between px-3 py-1.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 <span>{zone}</span>
                 {zone === value && <Check size={12} className="text-primary-600" />}

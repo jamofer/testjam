@@ -28,7 +28,7 @@ export function TransferOwnershipDialog({ project, users, onClose }) {
         <DialogHeader>
           <DialogTitle>Transfer ownership of "{project.name}"</DialogTitle>
         </DialogHeader>
-        <p className="text-sm text-gray-600 mb-3">
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
           The current owner becomes an <b>editor</b>. The new owner gets the <b>owner</b> role.
         </p>
         <div className="space-y-1">

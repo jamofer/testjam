@@ -84,7 +84,7 @@ export function NewExecutionPage() {
         { label: "New" },
       ]}>
         <div className="max-w-2xl xl:max-w-3xl">
-          <h1 className="text-2xl font-bold text-gray-800">New Execution</h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">New Execution</h1>
         </div>
       </PageHeader>
       <PageBody>
@@ -129,7 +129,7 @@ export function NewExecutionPage() {
                 ))}
               </datalist>
             )}
-            <p className="text-[11px] text-gray-400">Optional. Existing versions auto-suggest as you type.</p>
+            <p className="text-[11px] text-gray-400 dark:text-gray-500">Optional. Existing versions auto-suggest as you type.</p>
           </div>
         </div>
 
@@ -188,7 +188,7 @@ export function NewExecutionPage() {
             />
           )}
           {source === "cases" && (
-            <p className="text-xs text-gray-400">{selectedCases.length} cases selected</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">{selectedCases.length} cases selected</p>
           )}
         </div>
 

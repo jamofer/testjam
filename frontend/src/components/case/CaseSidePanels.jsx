@@ -26,7 +26,7 @@ export function PanelAttachments({ caseId, attachments }) {
   return (
     <div className="space-y-1.5">
       {attachments.length === 0 && (
-        <p className="text-[11px] text-gray-400">No attachments</p>
+        <p className="text-[11px] text-gray-400 dark:text-gray-500">No attachments</p>
       )}
       <ul className="space-y-1">
         {attachments.map(att => (
@@ -34,19 +34,19 @@ export function PanelAttachments({ caseId, attachments }) {
             <button type="button"
               onClick={() => casesApi.downloadAttachment(caseId, att.id, att.filename)
                 .catch(() => toast.error("Download failed"))}
-              className="flex-1 min-w-0 truncate text-left text-gray-700 hover:text-primary-600 flex items-center gap-1">
+              className="flex-1 min-w-0 truncate text-left text-gray-700 dark:text-gray-200 hover:text-primary-600 flex items-center gap-1">
               {att.filename}
-              <ExternalLink size={10} className="shrink-0 text-gray-400" />
+              <ExternalLink size={10} className="shrink-0 text-gray-400 dark:text-gray-500" />
             </button>
             <button onClick={() => remove(att.id)}
               title="Delete"
-              className="text-gray-300 hover:text-red-500 shrink-0">
+              className="text-gray-300 dark:text-gray-600 hover:text-red-500 shrink-0">
               <Trash2 size={11} />
             </button>
           </li>
         ))}
       </ul>
-      <label className="inline-flex items-center gap-1 cursor-pointer text-[11px] text-gray-500 hover:text-gray-800">
+      <label className="inline-flex items-center gap-1 cursor-pointer text-[11px] text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100">
         <input type="file" className="hidden" onChange={upload} />
         <Upload size={11} /> Upload file
       </label>
@@ -57,7 +57,7 @@ export function PanelAttachments({ caseId, attachments }) {
 export function PanelHistory({ caseId }) {
   const { data: revs = [] } = useCaseRevisions(caseId)
   const top = revs.slice(0, 5)
-  if (top.length === 0) return <p className="text-[11px] text-gray-400">No history yet</p>
+  if (top.length === 0) return <p className="text-[11px] text-gray-400 dark:text-gray-500">No history yet</p>
   return (
     <ul className="space-y-1">
       {top.map(rev => {
@@ -70,13 +70,13 @@ export function PanelHistory({ caseId }) {
             <span className={`px-1 py-0.5 rounded border text-[9px] uppercase font-bold shrink-0 ${kindCls}`}>
               {rev.change_kind}
             </span>
-            <span className="text-gray-700 shrink-0">{actor}</span>
-            <span className="text-gray-400 truncate">· {fmtDateTime(rev.created_at)}</span>
+            <span className="text-gray-700 dark:text-gray-200 shrink-0">{actor}</span>
+            <span className="text-gray-400 dark:text-gray-500 truncate">· {fmtDateTime(rev.created_at)}</span>
           </li>
         )
       })}
       {revs.length > top.length && (
-        <li className="text-[11px] text-gray-400">+ {revs.length - top.length} more in History tab</li>
+        <li className="text-[11px] text-gray-400 dark:text-gray-500">+ {revs.length - top.length} more in History tab</li>
       )}
     </ul>
   )

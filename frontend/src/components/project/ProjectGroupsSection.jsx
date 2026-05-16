@@ -12,7 +12,7 @@ const ROLES = ["owner", "tester", "viewer"]
 const ROLE_BADGE = {
   owner: "bg-purple-100 text-purple-700",
   tester: "bg-blue-100 text-blue-700",
-  viewer: "bg-gray-100 text-gray-600",
+  viewer: "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300",
 }
 
 export function ProjectGroupsSection({ projectId }) {
@@ -50,10 +50,10 @@ export function ProjectGroupsSection({ projectId }) {
   const candidates = groups.filter(group => !assignedIds.has(group.id))
 
   return (
-    <section className="bg-white border rounded-xl shadow-sm overflow-hidden">
+    <section className="bg-white dark:bg-gray-900 border rounded-xl shadow-sm overflow-hidden">
       <div className="px-5 py-4 border-b flex items-center gap-2">
-        <Users size={15} className="text-gray-500" />
-        <h2 className="font-semibold text-gray-800">Group access</h2>
+        <Users size={15} className="text-gray-500 dark:text-gray-400" />
+        <h2 className="font-semibold text-gray-800 dark:text-gray-100">Group access</h2>
       </div>
 
       <div className="divide-y divide-gray-50">
@@ -91,8 +91,8 @@ function AssignmentRow({ assignment, onRoleChange, onRemove }) {
         <Users size={14} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-800 truncate">{assignment.group_name}</p>
-        <p className="text-xs text-gray-400">{assignment.member_count} member{assignment.member_count === 1 ? "" : "s"}</p>
+        <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{assignment.group_name}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500">{assignment.member_count} member{assignment.member_count === 1 ? "" : "s"}</p>
       </div>
       <select
         value={assignment.role}
@@ -103,7 +103,7 @@ function AssignmentRow({ assignment, onRoleChange, onRemove }) {
       </select>
       <button
         onClick={onRemove}
-        className="text-gray-300 hover:text-red-500 transition-colors p-1 shrink-0"
+        className="text-gray-300 dark:text-gray-600 hover:text-red-500 transition-colors p-1 shrink-0"
         aria-label="Remove group"
       >
         <Trash2 size={14} />
@@ -124,11 +124,11 @@ function AddRow({ candidates, onSubmit }) {
   }
 
   return (
-    <form onSubmit={submit} className="px-5 py-4 border-t bg-gray-50 flex gap-2">
+    <form onSubmit={submit} className="px-5 py-4 border-t bg-gray-50 dark:bg-gray-900 flex gap-2">
       <select
         value={groupId}
         onChange={(event) => setGroupId(event.target.value)}
-        className="flex-1 text-sm border border-gray-200 rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-primary-400"
+        className="flex-1 text-sm border border-gray-200 dark:border-gray-700 rounded-md px-3 py-1.5 bg-white dark:bg-gray-900 focus:outline-none focus:ring-1 focus:ring-primary-400"
       >
         <option value="">Select group…</option>
         {candidates.map(group => (
@@ -138,7 +138,7 @@ function AddRow({ candidates, onSubmit }) {
       <select
         value={role}
         onChange={(event) => setRole(event.target.value)}
-        className="text-sm border border-gray-200 rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-primary-400"
+        className="text-sm border border-gray-200 dark:border-gray-700 rounded-md px-3 py-1.5 bg-white dark:bg-gray-900 focus:outline-none focus:ring-1 focus:ring-primary-400"
       >
         {ROLES.map(option => <option key={option} value={option}>{option}</option>)}
       </select>

@@ -16,21 +16,21 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-xl p-8 w-80 space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 shadow-md rounded-xl p-8 w-80 space-y-4">
         <div className="flex justify-center pb-2"><Logo size={32} /></div>
-        <h1 className="text-base font-semibold text-gray-800 text-center">Forgot your password?</h1>
+        <h1 className="text-base font-semibold text-gray-800 dark:text-gray-100 text-center">Forgot your password?</h1>
         {requestReset.isSuccess ? (
-          <p className="text-sm text-gray-700">
+          <p className="text-sm text-gray-700 dark:text-gray-200">
             If that email is registered, we just sent a reset link. Check your inbox.
           </p>
         ) : (
           <>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               Enter the email tied to your account and we'll send a reset link.
             </p>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">Email</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor="email">Email</label>
               <input
                 id="email"
                 name="email"
@@ -52,7 +52,7 @@ export function ForgotPasswordPage() {
           </>
         )}
         <p className="text-center text-sm">
-          <Link to="/login" className="text-gray-600 hover:text-gray-800">Back to sign in</Link>
+          <Link to="/login" className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100">Back to sign in</Link>
         </p>
       </form>
     </div>

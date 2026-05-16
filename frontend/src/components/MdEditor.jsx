@@ -11,7 +11,7 @@ const MDEditorMarkdown = lazy(() =>
 export function MdEditor({ value, onChange, height = 200 }) {
   return (
     <div data-color-mode="light">
-      <Suspense fallback={<div style={{ height }} className="bg-gray-50 animate-pulse rounded border" />}>
+      <Suspense fallback={<div style={{ height }} className="bg-gray-50 dark:bg-gray-900 animate-pulse rounded border" />}>
         <MDEditor value={value} onChange={onChange} height={height} preview="edit" />
       </Suspense>
     </div>

@@ -28,7 +28,7 @@ import { ContextPanel } from "../components/ui/context-panel"
 import { buildResultTree } from "../lib/buildResultTree"
 
 const EXECUTION_STATUS_PILL = {
-  pending:     "bg-gray-100 text-gray-600 border-gray-200",
+  pending:     "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700",
   in_progress: "bg-blue-50 text-blue-700 border-blue-200",
   completed:   "bg-green-50 text-green-700 border-green-200",
   aborted:     "bg-red-50 text-red-700 border-red-200",
@@ -40,12 +40,12 @@ const EXECUTION_TYPE_PILL = {
 }
 
 function StatusPill({ status }) {
-  const cls = EXECUTION_STATUS_PILL[status] ?? "bg-gray-100 text-gray-600 border-gray-200"
+  const cls = EXECUTION_STATUS_PILL[status] ?? "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700"
   return <span className={`inline-block text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border ${cls}`}>{status?.replace("_", " ")}</span>
 }
 
 function TypePill({ type }) {
-  const cls = EXECUTION_TYPE_PILL[type] ?? "bg-gray-100 text-gray-600 border-gray-200"
+  const cls = EXECUTION_TYPE_PILL[type] ?? "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700"
   return <span className={`inline-block text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border ${cls}`}>{type}</span>
 }
 
@@ -55,7 +55,7 @@ function UserLink({ user }) {
 }
 
 function PanelExecutionAttachments({ executionId, attachments = [] }) {
-  if (attachments.length === 0) return <p className="text-[11px] text-gray-400">No attachments</p>
+  if (attachments.length === 0) return <p className="text-[11px] text-gray-400 dark:text-gray-500">No attachments</p>
   const download = (att) =>
     executionsApi
       .downloadExecutionAttachment(executionId, att.id, att.filename)
@@ -65,12 +65,12 @@ function PanelExecutionAttachments({ executionId, attachments = [] }) {
       {attachments.map(att => (
         <li key={att.id} className="flex items-center gap-1.5 text-xs">
           <button type="button" onClick={() => download(att)}
-            className="flex-1 min-w-0 truncate text-left text-gray-700 hover:text-primary-600 flex items-center gap-1">
+            className="flex-1 min-w-0 truncate text-left text-gray-700 dark:text-gray-200 hover:text-primary-600 flex items-center gap-1">
             {att.filename}
-            <ExternalLink size={10} className="shrink-0 text-gray-400" />
+            <ExternalLink size={10} className="shrink-0 text-gray-400 dark:text-gray-500" />
           </button>
           {att.size_bytes != null && (
-            <span className="text-[10px] text-gray-400 shrink-0">{Math.round(att.size_bytes / 1024)} KB</span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500 shrink-0">{Math.round(att.size_bytes / 1024)} KB</span>
           )}
         </li>
       ))}
@@ -406,11 +406,11 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
       ]}>
         <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-4">
           <div className="min-w-0">
-            <h1 className="text-xl font-bold text-gray-800 break-words md:truncate flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100 break-words md:truncate flex items-center gap-2 flex-wrap">
               {execution.title}
               <LiveIndicator connected={live} />
             </h1>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-sm text-gray-500">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-sm text-gray-500 dark:text-gray-400">
               {execution.version && <span>v{execution.version}</span>}
               {execution.environment && <span>{execution.environment}</span>}
               {(execution.token_name || execution.created_by || execution.triggered_by) && (
@@ -426,7 +426,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
               )}
               <span>{done}/{summary.total ?? 0} done</span>
               {totalMs != null && (
-                <span className="flex items-center gap-1 text-gray-400">
+                <span className="flex items-center gap-1 text-gray-400 dark:text-gray-500">
                   <Clock size={12} /> {fmtDuration(totalMs)} total
                 </span>
               )}
@@ -435,7 +435,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
               <span className="text-green-600 font-medium">✓ {summary.passed ?? 0} passed</span>
               <span className="text-red-500 font-medium">✗ {summary.failed ?? 0} failed</span>
               <span className="text-yellow-600 font-medium">⚠ {summary.blocked ?? 0} blocked</span>
-              <span className="text-gray-400">— {summary.not_run ?? 0} not run</span>
+              <span className="text-gray-400 dark:text-gray-500">— {summary.not_run ?? 0} not run</span>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 md:shrink-0">
@@ -522,7 +522,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
           onClick={resumeFollowLive}
           className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 rounded-full bg-blue-600 text-white text-sm font-medium px-4 py-2 shadow-lg hover:bg-blue-700 transition-colors"
         >
-          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-white dark:bg-gray-900 animate-pulse" />
           Follow live
         </button>
       )}

@@ -32,13 +32,13 @@ export function AdminProjectsTab({ users }) {
   })
 
   if (isPending) return <SkeletonList count={4} />
-  if (!projects.length) return <p className="text-gray-500 text-sm">No projects.</p>
+  if (!projects.length) return <p className="text-gray-500 dark:text-gray-400 text-sm">No projects.</p>
 
   return (
     <>
-      <div className="overflow-x-auto border rounded-lg bg-white">
+      <div className="overflow-x-auto border rounded-lg bg-white dark:bg-gray-900">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+          <thead className="bg-gray-50 dark:bg-gray-900 text-left text-xs uppercase text-gray-500 dark:text-gray-400">
             <tr>
               <th className="px-3 py-2">Project</th>
               <th className="px-3 py-2">Owner</th>
@@ -81,12 +81,12 @@ export function AdminProjectsTab({ users }) {
 
 function ProjectRow({ project, onTransfer, onArchive, onDelete }) {
   return (
-    <tr className="hover:bg-gray-50">
-      <td className="px-3 py-2 font-medium text-gray-800">{project.name}</td>
-      <td className="px-3 py-2 text-gray-600">{project.owner_username ?? "—"}</td>
-      <td className="px-3 py-2 text-right text-gray-600">{project.member_count}</td>
-      <td className="px-3 py-2 text-right text-gray-600">{project.case_count}</td>
-      <td className="px-3 py-2 text-gray-600">
+    <tr className="hover:bg-gray-50 dark:hover:bg-gray-800">
+      <td className="px-3 py-2 font-medium text-gray-800 dark:text-gray-100">{project.name}</td>
+      <td className="px-3 py-2 text-gray-600 dark:text-gray-300">{project.owner_username ?? "—"}</td>
+      <td className="px-3 py-2 text-right text-gray-600 dark:text-gray-300">{project.member_count}</td>
+      <td className="px-3 py-2 text-right text-gray-600 dark:text-gray-300">{project.case_count}</td>
+      <td className="px-3 py-2 text-gray-600 dark:text-gray-300">
         {project.last_execution_at ? <DateLabel iso={project.last_execution_at} /> : "—"}
       </td>
       <td className="px-3 py-2">
