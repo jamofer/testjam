@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { NavLink, Link, useMatch } from "react-router-dom"
 import { FolderKanban, Users, LogOut, UserCircle, FolderOpen, LayoutDashboard, PlayCircle, ClipboardList, ChevronLeft, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon, X } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { useLogout } from "../../hooks/useAuth"
 import { useProject } from "../../hooks/useProjects"
 import { useExecution } from "../../hooks/useExecutions"
@@ -14,17 +15,17 @@ import { NotificationsBell } from "./NotificationsBell"
 // ── Project-scoped nav items ───────────────────────────────────────────────────
 
 const PROJECT_NAV = [
-  { to: (id) => `/projects/${id}`,            icon: LayoutDashboard, label: "Overview",    end: true },
-  { to: (id) => `/projects/${id}/cases`,       icon: FolderOpen,      label: "Test Cases"            },
-  { to: (id) => `/projects/${id}/plans`,       icon: ClipboardList,   label: "Test Plans"            },
-  { to: (id) => `/projects/${id}/executions`,  icon: PlayCircle,      label: "Executions"            },
-  { to: (id) => `/projects/${id}/versions`,    icon: Tag,             label: "Versions"              },
-  { to: (id) => `/projects/${id}/members`,     icon: Shield,          label: "Members"               },
+  { to: (id) => `/projects/${id}`,            icon: LayoutDashboard, labelKey: "project.overview",   end: true },
+  { to: (id) => `/projects/${id}/cases`,       icon: FolderOpen,      labelKey: "project.cases"               },
+  { to: (id) => `/projects/${id}/plans`,       icon: ClipboardList,   labelKey: "project.plans"               },
+  { to: (id) => `/projects/${id}/executions`,  icon: PlayCircle,      labelKey: "project.executions"          },
+  { to: (id) => `/projects/${id}/versions`,    icon: Tag,             labelKey: "project.versions"            },
+  { to: (id) => `/projects/${id}/members`,     icon: Shield,          labelKey: "project.members"             },
 ]
 
 const GLOBAL_NAV = [
-  { to: "/projects", icon: FolderKanban, label: "Projects"       },
-  { to: "/users",    icon: Users,        label: "Users & Groups"  },
+  { to: "/projects", icon: FolderKanban, labelKey: "global.projects" },
+  { to: "/users",    icon: Users,        labelKey: "global.users"    },
 ]
 
 // ── Resolve project ID from any route ─────────────────────────────────────────
@@ -78,6 +79,7 @@ function UserAvatar({ user }) {
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
 export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile }) {
+  const { t } = useTranslation("nav")
   const logout = useLogout()
   const activeProjectId = useActiveProjectId()
   const { data: project } = useProject(activeProjectId)
@@ -99,7 +101,7 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
           {onCloseMobile && (
             <button
               type="button"
-              aria-label="Close menu"
+              aria-label={t("closeMenu")}
               onClick={onCloseMobile}
               className="md:hidden w-8 h-8 flex items-center justify-center rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
@@ -114,7 +116,7 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
           <button type="button" onClick={onOpenPalette}
             className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-xs text-gray-500 dark:text-gray-400 transition-colors">
             <Search size={13} />
-            <span className="flex-1 text-left">Search…</span>
+            <span className="flex-1 text-left">{t("search")}</span>
             <kbd className="text-[10px] font-mono bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded px-1 text-gray-400 dark:text-gray-500">
               {isMac ? "⌘K" : "Ctrl K"}
             </kbd>
@@ -129,7 +131,7 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
           <div className="mb-2">
             <Link to="/projects"
               className="flex items-center gap-1.5 px-3 py-1.5 mb-1 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-              <ChevronLeft size={12} /> All projects
+              <ChevronLeft size={12} /> {t("allProjects")}
             </Link>
             <div className="px-3 py-1 mb-2">
               <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate" title={project?.name}>
@@ -137,15 +139,15 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
               </p>
             </div>
             <div className="space-y-0.5">
-              {PROJECT_NAV.map(({ to, icon: Icon, label, end }) => (
-                <NavLink key={label} to={to(activeProjectId)} end={end}
+              {PROJECT_NAV.map(({ to, icon: Icon, labelKey, end }) => (
+                <NavLink key={labelKey} to={to(activeProjectId)} end={end}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       isActive
                         ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300"
                         : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
                     }`}>
-                  <Icon size={15} />{label}
+                  <Icon size={15} />{t(labelKey)}
                 </NavLink>
               ))}
             </div>
@@ -155,7 +157,7 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
 
         {/* Global nav */}
         <div className="space-y-0.5">
-          {GLOBAL_NAV.map(({ to, icon: Icon, label }) => (
+          {GLOBAL_NAV.map(({ to, icon: Icon, labelKey }) => (
             <NavLink key={to} to={to}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -163,7 +165,7 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
                     ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300"
                     : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
                 }`}>
-              <Icon size={15} />{label}
+              <Icon size={15} />{t(labelKey)}
             </NavLink>
           ))}
         </div>
@@ -176,6 +178,7 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
 }
 
 function UserMenu({ user, logout, isAdmin }) {
+  const { t } = useTranslation("nav")
   const [open, setOpen] = useState(false)
   const wrapRef = useRef(null)
 
@@ -217,7 +220,7 @@ function UserMenu({ user, logout, isAdmin }) {
           className={`text-gray-400 dark:text-gray-500 shrink-0 transition-transform ${open ? "" : "rotate-180"}`} />
       </button>
       {isAdmin && (
-        <NavLink to="/settings" title="Settings"
+        <NavLink to="/settings" title={t("user.settings")}
           className={({ isActive }) => `w-9 h-9 flex items-center justify-center rounded-md transition-colors ${
             isActive
               ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300"
@@ -232,7 +235,7 @@ function UserMenu({ user, logout, isAdmin }) {
           className="absolute bottom-full left-3 right-3 mb-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 z-40">
           <Link to="/profile" role="menuitem" onClick={() => setOpen(false)}
             className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
-            <UserCircle size={14} /> Profile
+            <UserCircle size={14} /> {t("user.profile")}
           </Link>
           <div className="my-1 border-t border-gray-100 dark:border-gray-800" />
           <ThemeToggle />
@@ -240,7 +243,7 @@ function UserMenu({ user, logout, isAdmin }) {
           <button type="button" role="menuitem"
             onClick={() => { setOpen(false); logout() }}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400">
-            <LogOut size={14} /> Logout
+            <LogOut size={14} /> {t("user.logout")}
           </button>
         </div>
       )}

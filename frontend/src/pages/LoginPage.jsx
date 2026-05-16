@@ -1,17 +1,19 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useLogin } from '../hooks/useAuth'
 import { Logo } from '../components/ui/logo'
 import { loginErrorMessage } from '../lib/auth-errors'
 
 export function LoginPage() {
+  const { t } = useTranslation('auth')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const login = useLogin()
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+  const handleSubmit = (event) => {
+    event.preventDefault()
     login.mutate({ username, password }, {
       onSuccess: () => navigate('/projects'),
     })
@@ -27,19 +29,19 @@ export function LoginPage() {
           </p>
         )}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor="username">Username</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor="username">{t('login.username')}</label>
           <input
             id="username"
             name="username"
             autoComplete="username"
             className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
             value={username}
-            onChange={e => setUsername(e.target.value)}
+            onChange={event => setUsername(event.target.value)}
             required
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor="password">Password</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1" htmlFor="password">{t('login.password')}</label>
           <input
             id="password"
             name="password"
@@ -47,7 +49,7 @@ export function LoginPage() {
             autoComplete="current-password"
             className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={event => setPassword(event.target.value)}
             required
           />
         </div>
@@ -56,11 +58,11 @@ export function LoginPage() {
           disabled={login.isPending}
           className="w-full bg-gray-900 text-white rounded-md py-2 text-sm font-medium hover:bg-gray-700 disabled:opacity-50"
         >
-          {login.isPending ? 'Signing in…' : 'Sign in'}
+          {login.isPending ? t('login.signingIn') : t('login.signIn')}
         </button>
         <p className="text-center text-sm">
           <Link to="/forgot-password" className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100">
-            Forgot your password?
+            {t('login.forgotPassword')}
           </Link>
         </p>
       </form>

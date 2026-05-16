@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import { configureSentry } from './lib/sentry'
 import { initTheme } from './hooks/useTheme'
-import './i18n'
+import i18n from './i18n'
 import './index.css'
 
 configureSentry()
@@ -25,15 +25,15 @@ class ErrorBoundary extends React.Component {
     if (this.state.error) {
       return (
         <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-center px-4">
-          <p className="text-lg font-semibold text-gray-800">Something went wrong</p>
+          <p className="text-lg font-semibold text-gray-800">{i18n.t('errors.boundaryTitle')}</p>
           <p className="text-sm text-gray-500">{this.state.error?.message}</p>
           <div className="flex gap-3">
-            <a href="/projects" className="text-sm text-primary-600 underline">Go to projects</a>
+            <a href="/projects" className="text-sm text-primary-600 underline">{i18n.t('errors.goToProjects')}</a>
             <button
               onClick={() => this.setState({ error: null })}
               className="text-sm text-gray-500 underline"
             >
-              Try again
+              {i18n.t('errors.tryAgain')}
             </button>
           </div>
         </div>

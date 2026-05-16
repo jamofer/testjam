@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Outlet, Navigate, useLocation } from 'react-router-dom'
 import { Menu } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Sidebar } from './Sidebar'
 import { CommandPalette } from '../ui/command-palette'
 import { useMe, useUpdateMe } from '../../hooks/useAuth'
 import { browserTimezone } from '../../lib/format'
 
 export function AppLayout() {
+  const { t } = useTranslation(['nav', 'common'])
   const { data: user, isLoading, isError } = useMe()
   const updateMe = useUpdateMe()
   const detectedTimezoneBootstrapped = useRef(false)
@@ -36,14 +38,14 @@ export function AppLayout() {
 
   useEffect(() => { setMobileOpen(false) }, [location.pathname])
 
-  if (isLoading) return <div className="flex items-center justify-center h-screen text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-950">Loading…</div>
+  if (isLoading) return <div className="flex items-center justify-center h-screen text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-950">{t('common:actions.loading')}</div>
   if (isError) return <Navigate to="/login" replace />
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
       <button
         type="button"
-        aria-label="Open menu"
+        aria-label={t('openMenu')}
         onClick={() => setMobileOpen(true)}
         className="md:hidden fixed top-2.5 left-2.5 z-40 w-9 h-9 flex items-center justify-center rounded-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
       >

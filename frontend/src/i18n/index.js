@@ -3,8 +3,12 @@ import { initReactI18next } from "react-i18next"
 
 import enCommon from "./locales/en/common.json"
 import enProfile from "./locales/en/profile.json"
+import enAuth from "./locales/en/auth.json"
+import enNav from "./locales/en/nav.json"
 import esCommon from "./locales/es/common.json"
 import esProfile from "./locales/es/profile.json"
+import esAuth from "./locales/es/auth.json"
+import esNav from "./locales/es/nav.json"
 
 const STORAGE_KEY = "testjam.locale"
 
@@ -22,13 +26,13 @@ function detectLocale() {
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { common: enCommon, profile: enProfile },
-    es: { common: esCommon, profile: esProfile },
+    en: { common: enCommon, profile: enProfile, auth: enAuth, nav: enNav },
+    es: { common: esCommon, profile: esProfile, auth: esAuth, nav: esNav },
   },
   lng: detectLocale(),
   fallbackLng: DEFAULT_LOCALE,
   supportedLngs: SUPPORTED_LOCALES,
-  ns: ["common", "profile"],
+  ns: ["common", "profile", "auth", "nav"],
   defaultNS: "common",
   interpolation: { escapeValue: false },
   returnNull: false,

@@ -1,0 +1,27 @@
+{
+  "search": "Buscar…",
+  "closeMenu": "Cerrar menú",
+  "openMenu": "Abrir menú",
+  "allProjects": "Todos los proyectos",
+  "project": {
+    "overview": "Resumen",
+    "cases": "Casos de prueba",
+    "plans": "Planes de prueba",
+    "executions": "Ejecuciones",
+    "versions": "Versiones",
+    "members": "Miembros"
+  },
+  "global": {
+    "projects": "Proyectos",
+    "users": "Usuarios y grupos"
+  },
+  "user": {
+    "profile": "Perfil",
+    "settings": "Ajustes",
+    "logout": "Cerrar sesión",
+    "theme": "Tema",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro",
+    "themeSystem": "Sistema"
+  }
+}

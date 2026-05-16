@@ -16,5 +16,10 @@
   },
   "time": {
     "never": "Nunca"
+  },
+  "errors": {
+    "boundaryTitle": "Algo ha fallado",
+    "tryAgain": "Reintentar",
+    "goToProjects": "Ir a proyectos"
   }
 }

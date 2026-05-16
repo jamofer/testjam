@@ -16,5 +16,10 @@
   },
   "time": {
     "never": "Never"
+  },
+  "errors": {
+    "boundaryTitle": "Something went wrong",
+    "tryAgain": "Try again",
+    "goToProjects": "Go to projects"
   }
 }

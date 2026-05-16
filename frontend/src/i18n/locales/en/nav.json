@@ -1,0 +1,27 @@
+{
+  "search": "Search…",
+  "closeMenu": "Close menu",
+  "openMenu": "Open menu",
+  "allProjects": "All projects",
+  "project": {
+    "overview": "Overview",
+    "cases": "Test Cases",
+    "plans": "Test Plans",
+    "executions": "Executions",
+    "versions": "Versions",
+    "members": "Members"
+  },
+  "global": {
+    "projects": "Projects",
+    "users": "Users & Groups"
+  },
+  "user": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System"
+  }
+}
