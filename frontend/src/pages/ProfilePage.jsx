@@ -12,7 +12,8 @@ import { Label } from "../components/ui/label"
 import { EmptyState } from "../components/ui/empty-state"
 import { TimezonePicker } from "../components/ui/timezone-picker"
 import { browserTimezone } from "../lib/format"
-import { Trash2, Plus, Key, Copy, Eye, EyeOff, Clock, Bell, AlertTriangle, Globe } from "lucide-react"
+import { useTheme, DARK_VARIANTS } from "../hooks/useTheme"
+import { Trash2, Plus, Key, Copy, Eye, EyeOff, Clock, Bell, AlertTriangle, Globe, Palette, Sun, Moon, Monitor } from "lucide-react"
 import { toast } from "sonner"
 
 const NOTIFICATION_EVENT_LABELS = {
@@ -187,6 +188,106 @@ function DatePreferencesSection() {
       </div>
       <Button type="submit" loading={updateMe.isPending}>Save preferences</Button>
     </form>
+  )
+}
+
+
+const THEME_MODES = [
+  { value: "light",  label: "Light",  icon: Sun },
+  { value: "dark",   label: "Dark",   icon: Moon },
+  { value: "system", label: "System", icon: Monitor },
+]
+
+const VARIANT_INFO = {
+  default: { label: "Classic", description: "Black + bright text. Highest contrast." },
+  navy:    { label: "Navy",    description: "Mid-tone slate-blue surfaces. Soft contrast, blue cast." },
+  dim:     { label: "Dim",     description: "GitHub-style mid-greys. Low contrast, easy on the eyes." },
+}
+
+const VARIANT_SWATCHES = {
+  default: ["#030712", "#111827", "#374151", "#f3f4f6"],
+  navy:    ["#1e2a3d", "#28354c", "#4a5a78", "#e6edf6"],
+  dim:     ["#1c2128", "#22272e", "#444c56", "#adbac7"],
+}
+
+function VariantSwatch({ name }) {
+  const colors = VARIANT_SWATCHES[name]
+  return (
+    <div className="flex h-6 rounded-md overflow-hidden border border-gray-200 dark:border-gray-700">
+      {colors.map((color, index) => (
+        <div key={index} className="flex-1" style={{ backgroundColor: color }} />
+      ))}
+    </div>
+  )
+}
+
+function AppearanceSection() {
+  const { theme, variant, setTheme, setVariant } = useTheme()
+
+  return (
+    <section className="bg-white dark:bg-gray-900 border rounded-xl p-6 space-y-4 shadow-sm">
+      <div className="flex items-center gap-2">
+        <Palette size={15} className="text-gray-500 dark:text-gray-400" />
+        <h2 className="font-semibold text-gray-700 dark:text-gray-200">Appearance</h2>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Mode</Label>
+        <div role="radiogroup" aria-label="Theme mode" className="grid grid-cols-3 gap-2">
+          {THEME_MODES.map(({ value, label, icon: Icon }) => {
+            const active = theme === value
+            return (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setTheme(value)}
+                className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md border text-sm transition-colors ${
+                  active
+                    ? "border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
+                    : "border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+                }`}
+              >
+                <Icon size={14} /> {label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Dark variant</Label>
+        <p className="text-xs text-gray-400 dark:text-gray-500">Applied when the resolved mode is dark (Dark, or System on a dark OS).</p>
+        <div role="radiogroup" aria-label="Dark variant" className="space-y-2">
+          {DARK_VARIANTS.map((name) => {
+            const info = VARIANT_INFO[name]
+            const active = variant === name
+            return (
+              <button
+                key={name}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setVariant(name)}
+                className={`w-full text-left px-3 py-2 rounded-md border transition-colors ${
+                  active
+                    ? "border-primary-500 bg-primary-50 dark:bg-primary-900/30"
+                    : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-3 mb-1.5">
+                  <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{info.label}</span>
+                  {active && <span className="text-xs text-primary-600 dark:text-primary-300">Selected</span>}
+                </div>
+                <VariantSwatch name={name} />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">{info.description}</p>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -370,6 +471,8 @@ export function ProfilePage() {
       <UserTokensSection />
 
       <DatePreferencesSection />
+
+      <AppearanceSection />
 
       <NotificationPreferencesSection />
 

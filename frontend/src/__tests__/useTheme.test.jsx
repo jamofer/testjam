@@ -92,6 +92,53 @@ describe("useTheme", () => {
   })
 })
 
+describe("dark variants", () => {
+  it("defaults to navy and applies theme-navy when going dark", () => {
+    const { result } = renderHook(() => useTheme())
+
+    act(() => result.current.setTheme("dark"))
+
+    expect(result.current.variant).toBe("navy")
+    expect(document.documentElement.classList.contains("theme-navy")).toBe(true)
+  })
+
+  it("swaps the theme-* class when the user picks another variant", () => {
+    const { result } = renderHook(() => useTheme())
+    act(() => result.current.setTheme("dark"))
+
+    act(() => result.current.setVariant("dim"))
+
+    expect(document.documentElement.classList.contains("theme-navy")).toBe(false)
+    expect(document.documentElement.classList.contains("theme-dim")).toBe(true)
+  })
+
+  it("does not apply any theme-* class while in light mode", () => {
+    const { result } = renderHook(() => useTheme())
+
+    act(() => result.current.setVariant("dim"))
+
+    expect(document.documentElement.classList.contains("theme-dim")).toBe(false)
+  })
+
+  it("rejects unknown variant names", () => {
+    const { result } = renderHook(() => useTheme())
+
+    act(() => result.current.setVariant("hotpink"))
+
+    expect(result.current.variant).toBe("navy")
+  })
+
+  it("persists the chosen variant across hook instances", () => {
+    const first = renderHook(() => useTheme())
+    act(() => first.result.current.setVariant("dim"))
+    first.unmount()
+
+    const second = renderHook(() => useTheme())
+
+    expect(second.result.current.variant).toBe("dim")
+  })
+})
+
 describe("initTheme", () => {
   it("applies the stored appearance synchronously", () => {
     window.localStorage.setItem(STORAGE_KEY, "dark")

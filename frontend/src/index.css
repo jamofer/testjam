@@ -4,10 +4,78 @@
 
 @layer base {
   html { color-scheme: light; background-color: #f9fafb; }
-  html.dark { color-scheme: dark; background-color: #030712; }
+  html.dark { color-scheme: dark; }
   body { background-color: inherit; color: #111827; }
-  html.dark body { color: #f3f4f6; }
+  html.dark body { color: var(--tj-text); }
 }
+
+/* Dark variants — overrides for Tailwind dark: utilities used across the app.
+ * Variants redirect a small palette of "surface", "elevated", "border", and
+ * "text" tokens; coloured pills (success/destructive/warning) keep their hue. */
+html.dark.theme-default {
+  --tj-bg:         #030712;
+  --tj-surface:    #111827;
+  --tj-elevated:   #1f2937;
+  --tj-border:     #374151;
+  --tj-border-soft:#1f2937;
+  --tj-text:       #f3f4f6;
+  --tj-text-soft:  #e5e7eb;
+  --tj-muted:      #d1d5db;
+  --tj-muted-soft: #9ca3af;
+  --tj-subtle:     #6b7280;
+}
+html.dark.theme-navy {
+  --tj-bg:         #1e2a3d;
+  --tj-surface:    #28354c;
+  --tj-elevated:   #354461;
+  --tj-border:     #4a5a78;
+  --tj-border-soft:#28354c;
+  --tj-text:       #e6edf6;
+  --tj-text-soft:  #d0d8e3;
+  --tj-muted:      #b0bbcb;
+  --tj-muted-soft: #8896aa;
+  --tj-subtle:     #6a7588;
+}
+html.dark.theme-dim {
+  --tj-bg:         #1c2128;
+  --tj-surface:    #22272e;
+  --tj-elevated:   #2d333b;
+  --tj-border:     #444c56;
+  --tj-border-soft:#2d333b;
+  --tj-text:       #d9dde2;
+  --tj-text-soft:  #adbac7;
+  --tj-muted:      #909dab;
+  --tj-muted-soft: #768390;
+  --tj-subtle:     #636e7b;
+}
+
+html.dark { background-color: var(--tj-bg); }
+
+/* Redirect commonly-used dark: utility colours through palette vars.
+ * Specificity (html + dark + variant class) beats Tailwind's own dark: rules. */
+html.dark .dark\:bg-gray-950 { background-color: var(--tj-bg); }
+html.dark .dark\:bg-gray-900 { background-color: var(--tj-surface); }
+html.dark .dark\:bg-gray-800 { background-color: var(--tj-elevated); }
+html.dark .dark\:hover\:bg-gray-800:hover { background-color: var(--tj-elevated); }
+html.dark .dark\:hover\:bg-gray-700:hover { background-color: var(--tj-border); }
+html.dark .dark\:bg-gray-900\/40 { background-color: color-mix(in srgb, var(--tj-surface) 40%, transparent); }
+html.dark .dark\:bg-gray-900\/60 { background-color: color-mix(in srgb, var(--tj-surface) 60%, transparent); }
+html.dark .dark\:bg-gray-700\/60 { background-color: color-mix(in srgb, var(--tj-border) 60%, transparent); }
+
+html.dark .dark\:border-gray-700 { border-color: var(--tj-border); }
+html.dark .dark\:border-gray-800 { border-color: var(--tj-border-soft); }
+html.dark .dark\:hover\:border-gray-700:hover { border-color: var(--tj-border); }
+
+html.dark .dark\:text-gray-100 { color: var(--tj-text); }
+html.dark .dark\:text-gray-200 { color: var(--tj-text-soft); }
+html.dark .dark\:text-gray-300 { color: var(--tj-muted); }
+html.dark .dark\:text-gray-400 { color: var(--tj-muted-soft); }
+html.dark .dark\:text-gray-500 { color: var(--tj-subtle); }
+html.dark .dark\:text-gray-600 { color: var(--tj-subtle); }
+html.dark .dark\:hover\:text-white:hover     { color: var(--tj-text); }
+html.dark .dark\:hover\:text-gray-100:hover  { color: var(--tj-text); }
+html.dark .dark\:hover\:text-gray-200:hover  { color: var(--tj-text-soft); }
+html.dark .dark\:placeholder\:text-gray-500::placeholder { color: var(--tj-subtle); }
 
 /* Outside @layer — wins over Tailwind preflight (base layer) and library CSS */
 /* @uiw/react-md-editor sets a white bg on .wmde-markdown via CSS vars — let it inherit from the parent */
