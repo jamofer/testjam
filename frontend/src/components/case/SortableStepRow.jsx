@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Trash2, GripVertical } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useSortable } from "@dnd-kit/sortable"
@@ -15,6 +16,7 @@ const STEP_TYPE_STYLE = {
 }
 
 export function SortableStepRow({ step, caseId, onDelete }) {
+  const { t } = useTranslation(["cases", "suites"])
   const [editing, setEditing] = useState(false)
   const [action, setAction] = useState(step.action)
   const [expected, setExpected] = useState(step.expected_result ?? "")
@@ -33,7 +35,7 @@ export function SortableStepRow({ step, caseId, onDelete }) {
     await casesApi.updateStep(caseId, step.id, { action, expected_result: expected, order: step.order })
     qc.invalidateQueries({ queryKey: ["case", caseId] })
     setEditing(false)
-    toast.success("Step saved")
+    toast.success(t("stepSaved"))
   }
 
   const typeStyle = STEP_TYPE_STYLE[step.step_type] ?? STEP_TYPE_STYLE.action
@@ -41,7 +43,9 @@ export function SortableStepRow({ step, caseId, onDelete }) {
   return (
     <div ref={setNodeRef} style={style} className="border rounded-lg p-3 space-y-2 bg-white dark:bg-gray-900">
       <div className="flex items-start gap-2">
-        <button {...attributes} {...listeners} className="text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 mt-1 cursor-grab touch-none">
+        <button {...attributes} {...listeners}
+          aria-label={t("suites:row.dragHandle")}
+          className="text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 mt-1 cursor-grab touch-none">
           <GripVertical size={14} />
         </button>
         <span className="text-xs font-mono text-gray-400 dark:text-gray-500 mt-1 w-6">{step.order}.</span>
@@ -52,16 +56,16 @@ export function SortableStepRow({ step, caseId, onDelete }) {
           {editing ? (
             <div className="space-y-2">
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Step</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t("stepLabel")}</p>
                 <MdEditor value={action} onChange={setAction} height={120} />
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Expected result</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t("stepExpected")}</p>
                 <MdEditor value={expected} onChange={setExpected} height={80} />
               </div>
               <div className="flex gap-2">
-                <Button size="sm" onClick={save}>Save</Button>
-                <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+                <Button size="sm" onClick={save}>{t("save")}</Button>
+                <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>{t("cancel")}</Button>
               </div>
             </div>
           ) : (
@@ -69,7 +73,7 @@ export function SortableStepRow({ step, caseId, onDelete }) {
               <div className="prose prose-sm text-gray-800 dark:text-gray-100"><MdViewer value={step.action} /></div>
               {step.expected_result && (
                 <div className="mt-1 text-xs text-gray-400 dark:text-gray-500 italic">
-                  Expected: <MdViewer value={step.expected_result} />
+                  {t("stepExpectedInline")} <MdViewer value={step.expected_result} />
                 </div>
               )}
             </div>

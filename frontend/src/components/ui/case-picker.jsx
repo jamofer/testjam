@@ -1,10 +1,12 @@
 import { useState, useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import { ChevronRight, FolderOpen } from "lucide-react"
 import { casesApi } from "../../api/testcases"
 import { useSuitesAll, sortSuitesHierarchically } from "../../hooks/useSuites"
 import { TestCaseItem } from "./test-case-item"
 
 function SuiteNode({ suite, casesBySuite, loadCases, selected, onToggle, excludeIds, depth }) {
+  const { t } = useTranslation("suites")
   const allCases = casesBySuite[suite.id] ?? []
   const excluded = new Set(excludeIds)
   const visible = allCases.filter(tc => !excluded.has(tc.id))
@@ -29,7 +31,7 @@ function SuiteNode({ suite, casesBySuite, loadCases, selected, onToggle, exclude
             </div>
           )}
           {allExcluded && (
-            <p className="text-xs text-gray-400 dark:text-gray-500 py-1 px-2">All cases already added</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 py-1 px-2">{t("picker.allExcluded")}</p>
           )}
           {visible.map(tc => (
             <label key={tc.id} className="flex items-center gap-2 rounded px-2 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors">

@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useParams, Link } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { Plus, History, User as UserIcon, Clock } from "lucide-react"
 import { useCase, useUpdateCase, useReorderSteps, useSuite } from "../hooks/useSuites"
 import { useProject } from "../hooks/useProjects"
@@ -21,6 +22,7 @@ import { fmtDateTime } from "../lib/format"
 import { toast } from "sonner"
 
 export function TestCasePage() {
+  const { t } = useTranslation(["cases", "nav"])
   const { id } = useParams()
   const { data: tc, isLoading } = useCase(id)
   const { data: suite } = useSuite(tc?.suite_id)
@@ -37,7 +39,7 @@ export function TestCasePage() {
   const [preconditions, setPreconditions] = useState("")
   const [newStepContent, setNewStepContent] = useState("")
 
-  if (isLoading) return <p className="text-gray-500 dark:text-gray-400">Loading…</p>
+  if (isLoading) return <p className="text-gray-500 dark:text-gray-400">{t("loading")}</p>
   if (!tc) return null
 
   const startEditMeta = () => {
@@ -49,7 +51,7 @@ export function TestCasePage() {
 
   const saveMeta = async () => {
     await updateCase.mutateAsync({ name: title, description, preconditions })
-    toast.success("Saved")
+    toast.success(t("saved"))
     setEditingTitle(false)
   }
 
@@ -60,67 +62,67 @@ export function TestCasePage() {
     qc.invalidateQueries({ queryKey: ["case", id] })
     qc.invalidateQueries({ queryKey: ["case-revisions", id] })
     setNewStepContent("")
-    toast.success("Step added")
+    toast.success(t("stepAdded"))
   }
 
   const deleteStep = async (stepId) => {
     await casesApi.deleteStep(id, stepId)
     qc.invalidateQueries({ queryKey: ["case", id] })
     qc.invalidateQueries({ queryKey: ["case-revisions", id] })
-    toast.success("Step deleted")
+    toast.success(t("stepDeleted"))
   }
 
   const handleDragEnd = ({ active, over }) => {
     if (!over || active.id === over.id) return
     const steps = tc.steps ?? []
-    const oldIndex = steps.findIndex(s => s.id === active.id)
-    const newIndex = steps.findIndex(s => s.id === over.id)
+    const oldIndex = steps.findIndex(step => step.id === active.id)
+    const newIndex = steps.findIndex(step => step.id === over.id)
     const reordered = [...steps]
     const [moved] = reordered.splice(oldIndex, 1)
     reordered.splice(newIndex, 0, moved)
-    reorderSteps.mutate(reordered.map(s => s.id))
+    reorderSteps.mutate(reordered.map(step => step.id))
   }
 
-  const userLink = (u) => u
-    ? <Link to="/users" className="text-primary-600 hover:underline">{u.full_name || u.username}</Link>
+  const userLink = (user) => user
+    ? <Link to="/users" className="text-primary-600 hover:underline">{user.full_name || user.username}</Link>
     : null
 
   const contextSections = [
     {
-      title: "About",
+      title: t("context.about"),
       rows: [
-        { label: "Project", value: project?.name },
-        { label: "Suite", value: suite?.name },
-        { label: "External ID", value: tc.external_id },
-        { label: "Created by", value: userLink(tc.created_by) },
-        { label: "Created", value: fmtDateTime(tc.created_at) },
-        { label: "Updated by", value: userLink(tc.updated_by) },
-        { label: "Updated", value: fmtDateTime(tc.updated_at) },
+        { label: t("context.project"), value: project?.name },
+        { label: t("context.suite"), value: suite?.name },
+        { label: t("context.externalId"), value: tc.external_id },
+        { label: t("context.createdBy"), value: userLink(tc.created_by) },
+        { label: t("context.created"), value: fmtDateTime(tc.created_at) },
+        { label: t("context.updatedBy"), value: userLink(tc.updated_by) },
+        { label: t("context.updated"), value: fmtDateTime(tc.updated_at) },
       ],
     },
     {
-      title: "Tags",
+      title: t("context.tags"),
       body: (tc.tags ?? []).length > 0 ? (
         <div className="flex flex-wrap gap-1">
-          {tc.tags.map(t => (
-            <span key={t} className="text-[11px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-200">{t}</span>
+          {tc.tags.map(tag => (
+            <span key={tag} className="text-[11px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-200">{tag}</span>
           ))}
         </div>
-      ) : <p className="text-[11px] text-gray-400 dark:text-gray-500">No tags</p>,
+      ) : <p className="text-[11px] text-gray-400 dark:text-gray-500">{t("context.noTags")}</p>,
     },
     {
-      title: `Attachments (${tc.attachments?.length ?? 0})`,
+      title: t("context.attachmentsCount", { count: tc.attachments?.length ?? 0 }),
       body: <PanelAttachments caseId={id} attachments={tc.attachments ?? []} />,
     },
     {
-      title: "History",
+      title: t("context.history"),
       body: <PanelHistory caseId={id} />,
     },
     {
-      title: "Counts",
+      title: t("context.counts"),
       rows: [
-        { label: "Steps", value: tc.steps?.length ?? 0 },
-        { label: "Attachments", value: tc.attachments?.length ?? 0 },
+        { label: t("context.steps"), value: tc.steps?.length ?? 0 },
+        { label: t("context.attachments"), value: tc.attachments?.length ?? 0 },
       ],
     },
   ]
@@ -128,25 +130,25 @@ export function TestCasePage() {
   return (
     <>
       <PageHeader crumbs={[
-        { label: "Projects", to: "/projects" },
+        { label: t("nav:global.projects"), to: "/projects" },
         { label: project?.name ?? "…", to: `/projects/${suite?.project_id}` },
         { label: tc?.name },
       ]}>
         <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl">
           {editingTitle ? (
             <div className="space-y-3">
-              <Input value={title} onChange={e => setTitle(e.target.value)} className="text-lg font-bold" />
+              <Input value={title} onChange={event => setTitle(event.target.value)} className="text-lg font-bold" />
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Preconditions</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t("preconditions")}</p>
                 <MdEditor value={preconditions} onChange={setPreconditions} height={80} />
               </div>
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Description</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t("description")}</p>
                 <MdEditor value={description} onChange={setDescription} height={120} />
               </div>
               <div className="flex gap-2">
-                <Button size="sm" onClick={saveMeta} loading={updateCase.isPending}>Save</Button>
-                <Button size="sm" variant="ghost" onClick={() => setEditingTitle(false)}>Cancel</Button>
+                <Button size="sm" onClick={saveMeta} loading={updateCase.isPending}>{t("save")}</Button>
+                <Button size="sm" variant="ghost" onClick={() => setEditingTitle(false)}>{t("cancel")}</Button>
               </div>
             </div>
           ) : (
@@ -155,7 +157,7 @@ export function TestCasePage() {
               <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-400 dark:text-gray-500">
                 {tc.created_by && (
                   <span className="flex items-center gap-1">
-                    <UserIcon size={11} /> Created by {tc.created_by.full_name || tc.created_by.username}
+                    <UserIcon size={11} /> {t("createdBy", { name: tc.created_by.full_name || tc.created_by.username })}
                   </span>
                 )}
                 {tc.created_at && (
@@ -165,13 +167,13 @@ export function TestCasePage() {
                 )}
                 {tc.updated_by && tc.updated_at && tc.updated_at !== tc.created_at && (
                   <span className="flex items-center gap-1">
-                    <History size={11} /> Updated by {tc.updated_by.full_name || tc.updated_by.username} · {fmtDateTime(tc.updated_at)}
+                    <History size={11} /> {t("updatedBy", { name: tc.updated_by.full_name || tc.updated_by.username })} · {fmtDateTime(tc.updated_at)}
                   </span>
                 )}
               </div>
               {tc.preconditions && (
                 <div className="mt-2">
-                  <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">Preconditions</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">{t("preconditions")}</p>
                   <div className="prose prose-sm mt-1"><MdViewer value={tc.preconditions} /></div>
                 </div>
               )}
@@ -179,7 +181,7 @@ export function TestCasePage() {
                 <div className="mt-2 prose prose-sm text-gray-600 dark:text-gray-300"><MdViewer value={tc.description} /></div>
               )}
               {!tc.preconditions && !tc.description && (
-                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Click to add description…</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">{t("clickToAdd")}</p>
               )}
             </div>
           )}
@@ -191,23 +193,23 @@ export function TestCasePage() {
           <div className="flex-1 min-w-0 max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-6">
             <Tabs defaultValue="steps">
               <TabsList>
-                <TabsTrigger value="steps">Steps ({tc.steps?.length ?? 0})</TabsTrigger>
-                <TabsTrigger value="attachments">Attachments ({tc.attachments?.length ?? 0})</TabsTrigger>
-                <TabsTrigger value="history">History</TabsTrigger>
+                <TabsTrigger value="steps">{t("tabs.stepsCount", { count: tc.steps?.length ?? 0 })}</TabsTrigger>
+                <TabsTrigger value="attachments">{t("tabs.attachmentsCount", { count: tc.attachments?.length ?? 0 })}</TabsTrigger>
+                <TabsTrigger value="history">{t("tabs.history")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="steps">
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                  <SortableContext items={(tc.steps ?? []).map(s => s.id)} strategy={verticalListSortingStrategy}>
+                  <SortableContext items={(tc.steps ?? []).map(step => step.id)} strategy={verticalListSortingStrategy}>
                     <div className="space-y-2">
                       {(tc.steps ?? []).map(step => (
                         <SortableStepRow key={step.id} step={step} caseId={id} onDelete={() => deleteStep(step.id)} />
                       ))}
                       <div className="border rounded-lg p-3 space-y-2">
-                        <p className="text-xs text-gray-500 dark:text-gray-400">New step</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{t("newStep")}</p>
                         <MdEditor value={newStepContent} onChange={setNewStepContent} height={100} />
                         <Button size="sm" onClick={addStep} disabled={!newStepContent.trim()}>
-                          <Plus size={13} /> Add step
+                          <Plus size={13} /> {t("addStep")}
                         </Button>
                       </div>
                     </div>
