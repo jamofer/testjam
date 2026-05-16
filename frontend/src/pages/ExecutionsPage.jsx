@@ -13,6 +13,7 @@ import { Badge } from "../components/ui/badge"
 import { SearchInput } from "../components/ui/search-input"
 import { PageHeader, PageBody } from "../components/ui/page-header"
 import { DateLabel } from "../components/ui/date-label"
+import { fmtDuration } from "../lib/format"
 import { EmptyState } from "../components/ui/empty-state"
 import { LiveIndicator } from "../components/ui/live-indicator"
 import { SkeletonList } from "../components/ui/skeleton"
@@ -173,7 +174,9 @@ export function ExecutionsPage() {
                   <Clock size={10} /> <DateLabel iso={ex.started_at ?? ex.created_at} />
                 </span>
               )}
-              {ex.finished_at && <span>→ <DateLabel iso={ex.finished_at} /></span>}
+              {ex.finished_at && (ex.started_at || ex.created_at) && (
+                <span>· {fmtDuration(new Date(ex.finished_at) - new Date(ex.started_at ?? ex.created_at))}</span>
+              )}
             </div>
             <div className="flex gap-3 mt-1.5 text-xs">
               <span className="text-green-600">✓ {ex.summary?.passed ?? 0}</span>
