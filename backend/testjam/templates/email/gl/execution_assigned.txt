@@ -1,0 +1,7 @@
+{{ actor }} asignouche «{{ subject_object }}».
+
+Abrir execución: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Xestionar preferencias: {{ preferences_url }}

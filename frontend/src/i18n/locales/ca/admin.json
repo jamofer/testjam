@@ -1,0 +1,224 @@
+{
+  "title": "Admin",
+  "tabs": {
+    "users": "Usuaris ({{count}})",
+    "groups": "Grups ({{count}})",
+    "projects": "Projectes"
+  },
+  "users": {
+    "showDeleted": "Mostra els eliminats",
+    "newUser": "Nou usuari",
+    "createTitle": "Crea un usuari",
+    "create": "Crea",
+    "created": "Usuari creat",
+    "createFailed": "No s'ha pogut crear l'usuari",
+    "deleted": "Usuari eliminat",
+    "deleteFailed": "No s'ha pogut eliminar l'usuari",
+    "restored": "Usuari restaurat",
+    "restoreFailed": "No s'ha pogut restaurar l'usuari",
+    "fields": {
+      "username": "Usuari *",
+      "email": "Correu *",
+      "fullName": "Nom complet",
+      "password": "Contrasenya *"
+    },
+    "row": {
+      "admin": "admin",
+      "deletedBadge": "ELIMINAT",
+      "restore": "Restaura",
+      "active": "actiu",
+      "inactive": "inactiu",
+      "activityTitle": "Activitat",
+      "editTitle": "Edita",
+      "deleteTitle": "Elimina"
+    },
+    "deleteDialog": {
+      "title": "Elimina l'usuari «{{username}}»",
+      "intro": "Aquest usuari és l'únic propietari dels projectes següents. Tria què fer amb cadascun.",
+      "reassign": "Reassigna a",
+      "noCandidates": "Sense candidats",
+      "archiveProject": "Arxiva el projecte",
+      "cancel": "Cancel·la",
+      "confirm": "Elimina l'usuari"
+    },
+    "edit": {
+      "title": "Edita l'usuari «{{username}}»",
+      "updated": "Usuari actualitzat",
+      "updateFailed": "No s'ha pogut actualitzar l'usuari",
+      "username": "Usuari",
+      "email": "Correu",
+      "fullName": "Nom complet",
+      "timezone": "Zona horària",
+      "active": "Actiu",
+      "admin": "Admin",
+      "resetPassword": "Restableix la contrasenya…",
+      "cancel": "Cancel·la",
+      "save": "Desa"
+    },
+    "activity": {
+      "title": "Activitat — {{username}}",
+      "lastLogin": "Darrer inici de sessió",
+      "lastLoginFrom": "des de {{ip}}",
+      "neverLoggedIn": "Mai s'ha connectat.",
+      "recentExecutions": "Execucions recents",
+      "noExecutions": "Encara no ha iniciat execucions.",
+      "recentCases": "Casos recents",
+      "noCases": "Encara no ha creat casos."
+    },
+    "resetPassword": {
+      "title": "Restableix la contrasenya de «{{username}}»",
+      "intro": "Enviar un correu deixa rastre d'auditoria. Mostrar una contrasenya temporal funciona encara que SMTP estigui caigut, però només una vegada — copia-la abans de tancar.",
+      "sendEmail": "Envia el correu",
+      "showTemporary": "Mostra una contrasenya temporal",
+      "emailQueued": "Correu encolat",
+      "sent": "Enviat. L'enllaç caduca en 24 h i arriba a {{email}}.",
+      "share": "Comparteix aquesta contrasenya de manera segura. No es tornarà a mostrar.",
+      "copied": "Copiat al porta-retalls",
+      "failed": "No s'ha pogut restablir la contrasenya",
+      "done": "Fet"
+    }
+  },
+  "groups": {
+    "newGroup": "Nou grup",
+    "createTitle": "Crea un grup",
+    "create": "Crea",
+    "created": "Grup creat",
+    "deleted": "Grup eliminat",
+    "fields": {
+      "name": "Nom *"
+    },
+    "row": {
+      "noDescription": "(sense descripció)",
+      "members": "{{count}} membres",
+      "edit": "Edita",
+      "delete": "Elimina"
+    },
+    "edit": {
+      "title": "Grup — {{name}}",
+      "updated": "Grup actualitzat",
+      "updateFailed": "No s'ha pogut actualitzar el grup",
+      "addMemberFailed": "No s'ha pogut afegir el membre",
+      "removeMemberFailed": "No s'ha pogut treure el membre",
+      "name": "Nom",
+      "description": "Descripció",
+      "descriptionPlaceholder": "Per a què serveix aquest grup?",
+      "saveDetails": "Desa els detalls",
+      "membersCount": "Membres ({{count}})",
+      "noMembers": "Aquest grup encara no té membres.",
+      "selectUser": "Selecciona un usuari…",
+      "addMember": "Afegeix membre",
+      "removeAria": "Treu {{username}}"
+    }
+  },
+  "projects": {
+    "empty": "Sense projectes.",
+    "headers": {
+      "project": "Projecte",
+      "owner": "Propietari",
+      "members": "Membres",
+      "cases": "Casos",
+      "lastExecution": "Darrera execució",
+      "status": "Estat",
+      "actions": "Accions"
+    },
+    "statuses": {
+      "archived": "arxivat",
+      "active": "actiu"
+    },
+    "actions": {
+      "transfer": "Transfereix propietat",
+      "archive": "Arxiva",
+      "unarchive": "Desarxiva",
+      "export": "Exporta",
+      "delete": "Elimina"
+    },
+    "archiveFailed": "No s'ha pogut actualitzar l'estat d'arxivat",
+    "deleteDialog": {
+      "title": "Elimina el projecte «{{name}}»",
+      "intro": "Això elimina el projecte, les seves suites, casos i execucions de manera permanent. Escriu el nom del projecte per confirmar.",
+      "name": "Nom del projecte",
+      "deleted": "Projecte eliminat",
+      "deleteFailed": "No s'ha pogut eliminar el projecte",
+      "cancel": "Cancel·la",
+      "confirm": "Elimina el projecte"
+    },
+    "transfer": {
+      "title": "Transfereix la propietat de «{{name}}»",
+      "intro": "El propietari actual passa a ser editor. El nou propietari rep el rol owner.",
+      "newOwner": "Nou propietari",
+      "cancel": "Cancel·la",
+      "transferred": "Propietat transferida",
+      "transferFailed": "No s'ha pogut transferir la propietat",
+      "submit": "Transfereix"
+    }
+  },
+  "settings": {
+    "title": "Ajustos",
+    "adminOnly": "Només admin",
+    "adminOnlyDescription": "Els ajustos només són visibles per als administradors.",
+    "save": "Desa",
+    "saved": "Ajustos desats",
+    "saveFailed": "No s'han pogut desar els ajustos",
+    "sections": {
+      "general": {
+        "title": "General",
+        "description": "Marca i URL pública utilitzades en enllaços compartits i informes HTML.",
+        "siteUrl": "URL del lloc",
+        "siteUrlHint": "Si està definida, els adjunts i els enllaços «Veure a l'app» fan servir aquesta URL en comptes del host de la petició.",
+        "siteUrlPlaceholder": "https://qa.example.com",
+        "appName": "Nom de l'app",
+        "allowRegistration": "Permet l'auto-registre de nous usuaris",
+        "allowSelfDelete": "Permet que els usuaris eliminin el seu propi compte"
+      },
+      "executionDefaults": {
+        "title": "Valors per defecte d'execució",
+        "defaultEnvironment": "Entorn per defecte",
+        "defaultEnvironmentPlaceholder": "staging",
+        "defaultVersionPattern": "Patró de versió per defecte",
+        "defaultVersionPatternPlaceholder": "vYYYY.MM.DD"
+      },
+      "limits": {
+        "title": "Límits",
+        "maxUpload": "Mida màxima de pujada (MB)",
+        "notificationsRetention": "Retenció de notificacions (dies)",
+        "notificationsRetentionHint": "Les notificacions més antigues es purguen."
+      },
+      "smtp": {
+        "title": "Correu (SMTP)",
+        "description": "Notificacions sortints. Deixa el host buit per desactivar el correu.",
+        "host": "Host SMTP",
+        "hostPlaceholder": "smtp.example.com",
+        "port": "Port",
+        "portPlaceholder": "587",
+        "from": "Remitent",
+        "fromPlaceholder": "noreply@example.com",
+        "user": "Usuari",
+        "password": "Contrasenya",
+        "passwordSetHint": "Hi ha una contrasenya configurada. Escriu-ne una altra per reemplaçar-la o marca «Esborrar contrasenya» per eliminar-la.",
+        "noPasswordHint": "Sense contrasenya.",
+        "passwordPlaceholderSet": "•••••••• (definida)",
+        "clearPassword": "Esborra la contrasenya en desar",
+        "useTls": "Fes servir STARTTLS"
+      },
+      "realtime": {
+        "title": "Temps real",
+        "description": "Ajustos per als broadcasts WebSocket durant execucions en directe.",
+        "logFlush": "Interval de flush dels logs (ms)",
+        "logFlushHint": "Freqüència amb què les línies de log buffer es passen als subscriptors. 0 desactiva el batching."
+      }
+    },
+    "backup": {
+      "title": "Còpia i restauració",
+      "intro": "Baixa un ZIP amb el dump de la base de dades i els fitxers pujats. Restaurar reemplaça totes les dades.",
+      "download": "Baixa la còpia",
+      "downloaded": "Còpia baixada",
+      "downloadFailed": "Ha fallat la còpia",
+      "destructive": "Restaurar és destructiu. La base de dades actual i els fitxers pujats se sobreescriuen.",
+      "confirmLabel": "Escriu {{phrase}} per confirmar",
+      "confirmPlaceholder": "REPLACE ALL DATA",
+      "restoreButton": "Restaura des d'una còpia",
+      "restored": "Restaurat ({{count}} fitxers)",
+      "restoreFailed": "Ha fallat la restauració"
+    }
+  }
+}

@@ -135,3 +135,33 @@ def test_spanish_locale_uses_es_subject_and_message():
 def test_spanish_locale_falls_back_to_english_for_unknown_locale():
     subject, _, _, _ = email_templates.render(ASSIGNED, _base_context(), locale="fr")
     assert subject == "[Testjam] You were assigned to 'Smoke run'"
+
+
+def test_catalan_locale_renders_assigned_in_catalan():
+    subject, html, text, message = email_templates.render(
+        ASSIGNED, _base_context(), locale="ca",
+    )
+    assert subject == "[Testjam] T'han assignat a «Smoke run»"
+    assert message == "alice t'ha assignat a «Smoke run»"
+    assert "t'ha assignat" in text
+    assert "Obre l'execució" in html
+
+
+def test_galician_locale_renders_assigned_in_galician():
+    subject, html, text, message = email_templates.render(
+        ASSIGNED, _base_context(), locale="gl",
+    )
+    assert subject == "[Testjam] Asignáronche «Smoke run»"
+    assert message == "alice asignouche «Smoke run»"
+    assert "asignouche" in text
+    assert "Abrir execución" in html
+
+
+def test_basque_locale_renders_assigned_in_basque():
+    subject, html, text, message = email_templates.render(
+        ASSIGNED, _base_context(), locale="eu",
+    )
+    assert subject == "[Testjam] «Smoke run» esleitu zaizu"
+    assert "esleitu dizu" in message
+    assert "esleitu dizu" in text
+    assert "Ireki exekuzioa" in html

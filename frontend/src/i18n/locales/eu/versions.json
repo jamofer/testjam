@@ -1,0 +1,71 @@
+{
+  "title": "Bertsioak",
+  "namePlaceholder": "Bertsioaren izena (adib. 1.4.0, sprint-23)…",
+  "tagPlaceholder": "VCS tag (aukerakoa)",
+  "add": "Gehitu",
+  "created": "Bertsioa sortuta",
+  "deleted": "Bertsioa ezabatuta",
+  "changeStatus": "Aldatu egoera",
+  "openDetail": "Ireki bertsioaren xehetasuna",
+  "showArchived_one": "Erakutsi 1 artxibatua",
+  "showArchived_other": "Erakutsi {{count}} artxibatu",
+  "hideArchived": "Ezkutatu artxibatuak",
+  "statuses": {
+    "active": "Aktiboa",
+    "released": "Argitaratua",
+    "archived": "Artxibatua"
+  },
+  "empty": {
+    "title": "Oraindik ez dago bertsiorik",
+    "description": "Bertsioek release edo sprintak etiketatzen dituzte. Lotu exekuzioak bertsio bati release bakoitzeko emaitzak ikusteko."
+  },
+  "detail": {
+    "metadata": "Metadatuak",
+    "executions": "Exekuzioak",
+    "nameLabel": "Izena",
+    "releaseDateLabel": "Release data",
+    "releasedOn": "Argitaratua",
+    "descriptionLabel": "Bertsioaren oharrak",
+    "save": "Gorde",
+    "saved": "Bertsioa eguneratuta",
+    "statRuns": "Exekuzioak",
+    "statPassRate": "% arrakasta",
+    "statPassed": "Onartuta",
+    "statFailed": "Akatsekin",
+    "statBlocked": "Blokeatuta",
+    "noExecutionsTitle": "Ez dago exekuziorik bertsio honetarako",
+    "noExecutionsDescription": "Hautatu bertsio hau exekuzio bat sortzean hemen zerrendatuta ikusteko."
+  },
+  "coverage": {
+    "title": "Estaldura-matrizea",
+    "openButton": "Estaldura-matrizea",
+    "caseColumn": "Proba-kasua",
+    "includeArchived": "Sartu bertsio artxibatuak",
+    "emptyTitle": "Daturik gabe matrizerako",
+    "emptyDescription": "Sortu bertsioak eta lotu exekuzioak matrizea betetzeko.",
+    "filterPlaceholder": "Iragazi suiteak eta kasuak…",
+    "expandAll": "Zabaldu dena",
+    "collapseAll": "Tolestu dena",
+    "shortcutsButton": "Teklatuko lasterbideak",
+    "shortcutsDescription": "Nabigatu matrizean saguarik gabe.",
+    "shortcutSections": {
+      "navigation": "Nabigazioa",
+      "actions": "Ekintzak"
+    },
+    "shortcutRows": {
+      "next": "Hurrengo errenkada",
+      "prev": "Aurreko errenkada",
+      "collapse": "Tolestu suitea",
+      "expand": "Zabaldu suitea",
+      "nextSuite": "Jauzi hurrengo suitera",
+      "prevSuite": "Jauzi aurreko suitera",
+      "first": "Lehen errenkada",
+      "last": "Azken errenkada",
+      "toggle": "Txandakatu suitea",
+      "expandAll": "Zabaldu suite guztiak",
+      "collapseAll": "Tolestu suite guztiak",
+      "focusFilter": "Fokua iragazkian",
+      "help": "Erakutsi lasterbideak"
+    }
+  }
+}

@@ -23,7 +23,7 @@ from testjam.services.notification_events import NotificationEvent
 
 TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates" / "email"
 DEFAULT_LOCALE = "en"
-SUPPORTED_LOCALES = ("en", "es")
+SUPPORTED_LOCALES = ("en", "es", "ca", "gl", "eu")
 
 
 def _make_environment(locale: str, autoescape: bool) -> jinja2.Environment:
@@ -71,11 +71,56 @@ _FOOTER_REASONS: dict[str, dict[str, str]] = {
             "Recibes este email porque se solicitó restablecer la contraseña de esta cuenta."
         ),
     },
+    "ca": {
+        NotificationEvent.EXECUTION_ASSIGNED.value: (
+            "Reps aquest correu perquè t'han assignat a una execució de proves."
+        ),
+        NotificationEvent.EXECUTION_FINISHED.value: (
+            "Reps aquest correu perquè una execució que has creat o que t'han assignat ha finalitzat."
+        ),
+        NotificationEvent.EXECUTION_FAILED.value: (
+            "Reps aquest correu perquè una execució que has creat o que t'han assignat ha tingut errors."
+        ),
+        NotificationEvent.PASSWORD_RESET.value: (
+            "Reps aquest correu perquè s'ha sol·licitat restablir la contrasenya d'aquest compte."
+        ),
+    },
+    "gl": {
+        NotificationEvent.EXECUTION_ASSIGNED.value: (
+            "Recibes este correo porque che asignaron unha execución de probas."
+        ),
+        NotificationEvent.EXECUTION_FINISHED.value: (
+            "Recibes este correo porque unha execución que creaches ou che asignaron rematou."
+        ),
+        NotificationEvent.EXECUTION_FAILED.value: (
+            "Recibes este correo porque unha execución que creaches ou che asignaron tivo fallos."
+        ),
+        NotificationEvent.PASSWORD_RESET.value: (
+            "Recibes este correo porque se solicitou restablecer o contrasinal desta conta."
+        ),
+    },
+    "eu": {
+        NotificationEvent.EXECUTION_ASSIGNED.value: (
+            "Mezu hau jaso duzu proba-exekuzio bat esleitu zaizulako."
+        ),
+        NotificationEvent.EXECUTION_FINISHED.value: (
+            "Mezu hau jaso duzu sortu zenuen edo esleitu zitzaizun exekuzio bat amaitu delako."
+        ),
+        NotificationEvent.EXECUTION_FAILED.value: (
+            "Mezu hau jaso duzu sortu zenuen edo esleitu zitzaizun exekuzioak akatsak izan dituelako."
+        ),
+        NotificationEvent.PASSWORD_RESET.value: (
+            "Mezu hau jaso duzu kontu honetarako pasahitza berrezartzeko eskaria egin delako."
+        ),
+    },
 }
 
 _GENERIC_FOOTER_REASON = {
     "en": "You're receiving this because notifications are enabled for your account.",
     "es": "Recibes este email porque las notificaciones están activas en tu cuenta.",
+    "ca": "Reps aquest correu perquè les notificacions estan actives al teu compte.",
+    "gl": "Recibes este correo porque as notificacións están activadas na túa conta.",
+    "eu": "Mezu hau jaso duzu zure kontuan jakinarazpenak aktibatuta daudelako.",
 }
 
 

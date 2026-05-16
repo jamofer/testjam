@@ -1,0 +1,42 @@
+{
+  "title": "Proxectos",
+  "searchPlaceholder": "Buscar proxectos…",
+  "showArchived": "Mostrar arquivados",
+  "newProject": "Novo proxecto",
+  "newProjectTitle": "Novo proxecto",
+  "projectName": "Nome do proxecto…",
+  "createProject": "Crear proxecto",
+  "created": "Proxecto creado",
+  "archived": "ARQUIVADO",
+  "archive": "Arquivar proxecto",
+  "unarchive": "Desarquivar proxecto",
+  "delete": "Eliminar proxecto",
+  "empty": {
+    "title": "Aínda non hai proxectos",
+    "description": "Os proxectos agrupan as túas suites, casos e execucións. Crea un enriba para comezar."
+  },
+  "noMatches": {
+    "title": "Sen resultados",
+    "description": "Ningún proxecto coincide con «{{query}}». Proba outra busca."
+  },
+  "detail": {
+    "newExecution": "Nova execución",
+    "testCases": "Casos de proba",
+    "export": "Exportar",
+    "exportTitle": "Descargar proxecto como ZIP",
+    "exported": "Proxecto exportado",
+    "exportFailed": "Fallou a exportación"
+  },
+  "panel": {
+    "library": "Biblioteca",
+    "suites": "Suites",
+    "cases": "Casos",
+    "executions": "Execucións",
+    "passRate": "Taxa de éxito",
+    "lastN": "últimas {{count}}",
+    "avg": "media",
+    "notEnough": "Aínda non hai datos abondos.",
+    "recentRuns": "Execucións recentes",
+    "noExecutions": "Aínda non hai execucións."
+  }
+}

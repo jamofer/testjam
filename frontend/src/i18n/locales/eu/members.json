@@ -1,0 +1,63 @@
+{
+  "title": "Kideak eta sarbidea",
+  "loading": "Kargatzen…",
+  "members": "Kideak",
+  "roles": {
+    "owner": "jabea",
+    "tester": "testerra",
+    "viewer": "ikuslea"
+  },
+  "member": {
+    "added": "Kidea gehituta",
+    "addFailed": "Ezin izan da kidea gehitu",
+    "removed": "Kidea kenduta",
+    "removeFailed": "Ezin izan da kidea kendu",
+    "roleFailed": "Ezin izan da rola eguneratu",
+    "selectUser": "Hautatu erabiltzailea…",
+    "add": "Gehitu",
+    "removeAria": "Kendu kidea"
+  },
+  "membersEmpty": {
+    "title": "Oraindik ez dago kiderik",
+    "description": "Gehitu testerrak edo ikusleak proiektura sarbidea emateko."
+  },
+  "groups": {
+    "title": "Taldeen sarbidea",
+    "assigned": "Taldea esleituta",
+    "assignFailed": "Ezin izan da taldea esleitu",
+    "removed": "Taldea kenduta",
+    "removeFailed": "Ezin izan da taldea kendu",
+    "roleFailed": "Ezin izan da rola eguneratu",
+    "selectGroup": "Hautatu taldea…",
+    "assign": "Esleitu",
+    "removeAria": "Kendu taldea",
+    "memberCount_one": "Kide {{count}}",
+    "memberCount_other": "{{count}} kide",
+    "empty": {
+      "title": "Talderik esleitu gabe",
+      "description": "Esleitu talde bat haren kide guztiei rol bera emateko proiektu honetan."
+    }
+  },
+  "tokens": {
+    "title": "Proiektuaren API tokenak",
+    "created": "Tokena sortuta — kopiatu orain, ez da berriro erakutsiko.",
+    "copied": "Tokena kopiatuta",
+    "createFailed": "Ezin izan da tokena sortu",
+    "revoked": "Tokena baliogabetuta",
+    "revokeFailed": "Ezin izan da tokena baliogabetu",
+    "namePlaceholder": "Tokenaren izena (adib. CI pipeline)",
+    "newToken": "Token berria",
+    "done": "Eginda",
+    "headers": {
+      "name": "Izena",
+      "prefix": "Aurrizkia",
+      "lastUsed": "Azken erabilera",
+      "created": "Sortuta"
+    },
+    "never": "Inoiz ez",
+    "empty": {
+      "title": "Proiektu-tokenik ez",
+      "description": "Sortu token bat CIk exekuzioak egiteko edo emaitzak inportatzeko proiektu honetan."
+    }
+  }
+}

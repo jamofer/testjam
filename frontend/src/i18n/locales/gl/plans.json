@@ -1,0 +1,34 @@
+{
+  "title": "Plans de proba",
+  "newPlan": "Novo plan",
+  "newPlanTitle": "Novo plan de probas",
+  "planTitle": "Título do plan…",
+  "selectCases": "Selecciona casos de proba",
+  "selectedCases": "{{count}} casos seleccionados",
+  "create": "Crear plan",
+  "created": "Plan creado",
+  "deleted": "Plan eliminado",
+  "loading": "Cargando…",
+  "cases": "({{count}} casos)",
+  "empty": {
+    "title": "Aínda non hai plans",
+    "description": "Os plans agrupan casos para unha release ou fito. Crea un enriba para orquestrar execucións."
+  },
+  "detail": {
+    "selectedCount": "{{count}} seleccionado(s)",
+    "addCases": "Engadir casos",
+    "addCasesTitle": "Engadir casos de proba",
+    "addToPlan": "Engadir ao plan",
+    "added": "{{count}} casos engadidos",
+    "casesLabel": "{{count}} casos de proba",
+    "save": "Gardar",
+    "cancel": "Cancelar",
+    "run": "Executar",
+    "updated": "Plan actualizado",
+    "caseRemoved": "Caso eliminado",
+    "empty": {
+      "title": "Sen casos de proba",
+      "description": "Engade casos a este plan para executalos xuntos."
+    }
+  }
+}

@@ -1,0 +1,12 @@
+L'execució «{{ subject_object }}» ha finalitzat amb errors.
+
+{% if summary %}
+{{ summary.failed }} fallits de {{ summary.total }} proves.
+Aprovats: {{ summary.passed }} · Bloquejats: {{ summary.blocked }} · Sense executar: {{ summary.not_run }}
+
+{% endif %}
+Investigar: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Gestiona les preferències: {{ preferences_url }}

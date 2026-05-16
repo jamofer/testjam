@@ -218,7 +218,7 @@ function AppearanceSection() {
 
       <div className="space-y-1.5">
         <Label>{t("appearance.language")}</Label>
-        <div role="radiogroup" aria-label={t("appearance.language")} className="grid grid-cols-2 gap-2">
+        <div role="radiogroup" aria-label={t("appearance.language")} className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {SUPPORTED_LOCALES.map(code => {
             const active = locale === code
             return (

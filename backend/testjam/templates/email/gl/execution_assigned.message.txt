@@ -1,0 +1,1 @@
+{{ actor }} asignouche «{{ subject_object }}»

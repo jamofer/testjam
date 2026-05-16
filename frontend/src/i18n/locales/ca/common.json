@@ -1,0 +1,39 @@
+{
+  "actions": {
+    "save": "Desa",
+    "saveChanges": "Desa els canvis",
+    "cancel": "Cancel·la",
+    "delete": "Elimina",
+    "create": "Crea",
+    "done": "Fet",
+    "loading": "Carregant…",
+    "copy": "Copia"
+  },
+  "language": {
+    "label": "Idioma",
+    "en": "Anglès",
+    "es": "Espanyol",
+    "ca": "Català",
+    "gl": "Gallec",
+    "eu": "Basc"
+  },
+  "status": {
+    "running": "Executant",
+    "passed": "Passa",
+    "failed": "Falla",
+    "blocked": "Bloquejat",
+    "not_run": "Sense executar",
+    "pending": "Pendent",
+    "in_progress": "En curs",
+    "completed": "Completat",
+    "aborted": "Avortat"
+  },
+  "time": {
+    "never": "Mai"
+  },
+  "errors": {
+    "boundaryTitle": "Alguna cosa ha fallat",
+    "tryAgain": "Torna-ho a provar",
+    "goToProjects": "Vés als projectes"
+  }
+}

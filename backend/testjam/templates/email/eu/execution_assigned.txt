@@ -1,0 +1,7 @@
+{{ actor }} erabiltzaileak «{{ subject_object }}» esleitu dizu.
+
+Ireki exekuzioa: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Kudeatu hobespenak: {{ preferences_url }}

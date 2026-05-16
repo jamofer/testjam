@@ -1,0 +1,1 @@
+Execució «{{ subject_object }}» finalitzada

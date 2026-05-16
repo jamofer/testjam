@@ -1,0 +1,50 @@
+{
+  "commandPalette": {
+    "title": "Paleta de comandes",
+    "description": "Cerca projectes, casos, execucions i executa accions ràpides.",
+    "placeholder": "Cerca projectes, casos, accions… (↑↓ Enter)",
+    "esc": "esc",
+    "noMatches": "Sense coincidències",
+    "groups": {
+      "projects": "Projectes",
+      "recentExecutions": "Execucions recents",
+      "testCases": "Casos de prova",
+      "actions": "Accions"
+    },
+    "hints": {
+      "cases": "{{count}} casos"
+    },
+    "actions": {
+      "newExecution": "Nova execució en aquest projecte",
+      "newSuite": "Nova suite de proves",
+      "goToPlans": "Vés als plans",
+      "goToVersions": "Vés a les versions",
+      "goToCoverage": "Vés a la matriu de cobertura",
+      "goToMembers": "Vés als membres"
+    }
+  },
+  "shortcuts": {
+    "title": "Dreceres de teclat"
+  },
+  "timezone": {
+    "placeholder": "Escriu per cercar…"
+  },
+  "contextPanel": {
+    "title": "Context",
+    "expand": "Expandeix el panell de context",
+    "collapse": "Replega el panell de context"
+  },
+  "live": {
+    "label": "en directe"
+  },
+  "notifications": {
+    "title": "Notificacions",
+    "ariaUnread_zero": "Notificacions",
+    "ariaUnread_one": "Notificacions, {{count}} sense llegir",
+    "ariaUnread_other": "Notificacions, {{count}} sense llegir",
+    "markAllRead": "Marca-les totes com a llegides",
+    "close": "Tanca les notificacions",
+    "empty": "Sense notificacions",
+    "markRead": "Marca com a llegida"
+  }
+}

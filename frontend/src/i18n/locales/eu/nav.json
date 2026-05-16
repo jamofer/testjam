@@ -1,0 +1,27 @@
+{
+  "search": "Bilatu…",
+  "closeMenu": "Itxi menua",
+  "openMenu": "Ireki menua",
+  "allProjects": "Proiektu guztiak",
+  "project": {
+    "overview": "Laburpena",
+    "cases": "Proba-kasuak",
+    "plans": "Proba-planak",
+    "executions": "Exekuzioak",
+    "versions": "Bertsioak",
+    "members": "Kideak"
+  },
+  "global": {
+    "projects": "Proiektuak",
+    "users": "Erabiltzaileak eta taldeak"
+  },
+  "user": {
+    "profile": "Profila",
+    "settings": "Ezarpenak",
+    "logout": "Itxi saioa",
+    "theme": "Itxura",
+    "themeLight": "Argia",
+    "themeDark": "Iluna",
+    "themeSystem": "Sistema"
+  }
+}

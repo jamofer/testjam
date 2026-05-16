@@ -1,0 +1,63 @@
+{
+  "title": "Membres i accés",
+  "loading": "Carregant…",
+  "members": "Membres",
+  "roles": {
+    "owner": "propietari",
+    "tester": "tester",
+    "viewer": "lectura"
+  },
+  "member": {
+    "added": "Membre afegit",
+    "addFailed": "No s'ha pogut afegir el membre",
+    "removed": "Membre eliminat",
+    "removeFailed": "No s'ha pogut eliminar el membre",
+    "roleFailed": "No s'ha pogut actualitzar el rol",
+    "selectUser": "Selecciona un usuari…",
+    "add": "Afegeix",
+    "removeAria": "Treu el membre"
+  },
+  "membersEmpty": {
+    "title": "Encara no hi ha membres",
+    "description": "Afegeix testers o lectors per donar-los accés al projecte."
+  },
+  "groups": {
+    "title": "Accés per grups",
+    "assigned": "Grup assignat",
+    "assignFailed": "No s'ha pogut assignar el grup",
+    "removed": "Grup eliminat",
+    "removeFailed": "No s'ha pogut eliminar el grup",
+    "roleFailed": "No s'ha pogut actualitzar el rol",
+    "selectGroup": "Selecciona un grup…",
+    "assign": "Assigna",
+    "removeAria": "Treu el grup",
+    "memberCount_one": "{{count}} membre",
+    "memberCount_other": "{{count}} membres",
+    "empty": {
+      "title": "Cap grup assignat",
+      "description": "Assigna un grup per donar a tots els seus membres el mateix rol en aquest projecte."
+    }
+  },
+  "tokens": {
+    "title": "Tokens d'API del projecte",
+    "created": "Token creat — copia'l ara, no es tornarà a mostrar.",
+    "copied": "Token copiat",
+    "createFailed": "No s'ha pogut crear el token",
+    "revoked": "Token revocat",
+    "revokeFailed": "No s'ha pogut revocar el token",
+    "namePlaceholder": "Nom del token (p. ex. pipeline CI)",
+    "newToken": "Nou token",
+    "done": "Fet",
+    "headers": {
+      "name": "Nom",
+      "prefix": "Prefix",
+      "lastUsed": "Darrer ús",
+      "created": "Creat"
+    },
+    "never": "Mai",
+    "empty": {
+      "title": "Sense tokens de projecte",
+      "description": "Crea un token perquè el CI executi o importi resultats en aquest projecte."
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "title": "Perfil",
+  "subtitle": "Xestiona a túa conta",
+  "account": {
+    "title": "Datos da conta",
+    "username": "Usuario",
+    "fullName": "Nome completo",
+    "fullNamePlaceholder": "Xoana Pérez",
+    "email": "Correo",
+    "saved": "Perfil actualizado"
+  },
+  "tokens": {
+    "title": "Tokens de API",
+    "namePlaceholder": "Nome do token",
+    "newToken": "Novo token",
+    "created": "Token creado — cópiao agora, non se mostrará outra vez.",
+    "copied": "Token copiado",
+    "createFailed": "Non se puido crear o token",
+    "revoked": "Token revogado",
+    "revokeFailed": "Non se puido revogar o token",
+    "headers": {
+      "name": "Nome",
+      "prefix": "Prefixo",
+      "lastUsed": "Último uso"
+    },
+    "empty": {
+      "title": "Sen tokens persoais",
+      "description": "Crea un para autenticarte desde o CI ou o listener."
+    }
+  },
+  "dates": {
+    "title": "Datas e zona horaria",
+    "timezone": "Zona horaria",
+    "timezoneHint": "Todas as datas móstranse nesta zona horaria.",
+    "showRelative": "Mostrar datas relativas",
+    "showRelativeHint": "Por exemplo, «hai 2 horas»; ao pasar o rato móstrase a data absoluta.",
+    "savePreferences": "Gardar preferencias",
+    "saved": "Preferencias de data gardadas",
+    "saveFailed": "Non se puideron gardar as preferencias"
+  },
+  "appearance": {
+    "title": "Aparencia",
+    "mode": "Modo",
+    "modes": {
+      "light": "Claro",
+      "dark": "Escuro",
+      "system": "Sistema"
+    },
+    "language": "Idioma",
+    "variant": "Variante escura",
+    "variantHint": "Aplícase en modo escuro (Escuro, ou Sistema con SO escuro).",
+    "selected": "Seleccionado",
+    "variants": {
+      "default": {
+        "label": "Clásico",
+        "description": "Negro + texto brillante. Máximo contraste."
+      },
+      "navy": {
+        "label": "Navy",
+        "description": "Superficies azul lousa suaves. Contraste medio, ton azul."
+      },
+      "dim": {
+        "label": "Dim",
+        "description": "Grises medios estilo GitHub. Contraste baixo, descanso visual."
+      }
+    }
+  },
+  "notifications": {
+    "title": "Notificacións",
+    "smtpDisabledWarning": "SMTP non está configurado. Non se enviarán correos aínda que actives a opción.",
+    "headers": {
+      "event": "Evento",
+      "inApp": "Na app",
+      "email": "Correo"
+    },
+    "saved": "Preferencias gardadas",
+    "saveFailed": "Non se puido gardar a preferencia",
+    "events": {
+      "execution_assigned": {
+        "title": "Execución asignada a ti",
+        "description": "Cando alguén che asigna unha execución de probas."
+      },
+      "execution_finished": {
+        "title": "Execución rematada",
+        "description": "Cando unha execución que creaches ou che asignaron remata."
+      },
+      "execution_failed": {
+        "title": "Execución con fallos",
+        "description": "Cando unha execución rematada tivo polo menos un test fallado."
+      }
+    },
+    "inAppFor": "Na app para {{title}}",
+    "emailFor": "Correo para {{title}}"
+  },
+  "password": {
+    "title": "Cambiar contrasinal",
+    "current": "Contrasinal actual",
+    "new": "Novo contrasinal",
+    "confirm": "Confirma o novo contrasinal",
+    "submit": "Cambiar contrasinal",
+    "saved": "Contrasinal cambiado",
+    "mismatch": "Os contrasinais non coinciden",
+    "tooShort": "O contrasinal debe ter polo menos 8 caracteres",
+    "failed": "Non se puido cambiar o contrasinal"
+  }
+}

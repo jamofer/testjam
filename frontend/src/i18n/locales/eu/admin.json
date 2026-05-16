@@ -1,0 +1,224 @@
+{
+  "title": "Admin",
+  "tabs": {
+    "users": "Erabiltzaileak ({{count}})",
+    "groups": "Taldeak ({{count}})",
+    "projects": "Proiektuak"
+  },
+  "users": {
+    "showDeleted": "Erakutsi ezabatuak",
+    "newUser": "Erabiltzaile berria",
+    "createTitle": "Sortu erabiltzailea",
+    "create": "Sortu",
+    "created": "Erabiltzailea sortuta",
+    "createFailed": "Ezin izan da erabiltzailea sortu",
+    "deleted": "Erabiltzailea ezabatuta",
+    "deleteFailed": "Ezin izan da erabiltzailea ezabatu",
+    "restored": "Erabiltzailea berreskuratuta",
+    "restoreFailed": "Ezin izan da erabiltzailea berreskuratu",
+    "fields": {
+      "username": "Erabiltzailea *",
+      "email": "Posta elektronikoa *",
+      "fullName": "Izen osoa",
+      "password": "Pasahitza *"
+    },
+    "row": {
+      "admin": "admin",
+      "deletedBadge": "EZABATUTA",
+      "restore": "Berreskuratu",
+      "active": "aktiboa",
+      "inactive": "ez-aktiboa",
+      "activityTitle": "Jarduera",
+      "editTitle": "Editatu",
+      "deleteTitle": "Ezabatu"
+    },
+    "deleteDialog": {
+      "title": "Ezabatu «{{username}}» erabiltzailea",
+      "intro": "Erabiltzaile hau hurrengo proiektuen jabe bakarra da. Aukeratu zer egin bakoitzarekin.",
+      "reassign": "Esleitu honi",
+      "noCandidates": "Hautagairik ez",
+      "archiveProject": "Artxibatu proiektua",
+      "cancel": "Utzi",
+      "confirm": "Ezabatu erabiltzailea"
+    },
+    "edit": {
+      "title": "Editatu «{{username}}» erabiltzailea",
+      "updated": "Erabiltzailea eguneratuta",
+      "updateFailed": "Ezin izan da erabiltzailea eguneratu",
+      "username": "Erabiltzailea",
+      "email": "Posta elektronikoa",
+      "fullName": "Izen osoa",
+      "timezone": "Ordu-eremua",
+      "active": "Aktiboa",
+      "admin": "Admin",
+      "resetPassword": "Berrezarri pasahitza…",
+      "cancel": "Utzi",
+      "save": "Gorde"
+    },
+    "activity": {
+      "title": "Jarduera — {{username}}",
+      "lastLogin": "Azken saio-hasiera",
+      "lastLoginFrom": "{{ip}}-tik",
+      "neverLoggedIn": "Inoiz ez da konektatu.",
+      "recentExecutions": "Azken exekuzioak",
+      "noExecutions": "Oraindik ez du exekuziorik hasi.",
+      "recentCases": "Azken kasuak",
+      "noCases": "Oraindik ez du kasurik sortu."
+    },
+    "resetPassword": {
+      "title": "Berrezarri «{{username}}»-(r)en pasahitza",
+      "intro": "Posta bidaltzeak auditoria-arrastoa uzten du. Behin-behineko pasahitz bat erakustea SMTP erorita egonda ere funtzionatzen du, baina behin bakarrik — kopiatu itxi aurretik.",
+      "sendEmail": "Bidali posta",
+      "showTemporary": "Erakutsi behin-behineko pasahitza",
+      "emailQueued": "Posta ilaran",
+      "sent": "Bidalita. Esteka 24 orduz da baliozkoa eta {{email}}-(e)ra iristen da.",
+      "share": "Partekatu pasahitz hau modu seguruan. Ez da berriro erakutsiko.",
+      "copied": "Arbelean kopiatuta",
+      "failed": "Ezin izan da pasahitza berrezarri",
+      "done": "Eginda"
+    }
+  },
+  "groups": {
+    "newGroup": "Talde berria",
+    "createTitle": "Sortu taldea",
+    "create": "Sortu",
+    "created": "Taldea sortuta",
+    "deleted": "Taldea ezabatuta",
+    "fields": {
+      "name": "Izena *"
+    },
+    "row": {
+      "noDescription": "(deskribapenik gabe)",
+      "members": "{{count}} kide",
+      "edit": "Editatu",
+      "delete": "Ezabatu"
+    },
+    "edit": {
+      "title": "Taldea — {{name}}",
+      "updated": "Taldea eguneratuta",
+      "updateFailed": "Ezin izan da taldea eguneratu",
+      "addMemberFailed": "Ezin izan da kidea gehitu",
+      "removeMemberFailed": "Ezin izan da kidea kendu",
+      "name": "Izena",
+      "description": "Deskribapena",
+      "descriptionPlaceholder": "Zertarako da talde hau?",
+      "saveDetails": "Gorde xehetasunak",
+      "membersCount": "Kideak ({{count}})",
+      "noMembers": "Talde honek oraindik ez du kiderik.",
+      "selectUser": "Hautatu erabiltzailea…",
+      "addMember": "Gehitu kidea",
+      "removeAria": "Kendu {{username}}"
+    }
+  },
+  "projects": {
+    "empty": "Proiekturik ez.",
+    "headers": {
+      "project": "Proiektua",
+      "owner": "Jabea",
+      "members": "Kideak",
+      "cases": "Kasuak",
+      "lastExecution": "Azken exekuzioa",
+      "status": "Egoera",
+      "actions": "Ekintzak"
+    },
+    "statuses": {
+      "archived": "artxibatua",
+      "active": "aktiboa"
+    },
+    "actions": {
+      "transfer": "Transferitu jabetza",
+      "archive": "Artxibatu",
+      "unarchive": "Desartxibatu",
+      "export": "Esportatu",
+      "delete": "Ezabatu"
+    },
+    "archiveFailed": "Ezin izan da artxibo-egoera eguneratu",
+    "deleteDialog": {
+      "title": "Ezabatu «{{name}}» proiektua",
+      "intro": "Honek proiektua, bere suiteak, kasuak eta exekuzioak betiko ezabatzen ditu. Idatzi proiektuaren izena berresteko.",
+      "name": "Proiektuaren izena",
+      "deleted": "Proiektua ezabatuta",
+      "deleteFailed": "Ezin izan da proiektua ezabatu",
+      "cancel": "Utzi",
+      "confirm": "Ezabatu proiektua"
+    },
+    "transfer": {
+      "title": "Transferitu «{{name}}»-(r)en jabetza",
+      "intro": "Egungo jabea editore bihurtzen da. Jabe berriak owner rola jasotzen du.",
+      "newOwner": "Jabe berria",
+      "cancel": "Utzi",
+      "transferred": "Jabetza transferituta",
+      "transferFailed": "Ezin izan da jabetza transferitu",
+      "submit": "Transferitu"
+    }
+  },
+  "settings": {
+    "title": "Ezarpenak",
+    "adminOnly": "Admin soilik",
+    "adminOnlyDescription": "Ezarpenak administratzaileek bakarrik ikus ditzakete.",
+    "save": "Gorde",
+    "saved": "Ezarpenak gordeta",
+    "saveFailed": "Ezin izan dira ezarpenak gorde",
+    "sections": {
+      "general": {
+        "title": "Orokorra",
+        "description": "Marka eta esteka partekatuetan eta HTML txostenetan erabiltzen den URL publikoa.",
+        "siteUrl": "Gunearen URLa",
+        "siteUrlHint": "Definituta badago, eranskinak eta «Ikusi aplikazioan» estekak URL hau erabiltzen dute eskaeraren hostaren ordez.",
+        "siteUrlPlaceholder": "https://qa.example.com",
+        "appName": "Aplikazioaren izena",
+        "allowRegistration": "Onartu erabiltzaile berrien auto-erregistroa",
+        "allowSelfDelete": "Onartu erabiltzaileek beren kontua ezabatzea"
+      },
+      "executionDefaults": {
+        "title": "Exekuzioaren balio lehenetsiak",
+        "defaultEnvironment": "Ingurune lehenetsia",
+        "defaultEnvironmentPlaceholder": "staging",
+        "defaultVersionPattern": "Bertsio-eredu lehenetsia",
+        "defaultVersionPatternPlaceholder": "vYYYY.MM.DD"
+      },
+      "limits": {
+        "title": "Mugak",
+        "maxUpload": "Igoeren tamaina maximoa (MB)",
+        "notificationsRetention": "Jakinarazpenen atxikipena (egunak)",
+        "notificationsRetentionHint": "Jakinarazpen zaharragoak ezabatzen dira."
+      },
+      "smtp": {
+        "title": "Posta (SMTP)",
+        "description": "Irteerako jakinarazpenak. Utzi hosta hutsik posta desaktibatzeko.",
+        "host": "SMTP hosta",
+        "hostPlaceholder": "smtp.example.com",
+        "port": "Ataka",
+        "portPlaceholder": "587",
+        "from": "Igorlea",
+        "fromPlaceholder": "noreply@example.com",
+        "user": "Erabiltzailea",
+        "password": "Pasahitza",
+        "passwordSetHint": "Pasahitz bat konfiguratuta dago. Idatzi berri bat ordezteko edo markatu «Ezabatu pasahitza» kentzeko.",
+        "noPasswordHint": "Pasahitzik gabe.",
+        "passwordPlaceholderSet": "•••••••• (ezarrita)",
+        "clearPassword": "Ezabatu gordetako pasahitza gordetzean",
+        "useTls": "Erabili STARTTLS"
+      },
+      "realtime": {
+        "title": "Denbora erreala",
+        "description": "WebSocket emanaldien doitzeak zuzeneko proba-exekuzioetan.",
+        "logFlush": "Log flush tartea (ms)",
+        "logFlushHint": "Zenbatero bidaltzen zaizkien bufferreko log lerroak harpidedunei. 0 batching desaktibatzen du."
+      }
+    },
+    "backup": {
+      "title": "Babeskopia eta berrezartzea",
+      "intro": "Deskargatu datu-basearen iraulia eta igotako fitxategiak dituen ZIP bat. Berrezartzeak datu guztiak ordezten ditu.",
+      "download": "Deskargatu babeskopia",
+      "downloaded": "Babeskopia deskargatuta",
+      "downloadFailed": "Babeskopiak huts egin du",
+      "destructive": "Berrezartzea suntsitzailea da. Egungo datu-basea eta igotako fitxategiak gainidazten dira.",
+      "confirmLabel": "Idatzi {{phrase}} berresteko",
+      "confirmPlaceholder": "REPLACE ALL DATA",
+      "restoreButton": "Berrezarri babeskopiatik",
+      "restored": "Berrezarrita ({{count}} fitxategi)",
+      "restoreFailed": "Berrezartzeak huts egin du"
+    }
+  }
+}

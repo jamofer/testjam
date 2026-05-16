@@ -1,0 +1,1 @@
+Akatsak «{{ subject_object }}» exekuzioan

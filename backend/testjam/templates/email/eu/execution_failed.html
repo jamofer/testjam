@@ -1,0 +1,17 @@
+{% extends "_layout.html" %}
+{% block content %}
+<p style="font-size: 16px; line-height: 1.5;">
+  <strong>{{ subject_object }}</strong> exekuzioa akatsekin amaitu da.
+</p>
+{% if summary %}
+<p style="font-size: 14px; line-height: 1.6; background: #fef2f2; border-left: 4px solid #dc2626; padding: 12px 16px; border-radius: 6px;">
+  <strong>{{ summary.failed }}</strong> akats <strong>{{ summary.total }}</strong> probatatik.<br>
+  Onartuta: {{ summary.passed }} · Blokeatuta: {{ summary.blocked }} · Exekutatu gabe: {{ summary.not_run }}
+</p>
+{% endif %}
+<p style="margin: 24px 0;">
+  <a href="{{ link_in_app }}" style="display: inline-block; background: #dc2626; color: #fff; padding: 10px 18px; border-radius: 6px; text-decoration: none;">
+    Aztertu akatsak
+  </a>
+</p>
+{% endblock %}

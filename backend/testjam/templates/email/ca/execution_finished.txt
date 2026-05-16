@@ -1,0 +1,15 @@
+L'execució «{{ subject_object }}» ha finalitzat.
+
+{% if summary %}
+Total: {{ summary.total }}
+Aprovats: {{ summary.passed }}
+Fallits: {{ summary.failed }}
+Bloquejats: {{ summary.blocked }}
+Sense executar: {{ summary.not_run }}
+
+{% endif %}
+Veure resultats: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Gestiona les preferències: {{ preferences_url }}

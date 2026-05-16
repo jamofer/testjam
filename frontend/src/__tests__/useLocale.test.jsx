@@ -6,7 +6,7 @@ vi.mock("../hooks/useAuth", () => ({
 }))
 
 import { useLocale } from "../hooks/useLocale"
-import i18n, { DEFAULT_LOCALE } from "../i18n"
+import i18n, { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "../i18n"
 
 const STORAGE_KEY = "testjam.locale"
 
@@ -41,5 +41,19 @@ describe("useLocale", () => {
     await act(async () => result.current.setLocale("xx"))
 
     expect(result.current.locale).not.toBe("xx")
+  })
+
+  it("exposes ca, gl and eu among supported locales", () => {
+    expect(SUPPORTED_LOCALES).toEqual(expect.arrayContaining(["ca", "gl", "eu"]))
+  })
+
+  it("switches to Catalan and persists it", async () => {
+    const { result } = renderHook(() => useLocale())
+
+    await act(async () => result.current.setLocale("ca"))
+
+    expect(result.current.locale).toBe("ca")
+    expect(i18n.language).toBe("ca")
+    expect(window.localStorage.getItem(STORAGE_KEY)).toBe("ca")
   })
 })

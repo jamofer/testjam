@@ -1,0 +1,12 @@
+«{{ subject_object }}» exekuzioa akatsekin amaitu da.
+
+{% if summary %}
+{{ summary.failed }} akats {{ summary.total }} probatatik.
+Onartuta: {{ summary.passed }} · Blokeatuta: {{ summary.blocked }} · Exekutatu gabe: {{ summary.not_run }}
+
+{% endif %}
+Aztertu: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Kudeatu hobespenak: {{ preferences_url }}

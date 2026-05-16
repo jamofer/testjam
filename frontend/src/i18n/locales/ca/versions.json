@@ -1,0 +1,71 @@
+{
+  "title": "Versions",
+  "namePlaceholder": "Nom de la versió (p. ex. 1.4.0, sprint-23)…",
+  "tagPlaceholder": "Tag de VCS (opcional)",
+  "add": "Afegeix",
+  "created": "Versió creada",
+  "deleted": "Versió eliminada",
+  "changeStatus": "Canvia l'estat",
+  "openDetail": "Obre el detall de la versió",
+  "showArchived_one": "Mostra 1 arxivada",
+  "showArchived_other": "Mostra {{count}} arxivades",
+  "hideArchived": "Amaga les arxivades",
+  "statuses": {
+    "active": "Activa",
+    "released": "Publicada",
+    "archived": "Arxivada"
+  },
+  "empty": {
+    "title": "Encara no hi ha versions",
+    "description": "Les versions etiqueten releases o sprints. Vincula execucions a una versió per veure resultats per release."
+  },
+  "detail": {
+    "metadata": "Metadades",
+    "executions": "Execucions",
+    "nameLabel": "Nom",
+    "releaseDateLabel": "Data de release",
+    "releasedOn": "Publicada",
+    "descriptionLabel": "Notes de la versió",
+    "save": "Desa",
+    "saved": "Versió actualitzada",
+    "statRuns": "Execucions",
+    "statPassRate": "% d'èxit",
+    "statPassed": "Aprovats",
+    "statFailed": "Fallits",
+    "statBlocked": "Bloquejats",
+    "noExecutionsTitle": "No hi ha execucions per a aquesta versió",
+    "noExecutionsDescription": "Tria aquesta versió en crear una execució per veure-la llistada aquí."
+  },
+  "coverage": {
+    "title": "Matriu de cobertura",
+    "openButton": "Matriu de cobertura",
+    "caseColumn": "Cas de prova",
+    "includeArchived": "Inclou versions arxivades",
+    "emptyTitle": "Dades insuficients per a la matriu",
+    "emptyDescription": "Crea versions i vincula-hi execucions per omplir la matriu.",
+    "filterPlaceholder": "Filtra suites i casos…",
+    "expandAll": "Expandeix-ho tot",
+    "collapseAll": "Replega-ho tot",
+    "shortcutsButton": "Dreceres de teclat",
+    "shortcutsDescription": "Navega la matriu sense ratolí.",
+    "shortcutSections": {
+      "navigation": "Navegació",
+      "actions": "Accions"
+    },
+    "shortcutRows": {
+      "next": "Fila següent",
+      "prev": "Fila anterior",
+      "collapse": "Replega suite",
+      "expand": "Expandeix suite",
+      "nextSuite": "Salta a la suite següent",
+      "prevSuite": "Salta a la suite anterior",
+      "first": "Primera fila",
+      "last": "Darrera fila",
+      "toggle": "Commuta la suite",
+      "expandAll": "Expandeix totes les suites",
+      "collapseAll": "Replega totes les suites",
+      "focusFilter": "Focus al filtre",
+      "help": "Mostra les dreceres"
+    }
+  }
+}

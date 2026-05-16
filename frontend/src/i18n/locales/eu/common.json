@@ -1,0 +1,39 @@
+{
+  "actions": {
+    "save": "Gorde",
+    "saveChanges": "Gorde aldaketak",
+    "cancel": "Utzi",
+    "delete": "Ezabatu",
+    "create": "Sortu",
+    "done": "Eginda",
+    "loading": "Kargatzen…",
+    "copy": "Kopiatu"
+  },
+  "language": {
+    "label": "Hizkuntza",
+    "en": "Ingelesa",
+    "es": "Gaztelania",
+    "ca": "Katalana",
+    "gl": "Galiziera",
+    "eu": "Euskara"
+  },
+  "status": {
+    "running": "Exekutatzen",
+    "passed": "Ondo",
+    "failed": "Akatsa",
+    "blocked": "Blokeatuta",
+    "not_run": "Exekutatu gabe",
+    "pending": "Zain",
+    "in_progress": "Egiten",
+    "completed": "Amaituta",
+    "aborted": "Etenda"
+  },
+  "time": {
+    "never": "Inoiz ez"
+  },
+  "errors": {
+    "boundaryTitle": "Zerbait gaizki joan da",
+    "tryAgain": "Saiatu berriro",
+    "goToProjects": "Joan proiektuetara"
+  }
+}

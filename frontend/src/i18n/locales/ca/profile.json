@@ -1,0 +1,106 @@
+{
+  "title": "Perfil",
+  "subtitle": "Gestiona el teu compte",
+  "account": {
+    "title": "Dades del compte",
+    "username": "Usuari",
+    "fullName": "Nom complet",
+    "fullNamePlaceholder": "Joana Pérez",
+    "email": "Correu",
+    "saved": "Perfil actualitzat"
+  },
+  "tokens": {
+    "title": "Tokens d'API",
+    "namePlaceholder": "Nom del token",
+    "newToken": "Nou token",
+    "created": "Token creat — copia'l ara, no es tornarà a mostrar.",
+    "copied": "Token copiat",
+    "createFailed": "No s'ha pogut crear el token",
+    "revoked": "Token revocat",
+    "revokeFailed": "No s'ha pogut revocar el token",
+    "headers": {
+      "name": "Nom",
+      "prefix": "Prefix",
+      "lastUsed": "Darrer ús"
+    },
+    "empty": {
+      "title": "Sense tokens personals",
+      "description": "Crea'n un per autenticar-te des de CI o el listener."
+    }
+  },
+  "dates": {
+    "title": "Dates i zona horària",
+    "timezone": "Zona horària",
+    "timezoneHint": "Totes les dates es mostren en aquesta zona horària.",
+    "showRelative": "Mostra dates relatives",
+    "showRelativeHint": "Per exemple, «fa 2 hores»; en passar el ratolí es mostra la data absoluta.",
+    "savePreferences": "Desa preferències",
+    "saved": "Preferències de data desades",
+    "saveFailed": "No s'han pogut desar les preferències"
+  },
+  "appearance": {
+    "title": "Aparença",
+    "mode": "Mode",
+    "modes": {
+      "light": "Clar",
+      "dark": "Fosc",
+      "system": "Sistema"
+    },
+    "language": "Idioma",
+    "variant": "Variant fosca",
+    "variantHint": "S'aplica en mode fosc (Fosc, o Sistema amb SO fosc).",
+    "selected": "Seleccionat",
+    "variants": {
+      "default": {
+        "label": "Clàssic",
+        "description": "Negre + text brillant. Màxim contrast."
+      },
+      "navy": {
+        "label": "Navy",
+        "description": "Superfícies blau pissarra suaus. Contrast mitjà, to blau."
+      },
+      "dim": {
+        "label": "Dim",
+        "description": "Grisos mitjans estil GitHub. Contrast baix, descans visual."
+      }
+    }
+  },
+  "notifications": {
+    "title": "Notificacions",
+    "smtpDisabledWarning": "SMTP no està configurat. No s'enviaran correus encara que activis l'opció.",
+    "headers": {
+      "event": "Esdeveniment",
+      "inApp": "A l'app",
+      "email": "Correu"
+    },
+    "saved": "Preferències desades",
+    "saveFailed": "No s'ha pogut desar la preferència",
+    "events": {
+      "execution_assigned": {
+        "title": "Execució assignada a mi",
+        "description": "Quan algú t'assigna una execució de proves."
+      },
+      "execution_finished": {
+        "title": "Execució finalitzada",
+        "description": "Quan una execució que has creat o que t'han assignat finalitza."
+      },
+      "execution_failed": {
+        "title": "Execució amb errors",
+        "description": "Quan una execució finalitzada té almenys una prova fallida."
+      }
+    },
+    "inAppFor": "A l'app per a {{title}}",
+    "emailFor": "Correu per a {{title}}"
+  },
+  "password": {
+    "title": "Canvia la contrasenya",
+    "current": "Contrasenya actual",
+    "new": "Nova contrasenya",
+    "confirm": "Confirma la nova contrasenya",
+    "submit": "Canvia la contrasenya",
+    "saved": "Contrasenya canviada",
+    "mismatch": "Les contrasenyes no coincideixen",
+    "tooShort": "La contrasenya ha de tenir almenys 8 caràcters",
+    "failed": "No s'ha pogut canviar la contrasenya"
+  }
+}

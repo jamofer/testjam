@@ -1,0 +1,224 @@
+{
+  "title": "Admin",
+  "tabs": {
+    "users": "Usuarios ({{count}})",
+    "groups": "Grupos ({{count}})",
+    "projects": "Proxectos"
+  },
+  "users": {
+    "showDeleted": "Mostrar eliminados",
+    "newUser": "Novo usuario",
+    "createTitle": "Crear usuario",
+    "create": "Crear",
+    "created": "Usuario creado",
+    "createFailed": "Non se puido crear o usuario",
+    "deleted": "Usuario eliminado",
+    "deleteFailed": "Non se puido eliminar o usuario",
+    "restored": "Usuario restaurado",
+    "restoreFailed": "Non se puido restaurar o usuario",
+    "fields": {
+      "username": "Usuario *",
+      "email": "Correo *",
+      "fullName": "Nome completo",
+      "password": "Contrasinal *"
+    },
+    "row": {
+      "admin": "admin",
+      "deletedBadge": "ELIMINADO",
+      "restore": "Restaurar",
+      "active": "activo",
+      "inactive": "inactivo",
+      "activityTitle": "Actividade",
+      "editTitle": "Editar",
+      "deleteTitle": "Eliminar"
+    },
+    "deleteDialog": {
+      "title": "Eliminar usuario «{{username}}»",
+      "intro": "Este usuario é o único propietario dos seguintes proxectos. Escolle que facer con cada un.",
+      "reassign": "Reasignar a",
+      "noCandidates": "Sen candidatos",
+      "archiveProject": "Arquivar proxecto",
+      "cancel": "Cancelar",
+      "confirm": "Eliminar usuario"
+    },
+    "edit": {
+      "title": "Editar usuario «{{username}}»",
+      "updated": "Usuario actualizado",
+      "updateFailed": "Non se puido actualizar o usuario",
+      "username": "Usuario",
+      "email": "Correo",
+      "fullName": "Nome completo",
+      "timezone": "Zona horaria",
+      "active": "Activo",
+      "admin": "Admin",
+      "resetPassword": "Restablecer contrasinal…",
+      "cancel": "Cancelar",
+      "save": "Gardar"
+    },
+    "activity": {
+      "title": "Actividade — {{username}}",
+      "lastLogin": "Último inicio de sesión",
+      "lastLoginFrom": "desde {{ip}}",
+      "neverLoggedIn": "Nunca se conectou.",
+      "recentExecutions": "Execucións recentes",
+      "noExecutions": "Aínda non iniciou execucións.",
+      "recentCases": "Casos recentes",
+      "noCases": "Aínda non creou casos."
+    },
+    "resetPassword": {
+      "title": "Restablecer contrasinal de «{{username}}»",
+      "intro": "Enviar correo deixa rastro de auditoría. Mostrar un contrasinal temporal funciona aínda que SMTP estea caído, pero só unha vez — cópiao antes de pechar.",
+      "sendEmail": "Enviar correo",
+      "showTemporary": "Mostrar contrasinal temporal",
+      "emailQueued": "Correo encolado",
+      "sent": "Enviado. A ligazón caduca en 24 h e chega a {{email}}.",
+      "share": "Comparte este contrasinal de xeito seguro. Non se mostrará outra vez.",
+      "copied": "Copiado ao portapapeis",
+      "failed": "Non se puido restablecer o contrasinal",
+      "done": "Feito"
+    }
+  },
+  "groups": {
+    "newGroup": "Novo grupo",
+    "createTitle": "Crear grupo",
+    "create": "Crear",
+    "created": "Grupo creado",
+    "deleted": "Grupo eliminado",
+    "fields": {
+      "name": "Nome *"
+    },
+    "row": {
+      "noDescription": "(sen descrición)",
+      "members": "{{count}} membros",
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "edit": {
+      "title": "Grupo — {{name}}",
+      "updated": "Grupo actualizado",
+      "updateFailed": "Non se puido actualizar o grupo",
+      "addMemberFailed": "Non se puido engadir o membro",
+      "removeMemberFailed": "Non se puido quitar o membro",
+      "name": "Nome",
+      "description": "Descrición",
+      "descriptionPlaceholder": "Para que serve este grupo?",
+      "saveDetails": "Gardar detalles",
+      "membersCount": "Membros ({{count}})",
+      "noMembers": "Este grupo aínda non ten membros.",
+      "selectUser": "Selecciona un usuario…",
+      "addMember": "Engadir membro",
+      "removeAria": "Quitar a {{username}}"
+    }
+  },
+  "projects": {
+    "empty": "Sen proxectos.",
+    "headers": {
+      "project": "Proxecto",
+      "owner": "Propietario",
+      "members": "Membros",
+      "cases": "Casos",
+      "lastExecution": "Última execución",
+      "status": "Estado",
+      "actions": "Accións"
+    },
+    "statuses": {
+      "archived": "arquivado",
+      "active": "activo"
+    },
+    "actions": {
+      "transfer": "Transferir propiedade",
+      "archive": "Arquivar",
+      "unarchive": "Desarquivar",
+      "export": "Exportar",
+      "delete": "Eliminar"
+    },
+    "archiveFailed": "Non se puido actualizar o estado de arquivado",
+    "deleteDialog": {
+      "title": "Eliminar proxecto «{{name}}»",
+      "intro": "Isto elimina o proxecto, as súas suites, casos e execucións de xeito permanente. Escribe o nome do proxecto para confirmar.",
+      "name": "Nome do proxecto",
+      "deleted": "Proxecto eliminado",
+      "deleteFailed": "Non se puido eliminar o proxecto",
+      "cancel": "Cancelar",
+      "confirm": "Eliminar proxecto"
+    },
+    "transfer": {
+      "title": "Transferir propiedade de «{{name}}»",
+      "intro": "O propietario actual pasa a ser editor. O novo propietario recibe o rol owner.",
+      "newOwner": "Novo propietario",
+      "cancel": "Cancelar",
+      "transferred": "Propiedade transferida",
+      "transferFailed": "Non se puido transferir a propiedade",
+      "submit": "Transferir"
+    }
+  },
+  "settings": {
+    "title": "Axustes",
+    "adminOnly": "Só admin",
+    "adminOnlyDescription": "Os axustes só son visibles para administradores.",
+    "save": "Gardar",
+    "saved": "Axustes gardados",
+    "saveFailed": "Non se puideron gardar os axustes",
+    "sections": {
+      "general": {
+        "title": "Xeral",
+        "description": "Marca e URL pública usada en ligazóns compartidas e informes HTML.",
+        "siteUrl": "URL do sitio",
+        "siteUrlHint": "Se está definida, os anexos e ligazóns «Ver na app» usan esta URL no canto do host da petición.",
+        "siteUrlPlaceholder": "https://qa.example.com",
+        "appName": "Nome da app",
+        "allowRegistration": "Permitir auto-rexistro de novos usuarios",
+        "allowSelfDelete": "Permitir que os usuarios eliminen a súa propia conta"
+      },
+      "executionDefaults": {
+        "title": "Valores por defecto de execución",
+        "defaultEnvironment": "Contorno por defecto",
+        "defaultEnvironmentPlaceholder": "staging",
+        "defaultVersionPattern": "Patrón de versión por defecto",
+        "defaultVersionPatternPlaceholder": "vYYYY.MM.DD"
+      },
+      "limits": {
+        "title": "Límites",
+        "maxUpload": "Tamaño máximo de subida (MB)",
+        "notificationsRetention": "Retención de notificacións (días)",
+        "notificationsRetentionHint": "As notificacións máis antigas pórganse."
+      },
+      "smtp": {
+        "title": "Correo (SMTP)",
+        "description": "Notificacións saíntes. Deixa o host baleiro para desactivar o correo.",
+        "host": "Host SMTP",
+        "hostPlaceholder": "smtp.example.com",
+        "port": "Porto",
+        "portPlaceholder": "587",
+        "from": "Remitente",
+        "fromPlaceholder": "noreply@example.com",
+        "user": "Usuario",
+        "password": "Contrasinal",
+        "passwordSetHint": "Hai un contrasinal configurado. Escribe outro para substituílo ou marca «Borrar contrasinal» para eliminalo.",
+        "noPasswordHint": "Sen contrasinal.",
+        "passwordPlaceholderSet": "•••••••• (definido)",
+        "clearPassword": "Borrar contrasinal ao gardar",
+        "useTls": "Usar STARTTLS"
+      },
+      "realtime": {
+        "title": "Tempo real",
+        "description": "Axustes para os broadcasts WebSocket durante execucións en vivo.",
+        "logFlush": "Intervalo de flush de rexistros (ms)",
+        "logFlushHint": "Frecuencia coa que se envían as liñas bufferizadas aos subscritores. 0 desactiva o batching."
+      }
+    },
+    "backup": {
+      "title": "Copia e restauración",
+      "intro": "Descarga un ZIP coa volcado da base de datos e os ficheiros subidos. Restaurar substitúe todos os datos.",
+      "download": "Descargar copia",
+      "downloaded": "Copia descargada",
+      "downloadFailed": "Fallou a copia",
+      "destructive": "Restaurar é destrutivo. A base de datos actual e os ficheiros subidos sobrescríbense.",
+      "confirmLabel": "Escribe {{phrase}} para confirmar",
+      "confirmPlaceholder": "REPLACE ALL DATA",
+      "restoreButton": "Restaurar desde copia",
+      "restored": "Restaurado ({{count}} ficheiros)",
+      "restoreFailed": "Fallou a restauración"
+    }
+  }
+}

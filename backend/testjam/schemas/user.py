@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
-SUPPORTED_LOCALES = ("en", "es")
+SUPPORTED_LOCALES = ("en", "es", "ca", "gl", "eu")
 
 
 def _validate_iana_timezone(value: str | None) -> str | None:

@@ -1,0 +1,20 @@
+{% extends "_layout.html" %}
+{% block content %}
+<p style="font-size: 16px; line-height: 1.5;">
+  <strong>{{ subject_object }}</strong> exekuzioa amaitu da.
+</p>
+{% if summary %}
+<p style="font-size: 14px; line-height: 1.6; background: #f5f5f5; padding: 12px 16px; border-radius: 6px;">
+  Guztira: {{ summary.total }}<br>
+  Onartuta: {{ summary.passed }}<br>
+  Akatsak: {{ summary.failed }}<br>
+  Blokeatuta: {{ summary.blocked }}<br>
+  Exekutatu gabe: {{ summary.not_run }}
+</p>
+{% endif %}
+<p style="margin: 24px 0;">
+  <a href="{{ link_in_app }}" style="display: inline-block; background: #2563eb; color: #fff; padding: 10px 18px; border-radius: 6px; text-decoration: none;">
+    Ikusi emaitzak
+  </a>
+</p>
+{% endblock %}

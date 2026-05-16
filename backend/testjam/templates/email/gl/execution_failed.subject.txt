@@ -1,0 +1,1 @@
+[{{ app_name }}] Probas falladas en «{{ subject_object }}»

@@ -1,0 +1,50 @@
+{
+  "commandPalette": {
+    "title": "Komando-paleta",
+    "description": "Bilatu proiektuak, kasuak, exekuzioak eta egin ekintza azkarrak.",
+    "placeholder": "Bilatu proiektuak, kasuak, ekintzak… (↑↓ Enter)",
+    "esc": "esc",
+    "noMatches": "Ez dago emaitzarik",
+    "groups": {
+      "projects": "Proiektuak",
+      "recentExecutions": "Azken exekuzioak",
+      "testCases": "Proba-kasuak",
+      "actions": "Ekintzak"
+    },
+    "hints": {
+      "cases": "{{count}} kasu"
+    },
+    "actions": {
+      "newExecution": "Exekuzio berria proiektu honetan",
+      "newSuite": "Proba-suite berria",
+      "goToPlans": "Joan planetara",
+      "goToVersions": "Joan bertsioetara",
+      "goToCoverage": "Joan estaldura-matrizera",
+      "goToMembers": "Joan kideetara"
+    }
+  },
+  "shortcuts": {
+    "title": "Teklatuko lasterbideak"
+  },
+  "timezone": {
+    "placeholder": "Idatzi bilatzeko…"
+  },
+  "contextPanel": {
+    "title": "Testuingurua",
+    "expand": "Zabaldu testuinguru-panela",
+    "collapse": "Tolestu testuinguru-panela"
+  },
+  "live": {
+    "label": "zuzenean"
+  },
+  "notifications": {
+    "title": "Jakinarazpenak",
+    "ariaUnread_zero": "Jakinarazpenak",
+    "ariaUnread_one": "Jakinarazpenak, {{count}} irakurri gabe",
+    "ariaUnread_other": "Jakinarazpenak, {{count}} irakurri gabe",
+    "markAllRead": "Markatu guztiak irakurritako gisa",
+    "close": "Itxi jakinarazpenak",
+    "empty": "Jakinarazpenik ez",
+    "markRead": "Markatu irakurritako gisa"
+  }
+}

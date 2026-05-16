@@ -1,0 +1,106 @@
+{
+  "title": "Profila",
+  "subtitle": "Kudeatu zure kontua",
+  "account": {
+    "title": "Kontuaren datuak",
+    "username": "Erabiltzailea",
+    "fullName": "Izen osoa",
+    "fullNamePlaceholder": "Jone Pérez",
+    "email": "Posta elektronikoa",
+    "saved": "Profila eguneratuta"
+  },
+  "tokens": {
+    "title": "API tokenak",
+    "namePlaceholder": "Tokenaren izena",
+    "newToken": "Token berria",
+    "created": "Tokena sortuta — kopiatu orain, ez da berriro erakutsiko.",
+    "copied": "Tokena kopiatuta",
+    "createFailed": "Ezin izan da tokena sortu",
+    "revoked": "Tokena baliogabetuta",
+    "revokeFailed": "Ezin izan da tokena baliogabetu",
+    "headers": {
+      "name": "Izena",
+      "prefix": "Aurrizkia",
+      "lastUsed": "Azken erabilera"
+    },
+    "empty": {
+      "title": "Token pertsonalik ez",
+      "description": "Sortu bat CItik edo listenerretik autentifikatzeko."
+    }
+  },
+  "dates": {
+    "title": "Datak eta ordu-eremua",
+    "timezone": "Ordu-eremua",
+    "timezoneHint": "Data guztiak ordu-eremu honetan erakusten dira.",
+    "showRelative": "Erakutsi data erlatiboak",
+    "showRelativeHint": "Adibidez, «duela 2 ordu»; sagua gainetik pasatzean data absolutua erakusten da.",
+    "savePreferences": "Gorde hobespenak",
+    "saved": "Data-hobespenak gordeta",
+    "saveFailed": "Ezin izan dira hobespenak gorde"
+  },
+  "appearance": {
+    "title": "Itxura",
+    "mode": "Modua",
+    "modes": {
+      "light": "Argia",
+      "dark": "Iluna",
+      "system": "Sistema"
+    },
+    "language": "Hizkuntza",
+    "variant": "Aldaera iluna",
+    "variantHint": "Modu ilunean aplikatzen da (Iluna, edo Sistema sistema ilunarekin).",
+    "selected": "Hautatuta",
+    "variants": {
+      "default": {
+        "label": "Klasikoa",
+        "description": "Beltza + testu distiratsua. Kontraste maximoa."
+      },
+      "navy": {
+        "label": "Navy",
+        "description": "Arbel-urdin gainazal leunak. Kontraste ertaina, ukitu urdina."
+      },
+      "dim": {
+        "label": "Dim",
+        "description": "GitHub estiloko gris ertainak. Kontraste txikia, atseden bisuala."
+      }
+    }
+  },
+  "notifications": {
+    "title": "Jakinarazpenak",
+    "smtpDisabledWarning": "SMTP ez dago konfiguratuta. Aukera aktibatuta ere, ez da postarik bidaliko.",
+    "headers": {
+      "event": "Gertaera",
+      "inApp": "Aplikazioan",
+      "email": "Posta"
+    },
+    "saved": "Hobespenak gordeta",
+    "saveFailed": "Ezin izan da hobespena gorde",
+    "events": {
+      "execution_assigned": {
+        "title": "Niri esleitutako exekuzioa",
+        "description": "Norbaitek proba-exekuzio bat esleitzen dizunean."
+      },
+      "execution_finished": {
+        "title": "Exekuzioa amaituta",
+        "description": "Sortu zenuen edo esleitu zitzaizun exekuzio bat amaitzen denean."
+      },
+      "execution_failed": {
+        "title": "Exekuzioa akatsekin",
+        "description": "Amaitutako exekuzio batek gutxienez proba bat akatsekin izan duenean."
+      }
+    },
+    "inAppFor": "Aplikazioan {{title}}-(e)rako",
+    "emailFor": "Posta {{title}}-(e)rako"
+  },
+  "password": {
+    "title": "Aldatu pasahitza",
+    "current": "Egungo pasahitza",
+    "new": "Pasahitz berria",
+    "confirm": "Berretsi pasahitz berria",
+    "submit": "Aldatu pasahitza",
+    "saved": "Pasahitza aldatuta",
+    "mismatch": "Pasahitzak ez datoz bat",
+    "tooShort": "Pasahitzak gutxienez 8 karaktere izan behar ditu",
+    "failed": "Ezin izan da pasahitza aldatu"
+  }
+}

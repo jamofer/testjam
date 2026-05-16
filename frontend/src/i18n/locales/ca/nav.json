@@ -1,0 +1,27 @@
+{
+  "search": "Cerca…",
+  "closeMenu": "Tanca el menú",
+  "openMenu": "Obre el menú",
+  "allProjects": "Tots els projectes",
+  "project": {
+    "overview": "Resum",
+    "cases": "Casos de prova",
+    "plans": "Plans de prova",
+    "executions": "Execucions",
+    "versions": "Versions",
+    "members": "Membres"
+  },
+  "global": {
+    "projects": "Projectes",
+    "users": "Usuaris i grups"
+  },
+  "user": {
+    "profile": "Perfil",
+    "settings": "Ajustos",
+    "logout": "Tanca la sessió",
+    "theme": "Tema",
+    "themeLight": "Clar",
+    "themeDark": "Fosc",
+    "themeSystem": "Sistema"
+  }
+}

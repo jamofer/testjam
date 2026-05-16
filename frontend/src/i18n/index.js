@@ -29,10 +29,52 @@ import esMembers from "./locales/es/members.json"
 import esExecutions from "./locales/es/executions.json"
 import esAdmin from "./locales/es/admin.json"
 import esUi from "./locales/es/ui.json"
+import caCommon from "./locales/ca/common.json"
+import caProfile from "./locales/ca/profile.json"
+import caAuth from "./locales/ca/auth.json"
+import caNav from "./locales/ca/nav.json"
+import caProjects from "./locales/ca/projects.json"
+import caDashboard from "./locales/ca/dashboard.json"
+import caSuites from "./locales/ca/suites.json"
+import caCases from "./locales/ca/cases.json"
+import caPlans from "./locales/ca/plans.json"
+import caVersions from "./locales/ca/versions.json"
+import caMembers from "./locales/ca/members.json"
+import caExecutions from "./locales/ca/executions.json"
+import caAdmin from "./locales/ca/admin.json"
+import caUi from "./locales/ca/ui.json"
+import glCommon from "./locales/gl/common.json"
+import glProfile from "./locales/gl/profile.json"
+import glAuth from "./locales/gl/auth.json"
+import glNav from "./locales/gl/nav.json"
+import glProjects from "./locales/gl/projects.json"
+import glDashboard from "./locales/gl/dashboard.json"
+import glSuites from "./locales/gl/suites.json"
+import glCases from "./locales/gl/cases.json"
+import glPlans from "./locales/gl/plans.json"
+import glVersions from "./locales/gl/versions.json"
+import glMembers from "./locales/gl/members.json"
+import glExecutions from "./locales/gl/executions.json"
+import glAdmin from "./locales/gl/admin.json"
+import glUi from "./locales/gl/ui.json"
+import euCommon from "./locales/eu/common.json"
+import euProfile from "./locales/eu/profile.json"
+import euAuth from "./locales/eu/auth.json"
+import euNav from "./locales/eu/nav.json"
+import euProjects from "./locales/eu/projects.json"
+import euDashboard from "./locales/eu/dashboard.json"
+import euSuites from "./locales/eu/suites.json"
+import euCases from "./locales/eu/cases.json"
+import euPlans from "./locales/eu/plans.json"
+import euVersions from "./locales/eu/versions.json"
+import euMembers from "./locales/eu/members.json"
+import euExecutions from "./locales/eu/executions.json"
+import euAdmin from "./locales/eu/admin.json"
+import euUi from "./locales/eu/ui.json"
 
 const STORAGE_KEY = "testjam.locale"
 
-export const SUPPORTED_LOCALES = ["en", "es"]
+export const SUPPORTED_LOCALES = ["en", "es", "ca", "gl", "eu"]
 export const DEFAULT_LOCALE = "en"
 
 function detectLocale() {
@@ -48,6 +90,9 @@ i18n.use(initReactI18next).init({
   resources: {
     en: { common: enCommon, profile: enProfile, auth: enAuth, nav: enNav, projects: enProjects, dashboard: enDashboard, suites: enSuites, cases: enCases, plans: enPlans, versions: enVersions, members: enMembers, executions: enExecutions, admin: enAdmin, ui: enUi },
     es: { common: esCommon, profile: esProfile, auth: esAuth, nav: esNav, projects: esProjects, dashboard: esDashboard, suites: esSuites, cases: esCases, plans: esPlans, versions: esVersions, members: esMembers, executions: esExecutions, admin: esAdmin, ui: esUi },
+    ca: { common: caCommon, profile: caProfile, auth: caAuth, nav: caNav, projects: caProjects, dashboard: caDashboard, suites: caSuites, cases: caCases, plans: caPlans, versions: caVersions, members: caMembers, executions: caExecutions, admin: caAdmin, ui: caUi },
+    gl: { common: glCommon, profile: glProfile, auth: glAuth, nav: glNav, projects: glProjects, dashboard: glDashboard, suites: glSuites, cases: glCases, plans: glPlans, versions: glVersions, members: glMembers, executions: glExecutions, admin: glAdmin, ui: glUi },
+    eu: { common: euCommon, profile: euProfile, auth: euAuth, nav: euNav, projects: euProjects, dashboard: euDashboard, suites: euSuites, cases: euCases, plans: euPlans, versions: euVersions, members: euMembers, executions: euExecutions, admin: euAdmin, ui: euUi },
   },
   lng: detectLocale(),
   fallbackLng: DEFAULT_LOCALE,

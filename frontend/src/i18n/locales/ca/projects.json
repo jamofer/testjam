@@ -1,0 +1,42 @@
+{
+  "title": "Projectes",
+  "searchPlaceholder": "Cerca projectes…",
+  "showArchived": "Mostra els arxivats",
+  "newProject": "Nou projecte",
+  "newProjectTitle": "Nou projecte",
+  "projectName": "Nom del projecte…",
+  "createProject": "Crea el projecte",
+  "created": "Projecte creat",
+  "archived": "ARXIVAT",
+  "archive": "Arxiva el projecte",
+  "unarchive": "Desarxiva el projecte",
+  "delete": "Elimina el projecte",
+  "empty": {
+    "title": "Encara no hi ha projectes",
+    "description": "Els projectes agrupen les teves suites, casos i execucions. Crea'n un a sobre per començar."
+  },
+  "noMatches": {
+    "title": "Sense resultats",
+    "description": "Cap projecte coincideix amb «{{query}}». Prova una altra cerca."
+  },
+  "detail": {
+    "newExecution": "Nova execució",
+    "testCases": "Casos de prova",
+    "export": "Exporta",
+    "exportTitle": "Baixa el projecte com a ZIP",
+    "exported": "Projecte exportat",
+    "exportFailed": "Ha fallat l'exportació"
+  },
+  "panel": {
+    "library": "Biblioteca",
+    "suites": "Suites",
+    "cases": "Casos",
+    "executions": "Execucions",
+    "passRate": "Taxa d'èxit",
+    "lastN": "darreres {{count}}",
+    "avg": "mitjana",
+    "notEnough": "Encara no hi ha prou dades.",
+    "recentRuns": "Execucions recents",
+    "noExecutions": "Encara no hi ha execucions."
+  }
+}

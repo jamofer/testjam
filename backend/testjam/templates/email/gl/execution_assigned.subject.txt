@@ -1,0 +1,1 @@
+[{{ app_name }}] Asignáronche «{{ subject_object }}»

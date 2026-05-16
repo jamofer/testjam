@@ -1,0 +1,34 @@
+{
+  "title": "Plans de prova",
+  "newPlan": "Nou pla",
+  "newPlanTitle": "Nou pla de proves",
+  "planTitle": "Títol del pla…",
+  "selectCases": "Selecciona casos de prova",
+  "selectedCases": "{{count}} casos seleccionats",
+  "create": "Crea el pla",
+  "created": "Pla creat",
+  "deleted": "Pla eliminat",
+  "loading": "Carregant…",
+  "cases": "({{count}} casos)",
+  "empty": {
+    "title": "Encara no hi ha plans",
+    "description": "Els plans agrupen casos per a una release o fita. Crea'n un a sobre per orquestrar execucions."
+  },
+  "detail": {
+    "selectedCount": "{{count}} seleccionat(s)",
+    "addCases": "Afegeix casos",
+    "addCasesTitle": "Afegeix casos de prova",
+    "addToPlan": "Afegeix al pla",
+    "added": "{{count}} casos afegits",
+    "casesLabel": "{{count}} casos de prova",
+    "save": "Desa",
+    "cancel": "Cancel·la",
+    "run": "Executa",
+    "updated": "Pla actualitzat",
+    "caseRemoved": "Cas eliminat",
+    "empty": {
+      "title": "Sense casos de prova",
+      "description": "Afegeix casos a aquest pla per executar-los junts."
+    }
+  }
+}

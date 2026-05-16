@@ -1,0 +1,34 @@
+{
+  "title": "Proba-planak",
+  "newPlan": "Plan berria",
+  "newPlanTitle": "Proba-plan berria",
+  "planTitle": "Planaren izenburua…",
+  "selectCases": "Hautatu proba-kasuak",
+  "selectedCases": "{{count}} kasu hautatuta",
+  "create": "Sortu plana",
+  "created": "Plana sortuta",
+  "deleted": "Plana ezabatuta",
+  "loading": "Kargatzen…",
+  "cases": "({{count}} kasu)",
+  "empty": {
+    "title": "Oraindik ez dago planik",
+    "description": "Planek kasuak biltzen dituzte release edo mugarri batentzat. Sortu bat goian exekuzioak antolatzeko."
+  },
+  "detail": {
+    "selectedCount": "{{count}} hautatuta",
+    "addCases": "Gehitu kasuak",
+    "addCasesTitle": "Gehitu proba-kasuak",
+    "addToPlan": "Gehitu planera",
+    "added": "{{count}} kasu gehituta",
+    "casesLabel": "{{count}} proba-kasu",
+    "save": "Gorde",
+    "cancel": "Utzi",
+    "run": "Exekutatu",
+    "updated": "Plana eguneratuta",
+    "caseRemoved": "Kasua kenduta",
+    "empty": {
+      "title": "Proba-kasurik ez",
+      "description": "Gehitu kasuak plan honetara elkarrekin exekutatzeko."
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "title": "Proiektuak",
+  "searchPlaceholder": "Bilatu proiektuak…",
+  "showArchived": "Erakutsi artxibatuak",
+  "newProject": "Proiektu berria",
+  "newProjectTitle": "Proiektu berria",
+  "projectName": "Proiektuaren izena…",
+  "createProject": "Sortu proiektua",
+  "created": "Proiektua sortuta",
+  "archived": "ARTXIBATUTA",
+  "archive": "Artxibatu proiektua",
+  "unarchive": "Desartxibatu proiektua",
+  "delete": "Ezabatu proiektua",
+  "empty": {
+    "title": "Oraindik ez dago proiekturik",
+    "description": "Proiektuek zure suiteak, kasuak eta exekuzioak biltzen dituzte. Sortu bat goian hasteko."
+  },
+  "noMatches": {
+    "title": "Ez dago emaitzarik",
+    "description": "Proiektu bakar bat ere ez dator bat «{{query}}»-rekin. Saiatu beste bilaketa batekin."
+  },
+  "detail": {
+    "newExecution": "Exekuzio berria",
+    "testCases": "Proba-kasuak",
+    "export": "Esportatu",
+    "exportTitle": "Deskargatu proiektua ZIP gisa",
+    "exported": "Proiektua esportatuta",
+    "exportFailed": "Esportazioak huts egin du"
+  },
+  "panel": {
+    "library": "Liburutegia",
+    "suites": "Suiteak",
+    "cases": "Kasuak",
+    "executions": "Exekuzioak",
+    "passRate": "Arrakasta-tasa",
+    "lastN": "azken {{count}}",
+    "avg": "batez beste",
+    "notEnough": "Oraindik ez dago daturik nahikoa.",
+    "recentRuns": "Azken exekuzioak",
+    "noExecutions": "Oraindik ez dago exekuziorik."
+  }
+}

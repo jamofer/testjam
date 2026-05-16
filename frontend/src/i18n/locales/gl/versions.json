@@ -1,0 +1,71 @@
+{
+  "title": "Versións",
+  "namePlaceholder": "Nome da versión (p. ex. 1.4.0, sprint-23)…",
+  "tagPlaceholder": "Tag de VCS (opcional)",
+  "add": "Engadir",
+  "created": "Versión creada",
+  "deleted": "Versión eliminada",
+  "changeStatus": "Cambiar estado",
+  "openDetail": "Abrir detalle da versión",
+  "showArchived_one": "Mostrar 1 arquivada",
+  "showArchived_other": "Mostrar {{count}} arquivadas",
+  "hideArchived": "Agochar arquivadas",
+  "statuses": {
+    "active": "Activa",
+    "released": "Publicada",
+    "archived": "Arquivada"
+  },
+  "empty": {
+    "title": "Aínda non hai versións",
+    "description": "As versións etiquetan releases ou sprints. Vincula execucións a unha versión para ver resultados por release."
+  },
+  "detail": {
+    "metadata": "Metadatos",
+    "executions": "Execucións",
+    "nameLabel": "Nome",
+    "releaseDateLabel": "Data de release",
+    "releasedOn": "Publicada",
+    "descriptionLabel": "Notas da versión",
+    "save": "Gardar",
+    "saved": "Versión actualizada",
+    "statRuns": "Execucións",
+    "statPassRate": "% éxito",
+    "statPassed": "Pasados",
+    "statFailed": "Fallados",
+    "statBlocked": "Bloqueados",
+    "noExecutionsTitle": "Non hai execucións para esta versión",
+    "noExecutionsDescription": "Selecciona esta versión ao crear unha execución para vela listada aquí."
+  },
+  "coverage": {
+    "title": "Matriz de cobertura",
+    "openButton": "Matriz de cobertura",
+    "caseColumn": "Caso de proba",
+    "includeArchived": "Incluír versións arquivadas",
+    "emptyTitle": "Datos insuficientes para a matriz",
+    "emptyDescription": "Crea versións e vincula execucións para encher a matriz.",
+    "filterPlaceholder": "Filtra suites e casos…",
+    "expandAll": "Expandir todo",
+    "collapseAll": "Recoller todo",
+    "shortcutsButton": "Atallos de teclado",
+    "shortcutsDescription": "Navega a matriz sen rato.",
+    "shortcutSections": {
+      "navigation": "Navegación",
+      "actions": "Accións"
+    },
+    "shortcutRows": {
+      "next": "Fila seguinte",
+      "prev": "Fila anterior",
+      "collapse": "Recoller suite",
+      "expand": "Expandir suite",
+      "nextSuite": "Saltar á seguinte suite",
+      "prevSuite": "Saltar á suite anterior",
+      "first": "Primeira fila",
+      "last": "Última fila",
+      "toggle": "Alternar suite",
+      "expandAll": "Expandir todas as suites",
+      "collapseAll": "Recoller todas as suites",
+      "focusFilter": "Foco no filtro",
+      "help": "Mostrar atallos"
+    }
+  }
+}

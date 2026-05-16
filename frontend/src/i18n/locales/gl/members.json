@@ -1,0 +1,63 @@
+{
+  "title": "Membros e accesos",
+  "loading": "Cargando…",
+  "members": "Membros",
+  "roles": {
+    "owner": "propietario",
+    "tester": "tester",
+    "viewer": "lectura"
+  },
+  "member": {
+    "added": "Membro engadido",
+    "addFailed": "Non se puido engadir o membro",
+    "removed": "Membro eliminado",
+    "removeFailed": "Non se puido eliminar o membro",
+    "roleFailed": "Non se puido actualizar o rol",
+    "selectUser": "Selecciona un usuario…",
+    "add": "Engadir",
+    "removeAria": "Quitar membro"
+  },
+  "membersEmpty": {
+    "title": "Aínda non hai membros",
+    "description": "Engade testers ou lectores para darlles acceso ao proxecto."
+  },
+  "groups": {
+    "title": "Acceso por grupos",
+    "assigned": "Grupo asignado",
+    "assignFailed": "Non se puido asignar o grupo",
+    "removed": "Grupo eliminado",
+    "removeFailed": "Non se puido eliminar o grupo",
+    "roleFailed": "Non se puido actualizar o rol",
+    "selectGroup": "Selecciona un grupo…",
+    "assign": "Asignar",
+    "removeAria": "Quitar grupo",
+    "memberCount_one": "{{count}} membro",
+    "memberCount_other": "{{count}} membros",
+    "empty": {
+      "title": "Sen grupos asignados",
+      "description": "Asigna un grupo para darlles a todos os seus membros o mesmo rol neste proxecto."
+    }
+  },
+  "tokens": {
+    "title": "Tokens de API do proxecto",
+    "created": "Token creado — cópiao agora, non se mostrará outra vez.",
+    "copied": "Token copiado",
+    "createFailed": "Non se puido crear o token",
+    "revoked": "Token revogado",
+    "revokeFailed": "Non se puido revogar o token",
+    "namePlaceholder": "Nome do token (p. ex. pipeline CI)",
+    "newToken": "Novo token",
+    "done": "Feito",
+    "headers": {
+      "name": "Nome",
+      "prefix": "Prefixo",
+      "lastUsed": "Último uso",
+      "created": "Creado"
+    },
+    "never": "Nunca",
+    "empty": {
+      "title": "Sen tokens de proxecto",
+      "description": "Crea un token para que CI execute ou importe resultados neste proxecto."
+    }
+  }
+}
