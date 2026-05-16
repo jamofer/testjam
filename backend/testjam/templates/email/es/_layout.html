@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <body style="font-family: -apple-system, Segoe UI, Roboto, sans-serif; color: #222; max-width: 560px; margin: 0 auto; padding: 24px;">
+    <p style="color: #888; font-size: 12px; margin: 0 0 16px; text-transform: uppercase; letter-spacing: 0.05em;">
+      {{ app_name }}
+    </p>
+
+    {% block content %}{% endblock %}
+
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 32px 0 16px;">
+
+    <p style="color: #888; font-size: 12px; line-height: 1.5; margin: 0;">
+      {{ footer_reason }}<br>
+      <a href="{{ preferences_url }}" style="color: #666;">Gestionar preferencias de email</a>
+    </p>
+  </body>
+</html>

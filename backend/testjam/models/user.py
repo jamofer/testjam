@@ -29,6 +29,7 @@ class User(Base):
     use_relative_dates: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, server_default="true",
     )
+    locale: Mapped[str | None] = mapped_column(String(8), nullable=True)
 
     group_memberships: Mapped[list[GroupMember]] = relationship(back_populates="user")
     project_memberships: Mapped[list[ProjectMember]] = relationship(back_populates="user")

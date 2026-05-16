@@ -1,0 +1,15 @@
+La ejecución «{{ subject_object }}» ha finalizado.
+
+{% if summary %}
+Total: {{ summary.total }}
+Aprobados: {{ summary.passed }}
+Fallidos: {{ summary.failed }}
+Bloqueados: {{ summary.blocked }}
+Sin ejecutar: {{ summary.not_run }}
+
+{% endif %}
+Ver resultados: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Gestionar preferencias: {{ preferences_url }}

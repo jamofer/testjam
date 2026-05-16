@@ -1,0 +1,1 @@
+[{{ app_name }}] Ejecución «{{ subject_object }}» finalizada

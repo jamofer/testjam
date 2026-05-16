@@ -5,6 +5,9 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
+SUPPORTED_LOCALES = ("en", "es")
+
+
 def _validate_iana_timezone(value: str | None) -> str | None:
     if value is None or value == "":
         return None
@@ -12,6 +15,14 @@ def _validate_iana_timezone(value: str | None) -> str | None:
         ZoneInfo(value)
     except ZoneInfoNotFoundError as exc:
         raise ValueError(f"Unknown IANA timezone: {value!r}") from exc
+    return value
+
+
+def _validate_locale(value: str | None) -> str | None:
+    if value is None or value == "":
+        return None
+    if value not in SUPPORTED_LOCALES:
+        raise ValueError(f"Unsupported locale: {value!r}")
     return value
 
 
@@ -34,11 +45,17 @@ class UserUpdate(BaseModel):
     clear_lockout: bool | None = None
     timezone: str | None = None
     use_relative_dates: bool | None = None
+    locale: str | None = None
 
     @field_validator("timezone")
     @classmethod
     def _timezone_must_be_iana(cls, value: str | None) -> str | None:
         return _validate_iana_timezone(value)
+
+    @field_validator("locale")
+    @classmethod
+    def _locale_must_be_supported(cls, value: str | None) -> str | None:
+        return _validate_locale(value)
 
 
 class PasswordChange(BaseModel):
@@ -71,6 +88,7 @@ class UserOut(UserBase):
     last_login_at: datetime | None = None
     timezone: str | None = None
     use_relative_dates: bool = True
+    locale: str | None = None
 
     model_config = {"from_attributes": True}
 

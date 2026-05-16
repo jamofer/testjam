@@ -93,8 +93,8 @@ def _dispatch_reset_email(
         "reset_url": reset_url,
         "ttl_hours": PASSWORD_RESET_TOKEN_TTL_HOURS,
     }
-    subject, html, text = email_templates.render(
-        NotificationEvent.PASSWORD_RESET.value, context,
+    subject, html, text, _message = email_templates.render(
+        NotificationEvent.PASSWORD_RESET.value, context, locale=user.locale,
     )
     if background is not None:
         background.add_task(send_email, settings_row, user.email, subject, html, text)

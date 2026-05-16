@@ -1,0 +1,12 @@
+La ejecución «{{ subject_object }}» ha terminado con fallos.
+
+{% if summary %}
+{{ summary.failed }} fallidos de {{ summary.total }} tests.
+Aprobados: {{ summary.passed }} · Bloqueados: {{ summary.blocked }} · Sin ejecutar: {{ summary.not_run }}
+
+{% endif %}
+Investigar: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Gestionar preferencias: {{ preferences_url }}

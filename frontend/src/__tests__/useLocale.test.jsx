@@ -1,5 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest"
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 import { renderHook, act } from "@testing-library/react"
+
+vi.mock("../hooks/useAuth", () => ({
+  useUpdateMe: () => ({ mutate: vi.fn() }),
+}))
+
 import { useLocale } from "../hooks/useLocale"
 import i18n, { DEFAULT_LOCALE } from "../i18n"
 

@@ -84,6 +84,10 @@ def _completion_context(
     }
 
 
+def _recipient_locale(db: Session, user_id: int) -> str | None:
+    return db.query(User.locale).filter(User.id == user_id).scalar()
+
+
 def _send_assignment_email(
     db: Session,
     execution: TestExecution,
@@ -96,7 +100,7 @@ def _send_assignment_email(
     settings_row = get_app_settings(db)
     in_app_link = f"/executions/{execution.id}/run"
     public_link = _build_public_link(settings_row.site_url, in_app_link)
-    subject, html, text = email_templates.render(
+    subject, html, text, message = email_templates.render(
         NotificationEvent.EXECUTION_ASSIGNED.value,
         {
             "app_name": settings_row.app_name,
@@ -105,12 +109,13 @@ def _send_assignment_email(
             "subject_object": execution.title,
             "link_in_app": public_link,
         },
+        locale=_recipient_locale(db, assignee_id),
     )
     notify(
         db,
         assignee_id,
         NotificationEvent.EXECUTION_ASSIGNED,
-        message=f"{actor.username} assigned you to '{execution.title}'",
+        message=message,
         link=in_app_link,
         email_subject=subject,
         email_html=html,
@@ -126,14 +131,16 @@ def _send_finished_email(
     context: dict[str, Any],
     background: BackgroundTasks | None,
 ) -> None:
-    subject, html, text = email_templates.render(
-        NotificationEvent.EXECUTION_FINISHED.value, context,
+    subject, html, text, message = email_templates.render(
+        NotificationEvent.EXECUTION_FINISHED.value,
+        context,
+        locale=_recipient_locale(db, user_id),
     )
     notify(
         db,
         user_id,
         NotificationEvent.EXECUTION_FINISHED,
-        message=f"Execution '{execution.title}' finished",
+        message=message,
         link=f"/executions/{execution.id}/run",
         email_subject=subject,
         email_html=html,
@@ -149,14 +156,16 @@ def _send_failed_email(
     context: dict[str, Any],
     background: BackgroundTasks | None,
 ) -> None:
-    subject, html, text = email_templates.render(
-        NotificationEvent.EXECUTION_FAILED.value, context,
+    subject, html, text, message = email_templates.render(
+        NotificationEvent.EXECUTION_FAILED.value,
+        context,
+        locale=_recipient_locale(db, user_id),
     )
     notify(
         db,
         user_id,
         NotificationEvent.EXECUTION_FAILED,
-        message=f"Failed tests in '{execution.title}'",
+        message=message,
         link=f"/executions/{execution.id}/run",
         email_subject=subject,
         email_html=html,

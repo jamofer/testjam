@@ -1,0 +1,7 @@
+{{ actor }} te ha asignado a «{{ subject_object }}».
+
+Abre la ejecución: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Gestionar preferencias: {{ preferences_url }}

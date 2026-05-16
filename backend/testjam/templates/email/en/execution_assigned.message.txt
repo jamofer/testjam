@@ -1,0 +1,1 @@
+{{ actor }} assigned you to '{{ subject_object }}'

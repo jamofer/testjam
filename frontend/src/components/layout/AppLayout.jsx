@@ -6,6 +6,7 @@ import { Sidebar } from './Sidebar'
 import { CommandPalette } from '../ui/command-palette'
 import { useMe, useUpdateMe } from '../../hooks/useAuth'
 import { browserTimezone } from '../../lib/format'
+import i18n, { setLocale, SUPPORTED_LOCALES } from '../../i18n'
 
 export function AppLayout() {
   const { t } = useTranslation(['nav', 'common'])
@@ -24,6 +25,13 @@ export function AppLayout() {
     detectedTimezoneBootstrapped.current = true
     updateMe.mutate({ timezone: detected })
   }, [user, updateMe])
+
+  useEffect(() => {
+    if (!user) return
+    if (user.locale && SUPPORTED_LOCALES.includes(user.locale) && user.locale !== i18n.language) {
+      setLocale(user.locale)
+    }
+  }, [user])
 
   useEffect(() => {
     const onKey = (e) => {
