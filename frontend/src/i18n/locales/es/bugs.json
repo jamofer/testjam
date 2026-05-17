@@ -97,6 +97,10 @@
     "by": "por {{user}}",
     "empty": "Aún no ha ocurrido nada"
   },
+  "mentions": {
+    "searching": "Buscando…",
+    "noMatches": "Sin coincidencias"
+  },
   "activity": {
     "created": "creó este bug",
     "statusFrom": "cambió el estado de {{from}} a {{to}}",

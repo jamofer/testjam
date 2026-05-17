@@ -328,6 +328,7 @@ export function BugDetailPage() {
                         value={descriptionDraft}
                         onChange={setDescriptionDraft}
                         height={200}
+                        projectId={bug.project_id}
                       />
                       <div className="flex gap-2">
                         <Button size="sm" onClick={saveDescription} disabled={updateBug.isPending}>
@@ -343,7 +344,7 @@ export function BugDetailPage() {
                       </div>
                     </div>
                   ) : bug.description ? (
-                    <MdViewer value={bug.description} />
+                    <MdViewer value={bug.description} projectId={bug.project_id} />
                   ) : (
                     <button
                       type="button"
@@ -388,7 +389,7 @@ export function BugDetailPage() {
                         </div>
                         {editingComment === comment.id ? (
                           <div className="space-y-2">
-                            <MdEditor value={editingBody} onChange={setEditingBody} height={120} />
+                            <MdEditor value={editingBody} onChange={setEditingBody} height={120} projectId={bug.project_id} />
                             <div className="flex gap-2">
                               <Button size="sm" onClick={() => saveEditComment(comment)}>
                                 {t("actions.save")}
@@ -399,13 +400,13 @@ export function BugDetailPage() {
                             </div>
                           </div>
                         ) : (
-                          <MdViewer value={comment.body} />
+                          <MdViewer value={comment.body} projectId={bug.project_id} />
                         )}
                       </li>
                     ))}
                   </ul>
                   <form className="space-y-2" onSubmit={handleAddComment}>
-                    <MdEditor value={commentDraft} onChange={setCommentDraft} height={120} />
+                    <MdEditor value={commentDraft} onChange={setCommentDraft} height={120} projectId={bug.project_id} />
                     <Button
                       type="submit"
                       size="sm"
@@ -418,7 +419,7 @@ export function BugDetailPage() {
               </TabsContent>
 
               <TabsContent value="history">
-                <BugTimeline activity={activity} comments={comments} statuses={statusLabels} />
+                <BugTimeline activity={activity} comments={comments} statuses={statusLabels} projectId={bug.project_id} />
               </TabsContent>
             </Tabs>
           </div>

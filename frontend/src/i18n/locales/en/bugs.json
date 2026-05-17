@@ -97,6 +97,10 @@
     "by": "by {{user}}",
     "empty": "Nothing has happened yet"
   },
+  "mentions": {
+    "searching": "Searching…",
+    "noMatches": "No matches"
+  },
   "activity": {
     "created": "created this bug",
     "statusFrom": "changed status from {{from}} to {{to}}",

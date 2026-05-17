@@ -15,7 +15,7 @@ import { MdViewer } from "../MdEditor"
 const STATUS_FIELD = "status"
 const LINK_FIELD = "link"
 
-export function BugTimeline({ activity = [], comments = [], statuses }) {
+export function BugTimeline({ activity = [], comments = [], statuses, projectId }) {
   const { t } = useTranslation("bugs")
 
   const entries = useMemo(
@@ -47,7 +47,7 @@ export function BugTimeline({ activity = [], comments = [], statuses }) {
           </header>
           {entry.kind === "comment" && (
             <div className="mt-2">
-              <MdViewer value={entry.body} />
+              <MdViewer value={entry.body} projectId={projectId} />
             </div>
           )}
           {entry.kind === "activity" && entry.note && (
