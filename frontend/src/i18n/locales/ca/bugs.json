@@ -108,6 +108,7 @@
     "updatedBy": "Actualitzat per",
     "updated": "Actualitzat",
     "resolved": "Resolt",
+    "fixedInVersion": "Arreglat a la versió",
     "linked": "Vincles",
     "foundInRun": "Detectat a",
     "version": "Versió",
@@ -125,7 +126,14 @@
     "label": "Etiqueta",
     "labelPlaceholder": "Opcional",
     "targetBug": "Bug destí",
-    "targetBugPlaceholder": "Tria un bug…"
+    "targetBugPlaceholder": "Tria un bug…",
+    "kind": "Relació",
+    "kinds": {
+      "relates_to": "Relacionat amb",
+      "blocks": "Bloqueja",
+      "blocked_by": "Bloquejat per",
+      "duplicate_of": "Duplicat de"
+    }
   },
   "empty": {
     "title": "Encara no hi ha bugs",

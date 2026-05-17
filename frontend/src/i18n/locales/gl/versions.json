@@ -34,7 +34,8 @@
     "statFailed": "Fallados",
     "statBlocked": "Bloqueados",
     "noExecutionsTitle": "Non hai execucións para esta versión",
-    "noExecutionsDescription": "Selecciona esta versión ao crear unha execución para vela listada aquí."
+    "noExecutionsDescription": "Selecciona esta versión ao crear unha execución para vela listada aquí.",
+    "bugsFixedInThisVersion": "Bugs arranxados nesta versión"
   },
   "coverage": {
     "title": "Matriz de cobertura",

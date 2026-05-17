@@ -42,6 +42,7 @@ def load_bug_full(db: Session, bug_id: int) -> Bug | None:
             selectinload(Bug.created_by),
             selectinload(Bug.updated_by),
             selectinload(Bug.version),
+            selectinload(Bug.fixed_in_version),
         )
         .filter(Bug.id == bug_id)
         .first()
@@ -51,6 +52,7 @@ def load_bug_full(db: Session, bug_id: int) -> Bug | None:
 def bug_out(bug: Bug) -> BugOut:
     payload = BugOut.model_validate(bug)
     payload.version_name = bug.version.name if bug.version else None
+    payload.fixed_in_version_name = bug.fixed_in_version.name if bug.fixed_in_version else None
     return payload
 
 

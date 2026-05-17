@@ -46,6 +46,7 @@ from testjam.schemas.bug import (
     BugStatusChange,
     BugStatusHistoryOut,
     BugUpdate,
+    RECIPROCAL_LINK_KIND,
     TERMINAL_BUG_STATUSES,
 )
 from fastapi.responses import HTMLResponse, StreamingResponse
@@ -128,6 +129,7 @@ def list_bugs(
     status: str | None = None,
     severity: str | None = None,
     version_id: int | None = None,
+    fixed_in_version_id: int | None = None,
     assigned_to_id: int | None = None,
     tag: str | None = None,
     search: str | None = None,
@@ -144,6 +146,8 @@ def list_bugs(
         query = query.filter(Bug.severity == severity)
     if version_id is not None:
         query = query.filter(Bug.version_id == version_id)
+    if fixed_in_version_id is not None:
+        query = query.filter(Bug.fixed_in_version_id == fixed_in_version_id)
     if assigned_to_id is not None:
         query = query.filter(Bug.assigned_to_id == assigned_to_id)
     if search:
@@ -185,6 +189,7 @@ def create_bug(
         version_id=payload.get("version_id"),
         environment=environment,
         assigned_to_id=payload.get("assigned_to_id"),
+        fixed_in_version_id=payload.get("fixed_in_version_id"),
         created_by_id=current.id,
         updated_by_id=current.id,
     )
@@ -414,8 +419,15 @@ def add_link(
     bug = _get_bug(db, id)
     _require_writer(db, current, bug.project_id)
     _ensure_project_writable(db, bug.project_id)
+
+    if body.target_bug_id is not None:
+        target = db.get(Bug, body.target_bug_id)
+        if target is None or target.project_id != bug.project_id:
+            raise HTTPException(status_code=404, detail="Target bug not found")
+
     link = BugLink(
         bug_id=bug.id,
+        kind=body.kind,
         label=body.label,
         url=body.url,
         execution_id=body.execution_id,
@@ -425,10 +437,27 @@ def add_link(
         created_by_id=current.id,
     )
     db.add(link)
+
+    if body.kind is not None and body.target_bug_id is not None:
+        reciprocal = BugLink(
+            bug_id=body.target_bug_id,
+            kind=RECIPROCAL_LINK_KIND[body.kind],
+            target_bug_id=bug.id,
+            label=body.label,
+            created_by_id=current.id,
+        )
+        db.add(reciprocal)
+
     _touch_updated_by(bug, current)
     db.commit()
     db.refresh(link)
     bug_events.on_bug_link_added(link, db)
+    if body.kind is not None and body.target_bug_id is not None:
+        target_bug = db.get(Bug, body.target_bug_id)
+        if target_bug is not None:
+            _touch_updated_by(target_bug, current)
+            db.commit()
+        bug_events.on_bug_link_added(reciprocal, db)
     return bug_events.link_out(link, db)
 
 
@@ -446,10 +475,33 @@ def delete_link(
     is_author = link.created_by_id == current.id
     if not is_author and not _can_delete_project_resource(db, current, bug.project_id):
         raise HTTPException(status_code=403, detail="Only the author or project owner can delete")
+
+    reciprocal = _find_reciprocal_link(db, link)
     db.delete(link)
+    if reciprocal is not None:
+        db.delete(reciprocal)
     _touch_updated_by(bug, current)
     db.commit()
     bug_events.on_bug_link_deleted(bug.id, link_id)
+    if reciprocal is not None:
+        bug_events.on_bug_link_deleted(reciprocal.bug_id, reciprocal.id)
+
+
+def _find_reciprocal_link(db: Session, link: BugLink) -> BugLink | None:
+    if link.kind is None or link.target_bug_id is None:
+        return None
+    expected_kind = RECIPROCAL_LINK_KIND.get(link.kind)
+    if expected_kind is None:
+        return None
+    return (
+        db.query(BugLink)
+        .filter(
+            BugLink.bug_id == link.target_bug_id,
+            BugLink.target_bug_id == link.bug_id,
+            BugLink.kind == expected_kind,
+        )
+        .first()
+    )
 
 
 @bugs_router.get("/{id}/history", response_model=list[BugStatusHistoryOut])

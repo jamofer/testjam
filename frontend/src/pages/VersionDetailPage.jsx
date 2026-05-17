@@ -2,9 +2,10 @@ import { useState, useEffect, useMemo } from "react"
 import { useParams, Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { useQuery } from "@tanstack/react-query"
-import { CheckCircle2, Archive, Circle, Save, Clock, PlayCircle, XCircle, MinusCircle, Tag } from "lucide-react"
+import { CheckCircle2, Archive, Circle, Save, Clock, PlayCircle, XCircle, MinusCircle, Tag, Bug as BugIcon } from "lucide-react"
 import { useProject } from "../hooks/useProjects"
 import { useVersion, useUpdateVersion } from "../hooks/useVersions"
+import { useBugs } from "../hooks/useBugs"
 import { executionsApi } from "../api/executions"
 import { PageHeader, PageBody } from "../components/ui/page-header"
 import { Badge } from "../components/ui/badge"
@@ -57,6 +58,8 @@ export function VersionDetailPage() {
     queryFn: () => executionsApi.list(projectId, { version_id: versionId, limit: 200 }),
     enabled: !!projectId && !!versionId,
   })
+
+  const { data: fixedBugs = [] } = useBugs(projectId, { fixed_in_version_id: Number(versionId) })
 
   const [draftName, setDraftName] = useState("")
   const [draftDescription, setDraftDescription] = useState("")
@@ -176,6 +179,28 @@ export function VersionDetailPage() {
               </div>
             </div>
           </section>
+
+          {fixedBugs.length > 0 && (
+            <section className="space-y-2">
+              <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
+                {t("detail.bugsFixedInThisVersion")} ({fixedBugs.length})
+              </h2>
+              <ul className="space-y-2">
+                {fixedBugs.map(bug => (
+                  <li key={bug.id} className="bg-white dark:bg-gray-900 border rounded-lg px-4 py-2.5 shadow-sm">
+                    <Link
+                      to={`/projects/${projectId}/bugs/${bug.number}`}
+                      className="flex items-center gap-2 text-sm text-gray-800 dark:text-gray-100 hover:underline min-w-0"
+                    >
+                      <BugIcon size={14} className="text-gray-400 dark:text-gray-500 shrink-0" />
+                      <span className="font-mono text-xs text-gray-400 dark:text-gray-500 shrink-0">#{bug.number}</span>
+                      <span className="truncate">{bug.title}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           <section className="space-y-2">
             <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">{t("detail.executions")}</h2>

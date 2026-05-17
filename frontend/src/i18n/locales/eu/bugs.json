@@ -108,6 +108,7 @@
     "updatedBy": "Eguneratzailea",
     "updated": "Eguneratua",
     "resolved": "Konponduta",
+    "fixedInVersion": "Konponduta bertsioan",
     "linked": "Loturak",
     "foundInRun": "Aurkitu da exekuzioan",
     "version": "Bertsioa",
@@ -125,7 +126,14 @@
     "label": "Etiketa",
     "labelPlaceholder": "Aukerakoa",
     "targetBug": "Helburuko akatsa",
-    "targetBugPlaceholder": "Aukeratu akats bat…"
+    "targetBugPlaceholder": "Aukeratu akats bat…",
+    "kind": "Erlazioa",
+    "kinds": {
+      "relates_to": "Honi loturikoa",
+      "blocks": "Blokeatzen du",
+      "blocked_by": "Honek blokeatzen",
+      "duplicate_of": "Honen bikoiztua"
+    }
   },
   "empty": {
     "title": "Oraindik ez dago akatsik",

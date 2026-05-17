@@ -34,6 +34,9 @@ class Bug(Base):
     version_id: Mapped[int | None] = mapped_column(
         ForeignKey("project_versions.id", ondelete="SET NULL"), nullable=True
     )
+    fixed_in_version_id: Mapped[int | None] = mapped_column(
+        ForeignKey("project_versions.id", ondelete="SET NULL"), nullable=True
+    )
     environment: Mapped[str | None] = mapped_column(String(64), nullable=True)
     external_ticket_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
@@ -60,6 +63,7 @@ class Bug(Base):
     result: Mapped["TestResult | None"] = relationship(foreign_keys=[result_id])  # noqa: F821
     execution: Mapped["TestExecution | None"] = relationship(foreign_keys=[execution_id])  # noqa: F821
     version: Mapped["ProjectVersion | None"] = relationship(foreign_keys=[version_id])  # noqa: F821
+    fixed_in_version: Mapped["ProjectVersion | None"] = relationship(foreign_keys=[fixed_in_version_id])  # noqa: F821
     comments: Mapped[list["BugComment"]] = relationship(
         back_populates="bug",
         cascade="all, delete-orphan",
@@ -128,6 +132,7 @@ class BugLink(Base):
     bug_id: Mapped[int] = mapped_column(
         ForeignKey("bugs.id", ondelete="CASCADE"), index=True, nullable=False
     )
+    kind: Mapped[str | None] = mapped_column(String(32), nullable=True)
     label: Mapped[str | None] = mapped_column(String(255), nullable=True)
     url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     execution_id: Mapped[int | None] = mapped_column(

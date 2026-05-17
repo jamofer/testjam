@@ -34,7 +34,8 @@
     "statFailed": "Akatsekin",
     "statBlocked": "Blokeatuta",
     "noExecutionsTitle": "Ez dago exekuziorik bertsio honetarako",
-    "noExecutionsDescription": "Hautatu bertsio hau exekuzio bat sortzean hemen zerrendatuta ikusteko."
+    "noExecutionsDescription": "Hautatu bertsio hau exekuzio bat sortzean hemen zerrendatuta ikusteko.",
+    "bugsFixedInThisVersion": "Bertsio honetan konpondutako akatsak"
   },
   "coverage": {
     "title": "Estaldura-matrizea",

@@ -108,6 +108,7 @@
     "updatedBy": "Actualizado por",
     "updated": "Actualizado",
     "resolved": "Resuelto",
+    "fixedInVersion": "Arreglado en versión",
     "linked": "Vínculos",
     "foundInRun": "Detectado en",
     "version": "Versión",
@@ -125,7 +126,14 @@
     "label": "Etiqueta",
     "labelPlaceholder": "Opcional",
     "targetBug": "Bug destino",
-    "targetBugPlaceholder": "Elige un bug…"
+    "targetBugPlaceholder": "Elige un bug…",
+    "kind": "Relación",
+    "kinds": {
+      "relates_to": "Relacionado con",
+      "blocks": "Bloquea",
+      "blocked_by": "Bloqueado por",
+      "duplicate_of": "Duplicado de"
+    }
   },
   "empty": {
     "title": "Aún no hay bugs",

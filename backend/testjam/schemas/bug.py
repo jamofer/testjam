@@ -19,6 +19,15 @@ BugStatus = Literal[
 ]
 TERMINAL_BUG_STATUSES = {"resolved", "closed", "wont_fix", "not_a_bug"}
 
+BugLinkKind = Literal["relates_to", "blocks", "blocked_by", "duplicate_of"]
+
+RECIPROCAL_LINK_KIND: dict[str, str] = {
+    "relates_to": "relates_to",
+    "blocks": "blocked_by",
+    "blocked_by": "blocks",
+    "duplicate_of": "duplicate_of",
+}
+
 
 class BugCreate(BaseModel):
     title: str = Field(min_length=1, max_length=255)
@@ -28,6 +37,7 @@ class BugCreate(BaseModel):
     result_id: int | None = None
     execution_id: int | None = None
     version_id: int | None = None
+    fixed_in_version_id: int | None = None
     environment: str | None = None
     assigned_to_id: int | None = None
 
@@ -38,6 +48,7 @@ class BugUpdate(BaseModel):
     severity: BugSeverity | None = None
     tags: list[str] | None = None
     version_id: int | None = None
+    fixed_in_version_id: int | None = None
     environment: str | None = None
     assigned_to_id: int | None = None
     external_ticket_url: str | None = None
@@ -61,6 +72,8 @@ class BugOut(BaseModel):
     execution_id: int | None
     version_id: int | None
     version_name: str | None = None
+    fixed_in_version_id: int | None = None
+    fixed_in_version_name: str | None = None
     environment: str | None
     external_ticket_url: str | None
     assigned_to: UserOut | None = None
@@ -117,6 +130,7 @@ class BugStatusHistoryOut(BaseModel):
 
 
 class BugLinkCreate(BaseModel):
+    kind: BugLinkKind | None = None
     label: str | None = Field(default=None, max_length=255)
     url: str | None = Field(default=None, max_length=1024)
     execution_id: int | None = None
@@ -130,6 +144,8 @@ class BugLinkCreate(BaseModel):
             raise ValueError(
                 "Provide url, execution_id, test_case_id or target_bug_id",
             )
+        if self.kind is not None and self.target_bug_id is None:
+            raise ValueError("kind requires target_bug_id")
         return self
 
 
@@ -151,6 +167,7 @@ class BugContextStep(BaseModel):
 class BugLinkOut(BaseModel):
     id: int
     bug_id: int
+    kind: BugLinkKind | None = None
     label: str | None
     url: str | None
     execution_id: int | None

@@ -17,6 +17,7 @@ export function AddBugLinkDialog({ bugId, projectId, trigger }) {
   const [url, setUrl] = useState("")
   const [label, setLabel] = useState("")
   const [targetBugId, setTargetBugId] = useState("")
+  const [kind, setKind] = useState("relates_to")
   const addLink = useAddBugLink()
   const { data: bugs = [] } = useBugs(projectId, {})
 
@@ -24,6 +25,7 @@ export function AddBugLinkDialog({ bugId, projectId, trigger }) {
     setUrl("")
     setLabel("")
     setTargetBugId("")
+    setKind("relates_to")
     setTab("url")
   }
 
@@ -32,7 +34,7 @@ export function AddBugLinkDialog({ bugId, projectId, trigger }) {
     try {
       const payload = tab === "url"
         ? { url: url.trim(), label: label.trim() || null }
-        : { target_bug_id: Number(targetBugId), label: label.trim() || null }
+        : { target_bug_id: Number(targetBugId), kind, label: label.trim() || null }
       if (tab === "url" && !payload.url) return
       if (tab === "bug" && !payload.target_bug_id) return
       await addLink.mutateAsync({ id: bugId, data: payload })
@@ -69,6 +71,19 @@ export function AddBugLinkDialog({ bugId, projectId, trigger }) {
               </div>
             </TabsContent>
             <TabsContent value="bug" className="space-y-3 mt-0">
+              <div className="space-y-1">
+                <Label>{t("links.kind")}</Label>
+                <Select value={kind} onValueChange={setKind}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["relates_to", "blocks", "blocked_by", "duplicate_of"].map(value => (
+                      <SelectItem key={value} value={value}>
+                        {t(`links.kinds.${value}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-1">
                 <Label>{t("links.targetBug")}</Label>
                 <Select value={targetBugId} onValueChange={setTargetBugId}>

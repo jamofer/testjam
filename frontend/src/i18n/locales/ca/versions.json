@@ -34,7 +34,8 @@
     "statFailed": "Fallits",
     "statBlocked": "Bloquejats",
     "noExecutionsTitle": "No hi ha execucions per a aquesta versió",
-    "noExecutionsDescription": "Tria aquesta versió en crear una execució per veure-la llistada aquí."
+    "noExecutionsDescription": "Tria aquesta versió en crear una execució per veure-la llistada aquí.",
+    "bugsFixedInThisVersion": "Bugs arreglats en aquesta versió"
   },
   "coverage": {
     "title": "Matriu de cobertura",

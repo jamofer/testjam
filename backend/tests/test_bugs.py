@@ -374,3 +374,83 @@ def test_link_requires_at_least_one_target(auth_client, project_id):
     )
 
     assert blocked.status_code == 422
+
+
+def test_link_kind_requires_target_bug(auth_client, project_id):
+    bug = _create_bug(auth_client, project_id).json()
+
+    blocked = auth_client.post(
+        f"/api/v1/bugs/{bug['id']}/links",
+        json={"kind": "blocks", "url": "https://example.com"},
+    )
+
+    assert blocked.status_code == 422
+
+
+def test_blocks_creates_reciprocal_blocked_by(auth_client, project_id):
+    blocker = _create_bug(auth_client, project_id, title="Blocker").json()
+    blocked = _create_bug(auth_client, project_id, title="Blocked").json()
+
+    auth_client.post(
+        f"/api/v1/bugs/{blocker['id']}/links",
+        json={"kind": "blocks", "target_bug_id": blocked["id"]},
+    )
+
+    reciprocal = auth_client.get(f"/api/v1/bugs/{blocked['id']}/links").json()
+    assert len(reciprocal) == 1
+    assert reciprocal[0]["kind"] == "blocked_by"
+    assert reciprocal[0]["target_bug_id"] == blocker["id"]
+
+
+def test_duplicate_of_is_symmetric(auth_client, project_id):
+    a = _create_bug(auth_client, project_id, title="A").json()
+    b = _create_bug(auth_client, project_id, title="B").json()
+
+    auth_client.post(
+        f"/api/v1/bugs/{a['id']}/links",
+        json={"kind": "duplicate_of", "target_bug_id": b["id"]},
+    )
+
+    reciprocal = auth_client.get(f"/api/v1/bugs/{b['id']}/links").json()
+    assert reciprocal[0]["kind"] == "duplicate_of"
+    assert reciprocal[0]["target_bug_id"] == a["id"]
+
+
+def test_deleting_link_removes_reciprocal(auth_client, project_id):
+    a = _create_bug(auth_client, project_id, title="A").json()
+    b = _create_bug(auth_client, project_id, title="B").json()
+    created = auth_client.post(
+        f"/api/v1/bugs/{a['id']}/links",
+        json={"kind": "blocks", "target_bug_id": b["id"]},
+    ).json()
+
+    auth_client.delete(f"/api/v1/bugs/{a['id']}/links/{created['id']}")
+
+    assert auth_client.get(f"/api/v1/bugs/{a['id']}/links").json() == []
+    assert auth_client.get(f"/api/v1/bugs/{b['id']}/links").json() == []
+
+
+def test_fixed_in_version_round_trip(auth_client, project_id):
+    version = auth_client.post(
+        f"/api/v1/projects/{project_id}/versions", json={"name": "v1.2"},
+    ).json()
+    bug = _create_bug(auth_client, project_id).json()
+
+    updated = auth_client.put(
+        f"/api/v1/bugs/{bug['id']}", json={"fixed_in_version_id": version["id"]},
+    ).json()
+
+    assert updated["fixed_in_version_id"] == version["id"]
+    assert updated["fixed_in_version_name"] == "v1.2"
+
+
+def test_link_kind_persists_in_response(auth_client, project_id):
+    a = _create_bug(auth_client, project_id, title="A").json()
+    b = _create_bug(auth_client, project_id, title="B").json()
+
+    created = auth_client.post(
+        f"/api/v1/bugs/{a['id']}/links",
+        json={"kind": "relates_to", "target_bug_id": b["id"]},
+    ).json()
+
+    assert created["kind"] == "relates_to"

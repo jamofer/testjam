@@ -34,7 +34,8 @@
     "statFailed": "Failed",
     "statBlocked": "Blocked",
     "noExecutionsTitle": "No executions for this version",
-    "noExecutionsDescription": "Pick this version when creating an execution to see it listed here."
+    "noExecutionsDescription": "Pick this version when creating an execution to see it listed here.",
+    "bugsFixedInThisVersion": "Bugs fixed in this version"
   },
   "coverage": {
     "title": "Coverage matrix",

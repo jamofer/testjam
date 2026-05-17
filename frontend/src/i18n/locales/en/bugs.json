@@ -108,6 +108,7 @@
     "updatedBy": "Updated by",
     "updated": "Updated",
     "resolved": "Resolved",
+    "fixedInVersion": "Fixed in version",
     "linked": "Linked",
     "foundInRun": "Found in run",
     "version": "Version",
@@ -125,7 +126,14 @@
     "label": "Label",
     "labelPlaceholder": "Optional",
     "targetBug": "Target bug",
-    "targetBugPlaceholder": "Pick a bug…"
+    "targetBugPlaceholder": "Pick a bug…",
+    "kind": "Relationship",
+    "kinds": {
+      "relates_to": "Relates to",
+      "blocks": "Blocks",
+      "blocked_by": "Blocked by",
+      "duplicate_of": "Duplicate of"
+    }
   },
   "empty": {
     "title": "No bugs yet",

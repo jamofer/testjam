@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
+  GitBranch,
   Pencil,
   Plus,
   Tag,
@@ -496,6 +497,20 @@ function buildContextSections({ bug, links, linkContext, onDeleteLink, addLinkDi
           : null,
       },
       {
+        label: t("context.fixedInVersion"),
+        icon: GitBranch,
+        value: bug.fixed_in_version_id && bug.fixed_in_version_name
+          ? (
+            <Link
+              to={`/projects/${bug.project_id}/versions/${bug.fixed_in_version_id}`}
+              className="text-primary-600 dark:text-primary-400 hover:underline"
+            >
+              {bug.fixed_in_version_name}
+            </Link>
+          )
+          : null,
+      },
+      {
         label: t("context.resolved"),
         icon: CheckCircle2,
         value: bug.resolved_at ? <DateLabel iso={bug.resolved_at} mode="relative" /> : null,
@@ -742,7 +757,7 @@ function OtherLinksBody({ bug, links, onDeleteLink, t }) {
             <ExternalLink size={11} className="text-gray-400 dark:text-gray-500 mt-0.5 shrink-0" />
           )}
           <div className="flex-1 min-w-0">
-            <OtherLinkContent link={link} bug={bug} />
+            <OtherLinkContent link={link} bug={bug} t={t} />
           </div>
           <button
             type="button"
@@ -758,16 +773,27 @@ function OtherLinksBody({ bug, links, onDeleteLink, t }) {
   )
 }
 
-function OtherLinkContent({ link, bug }) {
+function OtherLinkContent({ link, bug, t }) {
   if (link.target_bug_id && link.target_bug_number != null) {
-    return (
+    const target = (
       <Link
         to={`/projects/${bug.project_id}/bugs/${link.target_bug_number}`}
         className="text-primary-600 dark:text-primary-400 hover:underline break-words"
       >
-        {link.label || `#${link.target_bug_number} ${link.target_bug_title ?? ""}`.trim()}
+        #{link.target_bug_number} {link.target_bug_title ?? ""}
       </Link>
     )
+    if (link.kind) {
+      return (
+        <span className="break-words">
+          <span className="text-gray-500 dark:text-gray-400 mr-1">
+            {t(`links.kinds.${link.kind}`)}
+          </span>
+          {target}
+        </span>
+      )
+    }
+    return target
   }
   if (link.url) {
     return (
