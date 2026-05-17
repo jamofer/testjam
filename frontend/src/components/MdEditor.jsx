@@ -6,6 +6,7 @@ import {
   isMentionElement,
 } from "./mention/MentionChip"
 import { MentionAutocomplete } from "./mention/MentionAutocomplete"
+import { MentionResolveProvider } from "./mention/MentionResolveContext"
 import { rehypeMentions } from "../lib/mentions/rehypeMentions"
 
 // `@uiw/react-md-editor` ships ~400 KB (Monaco-like editor + markdown deps).
@@ -63,7 +64,7 @@ export function MdViewer({ value, projectId }) {
   const { appearance } = useTheme()
   if (!value) return null
   const components = buildViewerComponents(projectId)
-  return (
+  const markdown = (
     <div data-color-mode={appearance} className="md">
       <Suspense fallback={null}>
         <MDEditorMarkdown
@@ -73,6 +74,12 @@ export function MdViewer({ value, projectId }) {
         />
       </Suspense>
     </div>
+  )
+  if (!projectId) return markdown
+  return (
+    <MentionResolveProvider projectId={projectId} source={value}>
+      {markdown}
+    </MentionResolveProvider>
   )
 }
 

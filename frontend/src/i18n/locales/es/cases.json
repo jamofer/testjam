@@ -68,5 +68,14 @@
     "fieldExternalId": "ID externo",
     "fieldTags": "Etiquetas",
     "fieldSteps": "Pasos"
+  },
+  "discussion": {
+    "empty": "Aún no hay comentarios",
+    "add": "Añadir comentario",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "deleteConfirm": "¿Eliminar este comentario?"
   }
 }

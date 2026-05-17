@@ -73,8 +73,33 @@ class TestCase(Base):
         cascade="all, delete-orphan",
         order_by="CaseRevision.created_at.desc(), CaseRevision.id.desc()",
     )
+    comments: Mapped[list["CaseComment"]] = relationship(
+        back_populates="test_case",
+        cascade="all, delete-orphan",
+        order_by="CaseComment.created_at.asc(), CaseComment.id.asc()",
+    )
     created_by: Mapped["User | None"] = relationship(foreign_keys=[created_by_id])  # noqa: F821
     updated_by: Mapped["User | None"] = relationship(foreign_keys=[updated_by_id])  # noqa: F821
+
+
+class CaseComment(Base):
+    __tablename__ = "case_comments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    test_case_id: Mapped[int] = mapped_column(
+        ForeignKey("test_cases.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    created_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        UTCDateTime(), server_default=func.now(), onupdate=func.now()
+    )
+
+    test_case: Mapped[TestCase] = relationship(back_populates="comments")
+    created_by: Mapped["User | None"] = relationship(foreign_keys=[created_by_id])  # noqa: F821
 
 
 class TestStep(Base):

@@ -45,6 +45,40 @@ describe("detectActiveTrigger", () => {
   })
 })
 
+describe("detectActiveTrigger composite", () => {
+  it("detects !N/ for results", () => {
+    const result = detectActiveTrigger("see !17/", 8)
+    expect(result).toMatchObject({
+      kind: "result", parents: [17], query: "", triggerChar: "!",
+    })
+  })
+
+  it("detects !N/M with partial query", () => {
+    const result = detectActiveTrigger("see !17/91", 10)
+    expect(result).toMatchObject({
+      kind: "result", parents: [17], query: "91",
+    })
+  })
+
+  it("detects !N/M/ for step results", () => {
+    const result = detectActiveTrigger("step !17/91/", 12)
+    expect(result).toMatchObject({
+      kind: "step_result", parents: [17, 91], query: "",
+    })
+  })
+
+  it("detects !N/M/K with partial step query", () => {
+    const result = detectActiveTrigger("step !17/91/3", 13)
+    expect(result).toMatchObject({
+      kind: "step_result", parents: [17, 91], query: "3",
+    })
+  })
+
+  it("rejects more than two slashes", () => {
+    expect(detectActiveTrigger("!17/91/3/4", 10)).toBeNull()
+  })
+})
+
 describe("buildCanonicalToken", () => {
   it("uses slug for users", () => {
     expect(buildCanonicalToken("@", { kind: "user", slug: "alice" })).toBe("@alice")
@@ -56,6 +90,14 @@ describe("buildCanonicalToken", () => {
 
   it("uses id for executions", () => {
     expect(buildCanonicalToken("!", { kind: "execution", id: 17 })).toBe("!17")
+  })
+
+  it("builds composite for results", () => {
+    expect(buildCanonicalToken("!", { kind: "result", id: 17, sub_ids: [91] })).toBe("!17/91")
+  })
+
+  it("builds composite for step results", () => {
+    expect(buildCanonicalToken("!", { kind: "step_result", id: 17, sub_ids: [91, 3] })).toBe("!17/91/3")
   })
 })
 

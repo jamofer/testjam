@@ -172,6 +172,7 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
 
   return (
     <div ref={cardRef}
+      id={`result-${result.id}`}
       data-result-id={result.id}
       className="relative border rounded-xl overflow-hidden shadow-sm transition-shadow">
       {focused && (

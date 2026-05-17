@@ -68,5 +68,14 @@
     "fieldExternalId": "External ID",
     "fieldTags": "Tags",
     "fieldSteps": "Steps"
+  },
+  "discussion": {
+    "empty": "No comments yet",
+    "add": "Add comment",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "deleteConfirm": "Delete this comment?"
   }
 }

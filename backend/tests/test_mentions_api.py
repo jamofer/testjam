@@ -55,7 +55,8 @@ def test_resolve_user_member_is_accessible(auth_client, project_id):
     mention = result["mentions"][0]
     assert mention["accessible"] is True
     assert mention["slug"] == "alice"
-    assert mention["label"] == "Alice"
+    assert mention["label"] == "@alice"
+    assert mention["description"] == "Alice"
 
 
 def test_resolve_user_unknown_returns_inaccessible(auth_client, project_id):
@@ -149,3 +150,76 @@ def test_search_rejects_unknown_kind(auth_client, project_id):
     )
 
     assert response.status_code == 422
+
+
+def _seed_execution_with_case(auth_client, project_id):
+    suite = auth_client.post(
+        f"/api/v1/projects/{project_id}/suites", json={"name": "Auth"},
+    ).json()
+    case = auth_client.post(
+        f"/api/v1/suites/{suite['id']}/cases",
+        json={"name": "Login flow", "suite_id": suite["id"]},
+    ).json()
+    auth_client.post(
+        f"/api/v1/cases/{case['id']}/steps",
+        json={"action": "open login page", "expected_result": "form shown"},
+    )
+    execution = auth_client.post(
+        f"/api/v1/projects/{project_id}/executions",
+        json={"title": "Run", "type": "manual", "test_case_ids": [case["id"]]},
+    ).json()
+    return execution, case
+
+
+def test_search_results_inside_execution(auth_client, project_id):
+    execution, _ = _seed_execution_with_case(auth_client, project_id)
+
+    response = auth_client.get(
+        f"/api/v1/projects/{project_id}/mentions/search"
+        f"?kind=result&execution_id={execution['id']}&q=login",
+    ).json()
+
+    assert len(response["hits"]) == 1
+    hit = response["hits"][0]
+    assert hit["kind"] == "result"
+    assert hit["id"] == execution["id"]
+    assert len(hit["sub_ids"]) == 1
+    assert "Login" in hit["label"]
+
+
+def test_search_results_requires_execution_id(auth_client, project_id):
+    response = auth_client.get(
+        f"/api/v1/projects/{project_id}/mentions/search?kind=result&q=x",
+    )
+
+    assert response.status_code == 400
+
+
+def test_search_step_results_inside_result(auth_client, project_id):
+    execution, case = _seed_execution_with_case(auth_client, project_id)
+    result_row = auth_client.get(f"/api/v1/executions/{execution['id']}/results").json()[0]
+    case_detail = auth_client.get(f"/api/v1/cases/{case['id']}").json()
+    step_id = case_detail["steps"][0]["id"]
+
+    response = auth_client.get(
+        f"/api/v1/projects/{project_id}/mentions/search"
+        f"?kind=step_result&execution_id={execution['id']}&result_id={result_row['id']}&q=open",
+    ).json()
+
+    assert len(response["hits"]) == 1
+    hit = response["hits"][0]
+    assert hit["kind"] == "step_result"
+    assert hit["id"] == execution["id"]
+    assert hit["sub_ids"][0] == result_row["id"]
+    assert hit["sub_ids"][1] == step_id
+
+
+def test_search_step_results_requires_both_parents(auth_client, project_id):
+    execution, _ = _seed_execution_with_case(auth_client, project_id)
+
+    response = auth_client.get(
+        f"/api/v1/projects/{project_id}/mentions/search"
+        f"?kind=step_result&execution_id={execution['id']}&q=x",
+    )
+
+    assert response.status_code == 400

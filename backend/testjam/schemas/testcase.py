@@ -1,6 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel, Field, computed_field
 from testjam.core.config import settings
+from testjam.schemas.user import UserOut
 
 
 class AttachmentOut(BaseModel):
@@ -144,5 +145,24 @@ class TestSuiteOut(TestSuiteBase):
     child_suite_ids: list[int] = []
     test_case_ids: list[int] = []
     steps: list[SuiteStepOut] = []
+
+    model_config = {"from_attributes": True}
+
+
+class CaseCommentCreate(BaseModel):
+    body: str = Field(min_length=1)
+
+
+class CaseCommentUpdate(BaseModel):
+    body: str = Field(min_length=1)
+
+
+class CaseCommentOut(BaseModel):
+    id: int
+    test_case_id: int
+    body: str
+    created_by: UserOut | None = None
+    created_at: datetime
+    updated_at: datetime
 
     model_config = {"from_attributes": True}

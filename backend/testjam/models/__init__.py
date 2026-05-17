@@ -3,7 +3,7 @@ from testjam.models.project import Project, ProjectGroup, ProjectMember
 from testjam.models.version import ProjectVersion
 from testjam.models.environment import ProjectEnvironment
 from testjam.models.bug import Bug, BugComment, BugAttachment, BugActivity, BugLink
-from testjam.models.testcase import TestSuite, SuiteStep, TestCase, TestStep, Attachment
+from testjam.models.testcase import TestSuite, SuiteStep, TestCase, TestStep, Attachment, CaseComment
 from testjam.models.testplan import TestPlan
 from testjam.models.execution import TestExecution, TestResult, TestStepResult, ResultAttachment, ExecutionAttachment
 from testjam.models.token import ApiToken

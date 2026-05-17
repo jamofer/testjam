@@ -26,7 +26,10 @@ export function MentionAutocomplete({ textarea, value, onChange, projectId }) {
   const close = useCallback(() => setActive(null), [])
 
   const { data: hits = [], isFetching } = useMentionSearch(
-    projectId, active?.kind, active?.query ?? "", { enabled: !!active },
+    projectId,
+    active?.kind,
+    active?.query ?? "",
+    { enabled: !!active, parents: active?.parents ?? [] },
   )
   const [selectedIndex, setSelectedIndex] = useSelectedIndex(hits)
 

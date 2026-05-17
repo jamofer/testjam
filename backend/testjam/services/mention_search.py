@@ -10,9 +10,9 @@ from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, selectinload
 
 from testjam.models.bug import Bug
-from testjam.models.execution import TestExecution
+from testjam.models.execution import TestExecution, TestResult
 from testjam.models.project import ProjectMember
-from testjam.models.testcase import TestCase, TestSuite
+from testjam.models.testcase import TestCase, TestStep, TestSuite
 from testjam.models.user import User
 from testjam.schemas.mention import MentionSearchHit
 
@@ -99,6 +99,72 @@ def search_cases(db: Session, project_id: int, query: str, limit: int) -> list[M
             url=f"/cases/{case.id}",
         )
         for case in rows
+    ]
+
+
+def search_results(
+    db: Session, project_id: int, execution_id: int, query: str, limit: int,
+) -> list[MentionSearchHit]:
+    base = (
+        db.query(TestResult, TestCase.name)
+        .join(TestExecution, TestExecution.id == TestResult.execution_id)
+        .join(TestCase, TestCase.id == TestResult.test_case_id)
+        .filter(
+            TestExecution.project_id == project_id,
+            TestResult.execution_id == execution_id,
+        )
+    )
+    rows = (
+        _apply_numeric_or_text(base, TestResult.id, [TestCase.name], query)
+        .order_by(TestResult.id.asc())
+        .limit(limit)
+        .all()
+    )
+    return [
+        MentionSearchHit(
+            kind="result",
+            id=execution_id,
+            sub_ids=[result.id],
+            label=f"!{execution_id}/{result.id} {case_name}",
+            description=result.status,
+            url=f"/executions/{execution_id}/run#result-{result.id}",
+        )
+        for result, case_name in rows
+    ]
+
+
+def search_step_results(
+    db: Session, project_id: int, execution_id: int, result_id: int, query: str, limit: int,
+) -> list[MentionSearchHit]:
+    result = (
+        db.query(TestResult)
+        .join(TestExecution, TestExecution.id == TestResult.execution_id)
+        .filter(
+            TestResult.id == result_id,
+            TestResult.execution_id == execution_id,
+            TestExecution.project_id == project_id,
+        )
+        .first()
+    )
+    if result is None:
+        return []
+    base = db.query(TestStep).filter(TestStep.test_case_id == result.test_case_id)
+    rows = (
+        _apply_numeric_or_text(base, TestStep.id, [TestStep.action], query)
+        .order_by(TestStep.order.asc(), TestStep.id.asc())
+        .limit(limit)
+        .all()
+    )
+    return [
+        MentionSearchHit(
+            kind="step_result",
+            id=execution_id,
+            sub_ids=[result_id, step.id],
+            label=f"!{execution_id}/{result_id}/{step.id} {step.action}",
+            description=None,
+            url=f"/executions/{execution_id}/run#result-{result_id}-step-{step.id}",
+        )
+        for step in rows
     ]
 
 

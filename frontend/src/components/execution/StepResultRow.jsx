@@ -64,7 +64,7 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
   const hasMeta = stepResult?.duration_ms != null || stepResult?.started_at
 
   return (
-    <div ref={rowRef} data-step-id={step.id}
+    <div ref={rowRef} id={`step-${step.id}`} data-step-id={step.id}
       className={`relative border rounded-lg overflow-hidden ${config.bg} ${focused ? "ring-2 ring-red-400" : ""}`}>
       <div className="flex items-start gap-3 p-3">
         <span className="text-xs font-mono text-gray-400 dark:text-gray-500 mt-0.5 w-5 shrink-0">{step.order}.</span>

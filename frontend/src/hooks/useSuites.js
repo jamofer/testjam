@@ -168,6 +168,42 @@ export function useCaseRevision(caseId, revId) {
   })
 }
 
+export function useCaseComments(caseId) {
+  return useQuery({
+    queryKey: ["case-comments", caseId],
+    queryFn: () => casesApi.listComments(caseId),
+    enabled: !!caseId,
+  })
+}
+
+export function useAddCaseComment() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ caseId, body }) => casesApi.addComment(caseId, body),
+    onSuccess: (comment) =>
+      qc.invalidateQueries({ queryKey: ["case-comments", comment.test_case_id] }),
+  })
+}
+
+export function useUpdateCaseComment() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ caseId, commentId, body }) =>
+      casesApi.updateComment(caseId, commentId, body),
+    onSuccess: (comment) =>
+      qc.invalidateQueries({ queryKey: ["case-comments", comment.test_case_id] }),
+  })
+}
+
+export function useDeleteCaseComment() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ caseId, commentId }) => casesApi.deleteComment(caseId, commentId),
+    onSuccess: (_response, variables) =>
+      qc.invalidateQueries({ queryKey: ["case-comments", variables.caseId] }),
+  })
+}
+
 export function useReorderSteps(caseId) {
   const qc = useQueryClient()
   return useMutation({

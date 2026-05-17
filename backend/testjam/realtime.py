@@ -140,3 +140,7 @@ def notify_bug(bug_id: int, payload: dict[str, Any]) -> None:
 
 def notify_execution(execution_id: int, payload: dict[str, Any]) -> None:
     _schedule(manager.broadcast(f"execution:{execution_id}", payload))
+
+
+def notify_case(case_id: int, payload: dict[str, Any]) -> None:
+    _schedule(manager.broadcast(f"case:{case_id}", payload))

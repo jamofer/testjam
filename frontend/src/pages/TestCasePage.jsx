@@ -16,6 +16,7 @@ import { PageHeader, PageBody } from "../components/ui/page-header"
 import { CaseRevisions } from "../components/case/CaseRevisions"
 import { SortableStepRow } from "../components/case/SortableStepRow"
 import { AttachmentList } from "../components/case/AttachmentList"
+import { CaseDiscussion } from "../components/case/CaseDiscussion"
 import { PanelAttachments, PanelHistory } from "../components/case/CaseSidePanels"
 import { ContextPanel } from "../components/ui/context-panel"
 import { fmtDateTime } from "../lib/format"
@@ -140,11 +141,11 @@ export function TestCasePage() {
               <Input value={title} onChange={event => setTitle(event.target.value)} className="text-lg font-bold" />
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t("preconditions")}</p>
-                <MdEditor value={preconditions} onChange={setPreconditions} height={80} />
+                <MdEditor value={preconditions} onChange={setPreconditions} height={80} projectId={suite?.project_id} />
               </div>
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t("description")}</p>
-                <MdEditor value={description} onChange={setDescription} height={120} />
+                <MdEditor value={description} onChange={setDescription} height={120} projectId={suite?.project_id} />
               </div>
               <div className="flex gap-2">
                 <Button size="sm" onClick={saveMeta} loading={updateCase.isPending}>{t("save")}</Button>
@@ -174,11 +175,11 @@ export function TestCasePage() {
               {tc.preconditions && (
                 <div className="mt-2">
                   <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">{t("preconditions")}</p>
-                  <div className="prose prose-sm mt-1"><MdViewer value={tc.preconditions} /></div>
+                  <div className="prose prose-sm mt-1"><MdViewer value={tc.preconditions} projectId={suite?.project_id} /></div>
                 </div>
               )}
               {tc.description && (
-                <div className="mt-2 prose prose-sm text-gray-600 dark:text-gray-300"><MdViewer value={tc.description} /></div>
+                <div className="mt-2 prose prose-sm text-gray-600 dark:text-gray-300"><MdViewer value={tc.description} projectId={suite?.project_id} /></div>
               )}
               {!tc.preconditions && !tc.description && (
                 <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">{t("clickToAdd")}</p>
@@ -195,6 +196,7 @@ export function TestCasePage() {
               <TabsList>
                 <TabsTrigger value="steps">{t("tabs.stepsCount", { count: tc.steps?.length ?? 0 })}</TabsTrigger>
                 <TabsTrigger value="attachments">{t("tabs.attachmentsCount", { count: tc.attachments?.length ?? 0 })}</TabsTrigger>
+                <TabsTrigger value="discussion">{t("tabs.discussion")}</TabsTrigger>
                 <TabsTrigger value="history">{t("tabs.history")}</TabsTrigger>
               </TabsList>
 
@@ -207,7 +209,7 @@ export function TestCasePage() {
                       ))}
                       <div className="border rounded-lg p-3 space-y-2">
                         <p className="text-xs text-gray-500 dark:text-gray-400">{t("newStep")}</p>
-                        <MdEditor value={newStepContent} onChange={setNewStepContent} height={100} />
+                        <MdEditor value={newStepContent} onChange={setNewStepContent} height={100} projectId={suite?.project_id} />
                         <Button size="sm" onClick={addStep} disabled={!newStepContent.trim()}>
                           <Plus size={13} /> {t("addStep")}
                         </Button>
@@ -219,6 +221,10 @@ export function TestCasePage() {
 
               <TabsContent value="attachments">
                 <AttachmentList caseId={id} attachments={tc.attachments ?? []} />
+              </TabsContent>
+
+              <TabsContent value="discussion">
+                <CaseDiscussion caseId={Number(id)} projectId={suite?.project_id} />
               </TabsContent>
 
               <TabsContent value="history">

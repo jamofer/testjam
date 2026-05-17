@@ -46,18 +46,23 @@ def resolve_mentions(
 @router.get("/{id}/mentions/search", response_model=MentionSearchResponse)
 def search_mentions(
     id: int,
-    kind: str = Query(..., pattern="^(user|bug|execution|case)$"),
+    kind: str = Query(..., pattern="^(user|bug|execution|case|result|step_result)$"),
     q: str = "",
     limit: int = SEARCH_LIMIT_DEFAULT,
+    execution_id: int | None = None,
+    result_id: int | None = None,
     db: Session = Depends(get_db),
     _: User = Depends(require_project_access),
 ):
     capped = max(1, min(limit, SEARCH_LIMIT_MAX))
-    hits = _dispatch_search(db, id, kind, q, capped)
+    hits = _dispatch_search(db, id, kind, q, capped, execution_id, result_id)
     return MentionSearchResponse(hits=hits)
 
 
-def _dispatch_search(db: Session, project_id: int, kind: str, query: str, limit: int) -> list[MentionSearchHit]:
+def _dispatch_search(
+    db: Session, project_id: int, kind: str, query: str, limit: int,
+    execution_id: int | None, result_id: int | None,
+) -> list[MentionSearchHit]:
     if kind == "user":
         return mention_search.search_users(db, project_id, query, limit)
     if kind == "bug":
@@ -66,4 +71,16 @@ def _dispatch_search(db: Session, project_id: int, kind: str, query: str, limit:
         return mention_search.search_executions(db, project_id, query, limit)
     if kind == "case":
         return mention_search.search_cases(db, project_id, query, limit)
+    if kind == "result":
+        if execution_id is None:
+            raise HTTPException(status_code=400, detail="result search requires execution_id")
+        return mention_search.search_results(db, project_id, execution_id, query, limit)
+    if kind == "step_result":
+        if execution_id is None or result_id is None:
+            raise HTTPException(
+                status_code=400, detail="step_result search requires execution_id and result_id",
+            )
+        return mention_search.search_step_results(
+            db, project_id, execution_id, result_id, query, limit,
+        )
     raise HTTPException(status_code=400, detail=f"Unsupported kind: {kind}")

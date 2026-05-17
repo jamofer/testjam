@@ -1,6 +1,6 @@
 import os
 import shutil
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import or_
@@ -11,15 +11,18 @@ from testjam.core.config import settings
 from testjam.database import get_db
 from testjam.models.case_revision import CaseRevision
 from testjam.models.project import ProjectMember
-from testjam.models.testcase import Attachment, TestCase, TestStep, TestSuite
+from testjam.models.testcase import Attachment, CaseComment, TestCase, TestStep, TestSuite
 from testjam.models.testplan import TestPlan
 from testjam.models.user import User
 from testjam.schemas.case_revision import CaseRevisionDetail, CaseRevisionSummary
 from testjam.schemas.testcase import (
-    AttachmentOut, TestCaseCreate, TestCaseOut, TestCaseUpdate,
+    AttachmentOut, CaseCommentCreate, CaseCommentOut, CaseCommentUpdate,
+    TestCaseCreate, TestCaseOut, TestCaseUpdate,
     TestStepCreate, TestStepOut, TestStepUpdate,
 )
+from testjam.services import case_events, mention_notify
 from testjam.services.case_revisions import write_revision
+from testjam.services.permissions import effective_role
 
 UPLOAD_DIR = os.path.join(settings.UPLOAD_DIR, "cases")
 
@@ -375,3 +378,144 @@ def delete_attachment(id: int, attachment_id: int, db: Session = Depends(get_db)
         os.remove(att.file_path)
     db.delete(att)
     db.commit()
+
+
+COMMENT_WRITER_ROLES = {"tester", "owner"}
+
+
+def _get_case(db: Session, case_id: int) -> TestCase:
+    case = db.get(TestCase, case_id)
+    if case is None:
+        raise HTTPException(status_code=404, detail="Not found")
+    return case
+
+
+def _project_id_for_case(case: TestCase, db: Session) -> int:
+    suite = db.get(TestSuite, case.suite_id)
+    return suite.project_id
+
+
+def _require_case_writer(db: Session, user: User, project_id: int) -> None:
+    if user.is_admin:
+        return
+    role = effective_role(db, user.id, project_id)
+    if role not in COMMENT_WRITER_ROLES:
+        raise HTTPException(status_code=403, detail="Tester role or higher required")
+
+
+def _require_case_viewer(db: Session, user: User, project_id: int) -> None:
+    if user.is_admin:
+        return
+    if effective_role(db, user.id, project_id) is None:
+        raise HTTPException(status_code=403, detail="Not a project member")
+
+
+def _case_mention_subject(case: TestCase) -> str:
+    return f"case ~{case.id} {case.name}"
+
+
+def _case_mention_link(case_id: int) -> str:
+    return f"/cases/{case_id}"
+
+
+def _fan_out_case_mentions(
+    db: Session,
+    case: TestCase,
+    project_id: int,
+    body: str | None,
+    previous_body: str | None,
+    actor: User,
+    background: BackgroundTasks,
+) -> None:
+    if not body:
+        return
+    mention_notify.notify_mentions(
+        db,
+        project_id=project_id,
+        body=body,
+        previous_body=previous_body,
+        subject_object=_case_mention_subject(case),
+        link_path=_case_mention_link(case.id),
+        actor=actor,
+        background=background,
+    )
+
+
+@cases_router.get("/{id}/comments", response_model=list[CaseCommentOut])
+def list_case_comments(
+    id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    case = _get_case(db, id)
+    project_id = _project_id_for_case(case, db)
+    _require_case_viewer(db, current, project_id)
+    return list(case.comments)
+
+
+@cases_router.post(
+    "/{id}/comments", response_model=CaseCommentOut, status_code=status.HTTP_201_CREATED,
+)
+def add_case_comment(
+    id: int,
+    body: CaseCommentCreate,
+    background: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    case = _get_case(db, id)
+    project_id = _project_id_for_case(case, db)
+    _require_case_writer(db, current, project_id)
+    comment = CaseComment(test_case_id=case.id, body=body.body, created_by_id=current.id)
+    db.add(comment)
+    db.commit()
+    db.refresh(comment)
+    case_events.on_case_comment_added(comment)
+    _fan_out_case_mentions(db, case, project_id, comment.body, None, current, background)
+    return comment
+
+
+@cases_router.put("/{id}/comments/{comment_id}", response_model=CaseCommentOut)
+def update_case_comment(
+    id: int,
+    comment_id: int,
+    body: CaseCommentUpdate,
+    background: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    comment = db.get(CaseComment, comment_id)
+    if comment is None or comment.test_case_id != id:
+        raise HTTPException(status_code=404, detail="Not found")
+    if comment.created_by_id != current.id and not current.is_admin:
+        raise HTTPException(status_code=403, detail="Only the author or admin can edit")
+    previous_body = comment.body
+    comment.body = body.body
+    db.commit()
+    db.refresh(comment)
+    case_events.on_case_comment_updated(comment)
+    case = _get_case(db, id)
+    project_id = _project_id_for_case(case, db)
+    _fan_out_case_mentions(db, case, project_id, comment.body, previous_body, current, background)
+    return comment
+
+
+@cases_router.delete("/{id}/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_case_comment(
+    id: int,
+    comment_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    comment = db.get(CaseComment, comment_id)
+    if comment is None or comment.test_case_id != id:
+        raise HTTPException(status_code=404, detail="Not found")
+    case = comment.test_case
+    project_id = _project_id_for_case(case, db)
+    is_author = comment.created_by_id == current.id
+    is_owner = current.is_admin or effective_role(db, current.id, project_id) == "owner"
+    if not is_author and not is_owner:
+        raise HTTPException(status_code=403, detail="Only the author or project owner can delete")
+    db.delete(comment)
+    db.commit()
+    case_events.on_case_comment_deleted(case.id, comment_id)

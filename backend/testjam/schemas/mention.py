@@ -19,6 +19,12 @@ class MentionResolveRequest(BaseModel):
     tokens: list[MentionTokenIn] = Field(default_factory=list)
 
 
+class MentionPart(BaseModel):
+    kind: MentionKind
+    label: str
+    url: str | None = None
+
+
 class ResolvedMentionOut(BaseModel):
     kind: MentionKind
     slug: str | None = None
@@ -27,6 +33,7 @@ class ResolvedMentionOut(BaseModel):
     label: str | None = None
     description: str | None = None
     url: str | None = None
+    parts: list[MentionPart] = Field(default_factory=list)
     accessible: bool = False
 
 
@@ -37,6 +44,7 @@ class MentionResolveResponse(BaseModel):
 class MentionSearchHit(BaseModel):
     kind: MentionKind
     id: int | None = None
+    sub_ids: list[int] = Field(default_factory=list)
     slug: str | None = None
     label: str
     description: str | None = None

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react"
-import { useParams, Link } from "react-router-dom"
+import { useParams, useLocation, Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { ExternalLink, Clock, Keyboard, User, Download } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
@@ -23,6 +23,18 @@ import { ImportResultsButton } from "../components/execution/ImportResultsButton
 import { ShortcutHelpDialog, SHORTCUT_TO_STATUS } from "../components/execution/ShortcutHelpDialog"
 
 const TERMINAL_STATUSES = new Set(["completed", "aborted"])
+
+const RUN_HASH_PATTERN = /^#result-(\d+)(?:-step-(\d+))?$/
+
+function parseRunHash(hash) {
+  if (!hash) return null
+  const match = hash.match(RUN_HASH_PATTERN)
+  if (!match) return null
+  return {
+    resultId: Number(match[1]),
+    stepId: match[2] ? Number(match[2]) : null,
+  }
+}
 import { mapSuiteByCase } from "../components/ui/test-case-item"
 import { fmtDuration, fmtDateTime } from "../lib/format"
 import { ContextPanel } from "../components/ui/context-panel"
@@ -86,6 +98,7 @@ function PanelExecutionAttachments({ executionId, attachments = [] }) {
 export function ExecutionRunPage() {
   const { t } = useTranslation("executions")
   const { id } = useParams()
+  const { hash } = useLocation()
   const { data: execution } = useExecution(id)
   const { data: results = [] } = useExecutionResults(id)
   const { connected: live } = useExecutionLive(id)
@@ -93,6 +106,7 @@ export function ExecutionRunPage() {
   const [finishing, setFinishing] = useState(false)
   const { exportPdf, exportHtml } = useExportExecution()
   const [reopening, setReopening] = useState(false)
+
 
   const finishExecution = async () => {
     setFinishing(true)
@@ -144,6 +158,7 @@ export function ExecutionRunPage() {
 
 function ExecutionRunBody({ execution, results, id, summary, done, totalMs, finishExecution, finishing, reopenExecution, reopening, exportPdf, exportHtml, live }) {
   const { t } = useTranslation(["executions", "common", "nav"])
+  const { hash } = useLocation()
   const { data: project } = useProject(execution.project_id)
   const { data: allSuites = [] } = useSuitesAll(execution.project_id)
   const updateResult = useUpdateResult(id)
@@ -196,11 +211,25 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
     return out
   }, [groups, topLevelIds, childrenOf])
 
+  const hashTarget = useMemo(() => parseRunHash(hash), [hash])
+
   useEffect(() => {
-    if (focusedResultId == null && orderedResults.length > 0) {
+    if (!hashTarget || orderedResults.length === 0) return
+    const exists = orderedResults.some(result => result.id === hashTarget.resultId)
+    if (!exists) return
+    setFocusedResultId(hashTarget.resultId)
+    if (hashTarget.stepId != null) setFocusedStepId(hashTarget.stepId)
+    requestAnimationFrame(() => {
+      const card = document.querySelector(`[data-result-id="${hashTarget.resultId}"]`)
+      card?.dispatchEvent(new CustomEvent("result-toggle", { detail: { open: true } }))
+    })
+  }, [hashTarget, orderedResults])
+
+  useEffect(() => {
+    if (focusedResultId == null && orderedResults.length > 0 && !hashTarget) {
       setFocusedResultId(orderedResults[0].id)
     }
-  }, [orderedResults, focusedResultId])
+  }, [orderedResults, focusedResultId, hashTarget])
 
   const runningResultId = useMemo(() => {
     for (const result of orderedResults) {

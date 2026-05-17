@@ -17,11 +17,11 @@ from __future__ import annotations
 from sqlalchemy.orm import Session, selectinload
 
 from testjam.models.bug import Bug
-from testjam.models.execution import TestExecution, TestResult, TestStepResult
+from testjam.models.execution import TestExecution, TestResult
 from testjam.models.project import ProjectMember
 from testjam.models.testcase import TestCase, TestSuite, TestStep
 from testjam.models.user import User
-from testjam.schemas.mention import MentionTokenIn, ResolvedMentionOut
+from testjam.schemas.mention import MentionPart, MentionTokenIn, ResolvedMentionOut
 from testjam.services.permissions import effective_role
 
 
@@ -58,8 +58,8 @@ def _resolve_user(db: Session, project_id: int, slug: str) -> ResolvedMentionOut
         kind="user",
         slug=user.username,
         id=user.id,
-        label=user.full_name or user.username,
-        description=f"@{user.username}",
+        label=f"@{user.username}",
+        description=user.full_name or None,
         url=f"/users/{user.username}",
         accessible=accessible,
     )
@@ -111,6 +111,16 @@ def _resolve_result(
             kind="result", id=execution_id, sub_ids=[result_id], accessible=False,
         )
     case_name = result.test_case.name if result.test_case else f"result {result.id}"
+    parts = [
+        MentionPart(
+            kind="execution", label=result.execution.title,
+            url=f"/executions/{execution_id}/run",
+        ),
+        MentionPart(
+            kind="case", label=case_name,
+            url=f"/executions/{execution_id}/run#result-{result.id}",
+        ),
+    ]
     return ResolvedMentionOut(
         kind="result",
         id=execution_id,
@@ -118,42 +128,52 @@ def _resolve_result(
         label=f"!{execution_id}/{result.id} {case_name}",
         description=result.status,
         url=f"/executions/{execution_id}/run#result-{result.id}",
+        parts=parts,
         accessible=True,
     )
 
 
 def _resolve_step_result(
-    db: Session, project_id: int, execution_id: int, result_id: int, step_result_id: int,
+    db: Session, project_id: int, execution_id: int, result_id: int, step_id: int,
 ) -> ResolvedMentionOut:
-    step_result = (
-        db.query(TestStepResult)
-        .options(
-            selectinload(TestStepResult.test_result).selectinload(TestResult.execution),
-            selectinload(TestStepResult.step),
-        )
-        .filter(
-            TestStepResult.id == step_result_id,
-            TestStepResult.test_result_id == result_id,
-        )
+    result = (
+        db.query(TestResult)
+        .options(selectinload(TestResult.execution), selectinload(TestResult.test_case))
+        .filter(TestResult.id == result_id, TestResult.execution_id == execution_id)
         .first()
     )
-    if (
-        step_result is None
-        or step_result.test_result.execution_id != execution_id
-        or step_result.test_result.execution.project_id != project_id
-    ):
+    if result is None or result.execution.project_id != project_id:
         return ResolvedMentionOut(
             kind="step_result", id=execution_id,
-            sub_ids=[result_id, step_result_id], accessible=False,
+            sub_ids=[result_id, step_id], accessible=False,
         )
-    step_action = step_result.step.action if step_result.step else f"step {step_result.id}"
+    step = db.get(TestStep, step_id)
+    if step is None or step.test_case_id != result.test_case_id:
+        return ResolvedMentionOut(
+            kind="step_result", id=execution_id,
+            sub_ids=[result_id, step_id], accessible=False,
+        )
+    case_name = result.test_case.name if result.test_case else f"result {result.id}"
+    deep_url = f"/executions/{execution_id}/run#result-{result_id}-step-{step.id}"
+    parts = [
+        MentionPart(
+            kind="execution", label=result.execution.title,
+            url=f"/executions/{execution_id}/run",
+        ),
+        MentionPart(
+            kind="case", label=case_name,
+            url=f"/executions/{execution_id}/run#result-{result_id}",
+        ),
+        MentionPart(kind="step_result", label=step.action, url=deep_url),
+    ]
     return ResolvedMentionOut(
         kind="step_result",
         id=execution_id,
-        sub_ids=[result_id, step_result.id],
-        label=f"!{execution_id}/{result_id}/{step_result.id} {step_action}",
-        description=step_result.status,
-        url=f"/executions/{execution_id}/run#step-{step_result.id}",
+        sub_ids=[result_id, step.id],
+        label=f"!{execution_id}/{result_id}/{step.id} {step.action}",
+        description=None,
+        url=deep_url,
+        parts=parts,
         accessible=True,
     )
 

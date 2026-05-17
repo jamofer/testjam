@@ -147,10 +147,10 @@ function UserRow({ user, onEdit, onActivity, onDeleteRequest, onRestore }) {
   return (
     <li className="flex items-center justify-between bg-white dark:bg-gray-900 border rounded-lg px-4 py-3 shadow-sm">
       <div>
-        <p className="font-medium text-gray-800 dark:text-gray-100">
-          {user.username}
-          {user.is_admin && <Badge variant="outline" className="ml-2 text-[10px]">{t("users.row.admin")}</Badge>}
-        </p>
+        <div className="font-medium text-gray-800 dark:text-gray-100 flex items-center gap-2">
+          <span>{user.username}</span>
+          {user.is_admin && <Badge variant="outline" className="text-[10px]">{t("users.row.admin")}</Badge>}
+        </div>
         <p className="text-xs text-gray-400 dark:text-gray-500">{user.email}</p>
       </div>
       <div className="flex items-center gap-2">

@@ -56,4 +56,12 @@ export const casesApi = {
     api.get(`/cases/${caseId}/revisions`).then(r => r.data),
   getRevision: (caseId, revId) =>
     api.get(`/cases/${caseId}/revisions/${revId}`).then(r => r.data),
+
+  listComments: (caseId) => api.get(`/cases/${caseId}/comments`).then(r => r.data),
+  addComment: (caseId, body) =>
+    api.post(`/cases/${caseId}/comments`, { body }).then(r => r.data),
+  updateComment: (caseId, commentId, body) =>
+    api.put(`/cases/${caseId}/comments/${commentId}`, { body }).then(r => r.data),
+  deleteComment: (caseId, commentId) =>
+    api.delete(`/cases/${caseId}/comments/${commentId}`),
 }
