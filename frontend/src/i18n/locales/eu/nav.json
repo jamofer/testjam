@@ -10,6 +10,7 @@
     "executions": "Exekuzioak",
     "versions": "Bertsioak",
     "environments": "Inguruneak",
+    "bugs": "Akatsak",
     "members": "Kideak"
   },
   "global": {

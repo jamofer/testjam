@@ -24,6 +24,10 @@ class NotificationEvent(StrEnum):
     EXECUTION_FINISHED = "execution_finished"
     EXECUTION_FAILED = "execution_failed"
 
+    BUG_ASSIGNED = "bug_assigned"
+    BUG_RESOLVED = "bug_resolved"
+    BUG_STATUS_CHANGED = "bug_status_changed"
+
     # Reserved for future work — not yet emitted.
     MENTION_IN_COMMENT = "mention_in_comment"
     PASSWORD_RESET = "password_reset"

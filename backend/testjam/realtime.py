@@ -134,5 +134,9 @@ def notify_project(project_id: int, payload: dict[str, Any]) -> None:
     _schedule(manager.broadcast(f"project:{project_id}", payload))
 
 
+def notify_bug(bug_id: int, payload: dict[str, Any]) -> None:
+    _schedule(manager.broadcast(f"bug:{bug_id}", payload))
+
+
 def notify_execution(execution_id: int, payload: dict[str, Any]) -> None:
     _schedule(manager.broadcast(f"execution:{execution_id}", payload))

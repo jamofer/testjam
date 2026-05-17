@@ -27,6 +27,9 @@ class Project(Base):
     environments: Mapped[list["ProjectEnvironment"]] = relationship(  # noqa: F821
         back_populates="project", cascade="all, delete-orphan"
     )
+    bugs: Mapped[list["Bug"]] = relationship(  # noqa: F821
+        back_populates="project", cascade="all, delete-orphan"
+    )
 
 
 class ProjectMember(Base):

@@ -1,0 +1,7 @@
+{{ actor }}-(e)k '{{ subject_object }}' akatsa {{ status }} bezala markatu du.
+
+Ireki akatsa: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Kudeatu lehentasunak: {{ preferences_url }}

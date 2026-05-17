@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { NavLink, Link, useMatch } from "react-router-dom"
-import { FolderKanban, Users, LogOut, UserCircle, FolderOpen, LayoutDashboard, PlayCircle, ClipboardList, ChevronLeft, Server, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon, X } from "lucide-react"
+import { Bug, FolderKanban, Users, LogOut, UserCircle, FolderOpen, LayoutDashboard, PlayCircle, ClipboardList, ChevronLeft, Server, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useLogout } from "../../hooks/useAuth"
 import { useProject } from "../../hooks/useProjects"
@@ -21,6 +21,7 @@ const PROJECT_NAV = [
   { to: (id) => `/projects/${id}/executions`,  icon: PlayCircle,      labelKey: "project.executions"          },
   { to: (id) => `/projects/${id}/versions`,    icon: Tag,             labelKey: "project.versions"            },
   { to: (id) => `/projects/${id}/environments`, icon: Server,         labelKey: "project.environments"        },
+  { to: (id) => `/projects/${id}/bugs`,        icon: Bug,             labelKey: "project.bugs"                },
   { to: (id) => `/projects/${id}/members`,     icon: Shield,          labelKey: "project.members"             },
 ]
 

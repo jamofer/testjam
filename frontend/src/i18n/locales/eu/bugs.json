@@ -1,0 +1,95 @@
+{
+  "title": "Akatsak",
+  "subtitle": "Proiektu honetan irekitako akatsak",
+  "new": "Akats berria",
+  "downloadReport": "Deskargatu txostena",
+  "reportFormats": {
+    "html": "HTML",
+    "xlsx": "Excel"
+  },
+  "table": {
+    "number": "#",
+    "title": "Izenburua",
+    "severity": "Larritasuna",
+    "status": "Egoera",
+    "version": "Bertsioa",
+    "environment": "Ingurunea",
+    "assignee": "Esleitua",
+    "created": "Sortua"
+  },
+  "filters": {
+    "search": "Bilatu izenburuan…",
+    "status": "Egoera",
+    "severity": "Larritasuna",
+    "version": "Bertsioa",
+    "assignee": "Esleitua",
+    "tag": "Etiketa",
+    "any": "Edozein"
+  },
+  "severity": {
+    "critical": "Kritikoa",
+    "high": "Altua",
+    "medium": "Ertaina",
+    "low": "Baxua"
+  },
+  "statuses": {
+    "open": "Irekia",
+    "in_progress": "Abian",
+    "resolved": "Konponduta",
+    "closed": "Itxia",
+    "wont_fix": "Ez da konponduko",
+    "not_a_bug": "Ez da akatsa"
+  },
+  "fields": {
+    "title": "Izenburua",
+    "description": "Deskribapena",
+    "severity": "Larritasuna",
+    "tags": "Etiketak",
+    "version": "Bertsioa",
+    "environment": "Ingurunea",
+    "assignee": "Esleitua",
+    "externalUrl": "Kanpoko txartelaren URLa"
+  },
+  "actions": {
+    "save": "Gorde",
+    "delete": "Ezabatu",
+    "report": "Eman akatsaren berri",
+    "changeStatus": "Aldatu egoera",
+    "addComment": "Gehitu iruzkina",
+    "edit": "Editatu",
+    "cancel": "Utzi"
+  },
+  "tabs": {
+    "description": "Deskribapena",
+    "comments": "Iruzkinak",
+    "attachments": "Eranskinak",
+    "history": "Historia"
+  },
+  "comments": {
+    "placeholder": "Idatzi iruzkin bat…",
+    "empty": "Oraindik ez dago iruzkinik"
+  },
+  "history": {
+    "createdLabel": "Sortua egoera honekin",
+    "transitionLabel": "Egoera aldatu da",
+    "by": "{{user}}-(e)k",
+    "empty": "Egoera-aldaketarik gabe"
+  },
+  "empty": {
+    "title": "Oraindik ez dago akatsik",
+    "description": "Eman berri akats baten emaitza akatsdun batetik edo sortu eskuz."
+  },
+  "toast": {
+    "created": "Akatsa sortua",
+    "updated": "Akatsa eguneratua",
+    "deleted": "Akatsa ezabatua",
+    "statusChanged": "Egoera eguneratua",
+    "commentAdded": "Iruzkina gehitu da",
+    "reportFailed": "Ezin izan da txostena deskargatu"
+  },
+  "report": {
+    "dialogTitle": "Eman akatsaren berri",
+    "fromResult": "Emaitzatik {{result}}",
+    "logHint": "Logaren laburpena automatikoki gehitzen zaio deskribapenari."
+  }
+}

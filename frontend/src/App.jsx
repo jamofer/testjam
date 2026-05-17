@@ -24,6 +24,8 @@ const MembersPage = lazy(() => import("./pages/MembersPage").then(m => ({ defaul
 const VersionsPage = lazy(() => import("./pages/VersionsPage").then(m => ({ default: m.VersionsPage })))
 const VersionDetailPage = lazy(() => import("./pages/VersionDetailPage").then(m => ({ default: m.VersionDetailPage })))
 const EnvironmentsPage = lazy(() => import("./pages/EnvironmentsPage").then(m => ({ default: m.EnvironmentsPage })))
+const BugsPage = lazy(() => import("./pages/BugsPage").then(m => ({ default: m.BugsPage })))
+const BugDetailPage = lazy(() => import("./pages/BugDetailPage").then(m => ({ default: m.BugDetailPage })))
 const CoverageMatrixPage = lazy(() => import("./pages/CoverageMatrixPage").then(m => ({ default: m.CoverageMatrixPage })))
 const SettingsPage = lazy(() => import("./pages/SettingsPage").then(m => ({ default: m.SettingsPage })))
 
@@ -68,6 +70,9 @@ export default function App() {
               <Route path="/projects/:id/members" element={<MembersPage />} />
               <Route path="/projects/:id/versions" element={<VersionsPage />} />
               <Route path="/projects/:id/environments" element={<EnvironmentsPage />} />
+              <Route path="/projects/:id/bugs" element={<BugsPage />} />
+              <Route path="/projects/:projectId/bugs/:number" element={<BugDetailPage />} />
+              <Route path="/bugs/:bugId" element={<BugDetailPage />} />
               <Route path="/projects/:id/coverage" element={<CoverageMatrixPage />} />
               <Route path="/projects/:id/versions/:versionId" element={<VersionDetailPage />} />
               <Route path="/cases/:id" element={<TestCasePage />} />

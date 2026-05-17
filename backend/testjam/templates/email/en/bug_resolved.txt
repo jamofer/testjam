@@ -1,0 +1,7 @@
+{{ actor }} marked bug '{{ subject_object }}' as {{ status }}.
+
+Open the bug: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Manage preferences: {{ preferences_url }}

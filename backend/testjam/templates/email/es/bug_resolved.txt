@@ -1,0 +1,7 @@
+{{ actor }} marcó el bug '{{ subject_object }}' como {{ status }}.
+
+Abre el bug: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Gestionar preferencias: {{ preferences_url }}

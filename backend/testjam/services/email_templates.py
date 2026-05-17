@@ -56,6 +56,15 @@ _FOOTER_REASONS: dict[str, dict[str, str]] = {
         NotificationEvent.PASSWORD_RESET.value: (
             "You're receiving this because a password reset was requested for this account."
         ),
+        NotificationEvent.BUG_ASSIGNED.value: (
+            "You're receiving this because you were assigned a bug."
+        ),
+        NotificationEvent.BUG_RESOLVED.value: (
+            "You're receiving this because a bug you reported or were assigned to has been resolved."
+        ),
+        NotificationEvent.BUG_STATUS_CHANGED.value: (
+            "You're receiving this because a bug you reported or were assigned to changed status."
+        ),
     },
     "es": {
         NotificationEvent.EXECUTION_ASSIGNED.value: (
@@ -69,6 +78,15 @@ _FOOTER_REASONS: dict[str, dict[str, str]] = {
         ),
         NotificationEvent.PASSWORD_RESET.value: (
             "Recibes este email porque se solicitó restablecer la contraseña de esta cuenta."
+        ),
+        NotificationEvent.BUG_ASSIGNED.value: (
+            "Recibes este email porque te asignaron un bug."
+        ),
+        NotificationEvent.BUG_RESOLVED.value: (
+            "Recibes este email porque un bug que reportaste o te asignaron se ha resuelto."
+        ),
+        NotificationEvent.BUG_STATUS_CHANGED.value: (
+            "Recibes este email porque un bug que reportaste o te asignaron cambió de estado."
         ),
     },
     "ca": {
@@ -84,6 +102,15 @@ _FOOTER_REASONS: dict[str, dict[str, str]] = {
         NotificationEvent.PASSWORD_RESET.value: (
             "Reps aquest correu perquè s'ha sol·licitat restablir la contrasenya d'aquest compte."
         ),
+        NotificationEvent.BUG_ASSIGNED.value: (
+            "Reps aquest correu perquè t'han assignat un bug."
+        ),
+        NotificationEvent.BUG_RESOLVED.value: (
+            "Reps aquest correu perquè un bug que has reportat o que t'han assignat s'ha resolt."
+        ),
+        NotificationEvent.BUG_STATUS_CHANGED.value: (
+            "Reps aquest correu perquè un bug que has reportat o que t'han assignat ha canviat d'estat."
+        ),
     },
     "gl": {
         NotificationEvent.EXECUTION_ASSIGNED.value: (
@@ -98,6 +125,15 @@ _FOOTER_REASONS: dict[str, dict[str, str]] = {
         NotificationEvent.PASSWORD_RESET.value: (
             "Recibes este correo porque se solicitou restablecer o contrasinal desta conta."
         ),
+        NotificationEvent.BUG_ASSIGNED.value: (
+            "Recibes este correo porque che asignaron un bug."
+        ),
+        NotificationEvent.BUG_RESOLVED.value: (
+            "Recibes este correo porque un bug que reportaches ou che asignaron resolveuse."
+        ),
+        NotificationEvent.BUG_STATUS_CHANGED.value: (
+            "Recibes este correo porque un bug que reportaches ou che asignaron cambiou de estado."
+        ),
     },
     "eu": {
         NotificationEvent.EXECUTION_ASSIGNED.value: (
@@ -111,6 +147,15 @@ _FOOTER_REASONS: dict[str, dict[str, str]] = {
         ),
         NotificationEvent.PASSWORD_RESET.value: (
             "Mezu hau jaso duzu kontu honetarako pasahitza berrezartzeko eskaria egin delako."
+        ),
+        NotificationEvent.BUG_ASSIGNED.value: (
+            "Mezu hau jaso duzu akats bat esleitu zaizulako."
+        ),
+        NotificationEvent.BUG_RESOLVED.value: (
+            "Mezu hau jaso duzu zuk jakinarazitako edo esleitu zaizun akats bat konpondu delako."
+        ),
+        NotificationEvent.BUG_STATUS_CHANGED.value: (
+            "Mezu hau jaso duzu zuk jakinarazitako edo esleitu zaizun akats batek egoera aldatu duelako."
         ),
     },
 }

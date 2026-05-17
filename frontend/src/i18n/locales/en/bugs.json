@@ -1,0 +1,95 @@
+{
+  "title": "Bugs",
+  "subtitle": "Issues raised against this project",
+  "new": "New bug",
+  "downloadReport": "Download report",
+  "reportFormats": {
+    "html": "HTML",
+    "xlsx": "Excel"
+  },
+  "table": {
+    "number": "#",
+    "title": "Title",
+    "severity": "Severity",
+    "status": "Status",
+    "version": "Version",
+    "environment": "Environment",
+    "assignee": "Assignee",
+    "created": "Created"
+  },
+  "filters": {
+    "search": "Search title…",
+    "status": "Status",
+    "severity": "Severity",
+    "version": "Version",
+    "assignee": "Assignee",
+    "tag": "Tag",
+    "any": "Any"
+  },
+  "severity": {
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "statuses": {
+    "open": "Open",
+    "in_progress": "In progress",
+    "resolved": "Resolved",
+    "closed": "Closed",
+    "wont_fix": "Won't fix",
+    "not_a_bug": "Not a bug"
+  },
+  "fields": {
+    "title": "Title",
+    "description": "Description",
+    "severity": "Severity",
+    "tags": "Tags",
+    "version": "Version",
+    "environment": "Environment",
+    "assignee": "Assignee",
+    "externalUrl": "External ticket URL"
+  },
+  "actions": {
+    "save": "Save",
+    "delete": "Delete",
+    "report": "Report bug",
+    "changeStatus": "Change status",
+    "addComment": "Add comment",
+    "edit": "Edit",
+    "cancel": "Cancel"
+  },
+  "tabs": {
+    "description": "Description",
+    "comments": "Comments",
+    "attachments": "Attachments",
+    "history": "History"
+  },
+  "comments": {
+    "placeholder": "Write a comment…",
+    "empty": "No comments yet"
+  },
+  "history": {
+    "createdLabel": "Created with status",
+    "transitionLabel": "Changed status",
+    "by": "by {{user}}",
+    "empty": "No status changes yet"
+  },
+  "empty": {
+    "title": "No bugs yet",
+    "description": "Report one from a failed result or create a manual entry."
+  },
+  "toast": {
+    "created": "Bug created",
+    "updated": "Bug updated",
+    "deleted": "Bug deleted",
+    "statusChanged": "Status updated",
+    "commentAdded": "Comment added",
+    "reportFailed": "Could not download report"
+  },
+  "report": {
+    "dialogTitle": "Report bug",
+    "fromResult": "From result {{result}}",
+    "logHint": "Log excerpt attached to the description automatically."
+  }
+}

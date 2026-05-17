@@ -1,0 +1,101 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { bugsApi } from "../api/bugs"
+
+export function useBugs(projectId, params = {}) {
+  return useQuery({
+    queryKey: ["bugs", projectId, params],
+    queryFn: () => bugsApi.list(projectId, params),
+    enabled: !!projectId,
+  })
+}
+
+export function useBug(id) {
+  return useQuery({
+    queryKey: ["bug", id],
+    queryFn: () => bugsApi.get(id),
+    enabled: !!id,
+  })
+}
+
+export function useBugComments(id) {
+  return useQuery({
+    queryKey: ["bug-comments", id],
+    queryFn: () => bugsApi.listComments(id),
+    enabled: !!id,
+  })
+}
+
+export function useBugHistory(id) {
+  return useQuery({
+    queryKey: ["bug-history", id],
+    queryFn: () => bugsApi.listHistory(id),
+    enabled: !!id,
+  })
+}
+
+export function useCreateBug(projectId) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data) => bugsApi.create(projectId, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["bugs", projectId] }),
+  })
+}
+
+export function useUpdateBug(projectId) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }) => bugsApi.update(id, data),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["bug", updated.id], updated)
+      queryClient.invalidateQueries({ queryKey: ["bugs", projectId] })
+    },
+  })
+}
+
+export function useDeleteBug(projectId) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id) => bugsApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["bugs", projectId] }),
+  })
+}
+
+export function useChangeBugStatus(projectId) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, status, note }) => bugsApi.changeStatus(id, status, note),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["bug", updated.id], updated)
+      queryClient.invalidateQueries({ queryKey: ["bugs", projectId] })
+      queryClient.invalidateQueries({ queryKey: ["bug-history", updated.id] })
+    },
+  })
+}
+
+export function useAddBugComment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, body }) => bugsApi.addComment(id, body),
+    onSuccess: (comment) =>
+      queryClient.invalidateQueries({ queryKey: ["bug-comments", comment.bug_id] }),
+  })
+}
+
+export function useUpdateBugComment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ bugId, commentId, body }) =>
+      bugsApi.updateComment(bugId, commentId, body),
+    onSuccess: (comment) =>
+      queryClient.invalidateQueries({ queryKey: ["bug-comments", comment.bug_id] }),
+  })
+}
+
+export function useDeleteBugComment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ bugId, commentId }) => bugsApi.deleteComment(bugId, commentId),
+    onSuccess: (_response, variables) =>
+      queryClient.invalidateQueries({ queryKey: ["bug-comments", variables.bugId] }),
+  })
+}

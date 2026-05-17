@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useContext, createContext } from "react"
 import { useTranslation } from "react-i18next"
 import { useQueryClient } from "@tanstack/react-query"
-import { ChevronDown, ChevronRight, Trash2, Copy, ExternalLink, Upload, Clock } from "lucide-react"
+import { Bug, ChevronDown, ChevronRight, Trash2, Copy, ExternalLink, Upload, Clock } from "lucide-react"
 import { useCase } from "../../hooks/useSuites"
-import { useUpdateResult } from "../../hooks/useExecutions"
+import { useExecution, useUpdateResult } from "../../hooks/useExecutions"
+import { NewBugDialog } from "../bug/NewBugDialog"
 import { executionsApi } from "../../api/executions"
 import { MdEditor } from "../MdEditor"
 import { Button } from "../ui/button"
@@ -20,6 +21,7 @@ export const ResultExpandContext = createContext({ version: 0, desiredOpen: null
 export function ResultCard({ result, executionId, index, total, isAutomated, focused = false, onFocus, focusedStepId = null }) {
   const { t } = useTranslation(["executions", "common"])
   const { data: tc } = useCase(result.test_case_id)
+  const { data: execution } = useExecution(executionId)
   const [open, setOpen] = useState(index === 0 || KEEP_OPEN_STATUSES.has(result.status))
   const [comment, setComment] = useState(result.comment ?? "")
   const [localStatus, setLocalStatus] = useState(result.status)
@@ -254,6 +256,26 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
           )}
 
           <div className="space-y-2">
+            {(localStatus === "failed" || localStatus === "blocked") && execution?.project_id && (
+              <NewBugDialog
+                projectId={execution.project_id}
+                prefill={{
+                  result_id: result.id,
+                  execution_id: executionId,
+                  version_id: execution.version_id,
+                  environment: execution.environment,
+                  description: result.comment
+                    ? `**From result:** ${tc?.name ?? result.test_case_id}\n\n\`\`\`\n${result.comment}\n\`\`\``
+                    : `**From result:** ${tc?.name ?? result.test_case_id}`,
+                  severity: localStatus === "blocked" ? "critical" : "high",
+                }}
+                trigger={(
+                  <Button size="sm" variant="outline">
+                    <Bug size={13} /> {t("run.reportBug", "Report bug")}
+                  </Button>
+                )}
+              />
+            )}
             <label className="flex items-center gap-2 cursor-pointer w-fit">
               <input type="file" className="hidden" onChange={uploadAttachment} />
               <Button size="sm" variant="ghost" asChild>

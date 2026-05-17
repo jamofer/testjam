@@ -1,0 +1,95 @@
+{
+  "title": "Bugs",
+  "subtitle": "Incidencias abiertas en este proyecto",
+  "new": "Nuevo bug",
+  "downloadReport": "Descargar informe",
+  "reportFormats": {
+    "html": "HTML",
+    "xlsx": "Excel"
+  },
+  "table": {
+    "number": "#",
+    "title": "Título",
+    "severity": "Severidad",
+    "status": "Estado",
+    "version": "Versión",
+    "environment": "Entorno",
+    "assignee": "Asignado",
+    "created": "Creado"
+  },
+  "filters": {
+    "search": "Buscar título…",
+    "status": "Estado",
+    "severity": "Severidad",
+    "version": "Versión",
+    "assignee": "Asignado",
+    "tag": "Etiqueta",
+    "any": "Cualquiera"
+  },
+  "severity": {
+    "critical": "Crítica",
+    "high": "Alta",
+    "medium": "Media",
+    "low": "Baja"
+  },
+  "statuses": {
+    "open": "Abierto",
+    "in_progress": "En curso",
+    "resolved": "Resuelto",
+    "closed": "Cerrado",
+    "wont_fix": "No se arregla",
+    "not_a_bug": "No es un bug"
+  },
+  "fields": {
+    "title": "Título",
+    "description": "Descripción",
+    "severity": "Severidad",
+    "tags": "Etiquetas",
+    "version": "Versión",
+    "environment": "Entorno",
+    "assignee": "Asignado",
+    "externalUrl": "URL de ticket externo"
+  },
+  "actions": {
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "report": "Reportar bug",
+    "changeStatus": "Cambiar estado",
+    "addComment": "Añadir comentario",
+    "edit": "Editar",
+    "cancel": "Cancelar"
+  },
+  "tabs": {
+    "description": "Descripción",
+    "comments": "Comentarios",
+    "attachments": "Adjuntos",
+    "history": "Historial"
+  },
+  "comments": {
+    "placeholder": "Escribe un comentario…",
+    "empty": "Aún no hay comentarios"
+  },
+  "history": {
+    "createdLabel": "Creado con estado",
+    "transitionLabel": "Cambió de estado",
+    "by": "por {{user}}",
+    "empty": "Sin cambios de estado"
+  },
+  "empty": {
+    "title": "Aún no hay bugs",
+    "description": "Reporta uno desde un resultado fallido o crea uno manualmente."
+  },
+  "toast": {
+    "created": "Bug creado",
+    "updated": "Bug actualizado",
+    "deleted": "Bug eliminado",
+    "statusChanged": "Estado actualizado",
+    "commentAdded": "Comentario añadido",
+    "reportFailed": "No se pudo descargar el informe"
+  },
+  "report": {
+    "dialogTitle": "Reportar bug",
+    "fromResult": "Desde el resultado {{result}}",
+    "logHint": "El extracto de log se adjunta automáticamente a la descripción."
+  }
+}

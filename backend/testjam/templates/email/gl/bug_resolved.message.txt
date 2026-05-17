@@ -1,0 +1,1 @@
+{{ actor }} marcou '{{ subject_object }}' como {{ status }}

@@ -1,0 +1,1 @@
+{{ actor }}: '{{ subject_object }}' akatsa esleitu zaizu

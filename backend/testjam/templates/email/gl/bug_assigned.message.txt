@@ -1,0 +1,1 @@
+{{ actor }} asignouche o bug '{{ subject_object }}'

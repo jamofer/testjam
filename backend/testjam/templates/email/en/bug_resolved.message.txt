@@ -1,0 +1,1 @@
+{{ actor }} marked '{{ subject_object }}' as {{ status }}

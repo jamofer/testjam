@@ -1,0 +1,7 @@
+{{ actor }} cambiou o estado de '{{ subject_object }}' a {{ status }}.
+
+Abre o bug: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Xestionar preferencias: {{ preferences_url }}

@@ -1,0 +1,95 @@
+{
+  "title": "Bugs",
+  "subtitle": "Incidències obertes en aquest projecte",
+  "new": "Nou bug",
+  "downloadReport": "Descarregar informe",
+  "reportFormats": {
+    "html": "HTML",
+    "xlsx": "Excel"
+  },
+  "table": {
+    "number": "#",
+    "title": "Títol",
+    "severity": "Severitat",
+    "status": "Estat",
+    "version": "Versió",
+    "environment": "Entorn",
+    "assignee": "Assignat",
+    "created": "Creat"
+  },
+  "filters": {
+    "search": "Cerca al títol…",
+    "status": "Estat",
+    "severity": "Severitat",
+    "version": "Versió",
+    "assignee": "Assignat",
+    "tag": "Etiqueta",
+    "any": "Qualsevol"
+  },
+  "severity": {
+    "critical": "Crítica",
+    "high": "Alta",
+    "medium": "Mitjana",
+    "low": "Baixa"
+  },
+  "statuses": {
+    "open": "Obert",
+    "in_progress": "En curs",
+    "resolved": "Resolt",
+    "closed": "Tancat",
+    "wont_fix": "No s'arreglarà",
+    "not_a_bug": "No és un bug"
+  },
+  "fields": {
+    "title": "Títol",
+    "description": "Descripció",
+    "severity": "Severitat",
+    "tags": "Etiquetes",
+    "version": "Versió",
+    "environment": "Entorn",
+    "assignee": "Assignat",
+    "externalUrl": "URL del tiquet extern"
+  },
+  "actions": {
+    "save": "Desa",
+    "delete": "Elimina",
+    "report": "Reporta bug",
+    "changeStatus": "Canvia estat",
+    "addComment": "Afegeix comentari",
+    "edit": "Edita",
+    "cancel": "Cancel·la"
+  },
+  "tabs": {
+    "description": "Descripció",
+    "comments": "Comentaris",
+    "attachments": "Adjunts",
+    "history": "Historial"
+  },
+  "comments": {
+    "placeholder": "Escriu un comentari…",
+    "empty": "Encara no hi ha comentaris"
+  },
+  "history": {
+    "createdLabel": "Creat amb estat",
+    "transitionLabel": "Ha canviat d'estat",
+    "by": "per {{user}}",
+    "empty": "Sense canvis d'estat"
+  },
+  "empty": {
+    "title": "Encara no hi ha bugs",
+    "description": "Reporta'n un des d'un resultat fallit o crea'n un manualment."
+  },
+  "toast": {
+    "created": "Bug creat",
+    "updated": "Bug actualitzat",
+    "deleted": "Bug eliminat",
+    "statusChanged": "Estat actualitzat",
+    "commentAdded": "Comentari afegit",
+    "reportFailed": "No s'ha pogut baixar l'informe"
+  },
+  "report": {
+    "dialogTitle": "Reporta bug",
+    "fromResult": "Des del resultat {{result}}",
+    "logHint": "L'extracte del log s'adjunta automàticament a la descripció."
+  }
+}

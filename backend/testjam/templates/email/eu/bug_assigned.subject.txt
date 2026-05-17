@@ -1,0 +1,1 @@
+[{{ app_name }}] Akats bat esleitu zaizu: {{ subject_object }}

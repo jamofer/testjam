@@ -2,6 +2,7 @@ from testjam_e2e.keywords.auth import AuthMixin
 from testjam_e2e.keywords.projects import ProjectMixin
 from testjam_e2e.keywords.versions import VersionMixin
 from testjam_e2e.keywords.environments import EnvironmentsMixin
+from testjam_e2e.keywords.bugs import BugsMixin
 from testjam_e2e.keywords.suites import SuiteMixin
 from testjam_e2e.keywords.cases import CaseMixin
 from testjam_e2e.keywords.plans import PlanMixin
@@ -51,6 +52,7 @@ __all__ = [
     "ProjectMixin",
     "VersionMixin",
     "EnvironmentsMixin",
+    "BugsMixin",
     "SuiteMixin",
     "CaseMixin",
     "PlanMixin",

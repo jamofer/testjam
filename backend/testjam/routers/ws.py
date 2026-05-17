@@ -30,6 +30,7 @@ from sqlalchemy.orm import Session
 
 from testjam import database
 from testjam.auth.security import decode_token
+from testjam.models.bug import Bug
 from testjam.models.execution import TestExecution
 from testjam.models.project import Project
 from testjam.models.user import User
@@ -78,6 +79,13 @@ def _check_execution_topic(db: Session, target_id: int) -> str | None:
     return _check_project_topic(db, execution.project_id)
 
 
+def _check_bug_topic(db: Session, target_id: int) -> str | None:
+    bug = db.get(Bug, target_id)
+    if not bug:
+        return "not_found"
+    return _check_project_topic(db, bug.project_id)
+
+
 def _authorize_topic(db: Session, user: User, topic: str) -> str | None:
     """Return error code, or None if subscription is allowed."""
     parsed = _parse_topic(topic)
@@ -90,6 +98,8 @@ def _authorize_topic(db: Session, user: User, topic: str) -> str | None:
         return _check_project_topic(db, target_id)
     if kind == "execution":
         return _check_execution_topic(db, target_id)
+    if kind == "bug":
+        return _check_bug_topic(db, target_id)
     return "invalid_topic"
 
 

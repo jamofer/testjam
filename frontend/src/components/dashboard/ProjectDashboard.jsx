@@ -8,6 +8,7 @@ import { STATUS_CONFIG } from "../../lib/statusConfig"
 import { DateLabel } from "../ui/date-label"
 import { Skeleton } from "../ui/skeleton"
 import { Sparkline } from "./Sparkline"
+import { OpenBugsCard } from "./OpenBugsCard"
 
 const RANGES = [7, 30, 90]
 
@@ -28,6 +29,8 @@ export function ProjectDashboard({ projectId, range, onRangeChange }) {
         <RecentExecutionsCard recent={data?.recent_executions} loading={isPending} projectId={projectId} />
         <TopFailCard topFail={data?.top_fail} loading={isPending} projectId={projectId} />
       </div>
+
+      <OpenBugsCard projectId={projectId} />
 
       <VersionsCard versions={data?.versions} loading={isPending} projectId={projectId} />
     </section>

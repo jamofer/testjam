@@ -1,0 +1,1 @@
+{{ actor }} cambiou o estado de '{{ subject_object }}' a {{ status }}

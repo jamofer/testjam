@@ -1,0 +1,1 @@
+[{{ app_name }}] Te han asignado el bug {{ subject_object }}

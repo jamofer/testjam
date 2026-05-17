@@ -1,0 +1,7 @@
+{{ actor }}: '{{ subject_object }}' akatsa esleitu zaizu.
+
+Ireki akatsa: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Kudeatu lehentasunak: {{ preferences_url }}

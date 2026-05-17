@@ -1,0 +1,1 @@
+{{ actor }} changed status of '{{ subject_object }}' to {{ status }}
