@@ -13,6 +13,10 @@ dependencies = [
 
 [project.optional-dependencies]
 robot = ["robotframework>=7.0"]
+dev = ["pytest>=8.0"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["testjam_listener"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

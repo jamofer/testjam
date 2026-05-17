@@ -6,7 +6,7 @@ BUILD_STAMP = .docker-build-stamp
 BUILD_DEPS  = backend/Dockerfile backend/pyproject.toml \
               frontend/Dockerfile frontend/package.json frontend/package-lock.json
 
-.PHONY: help up down reset rebuild admin backup test test-api test-client test-front test-e2e _up-api _up-front
+.PHONY: help up down reset rebuild admin backup test test-api test-client test-listener test-orchestrator test-front test-e2e _up-api _up-front
 
 help:
 	@echo "Targets:"
@@ -19,12 +19,15 @@ help:
 	@echo "  make test         Run backend + frontend + e2e (boots what it needs)"
 	@echo "  make test-api     pytest        ARGS=path/to/test"
 	@echo "  make test-client  pytest /client/tests — SDK tests run in api container"
+	@echo "  make test-listener pytest /listener/tests — listener tests run in e2e container"
+	@echo "  make test-orchestrator pytest tests/e2e/orchestrator/tests"
 	@echo "  make test-front   vitest        ARGS=__tests__/Foo"
-	@echo "  make test-e2e     robot from suites/ root (preserves hierarchy via __init__.robot)"
-	@echo "                    ARGS=\"-s '01 Auth'\" filter by leaf suite name"
-	@echo "                    ARGS=\"-s '*.Api Server.01 Auth'\" mid-tree path (needs *. prefix)"
+	@echo "  make test-e2e     orchestrator launches 1 robot subprocess per leaf suite (parallel)"
+	@echo "                    ARGS=\"-s '01 Auth'\" filter by suite name or glob"
+	@echo "                    ARGS=\"-s '*.Api Server.*'\" filter by nested longname"
 	@echo "                    ARGS=\"-t 'Successful*'\" filter by test glob"
-	@echo "                    WORKERS=N api worker count (default 4)"
+	@echo "                    ARGS=\"--list\" just print discovered suites"
+	@echo "                    WORKERS=N api worker count + orchestrator pool size (default 4)"
 	@echo "  make test-e2e-dryrun ARGS=...   parse + list without running (no listener)"
 
 up: $(BUILD_STAMP)
@@ -67,14 +70,26 @@ test-api: _up-api
 test-client: _up-api
 	$(COMPOSE) exec -T -w /client api pytest $(ARGS)
 
+test-listener:
+	$(COMPOSE) --profile e2e run --rm --entrypoint "" -w /listener e2e pytest $(ARGS)
+
+test-orchestrator:
+	$(COMPOSE) --profile e2e run --rm --entrypoint "" -w /tests/e2e e2e pytest orchestrator/tests $(ARGS)
+
 test-front: _up-front
 	$(COMPOSE) exec -T frontend npm test -- --run $(ARGS)
 
 WORKERS ?= 4
+GIT_BRANCH := $(shell git symbolic-ref --short HEAD 2>/dev/null || echo HEAD)
+GIT_SHA    := $(shell git rev-parse --short=7 HEAD 2>/dev/null)
+GIT_VERSION := $(if $(GIT_SHA),$(GIT_BRANCH)-$(GIT_SHA))
+
 test-e2e: export API_WORKERS = $(WORKERS)
+test-e2e: export TESTJAM_VERSION = $(GIT_VERSION)
+test-e2e: export ORCHESTRATOR_WORKERS = $(WORKERS)
 test-e2e:
 	$(COMPOSE) up -d --wait api
-	$(COMPOSE) --profile e2e run --rm e2e robot --listener testjam_listener.TestjamListener $(ARGS) suites/
+	$(COMPOSE) --profile e2e run --rm -e FORCE_COLOR=1 e2e python -m orchestrator $(ARGS)
 
 test-e2e-dryrun:
 	$(COMPOSE) --profile e2e run --rm e2e robot --dryrun $(ARGS) suites/

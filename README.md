@@ -126,20 +126,27 @@ docker compose down -v && docker compose up
 ### Tests
 
 ```bash
-make test          # backend + frontend + e2e
-make test-api      # pytest
-make test-front    # vitest
-make test-e2e      # Robot Framework (listener auto-wired)
+make test                # backend + frontend + e2e
+make test-api            # pytest (backend)
+make test-front          # vitest (frontend)
+make test-client         # pytest (testjam-client SDK)
+make test-listener       # pytest (Robot Framework listener)
+make test-orchestrator   # pytest (e2e orchestrator)
+make test-e2e            # orchestrator: 1 Robot execution per leaf suite (parallel)
 ```
 
-Frontend `node_modules` lives in an anonymous Docker volume — always run `npm`/`vitest` inside the container (the Makefile does this for you), never on the host. The `e2e` service is gated by the `e2e` profile so it never runs on `docker compose up`.
+`WORKERS=N` controls both the api uvicorn pool and the orchestrator process pool (default 4). Frontend `node_modules` lives in an anonymous Docker volume — always run `npm`/`vitest` inside the container (the Makefile does this for you), never on the host. The `e2e` service is gated by the `e2e` profile so it never runs on `docker compose up`.
 
 ### Single file or test
 
 ```bash
-make test-api   ARGS=tests/test_executions.py::test_create_manual_execution
-make test-front ARGS=__tests__/PlanDetailPage
-make test-e2e   ARGS=suites/01_auth.robot
+make test-api          ARGS=tests/test_executions.py::test_create_manual_execution
+make test-front        ARGS=__tests__/PlanDetailPage
+make test-client       ARGS=tests/test_projects.py
+make test-orchestrator ARGS=orchestrator/tests/test_main.py
+make test-e2e          ARGS="-s 'Api Server.01 Auth'"         # single nested suite
+make test-e2e          ARGS="-s 'Api Server.*'"               # nested glob
+make test-e2e          ARGS="-t 'Successful*'"                # test-name glob
 ```
 
 ---

@@ -37,7 +37,7 @@ class TestjamListener:
         api_key = os.getenv("TESTJAM_API_KEY")
         admin_user = os.getenv("TESTJAM_USER")
         admin_password = os.getenv("TESTJAM_PASS")
-        version_name = os.getenv("TESTJAM_VERSION")
+        version_name = os.getenv("TESTJAM_VERSION") or None
         execution_title = os.getenv("TESTJAM_EXECUTION_TITLE")
 
         self.client = TestjamClient(base_url, api_key=api_key)

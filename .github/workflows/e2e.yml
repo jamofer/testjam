@@ -24,12 +24,16 @@ jobs:
         run: docker compose -f docker-compose-dev.yml up -d --wait db api frontend mailpit
 
       - name: Seed admin user
-        run: |
-          docker compose -f docker-compose-dev.yml exec -T api python scripts/create_admin.py \
-            --username admin --email admin@example.com --password admin123
+        run: make admin
 
-      - name: Run Robot Framework suites
-        run: docker compose -f docker-compose-dev.yml --profile e2e run --rm e2e robot suites/
+      - name: Run listener tests
+        run: make test-listener
+
+      - name: Run orchestrator tests
+        run: make test-orchestrator
+
+      - name: Run e2e via orchestrator
+        run: make test-e2e
 
       - name: Upload artifacts
         if: always()
@@ -37,6 +41,7 @@ jobs:
         with:
           name: e2e-results
           path: |
+            tests/e2e/results
             tests/e2e/log.html
             tests/e2e/output.xml
             tests/e2e/report.html

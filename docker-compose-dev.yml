@@ -95,6 +95,7 @@ services:
       TESTJAM_USER: ${TESTJAM_USER:-admin}
       TESTJAM_PASS: ${TESTJAM_PASS:-admin123}
       TESTJAM_PROJECT: ${TESTJAM_PROJECT:-Testjam E2E}
+      TESTJAM_VERSION: ${TESTJAM_VERSION:-}
     volumes:
       - ./tests/e2e:/tests/e2e
       - ./listener:/listener
