@@ -29,9 +29,9 @@ export function useBugLive(bugId, { enabled = true } = {}) {
         rows.filter(row => row.id !== id),
       )
     },
-    "bug.history.added": (entry) => {
+    "bug.activity.added": (entry) => {
       if (!entry?.bug_id) return
-      queryClient.setQueryData(["bug-history", entry.bug_id], (rows = []) =>
+      queryClient.setQueryData(["bug-activity", entry.bug_id], (rows = []) =>
         rows.some(row => row.id === entry.id) ? rows : [...rows, entry],
       )
     },

@@ -17,7 +17,7 @@ from typing import Any
 from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session, selectinload
 
-from testjam.models.bug import Bug, BugAttachment, BugComment, BugLink, BugStatusHistory
+from testjam.models.bug import Bug, BugActivity, BugAttachment, BugComment, BugLink
 from testjam.models.user import User
 from testjam.realtime import notify_bug, notify_project
 from testjam.schemas.bug import (
@@ -25,10 +25,9 @@ from testjam.schemas.bug import (
     BugCommentOut,
     BugLinkOut,
     BugOut,
-    BugStatusHistoryOut,
     TERMINAL_BUG_STATUSES,
 )
-from testjam.services import email_templates
+from testjam.services import bug_activity, email_templates
 from testjam.services.notification_events import NotificationEvent
 from testjam.services.notifications import notify
 from testjam.services.settings import get_settings as get_app_settings
@@ -135,9 +134,28 @@ def on_bug_created(db: Session, bug: Bug, actor: User, background: BackgroundTas
         )
 
 
-def on_bug_updated(db: Session, bug: Bug) -> None:
+def on_bug_updated(
+    db: Session,
+    bug: Bug,
+    previous_snapshot: dict[str, Any] | None = None,
+    actor: User | None = None,
+) -> None:
     full = load_bug_full(db, bug.id) or bug
     _broadcast_project("bug.updated", full)
+    if previous_snapshot is None:
+        return
+    rows = bug_activity.record_field_changes(
+        db, full, previous_snapshot, actor.id if actor else None,
+    )
+    if not rows:
+        return
+    db.commit()
+    for row in rows:
+        loaded = bug_activity.load_with_actor(db, row.id) or row
+        _broadcast_bug(
+            "bug.activity.added", full.id,
+            bug_activity.activity_out(loaded).model_dump(mode="json"),
+        )
 
 
 def on_bug_assigned(
@@ -156,13 +174,15 @@ def on_bug_assigned(
 
 
 def on_bug_status_changed(
-    db: Session, bug: Bug, history_row: BugStatusHistory, actor: User,
+    db: Session, bug: Bug, activity_row: BugActivity, actor: User,
     background: BackgroundTasks | None,
 ) -> None:
     full = load_bug_full(db, bug.id) or bug
     _broadcast_project("bug.status_changed", full)
+    loaded = bug_activity.load_with_actor(db, activity_row.id) or activity_row
     _broadcast_bug(
-        "bug.history.added", full.id, BugStatusHistoryOut.model_validate(history_row).model_dump(mode="json"),
+        "bug.activity.added", full.id,
+        bug_activity.activity_out(loaded).model_dump(mode="json"),
     )
 
     recipients: set[int] = set()
@@ -171,7 +191,7 @@ def on_bug_status_changed(
     if full.assigned_to_id and full.assigned_to_id != actor.id:
         recipients.add(full.assigned_to_id)
 
-    is_terminal = history_row.to_status in TERMINAL_BUG_STATUSES
+    is_terminal = activity_row.to_value in TERMINAL_BUG_STATUSES
     event = NotificationEvent.BUG_RESOLVED if is_terminal else NotificationEvent.BUG_STATUS_CHANGED
     for user_id in recipients:
         _send_bug_email(
@@ -222,6 +242,14 @@ def on_bug_link_added(link: BugLink, db: Session | None = None) -> None:
 
 def on_bug_link_deleted(bug_id: int, link_id: int) -> None:
     _broadcast_bug("bug.link.deleted", bug_id, {"id": link_id})
+
+
+def on_bug_activity_recorded(db: Session, activity_row: BugActivity) -> None:
+    loaded = bug_activity.load_with_actor(db, activity_row.id) or activity_row
+    _broadcast_bug(
+        "bug.activity.added", loaded.bug_id,
+        bug_activity.activity_out(loaded).model_dump(mode="json"),
+    )
 
 
 def link_out(link: BugLink, db: Session | None = None) -> BugLinkOut:

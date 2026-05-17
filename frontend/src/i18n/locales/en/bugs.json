@@ -95,7 +95,29 @@
     "createdLabel": "Created with status",
     "transitionLabel": "Changed status",
     "by": "by {{user}}",
-    "empty": "No status changes yet"
+    "empty": "Nothing has happened yet"
+  },
+  "activity": {
+    "created": "created this bug",
+    "statusFrom": "changed status from {{from}} to {{to}}",
+    "statusInitial": "set status to {{to}}",
+    "set": "set {{field}} to {{to}}",
+    "changed": "changed {{field}} from {{from}} to {{to}}",
+    "cleared": "cleared {{field}}",
+    "linkAdded": "added a link",
+    "linkRemoved": "removed a link",
+    "commented": "commented",
+    "fields": {
+      "title": "title",
+      "description": "description",
+      "severity": "severity",
+      "tags": "tags",
+      "assigned_to": "assignee",
+      "version": "found-in version",
+      "fixed_in_version": "fixed-in version",
+      "environment": "environment",
+      "external_ticket_url": "external ticket URL"
+    }
   },
   "context": {
     "about": "About",

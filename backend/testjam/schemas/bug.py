@@ -117,11 +117,28 @@ class BugAttachmentOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class BugStatusHistoryOut(BaseModel):
+BugActivityField = Literal[
+    "status",
+    "title",
+    "description",
+    "severity",
+    "tags",
+    "assigned_to",
+    "version",
+    "fixed_in_version",
+    "environment",
+    "external_ticket_url",
+    "link",
+    "attachment",
+]
+
+
+class BugActivityOut(BaseModel):
     id: int
     bug_id: int
-    from_status: BugStatus | None
-    to_status: BugStatus
+    field: BugActivityField
+    from_value: str | None
+    to_value: str | None
     note: str | None
     changed_by: UserOut | None = None
     changed_at: datetime

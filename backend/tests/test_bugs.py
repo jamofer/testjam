@@ -70,14 +70,15 @@ def test_create_bug_assigns_sequential_number(auth_client, project_id):
     assert third["number"] == 3
 
 
-def test_create_bug_records_initial_status_history(auth_client, project_id):
+def test_create_bug_records_initial_status_activity(auth_client, project_id):
     bug = _create_bug(auth_client, project_id).json()
 
-    history = auth_client.get(f"/api/v1/bugs/{bug['id']}/history").json()
+    activity = auth_client.get(f"/api/v1/bugs/{bug['id']}/activity").json()
 
-    assert len(history) == 1
-    assert history[0]["from_status"] is None
-    assert history[0]["to_status"] == "open"
+    assert len(activity) == 1
+    assert activity[0]["field"] == "status"
+    assert activity[0]["from_value"] is None
+    assert activity[0]["to_value"] == "open"
 
 
 def test_get_bug_by_number(auth_client, project_id):
@@ -121,7 +122,7 @@ def test_update_bug_assigns_user(auth_client, project_id):
     assert resp.json()["assigned_to"]["id"] == me["id"]
 
 
-def test_change_status_records_history_and_resolved_at(auth_client, project_id):
+def test_change_status_records_activity_and_resolved_at(auth_client, project_id):
     bug = _create_bug(auth_client, project_id).json()
 
     resolved = auth_client.post(
@@ -130,12 +131,15 @@ def test_change_status_records_history_and_resolved_at(auth_client, project_id):
 
     assert resolved["status"] == "resolved"
     assert resolved["resolved_at"] is not None
-    history = auth_client.get(f"/api/v1/bugs/{bug['id']}/history").json()
-    assert [(row["from_status"], row["to_status"]) for row in history] == [
+    activity = [
+        row for row in auth_client.get(f"/api/v1/bugs/{bug['id']}/activity").json()
+        if row["field"] == "status"
+    ]
+    assert [(row["from_value"], row["to_value"]) for row in activity] == [
         (None, "open"),
         ("open", "resolved"),
     ]
-    assert history[1]["note"] == "Fixed in v2"
+    assert activity[1]["note"] == "Fixed in v2"
 
 
 def test_reopening_clears_resolved_at(auth_client, project_id):
@@ -454,3 +458,75 @@ def test_link_kind_persists_in_response(auth_client, project_id):
     ).json()
 
     assert created["kind"] == "relates_to"
+
+
+def _activity_by_field(client, bug_id, field):
+    return [
+        row for row in client.get(f"/api/v1/bugs/{bug_id}/activity").json()
+        if row["field"] == field
+    ]
+
+
+def test_update_bug_records_field_diffs(auth_client, project_id):
+    me = auth_client.get("/api/v1/users/me").json()
+    bug = _create_bug(auth_client, project_id, title="Original", severity="medium").json()
+
+    auth_client.put(
+        f"/api/v1/bugs/{bug['id']}",
+        json={
+            "title": "Renamed",
+            "severity": "critical",
+            "tags": ["regression"],
+            "assigned_to_id": me["id"],
+        },
+    )
+
+    activity = auth_client.get(f"/api/v1/bugs/{bug['id']}/activity").json()
+    by_field = {row["field"]: row for row in activity if row["field"] != "status"}
+
+    assert by_field["title"]["from_value"] == "Original"
+    assert by_field["title"]["to_value"] == "Renamed"
+    assert by_field["severity"]["to_value"] == "critical"
+    assert by_field["tags"]["to_value"] == '["regression"]'
+    assert by_field["assigned_to"]["to_value"] == str(me["id"])
+
+
+def test_update_bug_skips_unchanged_fields(auth_client, project_id):
+    bug = _create_bug(auth_client, project_id, severity="medium").json()
+
+    auth_client.put(f"/api/v1/bugs/{bug['id']}", json={"severity": "medium"})
+
+    diffs = [row for row in auth_client.get(f"/api/v1/bugs/{bug['id']}/activity").json() if row["field"] != "status"]
+    assert diffs == []
+
+
+def test_link_add_and_delete_record_activity(auth_client, project_id):
+    a = _create_bug(auth_client, project_id, title="A").json()
+    b = _create_bug(auth_client, project_id, title="B").json()
+
+    link = auth_client.post(
+        f"/api/v1/bugs/{a['id']}/links",
+        json={"kind": "relates_to", "target_bug_id": b["id"]},
+    ).json()
+    added = _activity_by_field(auth_client, a["id"], "link")
+    assert len(added) == 1
+    assert added[0]["from_value"] is None
+    assert str(b["id"]) in added[0]["to_value"]
+
+    auth_client.delete(f"/api/v1/bugs/{a['id']}/links/{link['id']}")
+
+    rows = _activity_by_field(auth_client, a["id"], "link")
+    assert len(rows) == 2
+    assert rows[1]["from_value"] is not None
+    assert rows[1]["to_value"] is None
+
+
+def test_environment_change_records_assigned_field(auth_client, project_id):
+    bug = _create_bug(auth_client, project_id).json()
+
+    auth_client.put(f"/api/v1/bugs/{bug['id']}", json={"environment": "Staging"})
+
+    env_rows = _activity_by_field(auth_client, bug["id"], "environment")
+    assert len(env_rows) == 1
+    assert env_rows[0]["from_value"] is None
+    assert env_rows[0]["to_value"] == "staging"

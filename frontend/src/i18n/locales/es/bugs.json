@@ -95,7 +95,29 @@
     "createdLabel": "Creado con estado",
     "transitionLabel": "Cambió de estado",
     "by": "por {{user}}",
-    "empty": "Sin cambios de estado"
+    "empty": "Aún no ha ocurrido nada"
+  },
+  "activity": {
+    "created": "creó este bug",
+    "statusFrom": "cambió el estado de {{from}} a {{to}}",
+    "statusInitial": "estableció el estado en {{to}}",
+    "set": "estableció {{field}} en {{to}}",
+    "changed": "cambió {{field}} de {{from}} a {{to}}",
+    "cleared": "quitó {{field}}",
+    "linkAdded": "añadió un vínculo",
+    "linkRemoved": "quitó un vínculo",
+    "commented": "comentó",
+    "fields": {
+      "title": "título",
+      "description": "descripción",
+      "severity": "severidad",
+      "tags": "etiquetas",
+      "assigned_to": "asignado",
+      "version": "versión detectada",
+      "fixed_in_version": "versión arreglada",
+      "environment": "entorno",
+      "external_ticket_url": "URL externa"
+    }
   },
   "context": {
     "about": "Acerca de",

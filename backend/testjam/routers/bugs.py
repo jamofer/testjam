@@ -29,11 +29,12 @@ from testjam.auth.dependencies import (
     require_writable_project_access,
 )
 from testjam.database import get_db
-from testjam.models.bug import Bug, BugAttachment, BugComment, BugLink, BugStatusHistory
+from testjam.models.bug import Bug, BugActivity, BugAttachment, BugComment, BugLink
 from testjam.models.execution import TestExecution
 from testjam.models.project import Project
 from testjam.models.user import User
 from testjam.schemas.bug import (
+    BugActivityOut,
     BugAttachmentOut,
     BugCommentCreate,
     BugCommentOut,
@@ -44,14 +45,13 @@ from testjam.schemas.bug import (
     BugLinkOut,
     BugOut,
     BugStatusChange,
-    BugStatusHistoryOut,
     BugUpdate,
     RECIPROCAL_LINK_KIND,
     TERMINAL_BUG_STATUSES,
 )
 from fastapi.responses import HTMLResponse, StreamingResponse
 
-from testjam.services import bug_context, bug_events, bug_reports
+from testjam.services import bug_activity, bug_context, bug_events, bug_reports
 from testjam.services.bug_numbering import next_bug_number
 from testjam.services.environments import upsert_from_execution
 from testjam.services.permissions import effective_role
@@ -204,8 +204,7 @@ def create_bug(
     else:
         raise HTTPException(status_code=409, detail="Could not allocate bug number")
 
-    history = BugStatusHistory(bug_id=bug.id, from_status=None, to_status="open", changed_by_id=current.id)
-    db.add(history)
+    bug_activity.record_status_change(db, bug.id, None, "open", current.id)
     db.commit()
     db.refresh(bug)
     bug_events.on_bug_created(db, bug, current, background)
@@ -250,6 +249,7 @@ def update_bug(
 
     update_data = body.model_dump(exclude_unset=True)
     previous_assignee_id = bug.assigned_to_id
+    previous_snapshot = bug_activity.snapshot(bug)
     if "environment" in update_data and update_data["environment"]:
         update_data["environment"] = upsert_from_execution(
             db, bug.project_id, update_data["environment"],
@@ -261,8 +261,7 @@ def update_bug(
     db.refresh(bug)
     if "assigned_to_id" in update_data and bug.assigned_to_id != previous_assignee_id:
         bug_events.on_bug_assigned(db, bug, previous_assignee_id, current, background)
-    else:
-        bug_events.on_bug_updated(db, bug)
+    bug_events.on_bug_updated(db, bug, previous_snapshot, current)
     return _bug_out(bug)
 
 
@@ -284,19 +283,14 @@ def change_bug_status(
         bug.resolved_at = datetime.now(timezone.utc)
     elif body.status not in TERMINAL_BUG_STATUSES:
         bug.resolved_at = None
-    history = BugStatusHistory(
-        bug_id=bug.id,
-        from_status=previous_status,
-        to_status=body.status,
-        note=body.note,
-        changed_by_id=current.id,
+    activity_row = bug_activity.record_status_change(
+        db, bug.id, previous_status, body.status, current.id, body.note,
     )
-    db.add(history)
     _touch_updated_by(bug, current)
     db.commit()
     db.refresh(bug)
-    db.refresh(history)
-    bug_events.on_bug_status_changed(db, bug, history, current, background)
+    db.refresh(activity_row)
+    bug_events.on_bug_status_changed(db, bug, activity_row, current, background)
     return _bug_out(bug)
 
 
@@ -452,12 +446,20 @@ def add_link(
     db.commit()
     db.refresh(link)
     bug_events.on_bug_link_added(link, db)
+    link_activity = bug_activity.record_link_added(db, bug.id, link, current.id)
+    db.commit()
+    bug_events.on_bug_activity_recorded(db, link_activity)
     if body.kind is not None and body.target_bug_id is not None:
         target_bug = db.get(Bug, body.target_bug_id)
         if target_bug is not None:
             _touch_updated_by(target_bug, current)
             db.commit()
         bug_events.on_bug_link_added(reciprocal, db)
+        reciprocal_activity = bug_activity.record_link_added(
+            db, reciprocal.bug_id, reciprocal, current.id,
+        )
+        db.commit()
+        bug_events.on_bug_activity_recorded(db, reciprocal_activity)
     return bug_events.link_out(link, db)
 
 
@@ -477,14 +479,21 @@ def delete_link(
         raise HTTPException(status_code=403, detail="Only the author or project owner can delete")
 
     reciprocal = _find_reciprocal_link(db, link)
+    link_activity = bug_activity.record_link_deleted(db, bug.id, link, current.id)
+    reciprocal_activity = (
+        bug_activity.record_link_deleted(db, reciprocal.bug_id, reciprocal, current.id)
+        if reciprocal is not None else None
+    )
     db.delete(link)
     if reciprocal is not None:
         db.delete(reciprocal)
     _touch_updated_by(bug, current)
     db.commit()
     bug_events.on_bug_link_deleted(bug.id, link_id)
-    if reciprocal is not None:
-        bug_events.on_bug_link_deleted(reciprocal.bug_id, reciprocal.id)
+    bug_events.on_bug_activity_recorded(db, link_activity)
+    if reciprocal is not None and reciprocal_activity is not None:
+        bug_events.on_bug_link_deleted(reciprocal_activity.bug_id, reciprocal.id)
+        bug_events.on_bug_activity_recorded(db, reciprocal_activity)
 
 
 def _find_reciprocal_link(db: Session, link: BugLink) -> BugLink | None:
@@ -504,15 +513,15 @@ def _find_reciprocal_link(db: Session, link: BugLink) -> BugLink | None:
     )
 
 
-@bugs_router.get("/{id}/history", response_model=list[BugStatusHistoryOut])
-def list_history(
+@bugs_router.get("/{id}/activity", response_model=list[BugActivityOut])
+def list_activity(
     id: int,
     db: Session = Depends(get_db),
     ctx: AuthContext = Depends(get_auth_context),
 ):
     bug = _get_bug(db, id)
     _authorize_bug_access(ctx, bug)
-    return list(bug.history)
+    return list(bug.activity)
 
 
 @bugs_router.get("/{id}/attachments", response_model=list[BugAttachmentOut])

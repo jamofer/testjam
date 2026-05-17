@@ -7,25 +7,25 @@ export function fmtDuration(ms) {
   return `${m}m ${s}s`
 }
 
-export function fmtTime(iso, timezone) {
+export function fmtTime(iso, timezone, locale) {
   if (!iso) return null
-  return new Date(iso).toLocaleTimeString(undefined, {
+  return new Date(iso).toLocaleTimeString(locale || undefined, {
     hour: "2-digit", minute: "2-digit", second: "2-digit",
     timeZone: timezone || undefined,
   })
 }
 
-export function fmtDate(iso, timezone) {
+export function fmtDate(iso, timezone, locale) {
   if (!iso) return null
-  return new Date(iso).toLocaleString(undefined, {
+  return new Date(iso).toLocaleString(locale || undefined, {
     dateStyle: "short", timeStyle: "short",
     timeZone: timezone || undefined,
   })
 }
 
-export function fmtDateTime(iso, timezone) {
+export function fmtDateTime(iso, timezone, locale) {
   if (!iso) return null
-  return new Date(iso).toLocaleString(undefined, {
+  return new Date(iso).toLocaleString(locale || undefined, {
     dateStyle: "short", timeStyle: "medium",
     timeZone: timezone || undefined,
   })
@@ -39,12 +39,12 @@ const RELATIVE_THRESHOLDS = [
   { limit: 31536000, divisor: 2592000, unit: "month" },
 ]
 
-export function fmtRelative(iso, now = new Date()) {
+export function fmtRelative(iso, now = new Date(), locale) {
   if (!iso) return null
   const date = new Date(iso)
   const seconds = (date.getTime() - now.getTime()) / 1000
   const absSeconds = Math.abs(seconds)
-  const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" })
+  const formatter = new Intl.RelativeTimeFormat(locale || undefined, { numeric: "auto" })
   for (const { limit, divisor, unit } of RELATIVE_THRESHOLDS) {
     if (absSeconds < limit) {
       return formatter.format(Math.round(seconds / divisor), unit)

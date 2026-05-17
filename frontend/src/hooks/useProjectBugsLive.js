@@ -22,7 +22,7 @@ export function useProjectBugsLive(projectId, { enabled = true } = {}) {
     "bug.status_changed": (data) => {
       upsertOne(queryClient, projectId, data)
       if (data?.id) {
-        queryClient.invalidateQueries({ queryKey: ["bug-history", data.id] })
+        queryClient.invalidateQueries({ queryKey: ["bug-activity", data.id] })
       }
     },
     "bug.deleted": ({ id } = {}) => {

@@ -25,10 +25,10 @@ export function useBugComments(id) {
   })
 }
 
-export function useBugHistory(id) {
+export function useBugActivity(id) {
   return useQuery({
-    queryKey: ["bug-history", id],
-    queryFn: () => bugsApi.listHistory(id),
+    queryKey: ["bug-activity", id],
+    queryFn: () => bugsApi.listActivity(id),
     enabled: !!id,
   })
 }
@@ -67,7 +67,7 @@ export function useChangeBugStatus(projectId) {
     onSuccess: (updated) => {
       queryClient.setQueryData(["bug", updated.id], updated)
       queryClient.invalidateQueries({ queryKey: ["bugs", projectId] })
-      queryClient.invalidateQueries({ queryKey: ["bug-history", updated.id] })
+      queryClient.invalidateQueries({ queryKey: ["bug-activity", updated.id] })
     },
   })
 }

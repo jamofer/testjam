@@ -56,18 +56,18 @@ describe("useBugLive", () => {
     ])
   })
 
-  it("appends history entries", () => {
+  it("appends activity entries", () => {
     const client = new QueryClient()
-    client.setQueryData(["bug-history", 42], [])
+    client.setQueryData(["bug-activity", 42], [])
 
     renderHook(() => useBugLive(42), { wrapper: wrap(client) })
 
     act(() => {
-      handlersRef.current["bug.history.added"]({
-        id: 7, bug_id: 42, from_status: "open", to_status: "resolved",
+      handlersRef.current["bug.activity.added"]({
+        id: 7, bug_id: 42, field: "status", from_value: "open", to_value: "resolved",
       })
     })
 
-    expect(client.getQueryData(["bug-history", 42])).toHaveLength(1)
+    expect(client.getQueryData(["bug-activity", 42])).toHaveLength(1)
   })
 })

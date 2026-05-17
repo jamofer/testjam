@@ -66,7 +66,7 @@ describe("useProjectBugsLive", () => {
     expect(client.getQueryData(["bug", 10])).toBeUndefined()
   })
 
-  it("merges status_changed updates and invalidates history", () => {
+  it("merges status_changed updates and invalidates activity", () => {
     const client = new QueryClient()
     client.setQueryData(["bugs", "5", {}], [
       { id: 10, number: 1, status: "open" },
@@ -82,6 +82,6 @@ describe("useProjectBugsLive", () => {
 
     expect(client.getQueryData(["bug", 10]).status).toBe("resolved")
     expect(client.getQueryData(["bugs", "5", {}])[0].status).toBe("resolved")
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["bug-history", 10] })
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["bug-activity", 10] })
   })
 })

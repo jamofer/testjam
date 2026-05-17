@@ -20,9 +20,9 @@ import { bugsApi } from "../api/bugs"
 import {
   useAddBugComment,
   useBug,
+  useBugActivity,
   useBugComments,
   useBugContext,
-  useBugHistory,
   useBugLinks,
   useChangeBugStatus,
   useDeleteBug,
@@ -45,6 +45,7 @@ import { LiveIndicator } from "../components/ui/live-indicator"
 import { ContextPanel } from "../components/ui/context-panel"
 import { EnvironmentBadge } from "../components/environment/EnvironmentBadge"
 import { AddBugLinkDialog } from "../components/bug/AddBugLinkDialog"
+import { BugTimeline } from "../components/bug/BugTimeline"
 import { MdEditor, MdViewer } from "../components/MdEditor"
 import { SEVERITY_VARIANT, STATUS_VARIANT, STATUSES } from "../lib/bugConfig"
 
@@ -77,7 +78,7 @@ export function BugDetailPage() {
   const { data: project } = useProject(bug?.project_id)
   const { connected: live } = useBugLive(bugId, { enabled: !!me && !!bugId })
   const { data: comments = [] } = useBugComments(bugId)
-  const { data: history = [] } = useBugHistory(bugId)
+  const { data: activity = [] } = useBugActivity(bugId)
   const { data: linkContext } = useBugContext(bugId)
   const { data: links = [] } = useBugLinks(bugId)
   const bugProjectId = bug?.project_id
@@ -95,7 +96,11 @@ export function BugDetailPage() {
   const [editingBody, setEditingBody] = useState("")
   const [editingDescription, setEditingDescription] = useState(false)
   const [descriptionDraft, setDescriptionDraft] = useState("")
-  const sortedHistory = useMemo(() => [...history], [history])
+  const statusLabels = useMemo(
+    () => Object.fromEntries(STATUSES.map(status => [status, t(`statuses.${status}`)])),
+    [t],
+  )
+  const historyCount = activity.length + comments.length
 
   const contextSections = useMemo(() => {
     if (!bug) return []
@@ -298,7 +303,7 @@ export function BugDetailPage() {
             <Tabs defaultValue="discussion">
               <TabsList>
                 <TabsTrigger value="discussion">{t("tabs.discussion")}</TabsTrigger>
-                <TabsTrigger value="history">{t("tabs.history")} ({history.length})</TabsTrigger>
+                <TabsTrigger value="history">{t("tabs.history")} ({historyCount})</TabsTrigger>
               </TabsList>
 
               <TabsContent value="discussion" className="space-y-6">
@@ -413,30 +418,7 @@ export function BugDetailPage() {
               </TabsContent>
 
               <TabsContent value="history">
-                {sortedHistory.length === 0 ? (
-                  <p className="text-sm text-gray-400 dark:text-gray-500">{t("history.empty")}</p>
-                ) : (
-                  <ul className="space-y-2">
-                    {sortedHistory.map(entry => (
-                      <li
-                        key={entry.id}
-                        className="border rounded-lg px-4 py-3 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-sm"
-                      >
-                        <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                          <span>{entry.changed_by?.username ?? "?"} · <DateLabel iso={entry.changed_at} mode="relative" /></span>
-                        </div>
-                        <p className="text-gray-700 dark:text-gray-200">
-                          {entry.from_status === null
-                            ? `${t("history.createdLabel")}: ${t(`statuses.${entry.to_status}`)}`
-                            : `${t("history.transitionLabel")}: ${t(`statuses.${entry.from_status}`)} → ${t(`statuses.${entry.to_status}`)}`}
-                        </p>
-                        {entry.note && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{entry.note}</p>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <BugTimeline activity={activity} comments={comments} statuses={statusLabels} />
               </TabsContent>
             </Tabs>
           </div>

@@ -72,10 +72,10 @@ class Bug(Base):
     attachments: Mapped[list["BugAttachment"]] = relationship(
         back_populates="bug", cascade="all, delete-orphan"
     )
-    history: Mapped[list["BugStatusHistory"]] = relationship(
+    activity: Mapped[list["BugActivity"]] = relationship(
         back_populates="bug",
         cascade="all, delete-orphan",
-        order_by="BugStatusHistory.changed_at.asc(), BugStatusHistory.id.asc()",
+        order_by="BugActivity.changed_at.asc(), BugActivity.id.asc()",
     )
     links: Mapped[list["BugLink"]] = relationship(
         back_populates="bug",
@@ -160,20 +160,21 @@ class BugLink(Base):
     created_by: Mapped["User | None"] = relationship(foreign_keys=[created_by_id])  # noqa: F821
 
 
-class BugStatusHistory(Base):
-    __tablename__ = "bug_status_history"
+class BugActivity(Base):
+    __tablename__ = "bug_activity"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     bug_id: Mapped[int] = mapped_column(
         ForeignKey("bugs.id", ondelete="CASCADE"), index=True, nullable=False
     )
-    from_status: Mapped[str | None] = mapped_column(String(16), nullable=True)
-    to_status: Mapped[str] = mapped_column(String(16), nullable=False)
+    field: Mapped[str] = mapped_column(String(32), nullable=False)
+    from_value: Mapped[str | None] = mapped_column(Text, nullable=True)
+    to_value: Mapped[str | None] = mapped_column(Text, nullable=True)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
     changed_by_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
     changed_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
 
-    bug: Mapped[Bug] = relationship(back_populates="history")
+    bug: Mapped[Bug] = relationship(back_populates="activity")
     changed_by: Mapped["User | None"] = relationship(foreign_keys=[changed_by_id])  # noqa: F821

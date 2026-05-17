@@ -19,7 +19,7 @@ export const bugsApi = {
     api.put(`/bugs/${id}/comments/${commentId}`, { body }).then(r => r.data),
   deleteComment: (id, commentId) =>
     api.delete(`/bugs/${id}/comments/${commentId}`),
-  listHistory: (id) => api.get(`/bugs/${id}/history`).then(r => r.data),
+  listActivity: (id) => api.get(`/bugs/${id}/activity`).then(r => r.data),
   listAttachments: (id) => api.get(`/bugs/${id}/attachments`).then(r => r.data),
   getContext: (id) => api.get(`/bugs/${id}/context`).then(r => r.data),
   listLinks: (id) => api.get(`/bugs/${id}/links`).then(r => r.data),
