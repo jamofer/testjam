@@ -38,11 +38,14 @@ def search_project_cases(
     tags: list[str] | None = Query(None),
     skip: int = 0,
     limit: int = 100,
+    include_archived: bool = False,
     db: Session = Depends(get_db),
     _: User = Depends(require_project_access),
 ):
     limit = min(limit, 500)
     query = db.query(TestCase).join(TestSuite, TestCase.suite_id == TestSuite.id).filter(TestSuite.project_id == id)
+    if not include_archived:
+        query = query.filter(TestCase.archived_at.is_(None))
     if q:
         like = f"%{q}%"
         query = query.filter(or_(TestCase.name.ilike(like), TestCase.description.ilike(like)))
@@ -57,12 +60,18 @@ def search_project_cases(
 def list_cases(
     id: int,
     name: str | None = None,
+    external_id: str | None = None,
+    include_archived: bool = False,
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
     q = db.query(TestCase).filter(TestCase.suite_id == id)
+    if not include_archived:
+        q = q.filter(TestCase.archived_at.is_(None))
     if name is not None:
         q = q.filter(TestCase.name == name)
+    if external_id is not None:
+        q = q.filter(TestCase.external_id == external_id)
     return q.order_by(TestCase.order, TestCase.id).all()
 
 
@@ -150,6 +159,34 @@ def delete_case(id: int, db: Session = Depends(get_db), _: User = Depends(get_cu
         raise HTTPException(status_code=404, detail="Not found")
     db.delete(case)
     db.commit()
+
+
+@cases_router.post("/{id}/archive", response_model=TestCaseOut)
+def archive_case(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    from datetime import datetime, timezone
+
+    case = db.get(TestCase, id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Not found")
+    if case.archived_at is None:
+        case.archived_at = datetime.now(timezone.utc)
+        case.updated_by_id = current.id
+        db.commit()
+        db.refresh(case)
+    return case
+
+
+@cases_router.post("/{id}/unarchive", response_model=TestCaseOut)
+def unarchive_case(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    case = db.get(TestCase, id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Not found")
+    if case.archived_at is not None:
+        case.archived_at = None
+        case.updated_by_id = current.id
+        db.commit()
+        db.refresh(case)
+    return case
 
 
 class BulkIds(BaseModel):

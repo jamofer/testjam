@@ -7,7 +7,7 @@ RUN apt-get update \
 WORKDIR /app
 
 COPY . .
-RUN pip install --no-cache-dir ".[dev]"
+RUN pip install --no-cache-dir -e ".[dev]"
 
 RUN mkdir -p /app/uploads/cases /app/uploads/results
 

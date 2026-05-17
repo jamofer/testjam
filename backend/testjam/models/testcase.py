@@ -58,6 +58,7 @@ class TestCase(Base):
     )
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now(), onupdate=func.now())
+    archived_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
 
     suite: Mapped[TestSuite] = relationship(back_populates="cases")
     steps: Mapped[list[TestStep]] = relationship(

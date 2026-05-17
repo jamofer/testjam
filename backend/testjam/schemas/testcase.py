@@ -90,6 +90,7 @@ class TestCaseOut(TestCaseBase):
     suite_id: int
     created_at: datetime
     updated_at: datetime
+    archived_at: datetime | None = None
     created_by: UserMini | None = None
     updated_by: UserMini | None = None
     steps: list[TestStepOut] = []

@@ -1,6 +1,10 @@
 #!/bin/sh
 set -e
 
+if [ -d /client ] && ! python -c "import testjam_client" 2>/dev/null; then
+  pip install --quiet -e /client
+fi
+
 alembic upgrade head
 
 workers=${API_WORKERS:-1}

@@ -38,6 +38,7 @@ services:
       API_WORKERS: ${API_WORKERS:-1}
     volumes:
       - ./backend:/app
+      - ./client:/client
       - uploads:/app/uploads
     depends_on:
       db:
@@ -97,6 +98,7 @@ services:
     volumes:
       - ./tests/e2e:/tests/e2e
       - ./listener:/listener
+      - ./client:/client
     working_dir: /tests/e2e
     command: >
       robot --listener testjam_listener.TestjamListener suites/

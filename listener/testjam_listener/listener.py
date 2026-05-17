@@ -1,4 +1,10 @@
-"""Robot Framework listener that reports into Testjam in real time."""
+"""Robot Framework listener that reports into Testjam in real time.
+
+Bootstrap pulls credentials, project name and the optional version label
+(``TESTJAM_VERSION``) from environment variables and reuses a single
+``TestjamClient`` for the whole Robot run so the underlying HTTP connection
+stays open across every event.
+"""
 from __future__ import annotations
 
 import logging
@@ -7,9 +13,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import requests
-
-from testjam_listener.client import TestjamClient
+from testjam_client import TestjamClient
+from testjam_client.errors import TestjamError, ValidationError
 from testjam_listener.log import format_log_line, isoformat_timestamp
 from testjam_listener.status import map_rf_status
 
@@ -20,11 +25,20 @@ class TestjamListener:
     ROBOT_LISTENER_API_VERSION = 3
 
     def __init__(self) -> None:
+        # Silence httpx INFO request logs — Robot captures them and the
+        # listener would forward each back to /log, creating a recursive
+        # log-of-log loop that empoisons the test logs and eventually
+        # blows the recursion stack.
+        logging.getLogger("httpx").setLevel(logging.WARNING)
+        logging.getLogger("httpcore").setLevel(logging.WARNING)
+
         base_url = os.getenv("TESTJAM_API_URL", "http://localhost:8000/api/v1")
         project_name = os.getenv("TESTJAM_PROJECT", "Robot Framework")
         api_key = os.getenv("TESTJAM_API_KEY")
         admin_user = os.getenv("TESTJAM_USER")
         admin_password = os.getenv("TESTJAM_PASS")
+        version_name = os.getenv("TESTJAM_VERSION")
+        execution_title = os.getenv("TESTJAM_EXECUTION_TITLE")
 
         self.client = TestjamClient(base_url, api_key=api_key)
         if not api_key:
@@ -32,19 +46,34 @@ class TestjamListener:
                 raise ValueError(
                     "Set TESTJAM_API_KEY or TESTJAM_USER + TESTJAM_PASS",
                 )
-            self.client.login_with_password(admin_user, admin_password)
+            self.client.login(admin_user, admin_password)
 
-        self.project_id = self.client.find_or_create_project(project_name)
-        self.execution_id = self.client.create_execution(
+        project = self.client.projects.find_or_create(project_name)
+        self.project_id = project["id"]
+
+        version_id = None
+        if version_name:
+            version = self.client.versions.find_or_create(self.project_id, version_name)
+            version_id = version["id"]
+
+        title = execution_title or f"Robot Run {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+        execution = self.client.executions.create(
             self.project_id,
-            title=f"Robot Run {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+            title=title,
             type="automatic",
+            version_id=version_id,
         )
+        self.execution_id = execution["id"]
 
         self.streaming_enabled = True
+        # Robot always wraps the command-line target in a synthetic root suite
+        # (e.g. ``robot suites/`` produces a top-level "Suites" suite). The
+        # convention is to always invoke from the directory that holds the
+        # real ``__init__.robot`` definitions, so we drop the synthetic root
+        # to keep the Testjam hierarchy aligned with the on-disk layout.
         self._is_root_suite = True
         self._output_dir: str | None = None
-        self._suite_stack: list[int] = []
+        self._suite_stack: list[tuple[int, str]] = []
         self._test: _TestState | None = None
         self._step: _StepState | None = None
         self._keyword_depth = 0
@@ -57,41 +86,49 @@ class TestjamListener:
                 self._output_dir = str(Path(source).parent)
             return
 
-        parent_suite_id = self._suite_stack[-1] if self._suite_stack else None
+        parent_suite_id = self._suite_stack[-1][0] if self._suite_stack else None
         description = (getattr(data, "doc", None) or "").strip() or None
-        suite_id = self.client.find_or_create_suite(
+        suite = self.client.suites.find_or_create(
             self.project_id, data.name,
             parent_suite_id=parent_suite_id, description=description,
         )
-        self._suite_stack.append(suite_id)
+        parent_path = self._suite_stack[-1][1] if self._suite_stack else ""
+        suite_path = f"{parent_path}.{data.name}" if parent_path else data.name
+        self._suite_stack.append((suite["id"], suite_path))
 
     def end_suite(self, _data: Any, _result: Any) -> None:
         if self._suite_stack:
             self._suite_stack.pop()
 
     def start_test(self, data: Any, _result: Any) -> None:
-        suite_id = self._suite_stack[-1] if self._suite_stack else None
-        if suite_id is None:
+        current = self._suite_stack[-1] if self._suite_stack else None
+        if current is None:
             self._test = None
             return
+        suite_id, suite_path = current
 
         description = (getattr(data, "doc", None) or "").strip() or None
         tags = [str(tag) for tag in getattr(data, "tags", [])]
-        case_id = self.client.find_or_create_case(
-            suite_id, data.name, description=description, tags=tags,
+        external_id = f"{suite_path}.{data.name}"
+        case = _find_or_create_case_by_external_id(
+            self.client, suite_id, data.name,
+            external_id=external_id, description=description, tags=tags,
         )
-        if case_id is None:
+        if case is None:
             self._test = None
             return
 
-        step_ids = _sync_steps_from_rf_test(self.client, case_id, data)
-        created = self.client.create_result(self.execution_id, test_case_id=case_id)
-        if not created:
+        step_ids = _sync_steps_from_rf_test(self.client, case["id"], data)
+        try:
+            created = self.client.results.create(
+                self.execution_id, test_case_id=case["id"],
+            )
+        except TestjamError:
             self._test = None
             return
 
         self._test = _TestState(
-            result_id=created["id"], case_id=case_id, step_ids=step_ids,
+            result_id=created["id"], case_id=case["id"], step_ids=step_ids,
         )
         self._keyword_depth = 0
         self._safe_update_result(
@@ -108,11 +145,14 @@ class TestjamListener:
                 test.result_id, **_final_result_payload(result),
             )
             if not self.streaming_enabled and test.pending_step_results:
-                self.client.create_result(
-                    self.execution_id,
-                    test_case_id=test.case_id,
-                    step_results=test.pending_step_results,
-                )
+                try:
+                    self.client.results.create(
+                        self.execution_id,
+                        test_case_id=test.case_id,
+                        step_results=test.pending_step_results,
+                    )
+                except TestjamError:
+                    pass
         finally:
             self._test = None
             self._step = None
@@ -131,13 +171,11 @@ class TestjamListener:
             self._step = _StepState(step_result_id=0, step_id=step_id)
             return
         try:
-            row = self.client.start_step_result(test.result_id, step_id)
+            row = self.client.step_results.start(test.result_id, step_id)
             self._step = _StepState(step_result_id=row["id"], step_id=step_id)
-        except requests.HTTPError as exc:
+        except TestjamError as exc:
             self._maybe_disable_streaming(exc)
             self._step = _StepState(step_result_id=0, step_id=step_id)
-        except requests.RequestException:
-            self._step = None
 
     def end_keyword(self, _data: Any, result: Any) -> None:
         depth = self._keyword_depth
@@ -150,16 +188,13 @@ class TestjamListener:
         payload = _final_step_result_payload(result, step.log_buffer)
         try:
             if self.streaming_enabled and step.step_result_id:
-                response = self.client.update_step_result(
+                self.client.step_results.update(
                     test.result_id, step.step_result_id, **payload,
                 )
-                response.raise_for_status()
             else:
                 test.pending_step_results.append({"step_id": step.step_id, **payload})
-        except requests.HTTPError as exc:
+        except TestjamError as exc:
             self._maybe_disable_streaming(exc)
-            test.pending_step_results.append({"step_id": step.step_id, **payload})
-        except requests.RequestException:
             test.pending_step_results.append({"step_id": step.step_id, **payload})
         finally:
             self._step = None
@@ -179,42 +214,38 @@ class TestjamListener:
             step.log_buffer.append(format_log_line(level, text, timestamp))
             return
         try:
-            response = self.client.append_step_result_log(
+            self.client.step_results.append_log(
                 test.result_id, step.step_result_id,
-                level=level, message=text,
-                timestamp_iso=isoformat_timestamp(timestamp),
+                level=level, message=text, ts=isoformat_timestamp(timestamp),
             )
-            response.raise_for_status()
-        except requests.HTTPError as exc:
+        except TestjamError as exc:
             self._maybe_disable_streaming(exc)
-            step.log_buffer.append(format_log_line(level, text, timestamp))
-        except requests.RequestException:
             step.log_buffer.append(format_log_line(level, text, timestamp))
 
     def close(self) -> None:
         try:
-            self.client.update_execution(
+            self.client.executions.update(
                 self.execution_id,
                 status="completed",
                 finished_at=datetime.now(timezone.utc).isoformat(),
             )
-        except requests.RequestException:
+        except TestjamError:
             log.warning("Failed to mark execution %s completed", self.execution_id)
         self._upload_artefacts()
+        self.client.close()
 
     def _safe_update_result(self, result_id: int, **payload: Any) -> None:
         try:
-            self.client.update_result(result_id, **payload)
-        except requests.RequestException:
+            self.client.results.update(result_id, **payload)
+        except TestjamError:
             pass
 
-    def _maybe_disable_streaming(self, exc: requests.HTTPError) -> None:
-        status_code = exc.response.status_code if exc.response is not None else None
-        if status_code is not None and 400 <= status_code < 500:
+    def _maybe_disable_streaming(self, exc: TestjamError) -> None:
+        if 400 <= exc.status_code < 500:
             self.streaming_enabled = False
             log.info(
                 "Server rejected streaming endpoint (status=%s); falling back to batch.",
-                status_code,
+                exc.status_code,
             )
 
     def _upload_artefacts(self) -> None:
@@ -222,11 +253,14 @@ class TestjamListener:
             path = _locate_artefact(self._output_dir, filename)
             if not path:
                 continue
-            with open(path, "rb") as file_handle:
-                self.client.upload_execution_attachment(
-                    self.execution_id,
-                    filename=filename, file_handle=file_handle, mime=mime,
-                )
+            try:
+                with open(path, "rb") as file_handle:
+                    self.client.executions.upload_attachment(
+                        self.execution_id,
+                        filename=filename, content=file_handle, mime=mime,
+                    )
+            except TestjamError:
+                log.warning("Failed to upload %s for execution %s", filename, self.execution_id)
 
 
 class _TestState:
@@ -271,6 +305,63 @@ def _final_step_result_payload(result: Any, log_buffer: list[str]) -> dict[str, 
     return payload
 
 
+def _find_or_create_case_by_external_id(
+    client: TestjamClient,
+    suite_id: int,
+    name: str,
+    *,
+    external_id: str,
+    description: str | None = None,
+    tags: list[str] | None = None,
+) -> dict | None:
+    """Match by external_id (Robot suite path + test name) for stable identity.
+
+    Falls back to name lookup for legacy cases that pre-date the external_id
+    convention. When a legacy match is found, the external_id is stamped on
+    that row so future runs hit the fast path.
+    """
+    by_external = client.cases.list(suite_id, external_id=external_id, include_archived=True)
+    if by_external:
+        return _refresh_case(client, by_external[0], name, description, tags)
+
+    by_name = client.cases.list(suite_id, name=name, include_archived=True)
+    legacy = next((c for c in by_name if not c.get("external_id")), None)
+    if legacy is not None:
+        client.cases.update(legacy["id"], external_id=external_id)
+        legacy["external_id"] = external_id
+        return _refresh_case(client, legacy, name, description, tags)
+
+    try:
+        return client.cases.create(
+            suite_id, name,
+            external_id=external_id,
+            description=description, tags=tags,
+        )
+    except (ValidationError, TestjamError):
+        return None
+
+
+def _refresh_case(
+    client: TestjamClient,
+    case: dict,
+    name: str,
+    description: str | None,
+    tags: list[str] | None,
+) -> dict:
+    if case.get("archived_at") is not None:
+        client.cases.unarchive(case["id"])
+    update_payload: dict[str, Any] = {}
+    if case.get("name") != name:
+        update_payload["name"] = name
+    if description is not None and case.get("description") != description:
+        update_payload["description"] = description
+    if tags is not None and (case.get("tags") or []) != tags:
+        update_payload["tags"] = tags
+    if update_payload:
+        client.cases.update(case["id"], **update_payload)
+    return case
+
+
 def _sync_steps_from_rf_test(
     client: TestjamClient, case_id: int, data: Any,
 ) -> list[tuple[str, int]]:
@@ -295,7 +386,7 @@ def _sync_steps_from_rf_test(
     if teardown and getattr(teardown, "name", None):
         append(teardown.name, "teardown")
 
-    created = client.replace_case_steps(case_id, payload)
+    created = client.cases.replace_steps(case_id, payload)
     return list(zip(step_types, [row["id"] for row in created]))
 
 
