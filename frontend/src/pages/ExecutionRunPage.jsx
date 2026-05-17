@@ -250,29 +250,21 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
   useEffect(() => {
     const scroller = document.querySelector("main")
     if (!scroller) return undefined
-    let userScrolling = false
-    const onUserInteract = () => { userScrolling = true }
-    const onScroll = () => {
-      if (!userScrolling) return
-      userScrolling = false
-      if (runningResultId == null) return
-      const card = document.querySelector(`[data-result-id="${runningResultId}"]`)
-      if (!card) return
-      const cardRect = card.getBoundingClientRect()
-      const scrollerRect = scroller.getBoundingClientRect()
-      const fullyVisible =
-        cardRect.top >= scrollerRect.top && cardRect.bottom <= scrollerRect.bottom
-      if (!fullyVisible) setFollowLive(false)
+    const dropFollow = () => setFollowLive(false)
+    const onKeyDown = (event) => {
+      if (["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End"].includes(event.key)) {
+        dropFollow()
+      }
     }
-    scroller.addEventListener("wheel", onUserInteract, { passive: true })
-    scroller.addEventListener("touchstart", onUserInteract, { passive: true })
-    scroller.addEventListener("scroll", onScroll, { passive: true })
+    scroller.addEventListener("wheel", dropFollow, { passive: true })
+    scroller.addEventListener("touchstart", dropFollow, { passive: true })
+    window.addEventListener("keydown", onKeyDown)
     return () => {
-      scroller.removeEventListener("wheel", onUserInteract)
-      scroller.removeEventListener("touchstart", onUserInteract)
-      scroller.removeEventListener("scroll", onScroll)
+      scroller.removeEventListener("wheel", dropFollow)
+      scroller.removeEventListener("touchstart", dropFollow)
+      window.removeEventListener("keydown", onKeyDown)
     }
-  }, [runningResultId])
+  }, [])
 
   const resumeFollowLive = () => {
     setFollowLive(true)
@@ -524,7 +516,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
                 {topLevelIds.map(suiteId => (
                   <RunSuiteGroup key={suiteId} suiteId={suiteId} groups={groups} childrenOf={childrenOf}
                     orderedResults={orderedResults} focusedResultId={focusedResultId} setFocusedResultId={setFocusedResultId}
-                    id={id} isAutomated={isLocked} focusedStepId={focusedStepId} />
+                    id={id} isAutomated={isLocked} focusedStepId={focusedStepId} followLive={followLive} />
                 ))}
                 {groups[0] && (
                   <div className="space-y-2">
@@ -535,7 +527,8 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
                           isAutomated={isLocked}
                           focused={result.id === focusedResultId}
                           focusedStepId={result.id === focusedResultId ? focusedStepId : null}
-                          onFocus={() => setFocusedResultId(result.id)} />
+                          onFocus={() => setFocusedResultId(result.id)}
+                          followLive={followLive} />
                       )
                     })}
                   </div>
@@ -545,7 +538,8 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
                     isAutomated={isLocked}
                     focused={result.id === focusedResultId}
                     focusedStepId={result.id === focusedResultId ? focusedStepId : null}
-                    onFocus={() => setFocusedResultId(result.id)} />
+                    onFocus={() => setFocusedResultId(result.id)}
+                    followLive={followLive} />
                 ))}
               </div>
             </ResultExpandContext.Provider>

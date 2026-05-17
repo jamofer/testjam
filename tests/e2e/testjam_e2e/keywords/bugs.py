@@ -62,9 +62,10 @@ class BugsMixin:
 
     @keyword("the bug history should contain ${count} entries")
     def bug_history_should_contain(self, count: str) -> None:
-        response = self.client.get(f"/bugs/{self.current_bug_id}/history")
+        response = self.client.get(f"/bugs/{self.current_bug_id}/activity")
         assert response.status_code == 200
-        actual = len(response.json())
+        rows = [row for row in response.json() if row.get("field") == "status"]
+        actual = len(rows)
         assert actual == int(count), f"Expected {count} history entries, got {actual}"
 
     @keyword("I download the bug report as ${format}")

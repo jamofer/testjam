@@ -7,7 +7,7 @@ const STEP_TYPE_GROUP_BORDER = {
   teardown: "border-l-4 border-orange-300 pl-3",
 }
 
-export function StepsSection({ steps, stepResults, onUpdate, onSaveComment, isAutomated, focusedStepId = null }) {
+export function StepsSection({ steps, stepResults, onUpdate, onSaveComment, isAutomated, focusedStepId = null, followLive = false }) {
   const { t } = useTranslation("executions")
   const stepTypeLabel = { setup: t("run.stepTypes.setup"), action: null, teardown: t("run.stepTypes.teardown") }
   const byType = { setup: [], action: [], teardown: [] }
@@ -34,7 +34,7 @@ export function StepsSection({ steps, stepResults, onUpdate, onSaveComment, isAu
                 return (
                   <StepResultRow key={step.id} step={step} stepResult={stepResult}
                     onUpdate={onUpdate} onSaveComment={onSaveComment} isAutomated={isAutomated}
-                    focused={step.id === focusedStepId} />
+                    focused={step.id === focusedStepId} followLive={followLive} />
                 )
               })}
             </div>

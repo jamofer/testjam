@@ -12,3 +12,4 @@ from testjam.models.notification_preference import UserNotificationPreference
 from testjam.models.case_revision import CaseRevision
 from testjam.models.settings import AppSettings
 from testjam.models.password_reset import PasswordResetToken
+from testjam.models.webhook import Webhook, WebhookDelivery

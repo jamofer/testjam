@@ -19,7 +19,7 @@ help:
 	@echo "  make test         Run backend + frontend + e2e (boots what it needs)"
 	@echo "  make test-api     pytest        ARGS=path/to/test"
 	@echo "  make test-front   vitest        ARGS=__tests__/Foo"
-	@echo "  make test-e2e     robot         ARGS=suites/01_auth.robot"
+	@echo "  make test-e2e     robot         ARGS=suites/01_auth.robot  WORKERS=N for api worker count (default 4)"
 
 up: $(BUILD_STAMP)
 	$(COMPOSE) up -d
@@ -61,5 +61,7 @@ test-api: _up-api
 test-front: _up-front
 	$(COMPOSE) exec -T frontend npm test -- --run $(ARGS)
 
+WORKERS ?= 4
 test-e2e:
+	API_WORKERS=$(WORKERS) $(COMPOSE) up -d --wait api
 	$(COMPOSE) --profile e2e run --rm e2e robot --listener testjam_listener.TestjamListener $(if $(ARGS),$(ARGS),suites/)

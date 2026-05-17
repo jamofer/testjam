@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from unicodedata import normalize
 
-from fastapi import Depends, File, HTTPException, UploadFile
+from fastapi import BackgroundTasks, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import get_current_user
@@ -79,6 +79,7 @@ def _rf_kw_duration_ms(kw_elem: ET.Element) -> int | None:
 @executions_router.post("/{id}/results/import/junit", response_model=BulkResultResponse)
 def import_junit(
     id: int,
+    background: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
@@ -105,6 +106,7 @@ def import_junit(
     created = updated = 0
     errors: list[dict] = []
     now = datetime.now(timezone.utc)
+    newly_failed_ids: list[int] = []
 
     for tc_elem in tc_elements:
         name = tc_elem.get("name", "")
@@ -134,19 +136,25 @@ def import_junit(
         duration_raw = tc_elem.get("time")
         duration_ms = int(float(duration_raw) * 1000) if duration_raw else None
 
-        is_new = result.status == "not_run"
+        previous_status = result.status
+        is_new = previous_status == "not_run"
         result.status = new_status
         result.executed_at = now
         result.duration_ms = duration_ms
         if comment:
             result.comment = comment
+        if new_status == "failed" and previous_status != "failed":
+            db.flush()
+            newly_failed_ids.append(result.id)
         if is_new:
             created += 1
         else:
             updated += 1
 
     db.commit()
-    execution_events.on_results_bulk_updated(db, id)
+    execution_events.on_results_bulk_updated(
+        db, id, failed_result_ids=newly_failed_ids, background=background,
+    )
     return BulkResultResponse(created=created, updated=updated, errors=errors)
 
 
@@ -155,6 +163,7 @@ def import_junit(
 @executions_router.post("/{id}/results/import/robotframework", response_model=BulkResultResponse)
 def import_robotframework(
     id: int,
+    background: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
@@ -176,6 +185,7 @@ def import_robotframework(
     created = updated = 0
     errors: list[dict] = []
     now = datetime.now(timezone.utc)
+    newly_failed_ids: list[int] = []
 
     def _process_suite(suite_elem: ET.Element, parent_path: str = "") -> None:
         nonlocal created, updated
@@ -217,7 +227,8 @@ def import_robotframework(
                     except ValueError:
                         pass
 
-            is_new = result.status == "not_run"
+            previous_status = result.status
+            is_new = previous_status == "not_run"
             result.status = new_status
             result.executed_at = now
             if duration_ms is not None:
@@ -228,6 +239,8 @@ def import_robotframework(
                 result.comment = status_elem.text.strip()
 
             db.flush()
+            if new_status == "failed" and previous_status != "failed":
+                newly_failed_ids.append(result.id)
 
             # Map keywords to step results if the test case has steps
             tc = result.test_case
@@ -278,5 +291,7 @@ def import_robotframework(
         _process_suite(top)
 
     db.commit()
-    execution_events.on_results_bulk_updated(db, id)
+    execution_events.on_results_bulk_updated(
+        db, id, failed_result_ids=newly_failed_ids, background=background,
+    )
     return BulkResultResponse(created=created, updated=updated, errors=errors)

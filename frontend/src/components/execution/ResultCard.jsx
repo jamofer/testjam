@@ -18,7 +18,7 @@ const KEEP_OPEN_STATUSES = new Set(["running", "failed", "blocked"])
 
 export const ResultExpandContext = createContext({ version: 0, desiredOpen: null })
 
-export function ResultCard({ result, executionId, index, total, isAutomated, focused = false, onFocus, focusedStepId = null }) {
+export function ResultCard({ result, executionId, index, total, isAutomated, focused = false, onFocus, focusedStepId = null, followLive = false }) {
   const { t } = useTranslation(["executions", "common"])
   const { data: tc } = useCase(result.test_case_id)
   const { data: execution } = useExecution(executionId)
@@ -45,10 +45,9 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
   }, [result.status])
 
   useEffect(() => {
-    if (focused && cardRef.current) {
-      cardRef.current.scrollIntoView({ block: "center", behavior: "smooth" })
-    }
-  }, [focused])
+    if (!focused || !followLive) return
+    cardRef.current?.scrollIntoView({ block: "center", behavior: "smooth" })
+  }, [focused, followLive])
 
   const expandContext = useContext(ResultExpandContext)
   useEffect(() => {
@@ -211,6 +210,7 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
                 onSaveComment={saveStepComment}
                 isAutomated={isAutomated}
                 focusedStepId={focused ? focusedStepId : null}
+                followLive={followLive}
               />
             </div>
           )}

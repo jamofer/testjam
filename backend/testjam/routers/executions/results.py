@@ -1,7 +1,7 @@
 """Manual result endpoints (CRUD, bulk update, step-result update)."""
 from datetime import datetime, timezone
 
-from fastapi import Depends, HTTPException, status
+from fastapi import BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session, selectinload
 
 from testjam.auth.dependencies import get_current_user
@@ -25,6 +25,11 @@ from testjam.services import execution_events
 
 STEP_RESULT_LOG_SEPARATOR = "\n\n"
 TERMINAL_EXECUTION_STATUSES = {"completed", "aborted"}
+
+
+def _project_id_for_execution(db: Session, execution_id: int) -> int | None:
+    execution = db.get(TestExecution, execution_id)
+    return execution.project_id if execution else None
 
 
 def _reject_if_terminal(execution: TestExecution | None) -> None:
@@ -98,9 +103,12 @@ def list_results(
     "/{id}/results", response_model=TestResultOut, status_code=status.HTTP_201_CREATED
 )
 def create_result(
-    id: int, body: TestResultCreate, db: Session = Depends(get_db), _: User = Depends(get_current_user)
+    id: int, body: TestResultCreate,
+    background: BackgroundTasks,
+    db: Session = Depends(get_db), _: User = Depends(get_current_user),
 ):
     existing = db.query(TestResult).filter_by(execution_id=id, test_case_id=body.test_case_id).first()
+    previous_status = existing.status if existing else None
     if existing:
         for field, value in body.model_dump(exclude={"step_results"}, exclude_unset=True).items():
             setattr(existing, field, value)
@@ -124,21 +132,29 @@ def create_result(
     db.commit()
     db.refresh(result)
     out = _result_out(result)
-    execution_events.on_result_updated(id, out.model_dump(mode="json"))
+    execution_events.on_result_updated(
+        id, out.model_dump(mode="json"),
+        db=db, project_id=_project_id_for_execution(db, id),
+        previous_status=previous_status, background=background,
+    )
     return out
 
 
 @executions_router.post("/{id}/results/bulk", response_model=BulkResultResponse)
 def bulk_results(
-    id: int, body: BulkResultCreate, db: Session = Depends(get_db), _: User = Depends(get_current_user)
+    id: int, body: BulkResultCreate,
+    background: BackgroundTasks,
+    db: Session = Depends(get_db), _: User = Depends(get_current_user),
 ):
     created = updated = 0
     errors = []
+    newly_failed_ids: list[int] = []
     for item in body.results:
         try:
             existing = (
                 db.query(TestResult).filter_by(execution_id=id, test_case_id=item.test_case_id).first()
             )
+            previous_status = existing.status if existing else None
             if existing:
                 for field, value in item.model_dump(exclude={"step_results"}, exclude_none=True).items():
                     setattr(existing, field, value)
@@ -162,10 +178,14 @@ def bulk_results(
                         existing_sr.duration_ms = sr.duration_ms
                 else:
                     db.add(TestStepResult(test_result_id=result.id, **sr.model_dump()))
+            if result.status == "failed" and previous_status != "failed":
+                newly_failed_ids.append(result.id)
         except Exception as e:
             errors.append({"test_case_id": item.test_case_id, "error": str(e)})
     db.commit()
-    execution_events.on_results_bulk_updated(db, id)
+    execution_events.on_results_bulk_updated(
+        db, id, failed_result_ids=newly_failed_ids, background=background,
+    )
     return BulkResultResponse(created=created, updated=updated, errors=errors)
 
 
@@ -179,18 +199,25 @@ def get_result(id: int, db: Session = Depends(get_db), _: User = Depends(get_cur
 
 @results_router.put("/{id}", response_model=TestResultOut)
 def update_result(
-    id: int, body: TestResultUpdate, db: Session = Depends(get_db), _: User = Depends(get_current_user)
+    id: int, body: TestResultUpdate,
+    background: BackgroundTasks,
+    db: Session = Depends(get_db), _: User = Depends(get_current_user),
 ):
     result = db.get(TestResult, id)
     if not result:
         raise HTTPException(status_code=404, detail="Not found")
     _reject_if_terminal(db.get(TestExecution, result.execution_id))
+    previous_status = result.status
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(result, field, value)
     db.commit()
     db.refresh(result)
     out = _result_out(result)
-    execution_events.on_result_updated(result.execution_id, out.model_dump(mode="json"))
+    execution_events.on_result_updated(
+        result.execution_id, out.model_dump(mode="json"),
+        db=db, project_id=_project_id_for_execution(db, result.execution_id),
+        previous_status=previous_status, background=background,
+    )
     return out
 
 

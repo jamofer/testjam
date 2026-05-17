@@ -50,3 +50,7 @@ export const DialogDescription = forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Description ref={ref} className={cn("text-sm text-gray-500 dark:text-gray-400", className)} {...props} />
 ))
 DialogDescription.displayName = "DialogDescription"
+
+export function DialogFooter({ className, ...props }) {
+  return <div className={cn("flex flex-row-reverse gap-2 mt-4", className)} {...props} />
+}

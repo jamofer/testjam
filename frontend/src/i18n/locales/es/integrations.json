@@ -1,0 +1,66 @@
+{
+  "title": "Integraciones",
+  "subtitle": "Webhooks salientes que envían payloads firmados al ocurrir eventos del proyecto.",
+  "new": "Nuevo webhook",
+  "empty": {
+    "title": "Aún no hay webhooks",
+    "description": "Crea uno para notificar a Slack, Jenkins o tu propio servicio."
+  },
+  "table": {
+    "name": "Nombre",
+    "url": "URL",
+    "events": "Eventos",
+    "status": "Estado",
+    "lastDelivery": "Último envío",
+    "actions": "Acciones"
+  },
+  "status": {
+    "active": "Activo",
+    "paused": "Pausado"
+  },
+  "actions": {
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "test": "Enviar prueba",
+    "viewLog": "Registro de envíos",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "create": "Crear"
+  },
+  "form": {
+    "name": "Nombre",
+    "url": "URL del endpoint",
+    "urlPlaceholder": "https://hooks.example.com/...",
+    "events": "Eventos suscritos",
+    "active": "Activo",
+    "eventsHelp": "Selecciona al menos un evento al que suscribirte.",
+    "secretRevealed": "Webhook creado. Copia el secreto de firma — no volverá a mostrarse.",
+    "secretLabel": "Secreto de firma",
+    "secretCopy": "Copiar",
+    "copied": "Copiado"
+  },
+  "dialog": {
+    "createTitle": "Nuevo webhook",
+    "editTitle": "Editar webhook",
+    "deleteTitle": "¿Eliminar webhook?",
+    "deleteBody": "Se detendrán los envíos a {{name}}. Los registros existentes se conservan."
+  },
+  "log": {
+    "title": "Registro de envíos",
+    "empty": "Aún no hay envíos.",
+    "event": "Evento",
+    "status": "Estado",
+    "attempts": "Intentos",
+    "error": "Error",
+    "when": "Cuándo",
+    "succeeded": "OK",
+    "failed": "Fallido",
+    "pending": "Pendiente"
+  },
+  "toast": {
+    "created": "Webhook creado",
+    "updated": "Webhook actualizado",
+    "deleted": "Webhook eliminado",
+    "testSent": "Envío de prueba programado"
+  }
+}

@@ -27,7 +27,7 @@ from testjam.routers.executions._helpers import (
     execution_out,
     load_execution_full,
 )
-from testjam.services import email_templates
+from testjam.services import email_templates, webhook_events
 from testjam.services.log_flusher import schedule_append as schedule_log_append
 from testjam.services.notification_events import NotificationEvent
 from testjam.services.notifications import notify
@@ -192,6 +192,9 @@ def on_execution_created(
 ) -> None:
     full = load_execution_full(db, execution.id) or execution
     _broadcast_project("execution.created", full)
+    webhook_events.fire_event(
+        db, full.project_id, "execution.created", _execution_payload(full), background,
+    )
     if full.assigned_to_id:
         _send_assignment_email(db, full, full.assigned_to_id, actor, background)
 
@@ -233,6 +236,12 @@ def on_execution_completed(
     if summary.failed > 0:
         for user_id in recipients:
             _send_failed_email(db, user_id, execution, context, background)
+    full = load_execution_full(db, execution.id) or execution
+    payload = _execution_payload(full)
+    if full.status == "aborted":
+        webhook_events.fire_event(db, full.project_id, "execution.aborted", payload, background)
+    else:
+        webhook_events.fire_event(db, full.project_id, "execution.completed", payload, background)
 
 
 def _block_running_artefacts(db: Session, execution_id: int) -> None:
@@ -275,16 +284,60 @@ def on_execution_deleted(execution_id: int, project_id: int) -> None:
     )
 
 
-def on_results_bulk_updated(db: Session, execution_id: int) -> None:
+def on_results_bulk_updated(
+    db: Session,
+    execution_id: int,
+    *,
+    failed_result_ids: list[int] | None = None,
+    background: BackgroundTasks | None = None,
+) -> None:
     full = load_execution_full(db, execution_id)
     if not full:
         return
     _broadcast_project("execution.updated", full)
+    if not failed_result_ids:
+        return
+    from testjam.models.execution import TestResult
+
+    rows = (
+        db.query(TestResult)
+        .filter(TestResult.id.in_(failed_result_ids))
+        .all()
+    )
+    for row in rows:
+        if row.status != "failed":
+            continue
+        payload = {
+            "id": row.id,
+            "execution_id": row.execution_id,
+            "test_case_id": row.test_case_id,
+            "status": row.status,
+        }
+        webhook_events.fire_event(
+            db, full.project_id, "test_result.failed", payload, background,
+        )
 
 
-def on_result_updated(execution_id: int, payload: dict[str, Any]) -> None:
+def on_result_updated(
+    execution_id: int,
+    payload: dict[str, Any],
+    *,
+    db: Session | None = None,
+    project_id: int | None = None,
+    previous_status: str | None = None,
+    background: BackgroundTasks | None = None,
+) -> None:
     notify_execution(execution_id, {"event": "result.updated", "data": payload})
     _broadcast_execution_updated(execution_id)
+    if (
+        db is not None
+        and project_id is not None
+        and payload.get("status") == "failed"
+        and previous_status != "failed"
+    ):
+        webhook_events.fire_event(
+            db, project_id, "test_result.failed", payload, background,
+        )
 
 
 def on_step_result_finished_with_refresh(execution_id: int, payload: dict[str, Any]) -> None:

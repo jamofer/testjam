@@ -27,7 +27,7 @@ from testjam.schemas.bug import (
     BugOut,
     TERMINAL_BUG_STATUSES,
 )
-from testjam.services import bug_activity, email_templates
+from testjam.services import bug_activity, email_templates, webhook_events
 from testjam.services.notification_events import NotificationEvent
 from testjam.services.notifications import notify
 from testjam.services.settings import get_settings as get_app_settings
@@ -123,6 +123,7 @@ def _bug_email_context(db: Session, bug: Bug, actor: User | None = None) -> dict
 def on_bug_created(db: Session, bug: Bug, actor: User, background: BackgroundTasks | None) -> None:
     full = load_bug_full(db, bug.id) or bug
     _broadcast_project("bug.created", full)
+    webhook_events.fire_event(db, full.project_id, "bug.created", _bug_payload(full), background)
     if full.assigned_to_id and full.assigned_to_id != actor.id:
         _send_bug_email(
             db,
@@ -193,6 +194,10 @@ def on_bug_status_changed(
 
     is_terminal = activity_row.to_value in TERMINAL_BUG_STATUSES
     event = NotificationEvent.BUG_RESOLVED if is_terminal else NotificationEvent.BUG_STATUS_CHANGED
+    payload = _bug_payload(full)
+    webhook_events.fire_event(db, full.project_id, "bug.status_changed", payload, background)
+    if is_terminal:
+        webhook_events.fire_event(db, full.project_id, "bug.resolved", payload, background)
     for user_id in recipients:
         _send_bug_email(
             db, user_id, event,

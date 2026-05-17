@@ -1,0 +1,66 @@
+{
+  "title": "Integrations",
+  "subtitle": "Outbound webhooks that POST signed payloads when project events fire.",
+  "new": "New webhook",
+  "empty": {
+    "title": "No webhooks yet",
+    "description": "Create one to notify Slack, Jenkins or your own service."
+  },
+  "table": {
+    "name": "Name",
+    "url": "URL",
+    "events": "Events",
+    "status": "Status",
+    "lastDelivery": "Last delivery",
+    "actions": "Actions"
+  },
+  "status": {
+    "active": "Active",
+    "paused": "Paused"
+  },
+  "actions": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "test": "Send test",
+    "viewLog": "Delivery log",
+    "cancel": "Cancel",
+    "save": "Save",
+    "create": "Create"
+  },
+  "form": {
+    "name": "Name",
+    "url": "Endpoint URL",
+    "urlPlaceholder": "https://hooks.example.com/...",
+    "events": "Subscribed events",
+    "active": "Active",
+    "eventsHelp": "Pick at least one event to subscribe to.",
+    "secretRevealed": "Webhook created. Copy the signing secret below — it will not be shown again.",
+    "secretLabel": "Signing secret",
+    "secretCopy": "Copy",
+    "copied": "Copied"
+  },
+  "dialog": {
+    "createTitle": "New webhook",
+    "editTitle": "Edit webhook",
+    "deleteTitle": "Delete webhook?",
+    "deleteBody": "This will stop deliveries to {{name}}. Existing log entries are kept."
+  },
+  "log": {
+    "title": "Delivery log",
+    "empty": "No deliveries yet.",
+    "event": "Event",
+    "status": "Status",
+    "attempts": "Attempts",
+    "error": "Error",
+    "when": "When",
+    "succeeded": "OK",
+    "failed": "Failed",
+    "pending": "Pending"
+  },
+  "toast": {
+    "created": "Webhook created",
+    "updated": "Webhook updated",
+    "deleted": "Webhook deleted",
+    "testSent": "Test delivery scheduled"
+  }
+}

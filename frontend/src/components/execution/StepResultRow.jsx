@@ -5,7 +5,7 @@ import { MdViewer } from "../MdEditor"
 import { STATUS_CONFIG } from "../../lib/statusConfig"
 import { fmtDuration, fmtTime } from "../../lib/format"
 
-export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAutomated, focused = false }) {
+export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAutomated, focused = false, followLive = false }) {
   const { t } = useTranslation(["executions", "common"])
   const [localStatus, setLocalStatus] = useState(stepResult?.status ?? "not_run")
   const [comment, setComment] = useState(stepResult?.comment ?? "")
@@ -25,10 +25,11 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
   }, [stepResult?.status])
 
   useEffect(() => {
+    if (!followLive) return
     if (stepResult?.status === "running" && rowRef.current) {
       rowRef.current.scrollIntoView({ block: "center", behavior: "smooth" })
     }
-  }, [stepResult?.status])
+  }, [stepResult?.status, followLive])
 
   useEffect(() => {
     if (focused && rowRef.current) {

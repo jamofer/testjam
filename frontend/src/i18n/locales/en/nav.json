@@ -11,7 +11,8 @@
     "versions": "Versions",
     "environments": "Environments",
     "bugs": "Bugs",
-    "members": "Members"
+    "members": "Members",
+    "integrations": "Integrations"
   },
   "global": {
     "projects": "Projects",
