@@ -15,6 +15,7 @@ import enMembers from "./locales/en/members.json"
 import enExecutions from "./locales/en/executions.json"
 import enAdmin from "./locales/en/admin.json"
 import enUi from "./locales/en/ui.json"
+import enEnvironments from "./locales/en/environments.json"
 import esCommon from "./locales/es/common.json"
 import esProfile from "./locales/es/profile.json"
 import esAuth from "./locales/es/auth.json"
@@ -29,6 +30,7 @@ import esMembers from "./locales/es/members.json"
 import esExecutions from "./locales/es/executions.json"
 import esAdmin from "./locales/es/admin.json"
 import esUi from "./locales/es/ui.json"
+import esEnvironments from "./locales/es/environments.json"
 import caCommon from "./locales/ca/common.json"
 import caProfile from "./locales/ca/profile.json"
 import caAuth from "./locales/ca/auth.json"
@@ -43,6 +45,7 @@ import caMembers from "./locales/ca/members.json"
 import caExecutions from "./locales/ca/executions.json"
 import caAdmin from "./locales/ca/admin.json"
 import caUi from "./locales/ca/ui.json"
+import caEnvironments from "./locales/ca/environments.json"
 import glCommon from "./locales/gl/common.json"
 import glProfile from "./locales/gl/profile.json"
 import glAuth from "./locales/gl/auth.json"
@@ -57,6 +60,7 @@ import glMembers from "./locales/gl/members.json"
 import glExecutions from "./locales/gl/executions.json"
 import glAdmin from "./locales/gl/admin.json"
 import glUi from "./locales/gl/ui.json"
+import glEnvironments from "./locales/gl/environments.json"
 import euCommon from "./locales/eu/common.json"
 import euProfile from "./locales/eu/profile.json"
 import euAuth from "./locales/eu/auth.json"
@@ -71,6 +75,7 @@ import euMembers from "./locales/eu/members.json"
 import euExecutions from "./locales/eu/executions.json"
 import euAdmin from "./locales/eu/admin.json"
 import euUi from "./locales/eu/ui.json"
+import euEnvironments from "./locales/eu/environments.json"
 
 const STORAGE_KEY = "testjam.locale"
 
@@ -88,16 +93,16 @@ function detectLocale() {
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { common: enCommon, profile: enProfile, auth: enAuth, nav: enNav, projects: enProjects, dashboard: enDashboard, suites: enSuites, cases: enCases, plans: enPlans, versions: enVersions, members: enMembers, executions: enExecutions, admin: enAdmin, ui: enUi },
-    es: { common: esCommon, profile: esProfile, auth: esAuth, nav: esNav, projects: esProjects, dashboard: esDashboard, suites: esSuites, cases: esCases, plans: esPlans, versions: esVersions, members: esMembers, executions: esExecutions, admin: esAdmin, ui: esUi },
-    ca: { common: caCommon, profile: caProfile, auth: caAuth, nav: caNav, projects: caProjects, dashboard: caDashboard, suites: caSuites, cases: caCases, plans: caPlans, versions: caVersions, members: caMembers, executions: caExecutions, admin: caAdmin, ui: caUi },
-    gl: { common: glCommon, profile: glProfile, auth: glAuth, nav: glNav, projects: glProjects, dashboard: glDashboard, suites: glSuites, cases: glCases, plans: glPlans, versions: glVersions, members: glMembers, executions: glExecutions, admin: glAdmin, ui: glUi },
-    eu: { common: euCommon, profile: euProfile, auth: euAuth, nav: euNav, projects: euProjects, dashboard: euDashboard, suites: euSuites, cases: euCases, plans: euPlans, versions: euVersions, members: euMembers, executions: euExecutions, admin: euAdmin, ui: euUi },
+    en: { common: enCommon, profile: enProfile, auth: enAuth, nav: enNav, projects: enProjects, dashboard: enDashboard, suites: enSuites, cases: enCases, plans: enPlans, versions: enVersions, members: enMembers, executions: enExecutions, admin: enAdmin, ui: enUi, environments: enEnvironments },
+    es: { common: esCommon, profile: esProfile, auth: esAuth, nav: esNav, projects: esProjects, dashboard: esDashboard, suites: esSuites, cases: esCases, plans: esPlans, versions: esVersions, members: esMembers, executions: esExecutions, admin: esAdmin, ui: esUi, environments: esEnvironments },
+    ca: { common: caCommon, profile: caProfile, auth: caAuth, nav: caNav, projects: caProjects, dashboard: caDashboard, suites: caSuites, cases: caCases, plans: caPlans, versions: caVersions, members: caMembers, executions: caExecutions, admin: caAdmin, ui: caUi, environments: caEnvironments },
+    gl: { common: glCommon, profile: glProfile, auth: glAuth, nav: glNav, projects: glProjects, dashboard: glDashboard, suites: glSuites, cases: glCases, plans: glPlans, versions: glVersions, members: glMembers, executions: glExecutions, admin: glAdmin, ui: glUi, environments: glEnvironments },
+    eu: { common: euCommon, profile: euProfile, auth: euAuth, nav: euNav, projects: euProjects, dashboard: euDashboard, suites: euSuites, cases: euCases, plans: euPlans, versions: euVersions, members: euMembers, executions: euExecutions, admin: euAdmin, ui: euUi, environments: euEnvironments },
   },
   lng: detectLocale(),
   fallbackLng: DEFAULT_LOCALE,
   supportedLngs: SUPPORTED_LOCALES,
-  ns: ["common", "profile", "auth", "nav", "projects", "dashboard", "suites", "cases", "plans", "versions", "members", "executions", "admin", "ui"],
+  ns: ["common", "profile", "auth", "nav", "projects", "dashboard", "suites", "cases", "plans", "versions", "members", "executions", "admin", "ui", "environments"],
   defaultNS: "common",
   interpolation: { escapeValue: false },
   returnNull: false,

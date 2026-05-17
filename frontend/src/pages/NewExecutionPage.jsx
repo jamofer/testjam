@@ -14,6 +14,7 @@ import { MdEditor } from "../components/MdEditor"
 import { PageBody, PageHeader } from "../components/ui/page-header"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import { CasePicker } from "../components/ui/case-picker"
+import { EnvironmentPicker } from "../components/environment/EnvironmentPicker"
 import { toast } from "sonner"
 
 export function NewExecutionPage() {
@@ -30,7 +31,7 @@ export function NewExecutionPage() {
   const [description, setDescription] = useState("")
   const [type, setType] = useState("manual")
   const [versionInput, setVersionInput] = useState("")
-  const [environment, setEnvironment] = useState("")
+  const [environment, setEnvironment] = useState(null)
   const [triggeredBy, setTriggeredBy] = useState("")
   const [assigneeId, setAssigneeId] = useState("")
   const [source, setSource] = useState("cases")
@@ -135,7 +136,7 @@ export function NewExecutionPage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label>{t("new.environment")}</Label>
-            <Input value={environment} onChange={event => setEnvironment(event.target.value)} placeholder={t("new.environmentPlaceholder")} />
+            <EnvironmentPicker projectId={projectId} value={environment} onChange={setEnvironment} />
           </div>
           {type === "automatic" && (
             <div className="space-y-1.5">

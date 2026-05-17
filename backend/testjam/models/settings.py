@@ -27,6 +27,9 @@ class AppSettings(Base):
 
     default_environment: Mapped[str | None] = mapped_column(String(64), nullable=True)
     default_version_pattern: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    auto_create_environments: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="true"
+    )
 
     max_upload_mb: Mapped[int] = mapped_column(Integer, nullable=False, server_default="20")
     notifications_retention_days: Mapped[int] = mapped_column(

@@ -1,0 +1,48 @@
+{
+  "title": "Entornos",
+  "subtitle": "Catálogo de entornos a los que pueden apuntar las ejecuciones",
+  "add": "Añadir",
+  "fields": {
+    "name": "Nombre",
+    "slug": "Slug",
+    "host": "Host",
+    "color": "Color"
+  },
+  "placeholders": {
+    "name": "Producción EU",
+    "slug": "produccion-eu",
+    "host": "https://app.example.com"
+  },
+  "badges": {
+    "default": "Predeterminado",
+    "archived": "archivado"
+  },
+  "actions": {
+    "setDefault": "Marcar como predeterminado",
+    "unsetDefault": "Quitar predeterminado",
+    "archive": "Archivar",
+    "unarchive": "Restaurar",
+    "delete": "Eliminar"
+  },
+  "toast": {
+    "created": "Entorno creado",
+    "deleted": "Entorno eliminado",
+    "deleteFailed": "No se pudo eliminar el entorno",
+    "setDefault": "Entorno predeterminado actualizado",
+    "unsetDefault": "Predeterminado limpiado"
+  },
+  "errors": {
+    "invalidSlug": "El slug debe contener solo minúsculas, dígitos y guiones"
+  },
+  "empty": {
+    "title": "Aún no hay entornos",
+    "description": "Añade uno para habilitar filtros y badges en las ejecuciones."
+  },
+  "picker": {
+    "placeholder": "Selecciona entorno",
+    "none": "Sin asignar",
+    "freeText": "Escribir valor libre…",
+    "freeTextPlaceholder": "Valor libre",
+    "useCatalog": "Elegir del catálogo"
+  }
+}

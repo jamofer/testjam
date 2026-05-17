@@ -10,6 +10,7 @@ import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
+import { EnvironmentPicker } from "../environment/EnvironmentPicker"
 
 const FORMAT_VALUES = [
   { value: "junit", labelKey: "import.junit", accept: ".xml" },
@@ -23,14 +24,14 @@ export function ImportExecutionDialog({ projectId }) {
   const queryClient = useQueryClient()
   const [title, setTitle] = useState("")
   const [version, setVersion] = useState("")
-  const [environment, setEnvironment] = useState("")
+  const [environment, setEnvironment] = useState(null)
   const [format, setFormat] = useState("junit")
   const [file, setFile] = useState(null)
 
   const reset = () => {
     setTitle("")
     setVersion("")
-    setEnvironment("")
+    setEnvironment(null)
     setFormat("junit")
     setFile(null)
   }
@@ -41,7 +42,7 @@ export function ImportExecutionDialog({ projectId }) {
         title: title.trim(),
         type: "automatic",
         version: version.trim() || undefined,
-        environment: environment.trim() || undefined,
+        environment: environment || undefined,
         test_case_ids: [],
       })
       const ingestFn = format === "junit"
@@ -91,7 +92,7 @@ export function ImportExecutionDialog({ projectId }) {
             </div>
             <div className="space-y-1">
               <Label>{t("import.environment")}</Label>
-              <Input value={environment} onChange={(event) => setEnvironment(event.target.value)} placeholder={t("import.environmentPlaceholder")} />
+              <EnvironmentPicker projectId={projectId} value={environment} onChange={setEnvironment} />
             </div>
           </div>
           <div className="space-y-1">

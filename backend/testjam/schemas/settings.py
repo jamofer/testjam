@@ -21,6 +21,7 @@ class AppSettingsOut(BaseModel):
     allow_user_self_delete: bool
     default_environment: str | None
     default_version_pattern: str | None
+    auto_create_environments: bool
     max_upload_mb: int
     notifications_retention_days: int
     smtp_host: str | None
@@ -46,6 +47,7 @@ class AppSettingsUpdate(BaseModel):
     allow_user_self_delete: bool | None = None
     default_environment: str | None = None
     default_version_pattern: str | None = None
+    auto_create_environments: bool | None = None
     max_upload_mb: int | None = None
     notifications_retention_days: int | None = None
     smtp_host: str | None = None

@@ -25,7 +25,7 @@ from testjam.schemas.execution import (
     TestExecutionOut,
     TestExecutionUpdate,
 )
-from testjam.services import execution_events
+from testjam.services import environments as env_service, execution_events
 from testjam.services.permissions import effective_role
 
 REOPENABLE_STATUSES = {"completed", "aborted"}
@@ -114,6 +114,7 @@ def create_execution(
         name = free_text_version.strip()
         if name:
             data["version_id"] = _resolve_or_create_version(db, id, name).id
+    data["environment"] = env_service.upsert_from_execution(db, id, data.get("environment"))
     if body.type == "manual" and not data.get("triggered_by"):
         data["triggered_by"] = ctx.user.username
     ex = TestExecution(**data, started_at=datetime.now(timezone.utc))
@@ -152,6 +153,10 @@ def update_execution(
     free_text_version = update_data.pop("version", None)
     if free_text_version and not update_data.get("version_id"):
         update_data["version_id"] = _resolve_or_create_version(db, ex.project_id, free_text_version.strip()).id
+    if "environment" in update_data:
+        update_data["environment"] = env_service.upsert_from_execution(
+            db, ex.project_id, update_data["environment"]
+        )
     for field, value in update_data.items():
         setattr(ex, field, value)
     db.flush()

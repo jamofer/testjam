@@ -25,11 +25,11 @@ from __future__ import annotations
 
 import asyncio
 
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect, status
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.orm import Session
 
+from testjam import database
 from testjam.auth.security import decode_token
-from testjam.database import get_db
 from testjam.models.execution import TestExecution
 from testjam.models.project import Project
 from testjam.models.user import User
@@ -110,11 +110,12 @@ async def _read_message(ws: WebSocket) -> dict | None:
     return msg if isinstance(msg, dict) else {}
 
 
-async def _handle_subscribe(ws: WebSocket, db: Session, user: User, topic) -> None:
+async def _handle_subscribe(ws: WebSocket, user: User, topic) -> None:
     if not isinstance(topic, str):
         await _ack(ws, "error", topic=topic, error="invalid_topic")
         return
-    err = _authorize_topic(db, user, topic)
+    with database.SessionLocal() as db:
+        err = _authorize_topic(db, user, topic)
     if err:
         await _ack(ws, "error", topic=topic, error=err)
         return
@@ -130,13 +131,13 @@ async def _handle_unsubscribe(ws: WebSocket, topic) -> None:
     await _ack(ws, "unsubscribed", topic=topic)
 
 
-async def _dispatch(ws: WebSocket, db: Session, user: User, msg: dict) -> None:
+async def _dispatch(ws: WebSocket, user: User, msg: dict) -> None:
     action = msg.get("action")
     topic = msg.get("topic")
     if action == "pong":
         return
     if action == "subscribe":
-        await _handle_subscribe(ws, db, user, topic)
+        await _handle_subscribe(ws, user, topic)
         return
     if action == "unsubscribe":
         await _handle_unsubscribe(ws, topic)
@@ -159,9 +160,9 @@ async def _heartbeat_loop(ws: WebSocket) -> None:
 async def ws_endpoint(
     websocket: WebSocket,
     token: str = Query(...),
-    db: Session = Depends(get_db),
 ):
-    user = _authenticate_token(db, token)
+    with database.SessionLocal() as db:
+        user = _authenticate_token(db, token)
     if not user:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
@@ -173,7 +174,7 @@ async def ws_endpoint(
             msg = await _read_message(websocket)
             if msg is None:
                 continue
-            await _dispatch(websocket, db, user, msg)
+            await _dispatch(websocket, user, msg)
     except WebSocketDisconnect:
         pass
     finally:

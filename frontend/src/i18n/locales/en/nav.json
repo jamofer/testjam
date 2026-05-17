@@ -9,6 +9,7 @@
     "plans": "Test Plans",
     "executions": "Executions",
     "versions": "Versions",
+    "environments": "Environments",
     "members": "Members"
   },
   "global": {

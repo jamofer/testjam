@@ -1,6 +1,7 @@
 from testjam.models.user import User, Group, GroupMember
 from testjam.models.project import Project, ProjectGroup, ProjectMember
 from testjam.models.version import ProjectVersion
+from testjam.models.environment import ProjectEnvironment
 from testjam.models.testcase import TestSuite, SuiteStep, TestCase, TestStep, Attachment
 from testjam.models.testplan import TestPlan
 from testjam.models.execution import TestExecution, TestResult, TestStepResult, ResultAttachment, ExecutionAttachment

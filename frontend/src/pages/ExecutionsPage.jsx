@@ -18,6 +18,7 @@ import { fmtDuration } from "../lib/format"
 import { EmptyState } from "../components/ui/empty-state"
 import { LiveIndicator } from "../components/ui/live-indicator"
 import { SkeletonList } from "../components/ui/skeleton"
+import { EnvironmentBadge } from "../components/environment/EnvironmentBadge"
 import { ImportExecutionDialog } from "../components/execution/ImportExecutionDialog"
 
 const statusIcon = {
@@ -159,7 +160,9 @@ export function ExecutionsPage() {
             </div>
             <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-400 dark:text-gray-500">
               {execution.version_name && <span>v{execution.version_name}</span>}
-              {execution.environment && <span>{execution.environment}</span>}
+              {execution.environment && (
+                <EnvironmentBadge projectId={projectId} slug={execution.environment} />
+              )}
               {(execution.token_name || execution.created_by || execution.triggered_by) && (
                 <span>{execution.token_name
                   ? t("via", { token: execution.token_name })

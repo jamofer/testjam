@@ -1,0 +1,48 @@
+{
+  "title": "Contornos",
+  "subtitle": "Catálogo de contornos aos que poden apuntar as execucións",
+  "add": "Engadir",
+  "fields": {
+    "name": "Nome",
+    "slug": "Slug",
+    "host": "Host",
+    "color": "Cor"
+  },
+  "placeholders": {
+    "name": "Produción EU",
+    "slug": "producion-eu",
+    "host": "https://app.example.com"
+  },
+  "badges": {
+    "default": "Por defecto",
+    "archived": "arquivado"
+  },
+  "actions": {
+    "setDefault": "Marcar como por defecto",
+    "unsetDefault": "Quitar por defecto",
+    "archive": "Arquivar",
+    "unarchive": "Restaurar",
+    "delete": "Eliminar"
+  },
+  "toast": {
+    "created": "Contorno creado",
+    "deleted": "Contorno eliminado",
+    "deleteFailed": "Non se puido eliminar o contorno",
+    "setDefault": "Contorno por defecto actualizado",
+    "unsetDefault": "Por defecto baleirado"
+  },
+  "errors": {
+    "invalidSlug": "O slug debe conter só minúsculas, díxitos e guións"
+  },
+  "empty": {
+    "title": "Aínda non hai contornos",
+    "description": "Engade un para habilitar filtros e etiquetas nas execucións."
+  },
+  "picker": {
+    "placeholder": "Selecciona contorno",
+    "none": "Sen asignar",
+    "freeText": "Escribe valor libre…",
+    "freeTextPlaceholder": "Valor libre",
+    "useCatalog": "Escoller do catálogo"
+  }
+}

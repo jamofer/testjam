@@ -5,6 +5,10 @@ os.environ.setdefault("BCRYPT_ROUNDS", "4")
 # PyJWT requires HMAC keys >=32 bytes (RFC 7518 §3.2); override any inherited
 # SECRET_KEY so the dev-container value does not trigger InsecureKeyLengthWarning.
 os.environ["SECRET_KEY"] = "x" * 32
+# Redis backplane must be disabled in tests — otherwise notify_project() in
+# pytest would publish to the dev Redis and the live API worker would relay
+# phantom WS events to any connected dev UI session.
+os.environ["REDIS_URL"] = ""
 
 import pytest
 from fastapi.testclient import TestClient

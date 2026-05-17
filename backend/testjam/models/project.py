@@ -24,6 +24,9 @@ class Project(Base):
     plans: Mapped[list[TestPlan]] = relationship(back_populates="project", cascade="all, delete-orphan")
     executions: Mapped[list[TestExecution]] = relationship(back_populates="project", cascade="all, delete-orphan")
     versions: Mapped[list[ProjectVersion]] = relationship(back_populates="project", cascade="all, delete-orphan")
+    environments: Mapped[list["ProjectEnvironment"]] = relationship(  # noqa: F821
+        back_populates="project", cascade="all, delete-orphan"
+    )
 
 
 class ProjectMember(Base):

@@ -23,6 +23,7 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage").then(m => ({ defaul
 const MembersPage = lazy(() => import("./pages/MembersPage").then(m => ({ default: m.MembersPage })))
 const VersionsPage = lazy(() => import("./pages/VersionsPage").then(m => ({ default: m.VersionsPage })))
 const VersionDetailPage = lazy(() => import("./pages/VersionDetailPage").then(m => ({ default: m.VersionDetailPage })))
+const EnvironmentsPage = lazy(() => import("./pages/EnvironmentsPage").then(m => ({ default: m.EnvironmentsPage })))
 const CoverageMatrixPage = lazy(() => import("./pages/CoverageMatrixPage").then(m => ({ default: m.CoverageMatrixPage })))
 const SettingsPage = lazy(() => import("./pages/SettingsPage").then(m => ({ default: m.SettingsPage })))
 
@@ -66,6 +67,7 @@ export default function App() {
               <Route path="/projects/:id/executions/new" element={<NewExecutionPage />} />
               <Route path="/projects/:id/members" element={<MembersPage />} />
               <Route path="/projects/:id/versions" element={<VersionsPage />} />
+              <Route path="/projects/:id/environments" element={<EnvironmentsPage />} />
               <Route path="/projects/:id/coverage" element={<CoverageMatrixPage />} />
               <Route path="/projects/:id/versions/:versionId" element={<VersionDetailPage />} />
               <Route path="/cases/:id" element={<TestCasePage />} />

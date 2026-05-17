@@ -1,0 +1,48 @@
+{
+  "title": "Entorns",
+  "subtitle": "Catàleg d'entorns als quals poden apuntar les execucions",
+  "add": "Afegir",
+  "fields": {
+    "name": "Nom",
+    "slug": "Slug",
+    "host": "Host",
+    "color": "Color"
+  },
+  "placeholders": {
+    "name": "Producció EU",
+    "slug": "produccio-eu",
+    "host": "https://app.example.com"
+  },
+  "badges": {
+    "default": "Per defecte",
+    "archived": "arxivat"
+  },
+  "actions": {
+    "setDefault": "Marcar com a per defecte",
+    "unsetDefault": "Treure per defecte",
+    "archive": "Arxivar",
+    "unarchive": "Restaurar",
+    "delete": "Eliminar"
+  },
+  "toast": {
+    "created": "Entorn creat",
+    "deleted": "Entorn eliminat",
+    "deleteFailed": "No s'ha pogut eliminar l'entorn",
+    "setDefault": "Entorn per defecte actualitzat",
+    "unsetDefault": "Per defecte netejat"
+  },
+  "errors": {
+    "invalidSlug": "El slug ha de contenir només minúscules, dígits i guions"
+  },
+  "empty": {
+    "title": "Encara no hi ha entorns",
+    "description": "Afegeix un per habilitar filtres i etiquetes a les execucions."
+  },
+  "picker": {
+    "placeholder": "Selecciona entorn",
+    "none": "Sense assignar",
+    "freeText": "Escriu valor lliure…",
+    "freeTextPlaceholder": "Valor lliure",
+    "useCatalog": "Triar del catàleg"
+  }
+}

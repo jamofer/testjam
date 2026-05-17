@@ -1,0 +1,48 @@
+{
+  "title": "Inguruneak",
+  "subtitle": "Exekuzioek apuntatu ditzaketen inguruneen katalogoa",
+  "add": "Gehitu",
+  "fields": {
+    "name": "Izena",
+    "slug": "Slug",
+    "host": "Host",
+    "color": "Kolorea"
+  },
+  "placeholders": {
+    "name": "Produkzioa EU",
+    "slug": "produkzioa-eu",
+    "host": "https://app.example.com"
+  },
+  "badges": {
+    "default": "Lehenetsia",
+    "archived": "artxibatua"
+  },
+  "actions": {
+    "setDefault": "Lehenetsi gisa ezarri",
+    "unsetDefault": "Lehenespena kendu",
+    "archive": "Artxibatu",
+    "unarchive": "Berreskuratu",
+    "delete": "Ezabatu"
+  },
+  "toast": {
+    "created": "Ingurunea sortua",
+    "deleted": "Ingurunea ezabatua",
+    "deleteFailed": "Ezin izan da ingurunea ezabatu",
+    "setDefault": "Lehenetsitako ingurunea eguneratua",
+    "unsetDefault": "Lehenespena garbitua"
+  },
+  "errors": {
+    "invalidSlug": "Slug-ak letra xeheak, zenbakiak eta marrak izan behar ditu"
+  },
+  "empty": {
+    "title": "Oraindik ez dago ingurunerik",
+    "description": "Gehitu bat exekuzioetan iragazkiak eta txartelak gaitzeko."
+  },
+  "picker": {
+    "placeholder": "Hautatu ingurunea",
+    "none": "Esleitu gabe",
+    "freeText": "Idatzi balio librea…",
+    "freeTextPlaceholder": "Balio librea",
+    "useCatalog": "Aukeratu katalogotik"
+  }
+}

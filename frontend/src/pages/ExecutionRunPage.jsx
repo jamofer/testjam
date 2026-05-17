@@ -18,6 +18,7 @@ import { LiveIndicator } from "../components/ui/live-indicator"
 import { Skeleton, SkeletonList } from "../components/ui/skeleton"
 import { ResultCard, ResultExpandContext } from "../components/execution/ResultCard"
 import { RunSuiteGroup } from "../components/execution/RunSuiteGroup"
+import { EnvironmentBadge } from "../components/environment/EnvironmentBadge"
 import { ImportResultsButton } from "../components/execution/ImportResultsButton"
 import { ShortcutHelpDialog, SHORTCUT_TO_STATUS } from "../components/execution/ShortcutHelpDialog"
 
@@ -418,7 +419,9 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
             </h1>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-sm text-gray-500 dark:text-gray-400">
               {execution.version_name && <span>v{execution.version_name}</span>}
-              {execution.environment && <span>{execution.environment}</span>}
+              {execution.environment && (
+                <EnvironmentBadge projectId={execution.project_id} slug={execution.environment} />
+              )}
               {(execution.token_name || execution.created_by || execution.triggered_by) && (
                 <span>{execution.token_name
                   ? t("via", { token: execution.token_name })

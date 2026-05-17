@@ -1,0 +1,48 @@
+{
+  "title": "Environments",
+  "subtitle": "Catalog of environments executions can target",
+  "add": "Add",
+  "fields": {
+    "name": "Name",
+    "slug": "Slug",
+    "host": "Host",
+    "color": "Color"
+  },
+  "placeholders": {
+    "name": "Production EU",
+    "slug": "production-eu",
+    "host": "https://app.example.com"
+  },
+  "badges": {
+    "default": "Default",
+    "archived": "archived"
+  },
+  "actions": {
+    "setDefault": "Set as default",
+    "unsetDefault": "Unset default",
+    "archive": "Archive",
+    "unarchive": "Restore",
+    "delete": "Delete"
+  },
+  "toast": {
+    "created": "Environment created",
+    "deleted": "Environment removed",
+    "deleteFailed": "Could not delete environment",
+    "setDefault": "Default environment updated",
+    "unsetDefault": "Default cleared"
+  },
+  "errors": {
+    "invalidSlug": "Slug must be lowercase letters, digits and hyphens"
+  },
+  "empty": {
+    "title": "No environments yet",
+    "description": "Add one to enable filters and badges on executions."
+  },
+  "picker": {
+    "placeholder": "Select environment",
+    "none": "Unset",
+    "freeText": "Type custom value…",
+    "freeTextPlaceholder": "Custom value",
+    "useCatalog": "Pick from catalog"
+  }
+}

@@ -9,6 +9,7 @@
     "plans": "Planes de prueba",
     "executions": "Ejecuciones",
     "versions": "Versiones",
+    "environments": "Entornos",
     "members": "Miembros"
   },
   "global": {

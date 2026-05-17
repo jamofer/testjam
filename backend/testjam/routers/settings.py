@@ -29,6 +29,7 @@ def _to_admin_out(s) -> AppSettingsOut:
         allow_user_self_delete=s.allow_user_self_delete,
         default_environment=s.default_environment,
         default_version_pattern=s.default_version_pattern,
+        auto_create_environments=s.auto_create_environments,
         max_upload_mb=s.max_upload_mb,
         notifications_retention_days=s.notifications_retention_days,
         smtp_host=s.smtp_host,

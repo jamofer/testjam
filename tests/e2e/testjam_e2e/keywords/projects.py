@@ -8,10 +8,20 @@ class ProjectMixin:
     @keyword("I create a project named ${name}")
     def create_project(self, name: str) -> int:
         response = self.client.post("/projects", json={"name": name})
+        if response.status_code == 409 and "already exists" in response.text:
+            self.current_project_id = self._lookup_project_id_by_name(name)
+            logger.info(f"Reusing existing project '{name}' → id={self.current_project_id}")
+            return self.current_project_id
         assert response.status_code == 201, f"Create project failed: {response.text}"
         self.current_project_id = response.json()["id"]
         logger.info(f"Created project '{name}' → id={self.current_project_id}")
         return self.current_project_id
+
+    def _lookup_project_id_by_name(self, name: str) -> int:
+        listing = self.client.get("/projects", params={"include_archived": "true"}).json()
+        match = next((project for project in listing if project["name"] == name), None)
+        assert match is not None, f"Project '{name}' reported as duplicate but not found in listing"
+        return match["id"]
 
     @keyword("I rename the project to ${name}")
     def rename_project(self, name: str) -> None:
