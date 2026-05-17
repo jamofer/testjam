@@ -1,6 +1,7 @@
 venv
 .idea
 .git
+.docker-build-stamp
 
 # Python
 __pycache__/

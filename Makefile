@@ -1,10 +1,17 @@
 COMPOSE = COMPOSE_FILE=docker-compose-dev.yml docker compose
 
-.PHONY: help up down reset admin backup test test-api test-front test-e2e _up-api _up-front
+# Rebuild trigger: image only rebuilds when one of these files changes.
+# Source code is bind-mounted so day-to-day edits never need a rebuild.
+BUILD_STAMP = .docker-build-stamp
+BUILD_DEPS  = backend/Dockerfile backend/pyproject.toml \
+              frontend/Dockerfile frontend/package.json frontend/package-lock.json
+
+.PHONY: help up down reset rebuild admin backup test test-api test-front test-e2e _up-api _up-front
 
 help:
 	@echo "Targets:"
-	@echo "  make up           Start dev stack (db, api, frontend, mailpit)"
+	@echo "  make up           Start dev stack (rebuilds image only if Dockerfile/deps changed)"
+	@echo "  make rebuild      Force rebuild of api + frontend images, then start"
 	@echo "  make down         Stop dev stack"
 	@echo "  make reset        Reset DB and restart"
 	@echo "  make admin        Create admin user (admin / admin@example.com / admin123)"
@@ -14,7 +21,16 @@ help:
 	@echo "  make test-front   vitest        ARGS=__tests__/Foo"
 	@echo "  make test-e2e     robot         ARGS=suites/01_auth.robot"
 
-up:
+up: $(BUILD_STAMP)
+	$(COMPOSE) up -d
+
+$(BUILD_STAMP): $(BUILD_DEPS)
+	$(COMPOSE) build
+	@touch $@
+
+rebuild:
+	$(COMPOSE) build
+	@touch $(BUILD_STAMP)
 	$(COMPOSE) up -d
 
 down:
