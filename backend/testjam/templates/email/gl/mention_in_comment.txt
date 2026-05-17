@@ -1,0 +1,9 @@
+{{ actor }} mencionoute en '{{ subject_object }}'.
+
+{% if excerpt %}> {{ excerpt }}
+
+{% endif %}Abrir a conversa: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Xestionar preferencias: {{ preferences_url }}

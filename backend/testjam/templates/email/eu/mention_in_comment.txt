@@ -1,0 +1,9 @@
+{{ actor }}-(e)k aipatu zaitu '{{ subject_object }}' lekuan.
+
+{% if excerpt %}> {{ excerpt }}
+
+{% endif %}Ireki elkarrizketa: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Kudeatu hobespenak: {{ preferences_url }}

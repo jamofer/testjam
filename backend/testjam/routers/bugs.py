@@ -51,10 +51,40 @@ from testjam.schemas.bug import (
 )
 from fastapi.responses import HTMLResponse, StreamingResponse
 
-from testjam.services import bug_activity, bug_context, bug_events, bug_reports
+from testjam.services import bug_activity, bug_context, bug_events, bug_reports, mention_notify
 from testjam.services.bug_numbering import next_bug_number
 from testjam.services.environments import upsert_from_execution
 from testjam.services.permissions import effective_role
+
+
+def _bug_mention_subject(bug: Bug) -> str:
+    return f"bug #{bug.number} {bug.title}"
+
+
+def _bug_mention_link(bug: Bug) -> str:
+    return f"/projects/{bug.project_id}/bugs/{bug.number}"
+
+
+def _fan_out_mentions(
+    db: Session,
+    bug: Bug,
+    body: str | None,
+    previous_body: str | None,
+    actor: User,
+    background: BackgroundTasks,
+) -> None:
+    if not body:
+        return
+    mention_notify.notify_mentions(
+        db,
+        project_id=bug.project_id,
+        body=body,
+        previous_body=previous_body,
+        subject_object=_bug_mention_subject(bug),
+        link_path=_bug_mention_link(bug),
+        actor=actor,
+        background=background,
+    )
 
 
 WRITER_ROLES = {"tester", "owner"}
@@ -208,6 +238,7 @@ def create_bug(
     db.commit()
     db.refresh(bug)
     bug_events.on_bug_created(db, bug, current, background)
+    _fan_out_mentions(db, bug, bug.description, None, current, background)
     return _bug_out(bug)
 
 
@@ -250,6 +281,7 @@ def update_bug(
     update_data = body.model_dump(exclude_unset=True)
     previous_assignee_id = bug.assigned_to_id
     previous_snapshot = bug_activity.snapshot(bug)
+    previous_description = bug.description
     if "environment" in update_data and update_data["environment"]:
         update_data["environment"] = upsert_from_execution(
             db, bug.project_id, update_data["environment"],
@@ -262,6 +294,8 @@ def update_bug(
     if "assigned_to_id" in update_data and bug.assigned_to_id != previous_assignee_id:
         bug_events.on_bug_assigned(db, bug, previous_assignee_id, current, background)
     bug_events.on_bug_updated(db, bug, previous_snapshot, current)
+    if "description" in update_data:
+        _fan_out_mentions(db, bug, bug.description, previous_description, current, background)
     return _bug_out(bug)
 
 
@@ -326,6 +360,7 @@ def list_comments(
 def add_comment(
     id: int,
     body: BugCommentCreate,
+    background: BackgroundTasks,
     db: Session = Depends(get_db),
     current: User = Depends(get_current_user),
 ):
@@ -337,6 +372,7 @@ def add_comment(
     db.commit()
     db.refresh(comment)
     bug_events.on_bug_comment_added(comment)
+    _fan_out_mentions(db, bug, comment.body, None, current, background)
     return comment
 
 
@@ -345,6 +381,7 @@ def update_comment(
     id: int,
     comment_id: int,
     body: BugCommentUpdate,
+    background: BackgroundTasks,
     db: Session = Depends(get_db),
     current: User = Depends(get_current_user),
 ):
@@ -353,10 +390,12 @@ def update_comment(
         raise HTTPException(status_code=404, detail="Not found")
     if comment.created_by_id != current.id and not current.is_admin:
         raise HTTPException(status_code=403, detail="Only the author or admin can edit")
+    previous_body = comment.body
     comment.body = body.body
     db.commit()
     db.refresh(comment)
     bug_events.on_bug_comment_updated(comment)
+    _fan_out_mentions(db, comment.bug, comment.body, previous_body, current, background)
     return comment
 
 

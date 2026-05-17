@@ -1,0 +1,1 @@
+[{{ app_name }}] {{ actor }} te mencionó en {{ subject_object }}

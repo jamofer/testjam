@@ -18,7 +18,7 @@ configure_sentry()
 from testjam.database import SessionLocal
 from testjam.realtime import manager, set_main_loop
 from testjam.realtime_backplane import build_backplane, set_backplane
-from testjam.routers import admin, auth, users, groups, projects, project_groups, dashboard, suites, cases, testplans, executions, versions, environments, bugs, coverage, members, tokens, notifications, notification_preferences, settings as settings_router, ws, health
+from testjam.routers import admin, auth, users, groups, projects, project_groups, dashboard, suites, cases, testplans, executions, versions, environments, bugs, coverage, members, mentions, tokens, notifications, notification_preferences, settings as settings_router, ws, health
 from testjam.services.log_flusher import configure_from_settings as configure_log_flusher
 from testjam.services.settings import get_settings as get_app_settings
 
@@ -90,6 +90,7 @@ app.include_router(environments.environments_router, prefix=settings.API_V1_PREF
 app.include_router(bugs.projects_router, prefix=settings.API_V1_PREFIX)
 app.include_router(bugs.bugs_router, prefix=settings.API_V1_PREFIX)
 app.include_router(coverage.router, prefix=settings.API_V1_PREFIX)
+app.include_router(mentions.router, prefix=settings.API_V1_PREFIX)
 app.include_router(members.router, prefix=settings.API_V1_PREFIX)
 app.include_router(project_groups.router, prefix=settings.API_V1_PREFIX)
 app.include_router(tokens.user_router, prefix=settings.API_V1_PREFIX)

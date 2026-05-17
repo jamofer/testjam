@@ -65,6 +65,9 @@ _FOOTER_REASONS: dict[str, dict[str, str]] = {
         NotificationEvent.BUG_STATUS_CHANGED.value: (
             "You're receiving this because a bug you reported or were assigned to changed status."
         ),
+        NotificationEvent.MENTION_IN_COMMENT.value: (
+            "You're receiving this because someone mentioned you in a comment."
+        ),
     },
     "es": {
         NotificationEvent.EXECUTION_ASSIGNED.value: (
@@ -87,6 +90,9 @@ _FOOTER_REASONS: dict[str, dict[str, str]] = {
         ),
         NotificationEvent.BUG_STATUS_CHANGED.value: (
             "Recibes este email porque un bug que reportaste o te asignaron cambió de estado."
+        ),
+        NotificationEvent.MENTION_IN_COMMENT.value: (
+            "Recibes este email porque alguien te mencionó en un comentario."
         ),
     },
     "ca": {
@@ -111,6 +117,9 @@ _FOOTER_REASONS: dict[str, dict[str, str]] = {
         NotificationEvent.BUG_STATUS_CHANGED.value: (
             "Reps aquest correu perquè un bug que has reportat o que t'han assignat ha canviat d'estat."
         ),
+        NotificationEvent.MENTION_IN_COMMENT.value: (
+            "Reps aquest correu perquè algú t'ha mencionat en un comentari."
+        ),
     },
     "gl": {
         NotificationEvent.EXECUTION_ASSIGNED.value: (
@@ -134,6 +143,9 @@ _FOOTER_REASONS: dict[str, dict[str, str]] = {
         NotificationEvent.BUG_STATUS_CHANGED.value: (
             "Recibes este correo porque un bug que reportaches ou che asignaron cambiou de estado."
         ),
+        NotificationEvent.MENTION_IN_COMMENT.value: (
+            "Recibes este correo porque alguén te mencionou nun comentario."
+        ),
     },
     "eu": {
         NotificationEvent.EXECUTION_ASSIGNED.value: (
@@ -156,6 +168,9 @@ _FOOTER_REASONS: dict[str, dict[str, str]] = {
         ),
         NotificationEvent.BUG_STATUS_CHANGED.value: (
             "Mezu hau jaso duzu zuk jakinarazitako edo esleitu zaizun akats batek egoera aldatu duelako."
+        ),
+        NotificationEvent.MENTION_IN_COMMENT.value: (
+            "Mezu hau jaso duzu norbaitek iruzkin batean aipatu zaituelako."
         ),
     },
 }

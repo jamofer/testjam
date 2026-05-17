@@ -1,0 +1,1 @@
+[{{ app_name }}] {{ actor }}-(e)k aipatu zaitu hemen: {{ subject_object }}

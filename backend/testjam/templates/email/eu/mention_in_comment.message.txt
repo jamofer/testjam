@@ -1,0 +1,1 @@
+{{ actor }}-(e)k aipatu zaitu '{{ subject_object }}' lekuan

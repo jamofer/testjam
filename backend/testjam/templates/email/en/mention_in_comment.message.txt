@@ -1,0 +1,1 @@
+{{ actor }} mentioned you in '{{ subject_object }}'
