@@ -35,6 +35,7 @@ services:
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-480}
       RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-false}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      API_WORKERS: ${API_WORKERS:-1}
     volumes:
       - ./backend:/app
       - uploads:/app/uploads
@@ -43,8 +44,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: >
-      sh -c "alembic upgrade head && uvicorn testjam.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: ["sh", "/app/scripts/dev_server.sh"]
     healthcheck:
       test: ["CMD", "python", "/app/scripts/healthcheck.py"]
       interval: 10s
