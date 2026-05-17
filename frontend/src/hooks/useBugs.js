@@ -99,3 +99,37 @@ export function useDeleteBugComment() {
       queryClient.invalidateQueries({ queryKey: ["bug-comments", variables.bugId] }),
   })
 }
+
+export function useBugContext(id) {
+  return useQuery({
+    queryKey: ["bug-context", id],
+    queryFn: () => bugsApi.getContext(id),
+    enabled: !!id,
+  })
+}
+
+export function useBugLinks(id) {
+  return useQuery({
+    queryKey: ["bug-links", id],
+    queryFn: () => bugsApi.listLinks(id),
+    enabled: !!id,
+  })
+}
+
+export function useAddBugLink() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }) => bugsApi.addLink(id, data),
+    onSuccess: (link) =>
+      queryClient.invalidateQueries({ queryKey: ["bug-links", link.bug_id] }),
+  })
+}
+
+export function useDeleteBugLink() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ bugId, linkId }) => bugsApi.deleteLink(bugId, linkId),
+    onSuccess: (_response, variables) =>
+      queryClient.invalidateQueries({ queryKey: ["bug-links", variables.bugId] }),
+  })
+}

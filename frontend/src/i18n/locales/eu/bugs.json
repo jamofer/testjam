@@ -61,19 +61,71 @@
   },
   "tabs": {
     "description": "Deskribapena",
+    "discussion": "Eztabaida",
     "comments": "Iruzkinak",
     "attachments": "Eranskinak",
     "history": "Historia"
   },
+  "description": {
+    "empty": "Sakatu deskribapena gehitzeko"
+  },
   "comments": {
     "placeholder": "Idatzi iruzkin bat…",
     "empty": "Oraindik ez dago iruzkinik"
+  },
+  "header": {
+    "openedBy": "irekita {{user}}-(e)k",
+    "editedBy": "editatua {{user}}-(e)k"
+  },
+  "linkedOccurrence": {
+    "origin": "Jatorria",
+    "alsoIn": "Hemen ere bai",
+    "otherLinks": "Beste loturak",
+    "addSection": "Gehitu lotura",
+    "run": "Exekuzioa",
+    "path": "Bidea",
+    "step": "Pausoa",
+    "version": "Bertsioa",
+    "environment": "Ingurunea",
+    "note": "Oharra",
+    "delete": "Kendu lotura",
+    "notSet": "—"
   },
   "history": {
     "createdLabel": "Sortua egoera honekin",
     "transitionLabel": "Egoera aldatu da",
     "by": "{{user}}-(e)k",
     "empty": "Egoera-aldaketarik gabe"
+  },
+  "context": {
+    "about": "Buruz",
+    "severity": "Larritasuna",
+    "status": "Egoera",
+    "environment": "Ingurunea",
+    "assignee": "Esleitua",
+    "createdBy": "Sortzailea",
+    "created": "Sortua",
+    "updatedBy": "Eguneratzailea",
+    "updated": "Eguneratua",
+    "resolved": "Konponduta",
+    "linked": "Loturak",
+    "foundInRun": "Aurkitu da exekuzioan",
+    "version": "Bertsioa",
+    "externalTicket": "Kanpoko txartela",
+    "tags": "Etiketak",
+    "noTags": "Etiketarik ez"
+  },
+  "links": {
+    "add": "Gehitu lotura",
+    "added": "Lotura gehitu da",
+    "dialogTitle": "Gehitu lotura bat",
+    "tabUrl": "URL",
+    "tabBug": "Lotutako akatsa",
+    "url": "URL",
+    "label": "Etiketa",
+    "labelPlaceholder": "Aukerakoa",
+    "targetBug": "Helburuko akatsa",
+    "targetBugPlaceholder": "Aukeratu akats bat…"
   },
   "empty": {
     "title": "Oraindik ez dago akatsik",

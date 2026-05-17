@@ -61,19 +61,71 @@
   },
   "tabs": {
     "description": "Descripció",
+    "discussion": "Discussió",
     "comments": "Comentaris",
     "attachments": "Adjunts",
     "history": "Historial"
   },
+  "description": {
+    "empty": "Fes clic per afegir descripció"
+  },
   "comments": {
     "placeholder": "Escriu un comentari…",
     "empty": "Encara no hi ha comentaris"
+  },
+  "header": {
+    "openedBy": "obert per {{user}}",
+    "editedBy": "editat per {{user}}"
+  },
+  "linkedOccurrence": {
+    "origin": "Origen",
+    "alsoIn": "També a",
+    "otherLinks": "Altres vincles",
+    "addSection": "Afegeix vincle",
+    "run": "Execució",
+    "path": "Ruta",
+    "step": "Pas",
+    "version": "Versió",
+    "environment": "Entorn",
+    "note": "Nota",
+    "delete": "Treu vincle",
+    "notSet": "—"
   },
   "history": {
     "createdLabel": "Creat amb estat",
     "transitionLabel": "Ha canviat d'estat",
     "by": "per {{user}}",
     "empty": "Sense canvis d'estat"
+  },
+  "context": {
+    "about": "Sobre",
+    "severity": "Severitat",
+    "status": "Estat",
+    "environment": "Entorn",
+    "assignee": "Assignat",
+    "createdBy": "Creat per",
+    "created": "Creat",
+    "updatedBy": "Actualitzat per",
+    "updated": "Actualitzat",
+    "resolved": "Resolt",
+    "linked": "Vincles",
+    "foundInRun": "Detectat a",
+    "version": "Versió",
+    "externalTicket": "Tiquet extern",
+    "tags": "Etiquetes",
+    "noTags": "Sense etiquetes"
+  },
+  "links": {
+    "add": "Afegeix vincle",
+    "added": "Vincle afegit",
+    "dialogTitle": "Afegeix un vincle",
+    "tabUrl": "URL",
+    "tabBug": "Bug relacionat",
+    "url": "URL",
+    "label": "Etiqueta",
+    "labelPlaceholder": "Opcional",
+    "targetBug": "Bug destí",
+    "targetBugPlaceholder": "Tria un bug…"
   },
   "empty": {
     "title": "Encara no hi ha bugs",

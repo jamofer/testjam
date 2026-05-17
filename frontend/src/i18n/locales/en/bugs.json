@@ -61,13 +61,35 @@
   },
   "tabs": {
     "description": "Description",
+    "discussion": "Discussion",
     "comments": "Comments",
     "attachments": "Attachments",
     "history": "History"
   },
+  "description": {
+    "empty": "Click to add a description"
+  },
   "comments": {
     "placeholder": "Write a comment…",
     "empty": "No comments yet"
+  },
+  "header": {
+    "openedBy": "opened by {{user}}",
+    "editedBy": "edited by {{user}}"
+  },
+  "linkedOccurrence": {
+    "origin": "Origin",
+    "alsoIn": "Also in",
+    "otherLinks": "Other links",
+    "addSection": "Add a link",
+    "run": "Run",
+    "path": "Path",
+    "step": "Step",
+    "version": "Version",
+    "environment": "Environment",
+    "note": "Note",
+    "delete": "Remove link",
+    "notSet": "—"
   },
   "history": {
     "createdLabel": "Created with status",
@@ -75,14 +97,44 @@
     "by": "by {{user}}",
     "empty": "No status changes yet"
   },
+  "context": {
+    "about": "About",
+    "severity": "Severity",
+    "status": "Status",
+    "environment": "Environment",
+    "assignee": "Assignee",
+    "createdBy": "Created by",
+    "created": "Created",
+    "updatedBy": "Updated by",
+    "updated": "Updated",
+    "resolved": "Resolved",
+    "linked": "Linked",
+    "foundInRun": "Found in run",
+    "version": "Version",
+    "externalTicket": "External ticket",
+    "tags": "Tags",
+    "noTags": "No tags"
+  },
+  "links": {
+    "add": "Add link",
+    "added": "Link added",
+    "dialogTitle": "Add a link",
+    "tabUrl": "URL",
+    "tabBug": "Related bug",
+    "url": "URL",
+    "label": "Label",
+    "labelPlaceholder": "Optional",
+    "targetBug": "Target bug",
+    "targetBugPlaceholder": "Pick a bug…"
+  },
   "empty": {
     "title": "No bugs yet",
     "description": "Report one from a failed result or create a manual entry."
   },
   "toast": {
     "created": "Bug created",
-    "updated": "Bug updated",
     "deleted": "Bug deleted",
+    "updated": "Bug updated",
     "statusChanged": "Status updated",
     "commentAdded": "Comment added",
     "reportFailed": "Could not download report"

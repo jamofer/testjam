@@ -43,6 +43,9 @@ class Bug(Base):
     created_by_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
+    updated_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
 
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -53,6 +56,7 @@ class Bug(Base):
     project: Mapped["Project"] = relationship(back_populates="bugs")  # noqa: F821
     assigned_to: Mapped["User | None"] = relationship(foreign_keys=[assigned_to_id])  # noqa: F821
     created_by: Mapped["User | None"] = relationship(foreign_keys=[created_by_id])  # noqa: F821
+    updated_by: Mapped["User | None"] = relationship(foreign_keys=[updated_by_id])  # noqa: F821
     result: Mapped["TestResult | None"] = relationship(foreign_keys=[result_id])  # noqa: F821
     execution: Mapped["TestExecution | None"] = relationship(foreign_keys=[execution_id])  # noqa: F821
     version: Mapped["ProjectVersion | None"] = relationship(foreign_keys=[version_id])  # noqa: F821
@@ -68,6 +72,12 @@ class Bug(Base):
         back_populates="bug",
         cascade="all, delete-orphan",
         order_by="BugStatusHistory.changed_at.asc(), BugStatusHistory.id.asc()",
+    )
+    links: Mapped[list["BugLink"]] = relationship(
+        back_populates="bug",
+        cascade="all, delete-orphan",
+        order_by="BugLink.created_at.asc(), BugLink.id.asc()",
+        foreign_keys="BugLink.bug_id",
     )
 
 
@@ -109,6 +119,40 @@ class BugAttachment(Base):
 
     bug: Mapped[Bug] = relationship(back_populates="attachments")
     uploaded_by: Mapped["User | None"] = relationship(foreign_keys=[uploaded_by_id])  # noqa: F821
+
+
+class BugLink(Base):
+    __tablename__ = "bug_links"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    bug_id: Mapped[int] = mapped_column(
+        ForeignKey("bugs.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    label: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    execution_id: Mapped[int | None] = mapped_column(
+        ForeignKey("test_executions.id", ondelete="SET NULL"), nullable=True
+    )
+    test_case_id: Mapped[int | None] = mapped_column(
+        ForeignKey("test_cases.id", ondelete="SET NULL"), nullable=True
+    )
+    test_step_id: Mapped[int | None] = mapped_column(
+        ForeignKey("test_steps.id", ondelete="SET NULL"), nullable=True
+    )
+    target_bug_id: Mapped[int | None] = mapped_column(
+        ForeignKey("bugs.id", ondelete="SET NULL"), nullable=True
+    )
+    created_by_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
+
+    bug: Mapped[Bug] = relationship(back_populates="links", foreign_keys=[bug_id])
+    execution: Mapped["TestExecution | None"] = relationship(foreign_keys=[execution_id])  # noqa: F821
+    test_case: Mapped["TestCase | None"] = relationship(foreign_keys=[test_case_id])  # noqa: F821
+    test_step: Mapped["TestStep | None"] = relationship(foreign_keys=[test_step_id])  # noqa: F821
+    target_bug: Mapped["Bug | None"] = relationship(foreign_keys=[target_bug_id])
+    created_by: Mapped["User | None"] = relationship(foreign_keys=[created_by_id])  # noqa: F821
 
 
 class BugStatusHistory(Base):

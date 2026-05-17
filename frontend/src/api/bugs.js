@@ -21,6 +21,10 @@ export const bugsApi = {
     api.delete(`/bugs/${id}/comments/${commentId}`),
   listHistory: (id) => api.get(`/bugs/${id}/history`).then(r => r.data),
   listAttachments: (id) => api.get(`/bugs/${id}/attachments`).then(r => r.data),
+  getContext: (id) => api.get(`/bugs/${id}/context`).then(r => r.data),
+  listLinks: (id) => api.get(`/bugs/${id}/links`).then(r => r.data),
+  addLink: (id, data) => api.post(`/bugs/${id}/links`, data).then(r => r.data),
+  deleteLink: (id, linkId) => api.delete(`/bugs/${id}/links/${linkId}`),
   reportUrl: (projectId, { format = "html", versionId, environment } = {}) => {
     const params = new URLSearchParams({ format })
     if (versionId) params.set("version_id", versionId)

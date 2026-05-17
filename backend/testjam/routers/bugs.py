@@ -29,7 +29,7 @@ from testjam.auth.dependencies import (
     require_writable_project_access,
 )
 from testjam.database import get_db
-from testjam.models.bug import Bug, BugAttachment, BugComment, BugStatusHistory
+from testjam.models.bug import Bug, BugAttachment, BugComment, BugLink, BugStatusHistory
 from testjam.models.execution import TestExecution
 from testjam.models.project import Project
 from testjam.models.user import User
@@ -38,7 +38,10 @@ from testjam.schemas.bug import (
     BugCommentCreate,
     BugCommentOut,
     BugCommentUpdate,
+    BugContextOut,
     BugCreate,
+    BugLinkCreate,
+    BugLinkOut,
     BugOut,
     BugStatusChange,
     BugStatusHistoryOut,
@@ -47,7 +50,7 @@ from testjam.schemas.bug import (
 )
 from fastapi.responses import HTMLResponse, StreamingResponse
 
-from testjam.services import bug_events, bug_reports
+from testjam.services import bug_context, bug_events, bug_reports
 from testjam.services.bug_numbering import next_bug_number
 from testjam.services.environments import upsert_from_execution
 from testjam.services.permissions import effective_role
@@ -60,6 +63,10 @@ bugs_router = APIRouter(prefix="/bugs", tags=["Bugs"])
 
 def _bug_out(bug: Bug) -> BugOut:
     return bug_events.bug_out(bug)
+
+
+def _touch_updated_by(bug: Bug, current: User) -> None:
+    bug.updated_by_id = current.id
 
 
 def _can_write_project(db: Session, user: User, project_id: int) -> bool:
@@ -179,6 +186,7 @@ def create_bug(
         environment=environment,
         assigned_to_id=payload.get("assigned_to_id"),
         created_by_id=current.id,
+        updated_by_id=current.id,
     )
     for attempt in range(5):
         try:
@@ -243,6 +251,7 @@ def update_bug(
         )
     for field, value in update_data.items():
         setattr(bug, field, value)
+    _touch_updated_by(bug, current)
     db.commit()
     db.refresh(bug)
     if "assigned_to_id" in update_data and bug.assigned_to_id != previous_assignee_id:
@@ -278,6 +287,7 @@ def change_bug_status(
         changed_by_id=current.id,
     )
     db.add(history)
+    _touch_updated_by(bug, current)
     db.commit()
     db.refresh(bug)
     db.refresh(history)
@@ -368,6 +378,78 @@ def delete_comment(
     db.delete(comment)
     db.commit()
     bug_events.on_bug_comment_deleted(bug.id, comment_id)
+
+
+@bugs_router.get("/{id}/context", response_model=BugContextOut)
+def get_bug_context(
+    id: int,
+    db: Session = Depends(get_db),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    bug = _get_bug(db, id)
+    _authorize_bug_access(ctx, bug)
+    return bug_context.build_bug_context(db, bug)
+
+
+@bugs_router.get("/{id}/links", response_model=list[BugLinkOut])
+def list_links(
+    id: int,
+    db: Session = Depends(get_db),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    bug = _get_bug(db, id)
+    _authorize_bug_access(ctx, bug)
+    return [bug_events.link_out(link, db) for link in bug.links]
+
+
+@bugs_router.post(
+    "/{id}/links", response_model=BugLinkOut, status_code=status.HTTP_201_CREATED
+)
+def add_link(
+    id: int,
+    body: BugLinkCreate,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    bug = _get_bug(db, id)
+    _require_writer(db, current, bug.project_id)
+    _ensure_project_writable(db, bug.project_id)
+    link = BugLink(
+        bug_id=bug.id,
+        label=body.label,
+        url=body.url,
+        execution_id=body.execution_id,
+        test_case_id=body.test_case_id,
+        test_step_id=body.test_step_id,
+        target_bug_id=body.target_bug_id,
+        created_by_id=current.id,
+    )
+    db.add(link)
+    _touch_updated_by(bug, current)
+    db.commit()
+    db.refresh(link)
+    bug_events.on_bug_link_added(link, db)
+    return bug_events.link_out(link, db)
+
+
+@bugs_router.delete("/{id}/links/{link_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_link(
+    id: int,
+    link_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    link = db.get(BugLink, link_id)
+    if link is None or link.bug_id != id:
+        raise HTTPException(status_code=404, detail="Not found")
+    bug = link.bug
+    is_author = link.created_by_id == current.id
+    if not is_author and not _can_delete_project_resource(db, current, bug.project_id):
+        raise HTTPException(status_code=403, detail="Only the author or project owner can delete")
+    db.delete(link)
+    _touch_updated_by(bug, current)
+    db.commit()
+    bug_events.on_bug_link_deleted(bug.id, link_id)
 
 
 @bugs_router.get("/{id}/history", response_model=list[BugStatusHistoryOut])

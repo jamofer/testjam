@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from testjam.schemas.user import UserOut
 
@@ -65,6 +65,7 @@ class BugOut(BaseModel):
     external_ticket_url: str | None
     assigned_to: UserOut | None = None
     created_by: UserOut | None = None
+    updated_by: UserOut | None = None
     created_at: datetime
     updated_at: datetime
     resolved_at: datetime | None
@@ -113,3 +114,69 @@ class BugStatusHistoryOut(BaseModel):
     changed_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class BugLinkCreate(BaseModel):
+    label: str | None = Field(default=None, max_length=255)
+    url: str | None = Field(default=None, max_length=1024)
+    execution_id: int | None = None
+    test_case_id: int | None = None
+    test_step_id: int | None = None
+    target_bug_id: int | None = None
+
+    @model_validator(mode="after")
+    def _at_least_one_target(self):
+        if not (self.url or self.execution_id or self.test_case_id or self.target_bug_id):
+            raise ValueError(
+                "Provide url, execution_id, test_case_id or target_bug_id",
+            )
+        return self
+
+
+class BugContextNode(BaseModel):
+    id: int
+    name: str
+
+
+class BugContextExecution(BaseModel):
+    id: int
+    title: str
+
+
+class BugContextStep(BaseModel):
+    id: int
+    action: str
+
+
+class BugLinkOut(BaseModel):
+    id: int
+    bug_id: int
+    label: str | None
+    url: str | None
+    execution_id: int | None
+    test_case_id: int | None
+    test_step_id: int | None
+    target_bug_id: int | None
+    execution_title: str | None = None
+    execution_environment: str | None = None
+    execution_version_id: int | None = None
+    execution_version_name: str | None = None
+    suite_path: list[BugContextNode] = []
+    test_case_name: str | None = None
+    test_step_action: str | None = None
+    target_bug_number: int | None = None
+    target_bug_title: str | None = None
+    created_by: UserOut | None = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class BugContextOut(BaseModel):
+    execution: BugContextExecution | None = None
+    suite_path: list[BugContextNode] = []
+    case: BugContextNode | None = None
+    step: BugContextStep | None = None
+    version_id: int | None = None
+    version_name: str | None = None
+    environment: str | None = None

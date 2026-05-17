@@ -17,12 +17,13 @@ from typing import Any
 from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session, selectinload
 
-from testjam.models.bug import Bug, BugAttachment, BugComment, BugStatusHistory
+from testjam.models.bug import Bug, BugAttachment, BugComment, BugLink, BugStatusHistory
 from testjam.models.user import User
 from testjam.realtime import notify_bug, notify_project
 from testjam.schemas.bug import (
     BugAttachmentOut,
     BugCommentOut,
+    BugLinkOut,
     BugOut,
     BugStatusHistoryOut,
     TERMINAL_BUG_STATUSES,
@@ -39,6 +40,7 @@ def load_bug_full(db: Session, bug_id: int) -> Bug | None:
         .options(
             selectinload(Bug.assigned_to),
             selectinload(Bug.created_by),
+            selectinload(Bug.updated_by),
             selectinload(Bug.version),
         )
         .filter(Bug.id == bug_id)
@@ -207,3 +209,40 @@ def on_bug_attachment_added(attachment: BugAttachment) -> None:
 
 def on_bug_attachment_deleted(bug_id: int, attachment_id: int) -> None:
     _broadcast_bug("bug.attachment.deleted", bug_id, {"id": attachment_id})
+
+
+def on_bug_link_added(link: BugLink, db: Session | None = None) -> None:
+    _broadcast_bug(
+        "bug.link.added", link.bug_id,
+        link_out(link, db).model_dump(mode="json"),
+    )
+
+
+def on_bug_link_deleted(bug_id: int, link_id: int) -> None:
+    _broadcast_bug("bug.link.deleted", bug_id, {"id": link_id})
+
+
+def link_out(link: BugLink, db: Session | None = None) -> BugLinkOut:
+    from testjam.models.version import ProjectVersion
+    from testjam.schemas.bug import BugContextNode
+    from testjam.services.bug_context import suite_path_for_case
+
+    payload = BugLinkOut.model_validate(link)
+    if link.execution is not None:
+        payload.execution_title = link.execution.title
+        payload.execution_environment = link.execution.environment
+        payload.execution_version_id = link.execution.version_id
+        if db is not None and link.execution.version_id is not None:
+            version = db.get(ProjectVersion, link.execution.version_id)
+            payload.execution_version_name = version.name if version else None
+    if link.test_case is not None:
+        payload.test_case_name = link.test_case.name
+        if db is not None:
+            suite_path = suite_path_for_case(db, link.test_case.suite_id)
+            payload.suite_path = [BugContextNode(id=s.id, name=s.name) for s in suite_path]
+    if link.test_step is not None:
+        payload.test_step_action = link.test_step.action
+    if link.target_bug is not None:
+        payload.target_bug_number = link.target_bug.number
+        payload.target_bug_title = link.target_bug.title
+    return payload

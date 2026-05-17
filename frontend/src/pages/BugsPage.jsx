@@ -21,23 +21,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { DateLabel } from "../components/ui/date-label"
 import { EnvironmentBadge } from "../components/environment/EnvironmentBadge"
 import { NewBugDialog } from "../components/bug/NewBugDialog"
+import { SEVERITY_VARIANT, STATUS_VARIANT } from "../lib/bugConfig"
 
 const STATUS_OPTIONS = ["any", "open", "in_progress", "resolved", "closed", "wont_fix", "not_a_bug"]
 const SEVERITY_OPTIONS = ["any", "critical", "high", "medium", "low"]
-const SEVERITY_VARIANT = {
-  critical: "destructive",
-  high: "warning",
-  medium: "secondary",
-  low: "outline",
-}
-const STATUS_VARIANT = {
-  open: "default",
-  in_progress: "warning",
-  resolved: "success",
-  closed: "secondary",
-  wont_fix: "outline",
-  not_a_bug: "outline",
-}
 
 export function BugsPage() {
   const { t } = useTranslation(["bugs", "nav"])

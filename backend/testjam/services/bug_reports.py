@@ -15,7 +15,7 @@ import openpyxl
 from openpyxl.styles import Font
 from sqlalchemy.orm import Session, selectinload
 
-from testjam.models.bug import Bug
+from testjam.models.bug import Bug, BugComment
 from testjam.models.project import Project
 from testjam.models.user import User
 from testjam.services.timezones import format_in_user_zone, user_zone_label
@@ -33,6 +33,7 @@ def _query_bugs(
             selectinload(Bug.assigned_to),
             selectinload(Bug.created_by),
             selectinload(Bug.version),
+            selectinload(Bug.comments).selectinload(BugComment.created_by),
         )
         .filter(Bug.project_id == project_id)
     )
@@ -66,7 +67,7 @@ def render_html(
         title_parts.append(f"environment {environment}")
     title = " · ".join(title_parts)
 
-    return _build_html(title, bugs, generated_at, timezone_label, user.username)
+    return _build_html(title, bugs, generated_at, timezone_label, user)
 
 
 def render_xlsx(
@@ -114,13 +115,33 @@ def render_xlsx(
         f"by {user.username}",
     ])
 
+    _append_comments_sheet(workbook, bugs, user, timezone_label)
+
     buffer = io.BytesIO()
     workbook.save(buffer)
     return buffer.getvalue()
 
 
+def _append_comments_sheet(workbook, bugs: list[Bug], user: User, timezone_label: str) -> None:
+    sheet = workbook.create_sheet("Comments")
+    header = ["Bug #", "Bug title", "Author", f"Created ({timezone_label})", "Body"]
+    sheet.append(header)
+    for cell in sheet[1]:
+        cell.font = Font(bold=True)
+
+    for bug in bugs:
+        for comment in bug.comments:
+            sheet.append([
+                f"#{bug.number}",
+                bug.title,
+                comment.created_by.username if comment.created_by else "",
+                format_in_user_zone(comment.created_at, user, "%Y-%m-%d %H:%M"),
+                comment.body,
+            ])
+
+
 def _build_html(
-    title: str, bugs: list[Bug], generated_at: str, timezone_label: str, username: str,
+    title: str, bugs: list[Bug], generated_at: str, timezone_label: str, user: User,
 ) -> str:
     e = html_lib.escape
     groups: dict[str, list[Bug]] = {}
@@ -132,7 +153,7 @@ def _build_html(
         rows = groups.get(severity, [])
         if not rows:
             continue
-        rendered = "\n".join(_render_row(bug) for bug in rows)
+        rendered = "\n".join(_render_row(bug, user) for bug in rows)
         sections.append(
             f"<section class='severity severity-{severity}'>"
             f"<h2>{severity.title()} ({len(rows)})</h2>"
@@ -164,17 +185,26 @@ def _build_html(
         ".bug-status { display: inline-block; padding: 2px 8px; border-radius: 12px; "
         "font-size: 11px; background: #e5e7eb; color: #374151; margin-left: 8px; }\n"
         ".bug-meta { font-size: 12px; color: #6b7280; margin-top: 4px; }\n"
+        ".discussion { margin-top: 10px; padding: 10px 12px; background: #f9fafb; "
+        "border-left: 3px solid #d1d5db; border-radius: 4px; }\n"
+        ".discussion h3 { margin: 0 0 8px; font-size: 12px; color: #4b5563; "
+        "text-transform: uppercase; letter-spacing: 0.04em; }\n"
+        ".discussion ol { list-style: none; padding-left: 0; margin: 0; }\n"
+        ".discussion li { padding: 6px 0; border-bottom: 1px dashed #e5e7eb; }\n"
+        ".discussion li:last-child { border-bottom: none; }\n"
+        ".comment-meta { font-size: 11px; color: #6b7280; margin-bottom: 2px; }\n"
+        ".comment-body { font-size: 13px; color: #1f2937; white-space: pre-wrap; }\n"
         ".empty { color: #9ca3af; font-style: italic; }\n"
         "</style>\n"
         "</head>\n<body>\n"
         f"<h1>{e(title)}</h1>\n"
-        f"<p class='meta'>Generated {e(generated_at)} by {e(username)}</p>\n"
+        f"<p class='meta'>Generated {e(generated_at)} by {e(user.username)}</p>\n"
         + "\n".join(sections)
         + "\n</body>\n</html>\n"
     )
 
 
-def _render_row(bug: Bug) -> str:
+def _render_row(bug: Bug, user: User) -> str:
     e = html_lib.escape
     assignee = bug.assigned_to.username if bug.assigned_to else "unassigned"
     parts = [
@@ -195,5 +225,28 @@ def _render_row(bug: Bug) -> str:
         + " ".join(parts)
         + f"<div class='bug-meta'>{meta_line}</div>"
         + description_block
+        + _render_discussion(bug, user)
         + "</li>"
+    )
+
+
+def _render_discussion(bug: Bug, user: User) -> str:
+    if not bug.comments:
+        return ""
+    e = html_lib.escape
+    items = []
+    for comment in bug.comments:
+        author = comment.created_by.username if comment.created_by else "unknown"
+        when = format_in_user_zone(comment.created_at, user, "%Y-%m-%d %H:%M")
+        items.append(
+            "<li>"
+            f"<div class='comment-meta'>{e(author)} · {e(when)}</div>"
+            f"<div class='comment-body'>{e(comment.body)}</div>"
+            "</li>"
+        )
+    return (
+        "<div class='discussion'>"
+        f"<h3>Discussion ({len(bug.comments)})</h3>"
+        f"<ol>{''.join(items)}</ol>"
+        "</div>"
     )

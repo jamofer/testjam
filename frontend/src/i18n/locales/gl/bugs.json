@@ -61,19 +61,71 @@
   },
   "tabs": {
     "description": "Descrición",
+    "discussion": "Discusión",
     "comments": "Comentarios",
     "attachments": "Anexos",
     "history": "Historial"
   },
+  "description": {
+    "empty": "Preme para engadir descrición"
+  },
   "comments": {
     "placeholder": "Escribe un comentario…",
     "empty": "Aínda non hai comentarios"
+  },
+  "header": {
+    "openedBy": "aberto por {{user}}",
+    "editedBy": "editado por {{user}}"
+  },
+  "linkedOccurrence": {
+    "origin": "Orixe",
+    "alsoIn": "Tamén en",
+    "otherLinks": "Outros vínculos",
+    "addSection": "Engadir vínculo",
+    "run": "Execución",
+    "path": "Ruta",
+    "step": "Paso",
+    "version": "Versión",
+    "environment": "Contorno",
+    "note": "Nota",
+    "delete": "Quitar vínculo",
+    "notSet": "—"
   },
   "history": {
     "createdLabel": "Creado co estado",
     "transitionLabel": "Cambiou de estado",
     "by": "por {{user}}",
     "empty": "Sen cambios de estado"
+  },
+  "context": {
+    "about": "Sobre",
+    "severity": "Severidade",
+    "status": "Estado",
+    "environment": "Contorno",
+    "assignee": "Asignado",
+    "createdBy": "Creado por",
+    "created": "Creado",
+    "updatedBy": "Actualizado por",
+    "updated": "Actualizado",
+    "resolved": "Resolto",
+    "linked": "Vínculos",
+    "foundInRun": "Detectado en",
+    "version": "Versión",
+    "externalTicket": "Tícket externo",
+    "tags": "Etiquetas",
+    "noTags": "Sen etiquetas"
+  },
+  "links": {
+    "add": "Engadir vínculo",
+    "added": "Vínculo engadido",
+    "dialogTitle": "Engadir vínculo",
+    "tabUrl": "URL",
+    "tabBug": "Bug relacionado",
+    "url": "URL",
+    "label": "Etiqueta",
+    "labelPlaceholder": "Opcional",
+    "targetBug": "Bug destino",
+    "targetBugPlaceholder": "Escolle un bug…"
   },
   "empty": {
     "title": "Aínda non hai bugs",

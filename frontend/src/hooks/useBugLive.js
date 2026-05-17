@@ -47,6 +47,18 @@ export function useBugLive(bugId, { enabled = true } = {}) {
         rows.filter(row => row.id !== id),
       )
     },
+    "bug.link.added": (link) => {
+      if (!link?.bug_id) return
+      queryClient.setQueryData(["bug-links", link.bug_id], (rows = []) =>
+        rows.some(row => row.id === link.id) ? rows : [...rows, link],
+      )
+    },
+    "bug.link.deleted": ({ id } = {}) => {
+      if (!id || !bugId) return
+      queryClient.setQueryData(["bug-links", bugId], (rows = []) =>
+        rows.filter(row => row.id !== id),
+      )
+    },
   }), [queryClient, bugId])
 
   return useTopicSocket(topics, handlers, { enabled })
