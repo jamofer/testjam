@@ -23,16 +23,11 @@ export function ProjectDashboard({ projectId, range, onRangeChange }) {
       <div className="grid gap-4 md:grid-cols-2">
         <CountsCard counts={data?.counts} loading={isPending} />
         <PassRateCard passRate={data?.pass_rate} loading={isPending} />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
         <RecentExecutionsCard recent={data?.recent_executions} loading={isPending} projectId={projectId} />
         <TopFailCard topFail={data?.top_fail} loading={isPending} projectId={projectId} />
+        <OpenBugsCard projectId={projectId} />
+        <VersionsCard versions={data?.versions} loading={isPending} projectId={projectId} />
       </div>
-
-      <OpenBugsCard projectId={projectId} />
-
-      <VersionsCard versions={data?.versions} loading={isPending} projectId={projectId} />
     </section>
   )
 }
