@@ -77,6 +77,11 @@ class Bug(Base):
         cascade="all, delete-orphan",
         order_by="BugActivity.changed_at.asc(), BugActivity.id.asc()",
     )
+    external_links: Mapped[list["BugExternalLink"]] = relationship(  # noqa: F821
+        back_populates="bug",
+        cascade="all, delete-orphan",
+        order_by="BugExternalLink.created_at.asc(), BugExternalLink.id.asc()",
+    )
     links: Mapped[list["BugLink"]] = relationship(
         back_populates="bug",
         cascade="all, delete-orphan",

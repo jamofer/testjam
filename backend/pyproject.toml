@@ -23,6 +23,8 @@ dependencies = [
     "slowapi>=0.1.9",
     "sentry-sdk[fastapi]>=2.18.0",
     "redis>=5.2.0",
+    "cryptography>=43.0.0",
+    "httpx>=0.28.0",
 ]
 
 [project.optional-dependencies]

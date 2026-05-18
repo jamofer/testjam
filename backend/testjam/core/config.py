@@ -16,6 +16,12 @@ class Settings(BaseSettings):
 
     UPLOAD_DIR: str = "/app/uploads"
 
+    # Fernet key used to encrypt integration credentials at rest. Must be a
+    # urlsafe base64-encoded 32-byte key (`Fernet.generate_key()`). When empty,
+    # integration push/sync endpoints refuse with 503.
+    INTEGRATION_ENCRYPTION_KEY: str = ""
+    INTEGRATION_HTTP_TIMEOUT_SECONDS: float = 15.0
+
     CORS_ORIGINS: str = DEFAULT_CORS_ORIGINS
 
     REDIS_URL: str | None = None

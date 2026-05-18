@@ -9,6 +9,12 @@ os.environ["SECRET_KEY"] = "x" * 32
 # pytest would publish to the dev Redis and the live API worker would relay
 # phantom WS events to any connected dev UI session.
 os.environ["REDIS_URL"] = ""
+# Fernet test key — 32 random bytes urlsafe-b64 encoded. Stable across runs so
+# tests can re-import the crypto helper without rotating keys mid-session.
+os.environ.setdefault(
+    "INTEGRATION_ENCRYPTION_KEY",
+    "eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg=",
+)
 
 import pytest
 from fastapi.testclient import TestClient
