@@ -62,5 +62,77 @@
     "updated": "Webhook actualizado",
     "deleted": "Webhook eliminado",
     "testSent": "Envío de prueba programado"
+  },
+  "webhooks": {
+    "title": "Webhooks salientes",
+    "subtitle": "POSTs firmados a tu endpoint cuando se disparan eventos del proyecto."
+  },
+  "trackers": {
+    "title": "Trackers externos",
+    "subtitle": "Empuja bugs a GitHub, Jira y demás. Tokens guardados cifrados.",
+    "new": "Conectar tracker",
+    "test": "Probar",
+    "testOk": "Credenciales verificadas",
+    "testFailed": "La prueba falló",
+    "rotate": "Rotar token",
+    "rotated": "Token rotado",
+    "rotateFailed": "Falló la rotación",
+    "rotateTitle": "Rotar token · {{name}}",
+    "delete": "Eliminar",
+    "deleted": "Integración eliminada",
+    "deleteFailed": "No se pudo eliminar",
+    "deleteTitle": "¿Eliminar integración?",
+    "deleteBody": "Los links existentes a tickets seguirán visibles en los bugs como referencias read-only. Escribe «{{name}}» para confirmar.",
+    "deleteConfirmLabel": "Nombre de la integración",
+    "created": "Integración conectada",
+    "createFailed": "No se pudo conectar",
+    "lastUsed": "Último uso {{date}}",
+    "neverUsed": "Token aún no usado",
+    "empty": {
+      "title": "Aún no hay trackers",
+      "description": "Conecta un repo de GitHub (más providers próximamente) para empujar bugs sin salir de Testjam."
+    },
+    "dialog": {
+      "title": "Conectar tracker externo",
+      "pickProvider": "Elige un provider",
+      "name": "Nombre visible",
+      "namePlaceholder": "ej. acme/awesome",
+      "secret": "Token de API",
+      "secretPlaceholder": "ghp_...",
+      "secretHelp": "Guardado cifrado con la clave del servidor.",
+      "create": "Conectar"
+    },
+    "fields": {
+      "github": {
+        "owner": "Owner",
+        "repo": "Repositorio",
+        "api_base": "URL base API (solo Enterprise)"
+      }
+    },
+    "help": {
+      "github": {
+        "owner": "Usuario u organización GitHub que posee el repo.",
+        "api_base": "Déjalo vacío para github.com."
+      }
+    }
+  },
+  "bugLinks": {
+    "empty": "Sin tickets externos enlazados.",
+    "push": "Push",
+    "pushed": "Enviado al tracker",
+    "pushFailed": "Falló el push",
+    "sync": "Sincronizar",
+    "synced": "Status sincronizado",
+    "syncFailed": "Falló la sincronización",
+    "remove": "Desenlazar",
+    "removed": "Link eliminado",
+    "removeFailed": "No se pudo eliminar",
+    "pickIntegration": "Selecciona tracker…",
+    "noIntegrations": "No hay integraciones activas configuradas.",
+    "status": {
+      "open": "Abierto",
+      "closed": "Cerrado",
+      "unknown": "Desconocido"
+    }
   }
 }

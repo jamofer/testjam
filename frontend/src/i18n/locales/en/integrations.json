@@ -62,5 +62,77 @@
     "updated": "Webhook updated",
     "deleted": "Webhook deleted",
     "testSent": "Test delivery scheduled"
-  }
+  },
+  "webhooks": {
+    "title": "Outbound webhooks",
+    "subtitle": "Signed POSTs to your endpoint when project events fire."
+  },
+  "trackers": {
+    "title": "External trackers",
+    "subtitle": "Push bugs out to GitHub, Jira and friends. Tokens stored encrypted.",
+    "new": "Connect tracker",
+    "test": "Test",
+    "testOk": "Credentials verified",
+    "testFailed": "Test failed",
+    "rotate": "Rotate token",
+    "rotated": "Token rotated",
+    "rotateFailed": "Rotation failed",
+    "rotateTitle": "Rotate token · {{name}}",
+    "delete": "Delete",
+    "deleted": "Integration removed",
+    "deleteFailed": "Delete failed",
+    "deleteTitle": "Delete integration?",
+    "deleteBody": "Existing links to tickets stay on bugs but become read-only references. Type «{{name}}» to confirm.",
+    "deleteConfirmLabel": "Integration name",
+    "created": "Integration connected",
+    "createFailed": "Could not connect",
+    "lastUsed": "Last used {{date}}",
+    "neverUsed": "Token never used yet",
+    "empty": {
+      "title": "No trackers yet",
+      "description": "Connect a GitHub repo (more providers coming) to push bugs out without leaving Testjam."
+    },
+    "dialog": {
+      "title": "Connect external tracker",
+      "pickProvider": "Pick a provider",
+      "name": "Display name",
+      "namePlaceholder": "e.g. acme/awesome",
+      "secret": "API token",
+      "secretPlaceholder": "ghp_...",
+      "secretHelp": "Stored encrypted with the server-side key.",
+      "create": "Connect"
+    },
+    "fields": {
+      "github": {
+        "owner": "Owner",
+        "repo": "Repository",
+        "api_base": "API base URL (Enterprise only)"
+      }
+    },
+    "help": {
+      "github": {
+        "owner": "GitHub user or organization that owns the repo.",
+        "api_base": "Leave empty for github.com."
+      }
+    }
+  },
+  "bugLinks": {
+    "empty": "No external tickets linked.",
+    "push": "Push",
+    "pushed": "Pushed to tracker",
+    "pushFailed": "Push failed",
+    "sync": "Sync now",
+    "synced": "Status synced",
+    "syncFailed": "Sync failed",
+    "remove": "Unlink",
+    "removed": "Link removed",
+    "removeFailed": "Remove failed",
+    "pickIntegration": "Select tracker…",
+    "noIntegrations": "No active integrations configured.",
+    "status": {
+      "open": "Open",
+      "closed": "Closed",
+      "unknown": "Unknown"
+    }
+  },
 }

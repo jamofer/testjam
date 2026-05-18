@@ -46,6 +46,7 @@ import { ContextPanel } from "../components/ui/context-panel"
 import { EnvironmentBadge } from "../components/environment/EnvironmentBadge"
 import { AddBugLinkDialog } from "../components/bug/AddBugLinkDialog"
 import { BugTimeline } from "../components/bug/BugTimeline"
+import { BugExternalLinksPanel } from "../components/integration/BugExternalLinksPanel"
 import { MdEditor, MdViewer } from "../components/MdEditor"
 import { SEVERITY_VARIANT, STATUS_VARIANT, STATUSES } from "../lib/bugConfig"
 
@@ -538,6 +539,11 @@ function buildContextSections({ bug, links, linkContext, onDeleteLink, addLinkDi
       ),
     })
   }
+
+  sections.push({
+    title: t("linkedOccurrence.externalTrackers"),
+    body: <BugExternalLinksPanel bug={bug} />,
+  })
 
   sections.push({
     title: t("linkedOccurrence.addSection"),

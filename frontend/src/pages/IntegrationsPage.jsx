@@ -13,6 +13,7 @@ import {
   useWebhooks,
 } from "../hooks/useWebhooks"
 import { useProject } from "../hooks/useProjects"
+import { ExternalTrackersSection } from "../components/integration/ExternalTrackersSection"
 import { WEBHOOK_EVENTS } from "../api/webhooks"
 import { PageBody, PageHeader } from "../components/ui/page-header"
 import { Button } from "../components/ui/button"
@@ -56,7 +57,16 @@ export function IntegrationsPage() {
       </PageHeader>
 
       <PageBody>
-        <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-4">
+        <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-6">
+          <ExternalTrackersSection projectId={projectId} />
+
+          <section className="space-y-3">
+            <header>
+              <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
+                {t("webhooks.title")}
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t("webhooks.subtitle")}</p>
+            </header>
           {webhooks.length === 0 ? (
             <EmptyState
               icon={PlayCircle}
@@ -76,6 +86,7 @@ export function IntegrationsPage() {
               ))}
             </ul>
           )}
+          </section>
         </div>
       </PageBody>
 
