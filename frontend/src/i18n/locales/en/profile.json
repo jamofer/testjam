@@ -1,4 +1,14 @@
 {
+  "public": {
+    "notFoundTitle": "User not found",
+    "notFoundDescription": "No active user matches «{{username}}».",
+    "admin": "Admin",
+    "inactive": "Inactive",
+    "deleted": "Deleted",
+    "locale": "Locale",
+    "joined": "Joined",
+    "lastLogin": "Last login"
+  },
   "title": "Profile",
   "subtitle": "Manage your account settings",
   "account": {

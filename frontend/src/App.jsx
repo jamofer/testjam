@@ -19,6 +19,7 @@ const ExecutionsPage = lazy(() => import("./pages/ExecutionsPage").then(m => ({ 
 const ExecutionRunPage = lazy(() => import("./pages/ExecutionRunPage").then(m => ({ default: m.ExecutionRunPage })))
 const NewExecutionPage = lazy(() => import("./pages/NewExecutionPage").then(m => ({ default: m.NewExecutionPage })))
 const UsersPage = lazy(() => import("./pages/UsersPage").then(m => ({ default: m.UsersPage })))
+const UserProfilePage = lazy(() => import("./pages/UserProfilePage").then(m => ({ default: m.UserProfilePage })))
 const ProfilePage = lazy(() => import("./pages/ProfilePage").then(m => ({ default: m.ProfilePage })))
 const MembersPage = lazy(() => import("./pages/MembersPage").then(m => ({ default: m.MembersPage })))
 const VersionsPage = lazy(() => import("./pages/VersionsPage").then(m => ({ default: m.VersionsPage })))
@@ -81,6 +82,7 @@ export default function App() {
               <Route path="/executions/:id" element={<Navigate to="run" replace />} />
               <Route path="/executions/:id/run" element={<ExecutionRunPage />} />
               <Route path="/users" element={<UsersPage />} />
+              <Route path="/users/:username" element={<UserProfilePage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>

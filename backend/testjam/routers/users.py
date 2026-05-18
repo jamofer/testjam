@@ -82,6 +82,20 @@ def delete_my_account(
     soft_delete_user(db, current, body.owned_projects)
 
 
+@router.get("/by-username/{username}", response_model=UserOut)
+def get_user_by_username(
+    username: str,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Not found")
+    if user.deleted_at is not None and not current.is_admin:
+        raise HTTPException(status_code=404, detail="Not found")
+    return user
+
+
 @router.get("/{id}", response_model=UserOut)
 def get_user(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
     user = db.get(User, id)

@@ -1,4 +1,14 @@
 {
+  "public": {
+    "notFoundTitle": "Erabiltzailea ez da aurkitu",
+    "notFoundDescription": "Ez dago «{{username}}» izeneko erabiltzaile aktiborik.",
+    "admin": "Administratzailea",
+    "inactive": "Inaktibo",
+    "deleted": "Ezabatuta",
+    "locale": "Hizkuntza",
+    "joined": "Sartu zen",
+    "lastLogin": "Azken saio-hasiera"
+  },
   "title": "Profila",
   "subtitle": "Kudeatu zure kontua",
   "account": {

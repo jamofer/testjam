@@ -1,4 +1,14 @@
 {
+  "public": {
+    "notFoundTitle": "Usuari no trobat",
+    "notFoundDescription": "No hi ha cap usuari actiu amb el nom «{{username}}».",
+    "admin": "Admin",
+    "inactive": "Inactiu",
+    "deleted": "Eliminat",
+    "locale": "Idioma",
+    "joined": "Es va unir",
+    "lastLogin": "Últim accés"
+  },
   "title": "Perfil",
   "subtitle": "Gestiona el teu compte",
   "account": {

@@ -67,3 +67,22 @@ def test_list_users(auth_client):
     usernames = [u["username"] for u in resp.json()]
     assert "a" in usernames
     assert "b" in usernames
+
+
+def test_get_user_by_username(auth_client):
+    created = auth_client.post(
+        "/api/v1/users",
+        json={"username": "alice", "email": "alice@x.com", "password": "pw"},
+    ).json()
+
+    resp = auth_client.get("/api/v1/users/by-username/alice")
+
+    assert resp.status_code == 200
+    assert resp.json()["id"] == created["id"]
+    assert resp.json()["username"] == "alice"
+
+
+def test_get_user_by_username_not_found(auth_client):
+    resp = auth_client.get("/api/v1/users/by-username/ghost")
+
+    assert resp.status_code == 404

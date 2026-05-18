@@ -4,6 +4,8 @@ export const usersApi = {
   list: ({ includeDeleted = false } = {}) =>
     api.get('/users', { params: includeDeleted ? { include_deleted: true } : {} }).then(r => r.data),
   get: (id) => api.get(`/users/${id}`).then(r => r.data),
+  getByUsername: (username) =>
+    api.get(`/users/by-username/${encodeURIComponent(username)}`).then(r => r.data),
   create: (data) => api.post('/users', data).then(r => r.data),
   update: (id, data) => api.put(`/users/${id}`, data).then(r => r.data),
   delete: (id, body = {}) =>

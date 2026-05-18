@@ -1,4 +1,14 @@
 {
+  "public": {
+    "notFoundTitle": "Usuario non atopado",
+    "notFoundDescription": "Non hai ningún usuario activo co nome «{{username}}».",
+    "admin": "Admin",
+    "inactive": "Inactivo",
+    "deleted": "Eliminado",
+    "locale": "Idioma",
+    "joined": "Uniuse",
+    "lastLogin": "Último acceso"
+  },
   "title": "Perfil",
   "subtitle": "Xestiona a túa conta",
   "account": {
