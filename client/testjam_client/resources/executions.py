@@ -7,8 +7,29 @@ from testjam_client.resources._base import Resource
 
 
 class ExecutionsResource(Resource):
-    def list(self, project_id: int) -> list[dict]:
-        return self._request("GET", f"/projects/{project_id}/executions").json()
+    def list(
+        self,
+        project_id: int,
+        *,
+        type: str | None = None,
+        status: str | None = None,
+        assigned_to_id: int | None = None,
+        version_id: int | None = None,
+        skip: int = 0,
+        limit: int = 50,
+    ) -> list[dict]:
+        params: dict[str, Any] = {"skip": skip, "limit": limit}
+        if type is not None:
+            params["type"] = type
+        if status is not None:
+            params["status"] = status
+        if assigned_to_id is not None:
+            params["assigned_to_id"] = assigned_to_id
+        if version_id is not None:
+            params["version_id"] = version_id
+        return self._request(
+            "GET", f"/projects/{project_id}/executions", params=params,
+        ).json()
 
     def get(self, execution_id: int) -> dict:
         return self._request("GET", f"/executions/{execution_id}").json()

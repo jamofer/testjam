@@ -7,6 +7,29 @@ def _seed_case(auth_client, project_id):
     return case
 
 
+def test_list_executions_filtered_by_version(auth_client):
+    project = auth_client.projects.find_or_create("Filtered")
+    v1 = auth_client.versions.find_or_create(project["id"], "v1.0")
+    v2 = auth_client.versions.find_or_create(project["id"], "v2.0")
+    case = _seed_case(auth_client, project["id"])
+    auth_client.executions.create(
+        project["id"], title="A", type="manual",
+        test_case_ids=[case["id"]], version_id=v1["id"],
+    )
+    auth_client.executions.create(
+        project["id"], title="B", type="manual",
+        test_case_ids=[case["id"]], version_id=v2["id"],
+    )
+    auth_client.executions.create(
+        project["id"], title="C", type="manual", test_case_ids=[case["id"]],
+    )
+
+    filtered = auth_client.executions.list(project["id"], version_id=v1["id"])
+
+    titles = [execution["title"] for execution in filtered]
+    assert titles == ["A"]
+
+
 def test_create_execution_with_version(auth_client):
     project = auth_client.projects.find_or_create("Exec Project")
     version = auth_client.versions.find_or_create(project["id"], "master-abc1234")

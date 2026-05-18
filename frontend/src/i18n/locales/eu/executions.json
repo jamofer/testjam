@@ -7,7 +7,9 @@
     "pending": "Zain",
     "in_progress": "Egiten",
     "completed": "Amaituta",
-    "aborted": "Etenda"
+    "aborted": "Etenda",
+    "version": "Bertsioa",
+    "allVersions": "Bertsio guztiak"
   },
   "mineOnly": "Nireak",
   "mineOnlyTitle": "Erakutsi niri esleitutako exekuzioak soilik",

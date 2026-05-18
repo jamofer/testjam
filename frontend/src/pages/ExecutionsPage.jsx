@@ -1,16 +1,18 @@
 import { useState, useMemo } from "react"
-import { useParams, Link } from "react-router-dom"
+import { useParams, Link, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { PlayCircle, CheckCircle2, XCircle, MinusCircle, Plus, Clock, Search, User, Download, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { useExecutions, useDeleteExecution } from "../hooks/useExecutions"
 import { useProject } from "../hooks/useProjects"
+import { useVersions } from "../hooks/useVersions"
 import { useMe } from "../hooks/useAuth"
 import { useDebounced } from "../hooks/useDebounced"
 import { useProjectExecutionsLive } from "../hooks/useProjectExecutionsLive"
 import { executionsApi } from "../api/executions"
 import { Button } from "../components/ui/button"
 import { Badge } from "../components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import { SearchInput } from "../components/ui/search-input"
 import { PageHeader, PageBody } from "../components/ui/page-header"
 import { DateLabel } from "../components/ui/date-label"
@@ -35,18 +37,33 @@ const typeBadge = {
 
 const STATUS_FILTERS = ["all", "pending", "in_progress", "completed", "aborted"]
 
+const VERSION_FILTER_ALL = "all"
+
 export function ExecutionsPage() {
   const { t } = useTranslation(["executions", "nav"])
   const { id: projectId } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [statusFilter, setStatusFilter] = useState("all")
+  const versionFilter = searchParams.get("version_id") ?? VERSION_FILTER_ALL
+  const updateVersionFilter = (value) => {
+    const next = new URLSearchParams(searchParams)
+    if (value === VERSION_FILTER_ALL) next.delete("version_id")
+    else next.set("version_id", value)
+    setSearchParams(next, { replace: true })
+  }
+  const queryParams = {
+    ...(statusFilter !== "all" ? { status: statusFilter } : {}),
+    ...(versionFilter !== VERSION_FILTER_ALL ? { version_id: versionFilter } : {}),
+  }
   const {
     data,
     isLoading,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useExecutions(projectId, statusFilter !== "all" ? { status: statusFilter } : undefined)
+  } = useExecutions(projectId, Object.keys(queryParams).length > 0 ? queryParams : undefined)
   const { data: project } = useProject(projectId)
+  const { data: versions = [] } = useVersions(projectId)
   const { data: me } = useMe()
   const { connected: live } = useProjectExecutionsLive(projectId, { enabled: !!me })
   const deleteExecution = useDeleteExecution(projectId)
@@ -65,7 +82,11 @@ export function ExecutionsPage() {
   }
 
   const executions = useMemo(() => (data?.pages ?? []).flat(), [data])
-  const hasFiltersActive = statusFilter !== "all" || debouncedSearch.trim() !== "" || mineOnly
+  const hasFiltersActive =
+    statusFilter !== "all" ||
+    versionFilter !== VERSION_FILTER_ALL ||
+    debouncedSearch.trim() !== "" ||
+    mineOnly
 
   const filtered = useMemo(() => {
     const query = debouncedSearch.trim().toLowerCase()
@@ -111,6 +132,21 @@ export function ExecutionsPage() {
                   </Button>
                 ))}
               </div>
+              {versions.length > 0 && (
+                <Select value={versionFilter} onValueChange={updateVersionFilter}>
+                  <SelectTrigger className="h-8 text-xs w-44" aria-label={t("filters.version")}>
+                    <SelectValue placeholder={t("filters.allVersions")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={VERSION_FILTER_ALL}>{t("filters.allVersions")}</SelectItem>
+                    {versions.map(version => (
+                      <SelectItem key={version.id} value={String(version.id)}>
+                        {version.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               {me && (
                 <Button
                   size="sm"

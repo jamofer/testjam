@@ -7,7 +7,9 @@
     "pending": "Pending",
     "in_progress": "In progress",
     "completed": "Completed",
-    "aborted": "Aborted"
+    "aborted": "Aborted",
+    "version": "Version",
+    "allVersions": "All versions"
   },
   "mineOnly": "Mine",
   "mineOnlyTitle": "Show only executions assigned to me",

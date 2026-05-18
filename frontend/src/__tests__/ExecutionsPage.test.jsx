@@ -19,12 +19,19 @@ vi.mock("../hooks/useAuth", () => ({
   useMe: () => ({ data: { id: 1, username: "alice" } }),
 }))
 
+vi.mock("../hooks/useVersions", () => ({
+  useVersions: () => ({ data: [
+    { id: 7, name: "v1.0" },
+    { id: 8, name: "v2.0" },
+  ] }),
+}))
+
 const EX = [
   { id: 10, title: "Run A", status: "completed", type: "manual",
     summary: { passed: 1, failed: 0, blocked: 0, not_run: 0 } },
 ]
 
-function setup(executions = []) {
+function setup(executions = [], { initialEntries = ["/projects/1/executions"], extraSeed } = {}) {
   const qc = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0, staleTime: Infinity } },
   })
@@ -36,10 +43,11 @@ function setup(executions = []) {
     ["executions", "1", { status: "in_progress" }],
     { pages: [[]], pageParams: [0] },
   )
+  if (extraSeed) extraSeed(qc)
 
   return render(
     <QueryClientProvider client={qc}>
-      <MemoryRouter initialEntries={["/projects/1/executions"]}>
+      <MemoryRouter initialEntries={initialEntries}>
         <Routes>
           <Route path="/projects/:id/executions" element={<ExecutionsPage />} />
         </Routes>
@@ -62,5 +70,17 @@ describe("ExecutionsPage", () => {
     setup([])
     expect(screen.getByText(/no executions yet/i)).toBeTruthy()
     expect(screen.queryByRole("button", { name: /^in progress$/i })).toBeNull()
+  })
+
+  it("seeds the version filter from the version_id query string", () => {
+    setup(EX, {
+      initialEntries: ["/projects/1/executions?version_id=7"],
+      extraSeed: (qc) => qc.setQueryData(
+        ["executions", "1", { version_id: "7" }],
+        { pages: [EX], pageParams: [0] },
+      ),
+    })
+
+    expect(screen.getByText("v1.0")).toBeTruthy()
   })
 })

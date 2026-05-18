@@ -7,7 +7,9 @@
     "pending": "Pendents",
     "in_progress": "En curs",
     "completed": "Completades",
-    "aborted": "Avortades"
+    "aborted": "Avortades",
+    "version": "Versió",
+    "allVersions": "Totes les versions"
   },
   "mineOnly": "Meves",
   "mineOnlyTitle": "Mostra només les execucions assignades a mi",

@@ -7,7 +7,9 @@
     "pending": "Pendentes",
     "in_progress": "En curso",
     "completed": "Completadas",
-    "aborted": "Abortadas"
+    "aborted": "Abortadas",
+    "version": "Versión",
+    "allVersions": "Todas as versións"
   },
   "mineOnly": "Miñas",
   "mineOnlyTitle": "Mostrar só execucións asignadas a min",
