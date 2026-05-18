@@ -107,14 +107,37 @@
         "owner": "Owner",
         "repo": "Repositorio",
         "api_base": "URL base API (solo Enterprise)"
+      },
+      "jira": {
+        "base_url": "URL base",
+        "project_key": "Project key",
+        "issue_type": "Tipo de issue",
+        "email": "Email de Atlassian"
       }
     },
     "help": {
       "github": {
         "owner": "Usuario u organización GitHub que posee el repo.",
         "api_base": "Déjalo vacío para github.com."
+      },
+      "jira": {
+        "base_url": "Raíz del sitio, sin barra final.",
+        "issue_type": "Por defecto Bug. Cualquier tipo que acepte tu workflow.",
+        "email": "Necesario para Atlassian Cloud (Basic auth). Vacío para PAT Server/DC."
       }
     }
+  },
+  "statusMapping": {
+    "button": "Editar mapping de status",
+    "title": "Mapping de status · {{name}}",
+    "help": "Mapea status remotos (ej. Done, In Review) a open/closed de Testjam.",
+    "empty": "Sin mappings. Se aplican defaults.",
+    "source": "Status remoto",
+    "target": "Mapea a",
+    "add": "Añadir mapping",
+    "save": "Guardar mapping",
+    "saved": "Mapping guardado",
+    "saveFailed": "No se pudo guardar"
   },
   "bugLinks": {
     "empty": "Sin tickets externos enlazados.",

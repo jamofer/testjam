@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Plus, Trash2, ShieldCheck, RefreshCw, KeyRound } from "lucide-react"
+import { Plus, Trash2, ShieldCheck, KeyRound, Workflow } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -17,6 +17,7 @@ import { Label } from "../ui/label"
 
 import { NewIntegrationDialog } from "./NewIntegrationDialog"
 import { RotateCredentialDialog } from "./RotateCredentialDialog"
+import { StatusMappingDialog } from "./StatusMappingDialog"
 
 
 export function ExternalTrackersSection({ projectId }) {
@@ -25,6 +26,7 @@ export function ExternalTrackersSection({ projectId }) {
   const [creating, setCreating] = useState(false)
   const [pendingDelete, setPendingDelete] = useState(null)
   const [rotating, setRotating] = useState(null)
+  const [editingMapping, setEditingMapping] = useState(null)
 
   return (
     <section className="space-y-3">
@@ -55,6 +57,7 @@ export function ExternalTrackersSection({ projectId }) {
               integration={integration}
               onDelete={() => setPendingDelete(integration)}
               onRotate={() => setRotating(integration)}
+              onEditMapping={() => setEditingMapping(integration)}
             />
           ))}
         </ul>
@@ -77,12 +80,19 @@ export function ExternalTrackersSection({ projectId }) {
           onClose={() => setRotating(null)}
         />
       )}
+      {editingMapping && (
+        <StatusMappingDialog
+          projectId={projectId}
+          integration={editingMapping}
+          onClose={() => setEditingMapping(null)}
+        />
+      )}
     </section>
   )
 }
 
 
-function TrackerRow({ integration, onDelete, onRotate }) {
+function TrackerRow({ integration, onDelete, onRotate, onEditMapping }) {
   const { t } = useTranslation("integrations")
   const test = useTestIntegration()
   const runTest = async () => {
@@ -93,9 +103,7 @@ function TrackerRow({ integration, onDelete, onRotate }) {
       toast.error(error?.response?.data?.detail ?? t("trackers.testFailed"))
     }
   }
-  const slug = integration.config?.owner && integration.config?.repo
-    ? `${integration.config.owner}/${integration.config.repo}`
-    : null
+  const slug = slugForConfig(integration)
   return (
     <li className="border rounded-lg px-4 py-3 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
       <div className="min-w-0">
@@ -119,6 +127,9 @@ function TrackerRow({ integration, onDelete, onRotate }) {
         <Button size="sm" variant="ghost" onClick={runTest} disabled={test.isPending}>
           <ShieldCheck size={14} /> {t("trackers.test")}
         </Button>
+        <Button size="sm" variant="ghost" onClick={onEditMapping} title={t("statusMapping.button")}>
+          <Workflow size={14} />
+        </Button>
         <Button size="sm" variant="ghost" onClick={onRotate}>
           <KeyRound size={14} /> {t("trackers.rotate")}
         </Button>
@@ -128,6 +139,18 @@ function TrackerRow({ integration, onDelete, onRotate }) {
       </div>
     </li>
   )
+}
+
+
+function slugForConfig(integration) {
+  const config = integration.config ?? {}
+  if (integration.provider === "github" && config.owner && config.repo) {
+    return `${config.owner}/${config.repo}`
+  }
+  if (integration.provider === "jira" && config.project_key) {
+    return `${(config.base_url ?? "").replace(/^https?:\/\//, "")} · ${config.project_key}`
+  }
+  return null
 }
 
 

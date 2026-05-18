@@ -24,6 +24,35 @@ export const PROVIDER_FIELDS = {
       help: "Leave empty for github.com.",
     },
   ],
+  jira: [
+    {
+      key: "base_url",
+      label: "Base URL",
+      placeholder: "https://acme.atlassian.net",
+      required: true,
+      help: "Site root, no trailing slash.",
+    },
+    {
+      key: "project_key",
+      label: "Project key",
+      placeholder: "TJ",
+      required: true,
+    },
+    {
+      key: "issue_type",
+      label: "Issue type",
+      placeholder: "Bug",
+      required: false,
+      help: "Defaults to Bug. Use any type your workflow accepts.",
+    },
+    {
+      key: "email",
+      label: "Atlassian account email",
+      placeholder: "alice@acme.com",
+      required: false,
+      help: "Required for Atlassian Cloud (Basic auth). Leave empty for Server/DC PAT.",
+    },
+  ],
 }
 
 export function buildProviderConfig(provider, values) {
