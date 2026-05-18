@@ -1,17 +1,49 @@
+import os
+import shutil
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import get_current_user, require_project_access, require_writable_project_access
+from testjam.core.config import settings
 from testjam.database import get_db
-from testjam.models.version import ProjectVersion
 from testjam.models.user import User
-from testjam.schemas.version import ProjectVersionCreate, ProjectVersionOut, ProjectVersionUpdate
+from testjam.models.version import ProjectVersion, VersionAttachment
+from testjam.schemas.version import (
+    ProjectVersionCreate, ProjectVersionOut, ProjectVersionUpdate,
+    VersionAttachmentOut,
+)
+from testjam.services.permissions import effective_role
+
+VERSION_UPLOAD_DIR = os.path.join(settings.UPLOAD_DIR, "versions")
+
+UPLOAD_ROLES = {"owner", "tester"}
+DELETE_ROLES = {"owner"}
 
 projects_router = APIRouter(prefix="/projects", tags=["Versions"])
 versions_router = APIRouter(prefix="/versions", tags=["Versions"])
+
+
+def _version_or_404(db: Session, version_id: int) -> ProjectVersion:
+    version = db.get(ProjectVersion, version_id)
+    if not version:
+        raise HTTPException(status_code=404, detail="Not found")
+    return version
+
+
+def _require_project_role(db: Session, project_id: int, user: User, allowed: set[str]) -> None:
+    if user.is_admin:
+        return
+    role = effective_role(db, user.id, project_id)
+    if role not in allowed:
+        raise HTTPException(status_code=403, detail="Insufficient project role")
+
+
+def _attachment_out(attachment: VersionAttachment) -> VersionAttachmentOut:
+    return VersionAttachmentOut.model_validate(attachment)
 
 
 @projects_router.get("/{id}/versions", response_model=list[ProjectVersionOut])
@@ -78,4 +110,101 @@ def delete_version(id: int, db: Session = Depends(get_db), _: User = Depends(get
     if not v:
         raise HTTPException(status_code=404, detail="Not found")
     db.delete(v)
+    db.commit()
+
+
+@versions_router.get("/{id}/attachments", response_model=list[VersionAttachmentOut])
+def list_version_attachments(
+    id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    version = _version_or_404(db, id)
+    _require_project_role(db, version.project_id, current, {"owner", "tester", "viewer"})
+    rows = (
+        db.query(VersionAttachment)
+        .filter(VersionAttachment.version_id == id)
+        .order_by(VersionAttachment.uploaded_at.desc(), VersionAttachment.id.desc())
+        .all()
+    )
+    return [_attachment_out(a) for a in rows]
+
+
+@versions_router.post(
+    "/{id}/attachments",
+    response_model=VersionAttachmentOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def upload_version_attachment(
+    id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    version = _version_or_404(db, id)
+    _require_project_role(db, version.project_id, current, UPLOAD_ROLES)
+    destination_directory = os.path.join(VERSION_UPLOAD_DIR, str(id))
+    os.makedirs(destination_directory, exist_ok=True)
+    destination_path = os.path.join(destination_directory, file.filename)
+    with open(destination_path, "wb") as handle:
+        shutil.copyfileobj(file.file, handle)
+    attachment = VersionAttachment(
+        version_id=id,
+        filename=file.filename,
+        content_type=file.content_type,
+        size_bytes=os.path.getsize(destination_path),
+        file_path=destination_path,
+        uploaded_by_id=current.id,
+    )
+    db.add(attachment)
+    db.commit()
+    db.refresh(attachment)
+    return _attachment_out(attachment)
+
+
+@versions_router.get("/{id}/attachments/{attachment_id}/download")
+def download_version_attachment(
+    id: int,
+    attachment_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    version = _version_or_404(db, id)
+    _require_project_role(db, version.project_id, current, {"owner", "tester", "viewer"})
+    attachment = (
+        db.query(VersionAttachment)
+        .filter(VersionAttachment.id == attachment_id, VersionAttachment.version_id == id)
+        .first()
+    )
+    if not attachment or not os.path.exists(attachment.file_path):
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse(
+        attachment.file_path,
+        filename=attachment.filename,
+        media_type=attachment.content_type,
+    )
+
+
+@versions_router.delete(
+    "/{id}/attachments/{attachment_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_version_attachment(
+    id: int,
+    attachment_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    version = _version_or_404(db, id)
+    _require_project_role(db, version.project_id, current, DELETE_ROLES)
+    attachment = (
+        db.query(VersionAttachment)
+        .filter(VersionAttachment.id == attachment_id, VersionAttachment.version_id == id)
+        .first()
+    )
+    if not attachment:
+        raise HTTPException(status_code=404, detail="Not found")
+    if os.path.exists(attachment.file_path):
+        os.remove(attachment.file_path)
+    db.delete(attachment)
     db.commit()

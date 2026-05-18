@@ -35,7 +35,20 @@
     "statBlocked": "Blocked",
     "noExecutionsTitle": "No executions for this version",
     "noExecutionsDescription": "Pick this version when creating an execution to see it listed here.",
-    "bugsFixedInThisVersion": "Bugs fixed in this version"
+    "bugsFixedInThisVersion": "Bugs fixed in this version",
+    "attachments": "Release artifacts"
+  },
+  "attachments": {
+    "upload": "Upload artifact",
+    "uploaded": "Uploaded {{name}}",
+    "uploadFailed": "Upload failed",
+    "delete": "Delete artifact",
+    "deleted": "Artifact removed",
+    "deleteFailed": "Delete failed",
+    "downloadFailed": "Download failed",
+    "dropHint": "Drop a file here or pick one to attach to this version (release notes, build binaries, changelog…).",
+    "emptyTitle": "No artifacts yet",
+    "emptyDescription": "Upload release notes, build outputs or other files tied to this version."
   },
   "coverage": {
     "title": "Coverage matrix",

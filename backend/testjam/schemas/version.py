@@ -1,5 +1,28 @@
 from datetime import date, datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, computed_field
+
+from testjam.core.config import settings
+from testjam.schemas.user import UserOut
+
+
+class VersionAttachmentOut(BaseModel):
+    id: int
+    filename: str
+    content_type: str | None
+    size_bytes: int | None
+    uploaded_at: datetime
+    uploaded_by: UserOut | None = None
+    version_id: int | None = Field(default=None, exclude=True)
+    file_path: str | None = Field(default=None, exclude=True)
+
+    @computed_field
+    @property
+    def url(self) -> str:
+        if self.version_id is None:
+            return ""
+        return f"{settings.API_V1_PREFIX}/versions/{self.version_id}/attachments/{self.id}/download"
+
+    model_config = {"from_attributes": True}
 
 
 class ProjectVersionCreate(BaseModel):

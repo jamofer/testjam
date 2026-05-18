@@ -191,3 +191,91 @@ def test_list_executions_filtered_by_version(auth_client, project_id, case_ids):
     assert resp.status_code == 200
     titles = [ex["title"] for ex in resp.json()]
     assert titles == ["Run A"]
+
+
+# ─── Version attachments ──────────────────────────────────────────────────────
+
+def _new_version(auth_client, project_id, name="v-att"):
+    return auth_client.post(
+        f"/api/v1/projects/{project_id}/versions", json={"name": name},
+    ).json()["id"]
+
+
+def test_upload_version_attachment(auth_client, project_id):
+    version_id = _new_version(auth_client, project_id, "v-upload")
+    files = {"file": ("release-notes.txt", b"changelog body", "text/plain")}
+
+    resp = auth_client.post(f"/api/v1/versions/{version_id}/attachments", files=files)
+
+    assert resp.status_code == 201
+    body = resp.json()
+    assert body["filename"] == "release-notes.txt"
+    assert body["content_type"] == "text/plain"
+    assert body["size_bytes"] == len(b"changelog body")
+    assert body["url"].endswith(f"/versions/{version_id}/attachments/{body['id']}/download")
+
+
+def test_list_version_attachments_returns_newest_first(auth_client, project_id):
+    version_id = _new_version(auth_client, project_id, "v-list")
+    auth_client.post(f"/api/v1/versions/{version_id}/attachments",
+                     files={"file": ("a.txt", b"a", "text/plain")})
+    auth_client.post(f"/api/v1/versions/{version_id}/attachments",
+                     files={"file": ("b.txt", b"b", "text/plain")})
+
+    resp = auth_client.get(f"/api/v1/versions/{version_id}/attachments")
+
+    assert resp.status_code == 200
+    filenames = [a["filename"] for a in resp.json()]
+    assert filenames == ["b.txt", "a.txt"]
+
+
+def test_download_version_attachment(auth_client, project_id):
+    version_id = _new_version(auth_client, project_id, "v-dl")
+    attachment_id = auth_client.post(
+        f"/api/v1/versions/{version_id}/attachments",
+        files={"file": ("notes.md", b"# release", "text/markdown")},
+    ).json()["id"]
+
+    resp = auth_client.get(
+        f"/api/v1/versions/{version_id}/attachments/{attachment_id}/download",
+    )
+
+    assert resp.status_code == 200
+    assert resp.content == b"# release"
+
+
+def test_delete_version_attachment(auth_client, project_id):
+    version_id = _new_version(auth_client, project_id, "v-del")
+    attachment_id = auth_client.post(
+        f"/api/v1/versions/{version_id}/attachments",
+        files={"file": ("gone.txt", b"x", "text/plain")},
+    ).json()["id"]
+
+    resp = auth_client.delete(
+        f"/api/v1/versions/{version_id}/attachments/{attachment_id}",
+    )
+
+    assert resp.status_code == 204
+    listing = auth_client.get(f"/api/v1/versions/{version_id}/attachments").json()
+    assert listing == []
+
+
+def test_attachments_cascade_when_version_deleted(auth_client, project_id):
+    version_id = _new_version(auth_client, project_id, "v-cascade")
+    attachment_id = auth_client.post(
+        f"/api/v1/versions/{version_id}/attachments",
+        files={"file": ("orphan.txt", b"x", "text/plain")},
+    ).json()["id"]
+
+    assert auth_client.delete(f"/api/v1/versions/{version_id}").status_code == 204
+    assert auth_client.get(
+        f"/api/v1/versions/{version_id}/attachments/{attachment_id}/download",
+    ).status_code == 404
+
+
+def test_upload_version_attachment_unknown_version(auth_client):
+    resp = auth_client.post(
+        "/api/v1/versions/99999/attachments",
+        files={"file": ("x.txt", b"x", "text/plain")},
+    )
+    assert resp.status_code == 404

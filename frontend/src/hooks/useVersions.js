@@ -43,3 +43,27 @@ export function useDeleteVersion(projectId) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['versions', projectId] }),
   })
 }
+
+export function useVersionAttachments(versionId) {
+  return useQuery({
+    queryKey: ['version-attachments', versionId],
+    queryFn: () => versionsApi.listAttachments(versionId),
+    enabled: !!versionId,
+  })
+}
+
+export function useUploadVersionAttachment(versionId) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (file) => versionsApi.uploadAttachment(versionId, file),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['version-attachments', versionId] }),
+  })
+}
+
+export function useDeleteVersionAttachment(versionId) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (attachmentId) => versionsApi.deleteAttachment(versionId, attachmentId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['version-attachments', versionId] }),
+  })
+}

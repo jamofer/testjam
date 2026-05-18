@@ -50,3 +50,21 @@ def test_list_versions(auth_client):
     names = [v["name"] for v in listed]
     assert "v1" in names
     assert "v2" in names
+
+
+def test_upload_list_download_delete_attachment(auth_client):
+    project = auth_client.projects.find_or_create("Artifacts")
+    version = auth_client.versions.create(project["id"], "v-art")
+
+    uploaded = auth_client.versions.upload_attachment(
+        version["id"], filename="release.txt", content=b"payload", mime="text/plain",
+    )
+
+    listed = auth_client.versions.list_attachments(version["id"])
+    assert [a["id"] for a in listed] == [uploaded["id"]]
+
+    body = auth_client.versions.download_attachment(version["id"], uploaded["id"])
+    assert body == b"payload"
+
+    auth_client.versions.delete_attachment(version["id"], uploaded["id"])
+    assert auth_client.versions.list_attachments(version["id"]) == []

@@ -35,7 +35,20 @@
     "statBlocked": "Bloqueados",
     "noExecutionsTitle": "No hay ejecuciones para esta versión",
     "noExecutionsDescription": "Selecciona esta versión al crear una ejecución para verla listada aquí.",
-    "bugsFixedInThisVersion": "Bugs arreglados en esta versión"
+    "bugsFixedInThisVersion": "Bugs arreglados en esta versión",
+    "attachments": "Artefactos de la release"
+  },
+  "attachments": {
+    "upload": "Subir artefacto",
+    "uploaded": "Subido {{name}}",
+    "uploadFailed": "Falló la subida",
+    "delete": "Eliminar artefacto",
+    "deleted": "Artefacto eliminado",
+    "deleteFailed": "No se pudo eliminar",
+    "downloadFailed": "Falló la descarga",
+    "dropHint": "Suelta un archivo aquí o selecciona uno para adjuntar a esta versión (release notes, binarios, changelog…).",
+    "emptyTitle": "Sin artefactos todavía",
+    "emptyDescription": "Sube release notes, binarios de build u otros archivos ligados a esta versión."
   },
   "coverage": {
     "title": "Matriz de cobertura",

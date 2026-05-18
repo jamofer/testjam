@@ -35,7 +35,20 @@
     "statBlocked": "Blokeatuta",
     "noExecutionsTitle": "Ez dago exekuziorik bertsio honetarako",
     "noExecutionsDescription": "Hautatu bertsio hau exekuzio bat sortzean hemen zerrendatuta ikusteko.",
-    "bugsFixedInThisVersion": "Bertsio honetan konpondutako akatsak"
+    "bugsFixedInThisVersion": "Bertsio honetan konpondutako akatsak",
+    "attachments": "Bertsioaren artefaktuak"
+  },
+  "attachments": {
+    "upload": "Igo artefaktua",
+    "uploaded": "Igota: {{name}}",
+    "uploadFailed": "Igotzeak huts egin du",
+    "delete": "Ezabatu artefaktua",
+    "deleted": "Artefaktua ezabatuta",
+    "deleteFailed": "Ezin izan da ezabatu",
+    "downloadFailed": "Deskargak huts egin du",
+    "dropHint": "Jaregin fitxategia hemen edo aukeratu bat bertsio honi eransteko (bertsio-oharrak, build-binarioak, changelog…).",
+    "emptyTitle": "Oraindik ez dago artefakturik",
+    "emptyDescription": "Igo bertsio-oharrak, build-binarioak edo bertsio honi lotutako beste fitxategi batzuk."
   },
   "coverage": {
     "title": "Estaldura-matrizea",

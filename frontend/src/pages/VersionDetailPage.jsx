@@ -16,6 +16,7 @@ import { MdEditor } from "../components/MdEditor"
 import { EmptyState } from "../components/ui/empty-state"
 import { SkeletonList } from "../components/ui/skeleton"
 import { DateLabel } from "../components/ui/date-label"
+import { VersionAttachmentList } from "../components/version/VersionAttachmentList"
 import { toast } from "sonner"
 
 const VERSION_STATUS_STYLE = {
@@ -201,6 +202,11 @@ export function VersionDetailPage() {
               </ul>
             </section>
           )}
+
+          <section className="space-y-2">
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">{t("detail.attachments")}</h2>
+            <VersionAttachmentList versionId={version.id} />
+          </section>
 
           <section className="space-y-2">
             <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">{t("detail.executions")}</h2>

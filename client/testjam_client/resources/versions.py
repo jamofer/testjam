@@ -60,3 +60,30 @@ class VersionsResource(Resource):
             if existing is None:
                 raise
             return existing
+
+    def list_attachments(self, version_id: int) -> list[dict]:
+        return self._request("GET", f"/versions/{version_id}/attachments").json()
+
+    def upload_attachment(
+        self,
+        version_id: int,
+        *,
+        filename: str,
+        content,
+        mime: str,
+    ) -> dict:
+        files = {"file": (filename, content, mime)}
+        return self._request(
+            "POST", f"/versions/{version_id}/attachments", files=files,
+        ).json()
+
+    def download_attachment(self, version_id: int, attachment_id: int) -> bytes:
+        response = self._request(
+            "GET", f"/versions/{version_id}/attachments/{attachment_id}/download",
+        )
+        return response.content
+
+    def delete_attachment(self, version_id: int, attachment_id: int) -> None:
+        self._request(
+            "DELETE", f"/versions/{version_id}/attachments/{attachment_id}",
+        )

@@ -35,7 +35,20 @@
     "statBlocked": "Bloquejats",
     "noExecutionsTitle": "No hi ha execucions per a aquesta versió",
     "noExecutionsDescription": "Tria aquesta versió en crear una execució per veure-la llistada aquí.",
-    "bugsFixedInThisVersion": "Bugs arreglats en aquesta versió"
+    "bugsFixedInThisVersion": "Bugs arreglats en aquesta versió",
+    "attachments": "Artefactes de la release"
+  },
+  "attachments": {
+    "upload": "Puja artefacte",
+    "uploaded": "Pujat {{name}}",
+    "uploadFailed": "Ha fallat la pujada",
+    "delete": "Elimina artefacte",
+    "deleted": "Artefacte eliminat",
+    "deleteFailed": "No s'ha pogut eliminar",
+    "downloadFailed": "Ha fallat la baixada",
+    "dropHint": "Deixa anar un fitxer aquí o tria'n un per adjuntar-lo a aquesta versió (notes de release, binaris, changelog…).",
+    "emptyTitle": "Encara no hi ha artefactes",
+    "emptyDescription": "Puja notes de release, binaris de build o altres fitxers lligats a aquesta versió."
   },
   "coverage": {
     "title": "Matriu de cobertura",
