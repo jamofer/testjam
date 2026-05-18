@@ -157,6 +157,10 @@ function slugForConfig(integration) {
     const host = (config.organization_url ?? "").replace(/^https?:\/\//, "")
     return host ? `${host} · ${config.project}` : config.project
   }
+  if (integration.provider === "openproject" && config.project) {
+    const host = (config.base_url ?? "").replace(/^https?:\/\//, "")
+    return host ? `${host} · ${config.project}` : config.project
+  }
   return null
 }
 

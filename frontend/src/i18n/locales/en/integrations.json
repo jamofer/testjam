@@ -122,6 +122,11 @@
         "organization_url": "Organization URL",
         "project": "Project",
         "work_item_type": "Work item type"
+      },
+      "openproject": {
+        "base_url": "Base URL",
+        "project": "Project",
+        "type_id": "Work-package type id"
       }
     },
     "help": {
@@ -141,6 +146,11 @@
       "azure_devops": {
         "organization_url": "Site root, no trailing slash.",
         "work_item_type": "Defaults to Bug. Match a type your process template ships."
+      },
+      "openproject": {
+        "base_url": "Site root, no trailing slash.",
+        "project": "Identifier (slug) or numeric project id.",
+        "type_id": "Numeric id of the type (Bug, Task…). Leave empty to use the project default."
       }
     }
   },

@@ -91,6 +91,28 @@ export const PROVIDER_FIELDS = {
       help: "Defaults to Bug. Match a type your process template ships.",
     },
   ],
+  openproject: [
+    {
+      key: "base_url",
+      label: "Base URL",
+      placeholder: "https://openproject.example.org",
+      required: true,
+      help: "Site root, no trailing slash.",
+    },
+    {
+      key: "project",
+      label: "Project",
+      placeholder: "myproject  (identifier or numeric id)",
+      required: true,
+    },
+    {
+      key: "type_id",
+      label: "Work-package type id",
+      placeholder: "1",
+      required: false,
+      help: "Numeric id of the type (Bug, Task…). Leave empty to use the project default.",
+    },
+  ],
 }
 
 export function buildProviderConfig(provider, values) {

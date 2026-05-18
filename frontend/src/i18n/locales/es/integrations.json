@@ -122,6 +122,11 @@
         "organization_url": "URL de la organización",
         "project": "Proyecto",
         "work_item_type": "Tipo de work item"
+      },
+      "openproject": {
+        "base_url": "URL base",
+        "project": "Proyecto",
+        "type_id": "Id del tipo de work-package"
       }
     },
     "help": {
@@ -141,6 +146,11 @@
       "azure_devops": {
         "organization_url": "Raíz del sitio, sin barra final.",
         "work_item_type": "Por defecto Bug. Tipo que acepte tu process template."
+      },
+      "openproject": {
+        "base_url": "Raíz del sitio, sin barra final.",
+        "project": "Identificador (slug) o id numérico del proyecto.",
+        "type_id": "Id numérico del tipo (Bug, Task…). Vacío usa el default del proyecto."
       }
     }
   },
