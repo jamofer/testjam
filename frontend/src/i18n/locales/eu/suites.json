@@ -8,6 +8,16 @@
   "subSuiteCreated": "Azpisuitea sortuta",
   "saved": "Suitea gordeta",
   "deleted": "Suitea ezabatuta",
+  "archived": "Suitea artxibatuta",
+  "archiveFailed": "Ezin izan da artxibatu",
+  "confirmDelete": {
+    "title": "Suitea ezabatu?",
+    "impactWithResults": "Suite hau ezabatzeak {{caseCount}} kasu eta {{executionCount}} exekuziotako {{resultCount}} emaitza behin betiko kenduko ditu. Artxibatu historia mantentzeko.",
+    "impactNoResults": "Suite honek ez dauka exekuzio-emaitzarik lotuta. Bere azpisuiteekin eta kasuekin batera ezabatuko da.",
+    "archive": "Artxibatu",
+    "delete": "Ezabatu hala ere",
+    "cancel": "Utzi"
+  },
   "subSuiteName": "Azpisuitearen izena…",
   "export": "Esportatu",
   "exportTitle": "Deskargatu proiektua ZIP gisa",

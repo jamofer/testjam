@@ -8,7 +8,7 @@ export const SuiteCollapseContext = createContext({ version: 0, desiredOpen: tru
 import { TestCaseItem } from "../ui/test-case-item"
 import { useQueryClient, useQuery } from "@tanstack/react-query"
 import {
-  useChildSuites, useCreateSuite, useUpdateSuite, useDeleteSuite, useReorderProjectSuites,
+  useChildSuites, useCreateSuite, useUpdateSuite, useDeleteSuite, useArchiveSuite, useReorderProjectSuites,
   useCases, useCreateCase, useDeleteCase, useBulkDeleteCases, useReorderSuiteSteps, useReorderSuiteCases,
 } from "../../hooks/useSuites"
 import { suitesApi } from "../../api/testcases"
@@ -16,6 +16,7 @@ import { plansApi } from "../../api/testplans"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { MdEditor, MdViewer } from "../MdEditor"
 import { toast } from "sonner"
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
@@ -442,7 +443,40 @@ export function SuiteRow({ suite, projectId, dragHandleProps }) {
   const [addingSuite, setAddingSuite] = useState(false)
   const [editing, setEditing] = useState(false)
   const deleteSuite = useDeleteSuite(projectId)
+  const archiveSuite = useArchiveSuite(projectId)
   const updateSuite = useUpdateSuite(projectId)
+  const [deleteImpact, setDeleteImpact] = useState(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const handleDeleteClick = async () => {
+    try {
+      const impact = await suitesApi.deleteImpact(suite.id)
+      if (impact.result_count > 0) {
+        setDeleteImpact(impact)
+        setConfirmOpen(true)
+        return
+      }
+    } catch {
+      // fall through to plain delete on impact failure
+    }
+    deleteSuite.mutate(suite.id, { onSuccess: () => toast.success(t("deleted")) })
+  }
+  const handleArchiveConfirmed = () => {
+    archiveSuite.mutate(suite.id, {
+      onSuccess: () => {
+        toast.success(t("archived"))
+        setConfirmOpen(false)
+      },
+      onError: () => toast.error(t("archiveFailed")),
+    })
+  }
+  const handleDeleteConfirmed = () => {
+    deleteSuite.mutate(suite.id, {
+      onSuccess: () => {
+        toast.success(t("deleted"))
+        setConfirmOpen(false)
+      },
+    })
+  }
 
   const toggleOpen = () => setOpen(value => !value)
   const handleKeyDown = useTreeItemNav({
@@ -490,8 +524,7 @@ export function SuiteRow({ suite, projectId, dragHandleProps }) {
           <Button size="sm" variant="ghost" onClick={() => { setAddingCase(value => !value); setAddingSuite(false) }}>
             <Plus size={13} /> {t("row.addCase")}
           </Button>
-          <Button size="sm" variant="ghost"
-            onClick={() => deleteSuite.mutate(suite.id, { onSuccess: () => toast.success(t("deleted")) })}>
+          <Button size="sm" variant="ghost" onClick={handleDeleteClick}>
             <Trash2 size={13} />
           </Button>
         </div>
@@ -530,6 +563,51 @@ export function SuiteRow({ suite, projectId, dragHandleProps }) {
           <CaseList suiteId={suite.id} />
         </div>
       )}
+      <DeleteSuiteDialog
+        open={confirmOpen}
+        impact={deleteImpact}
+        onCancel={() => setConfirmOpen(false)}
+        onArchive={handleArchiveConfirmed}
+        onDelete={handleDeleteConfirmed}
+        archiving={archiveSuite.isPending}
+        deleting={deleteSuite.isPending}
+      />
     </div>
+  )
+}
+
+function DeleteSuiteDialog({ open, impact, onCancel, onArchive, onDelete, archiving, deleting }) {
+  const { t } = useTranslation("suites")
+  const hasResults = (impact?.result_count ?? 0) > 0
+  return (
+    <Dialog open={open} onOpenChange={(value) => { if (!value) onCancel() }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("confirmDelete.title")}</DialogTitle>
+          <DialogDescription>
+            {hasResults
+              ? t("confirmDelete.impactWithResults", {
+                  caseCount: impact?.case_count ?? 0,
+                  resultCount: impact?.result_count ?? 0,
+                  executionCount: impact?.execution_count ?? 0,
+                })
+              : t("confirmDelete.impactNoResults")}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="destructive" onClick={onDelete} disabled={deleting}>
+            {t("confirmDelete.delete")}
+          </Button>
+          {hasResults && (
+            <Button onClick={onArchive} disabled={archiving}>
+              {t("confirmDelete.archive")}
+            </Button>
+          )}
+          <Button variant="ghost" onClick={onCancel}>
+            {t("confirmDelete.cancel")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

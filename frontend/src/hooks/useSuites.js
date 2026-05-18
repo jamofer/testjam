@@ -71,6 +71,17 @@ export function useDeleteSuite(projectId) {
   })
 }
 
+export function useArchiveSuite(projectId) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: suitesApi.archive,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["suites-list", projectId] })
+      qc.invalidateQueries({ queryKey: ["suites-list-all", projectId] })
+    },
+  })
+}
+
 export function useReorderProjectSuites(projectId) {
   const qc = useQueryClient()
   return useMutation({

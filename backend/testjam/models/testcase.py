@@ -14,7 +14,7 @@ class TestSuite(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"))
     parent_suite_id: Mapped[int | None] = mapped_column(
-        ForeignKey("test_suites.id", ondelete="SET NULL"), nullable=True
+        ForeignKey("test_suites.id", ondelete="CASCADE"), nullable=True
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -24,7 +24,10 @@ class TestSuite(Base):
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now(), onupdate=func.now())
 
     project: Mapped[Project] = relationship(back_populates="suites")
-    children: Mapped[list[TestSuite]] = relationship(back_populates="parent")
+    children: Mapped[list[TestSuite]] = relationship(
+        back_populates="parent",
+        cascade="all, delete-orphan",
+    )
     parent: Mapped[TestSuite | None] = relationship(
         back_populates="children", remote_side="TestSuite.id"
     )

@@ -8,6 +8,16 @@
   "subSuiteCreated": "Sub-suite creada",
   "saved": "Suite guardada",
   "deleted": "Suite eliminada",
+  "archived": "Suite archivada",
+  "archiveFailed": "No se pudo archivar",
+  "confirmDelete": {
+    "title": "¿Eliminar la suite?",
+    "impactWithResults": "Eliminar esta suite borrará permanentemente {{caseCount}} casos y {{resultCount}} resultados de {{executionCount}} ejecuciones. Archívala si quieres conservar el historial.",
+    "impactNoResults": "Esta suite no tiene resultados de ejecución asociados. Se eliminará junto con sus sub-suites y casos.",
+    "archive": "Archivar",
+    "delete": "Eliminar igualmente",
+    "cancel": "Cancelar"
+  },
   "subSuiteName": "Nombre de la sub-suite…",
   "export": "Exportar",
   "exportTitle": "Descargar proyecto como ZIP",

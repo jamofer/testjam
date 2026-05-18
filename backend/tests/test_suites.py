@@ -142,6 +142,86 @@ def test_reorder_child_suites_only_affects_siblings(auth_client, project_id):
     assert [s["id"] for s in resp.json()] == [c2, c1]
 
 
+def test_delete_suite_cascades_children_and_cases(auth_client, project_id, suite_id):
+    child_id = auth_client.post(f"/api/v1/projects/{project_id}/suites", json={
+        "name": "Child", "parent_suite_id": suite_id,
+    }).json()["id"]
+    grandchild_id = auth_client.post(f"/api/v1/projects/{project_id}/suites", json={
+        "name": "Grandchild", "parent_suite_id": child_id,
+    }).json()["id"]
+    case_id = auth_client.post(f"/api/v1/suites/{grandchild_id}/cases", json={
+        "name": "TC", "suite_id": grandchild_id,
+    }).json()["id"]
+
+    resp = auth_client.delete(f"/api/v1/suites/{suite_id}")
+
+    assert resp.status_code == 204
+    assert auth_client.get(f"/api/v1/suites/{child_id}").status_code == 404
+    assert auth_client.get(f"/api/v1/suites/{grandchild_id}").status_code == 404
+    assert auth_client.get(f"/api/v1/cases/{case_id}").status_code == 404
+
+
+def test_delete_suite_impact_counts_results(auth_client, project_id, suite_id):
+    child_id = auth_client.post(f"/api/v1/projects/{project_id}/suites", json={
+        "name": "Child", "parent_suite_id": suite_id,
+    }).json()["id"]
+    case_a = auth_client.post(f"/api/v1/suites/{suite_id}/cases",
+                              json={"name": "A", "suite_id": suite_id}).json()["id"]
+    case_b = auth_client.post(f"/api/v1/suites/{child_id}/cases",
+                              json={"name": "B", "suite_id": child_id}).json()["id"]
+    exec_id = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
+        "title": "R", "type": "manual", "test_case_ids": [case_a, case_b],
+    }).json()["id"]
+
+    resp = auth_client.get(f"/api/v1/suites/{suite_id}/delete-impact")
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["suite_count"] == 2
+    assert body["case_count"] == 2
+    assert body["result_count"] == 2
+    assert body["execution_count"] == 1
+    assert exec_id
+
+
+def test_delete_suite_impact_zero_for_empty(auth_client, suite_id):
+    resp = auth_client.get(f"/api/v1/suites/{suite_id}/delete-impact")
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["case_count"] == 0
+    assert body["result_count"] == 0
+    assert body["execution_count"] == 0
+
+
+def test_archive_suite_archives_subtree_cases(auth_client, project_id, suite_id):
+    child_id = auth_client.post(f"/api/v1/projects/{project_id}/suites", json={
+        "name": "Child", "parent_suite_id": suite_id,
+    }).json()["id"]
+    case_a = auth_client.post(f"/api/v1/suites/{suite_id}/cases",
+                              json={"name": "A", "suite_id": suite_id}).json()["id"]
+    case_b = auth_client.post(f"/api/v1/suites/{child_id}/cases",
+                              json={"name": "B", "suite_id": child_id}).json()["id"]
+
+    resp = auth_client.post(f"/api/v1/suites/{suite_id}/archive")
+
+    assert resp.status_code == 200
+    assert resp.json() == {"suite_count": 2, "archived_case_count": 2}
+    assert auth_client.get(f"/api/v1/cases/{case_a}").json()["archived_at"] is not None
+    assert auth_client.get(f"/api/v1/cases/{case_b}").json()["archived_at"] is not None
+
+
+def test_archive_suite_skips_already_archived(auth_client, suite_id):
+    case_id = auth_client.post(f"/api/v1/suites/{suite_id}/cases",
+                               json={"name": "A", "suite_id": suite_id}).json()["id"]
+    auth_client.post(f"/api/v1/cases/{case_id}/archive")
+
+    resp = auth_client.post(f"/api/v1/suites/{suite_id}/archive")
+
+    assert resp.status_code == 200
+    assert resp.json()["archived_case_count"] == 0
+
+
 def test_reorder_suites_rejects_partial_set(auth_client, project_id):
     s_a = auth_client.post(f"/api/v1/projects/{project_id}/suites", json={"name": "A"}).json()["id"]
     auth_client.post(f"/api/v1/projects/{project_id}/suites", json={"name": "B"})

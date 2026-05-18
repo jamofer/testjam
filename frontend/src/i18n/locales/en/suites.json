@@ -8,6 +8,16 @@
   "subSuiteCreated": "Sub-suite created",
   "saved": "Suite saved",
   "deleted": "Suite deleted",
+  "archived": "Suite archived",
+  "archiveFailed": "Archive failed",
+  "confirmDelete": {
+    "title": "Delete suite?",
+    "impactWithResults": "Deleting this suite will permanently remove {{caseCount}} test cases and {{resultCount}} execution results across {{executionCount}} runs. Archive instead to keep history.",
+    "impactNoResults": "This suite has no related execution results. It will be deleted along with its sub-suites and cases.",
+    "archive": "Archive",
+    "delete": "Delete anyway",
+    "cancel": "Cancel"
+  },
   "subSuiteName": "Sub-suite name…",
   "export": "Export",
   "exportTitle": "Download project as ZIP",

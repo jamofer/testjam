@@ -150,6 +150,18 @@ class TestSuiteOut(TestSuiteBase):
     model_config = {"from_attributes": True}
 
 
+class SuiteDeleteImpact(BaseModel):
+    suite_count: int
+    case_count: int
+    result_count: int
+    execution_count: int
+
+
+class SuiteArchiveResult(BaseModel):
+    suite_count: int
+    archived_case_count: int
+
+
 class CaseCommentCreate(BaseModel):
     body: str = Field(min_length=1)
 

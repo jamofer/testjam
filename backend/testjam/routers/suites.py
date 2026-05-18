@@ -1,15 +1,37 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import get_current_user, require_project_access, require_writable_project_access
 from testjam.database import get_db
-from testjam.models.testcase import SuiteStep, TestSuite
+from testjam.models.execution import TestResult
+from testjam.models.testcase import SuiteStep, TestCase, TestSuite
 from testjam.models.user import User
 from testjam.schemas.testcase import (
+    SuiteArchiveResult, SuiteDeleteImpact,
     SuiteStepCreate, SuiteStepOut, SuiteStepUpdate,
     TestSuiteCreate, TestSuiteOut, TestSuiteUpdate,
 )
+
+
+def _collect_subtree_suite_ids(db: Session, root_id: int) -> list[int]:
+    visited: list[int] = []
+    queue = [root_id]
+    while queue:
+        suite_id = queue.pop()
+        visited.append(suite_id)
+        children = db.query(TestSuite.id).filter(TestSuite.parent_suite_id == suite_id).all()
+        queue.extend(row.id for row in children)
+    return visited
+
+
+def _subtree_case_ids(db: Session, suite_ids: list[int]) -> list[int]:
+    if not suite_ids:
+        return []
+    rows = db.query(TestCase.id).filter(TestCase.suite_id.in_(suite_ids)).all()
+    return [row.id for row in rows]
 
 projects_router = APIRouter(prefix="/projects", tags=["TestSuites"])
 suites_router = APIRouter(prefix="/suites", tags=["TestSuites"])
@@ -110,6 +132,47 @@ def delete_suite(id: int, db: Session = Depends(get_db), _: User = Depends(get_c
         raise HTTPException(status_code=404, detail="Not found")
     db.delete(suite)
     db.commit()
+
+
+@suites_router.get("/{id}/delete-impact", response_model=SuiteDeleteImpact)
+def delete_suite_impact(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    suite = db.get(TestSuite, id)
+    if not suite:
+        raise HTTPException(status_code=404, detail="Not found")
+    suite_ids = _collect_subtree_suite_ids(db, id)
+    case_ids = _subtree_case_ids(db, suite_ids)
+    if case_ids:
+        results = db.query(TestResult.execution_id).filter(TestResult.test_case_id.in_(case_ids)).all()
+        result_count = len(results)
+        execution_count = len({row.execution_id for row in results})
+    else:
+        result_count = 0
+        execution_count = 0
+    return SuiteDeleteImpact(
+        suite_count=len(suite_ids),
+        case_count=len(case_ids),
+        result_count=result_count,
+        execution_count=execution_count,
+    )
+
+
+@suites_router.post("/{id}/archive", response_model=SuiteArchiveResult)
+def archive_suite(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    suite = db.get(TestSuite, id)
+    if not suite:
+        raise HTTPException(status_code=404, detail="Not found")
+    suite_ids = _collect_subtree_suite_ids(db, id)
+    cases = (
+        db.query(TestCase)
+        .filter(TestCase.suite_id.in_(suite_ids), TestCase.archived_at.is_(None))
+        .all()
+    )
+    now = datetime.now(timezone.utc)
+    for case in cases:
+        case.archived_at = now
+        case.updated_by_id = current.id
+    db.commit()
+    return SuiteArchiveResult(suite_count=len(suite_ids), archived_case_count=len(cases))
 
 
 # ── Suite steps ────────────────────────────────────────────────────────────────

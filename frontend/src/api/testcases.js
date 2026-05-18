@@ -10,6 +10,8 @@ export const suitesApi = {
   create: (projectId, data) => api.post(`/projects/${projectId}/suites`, data).then(r => r.data),
   update: (id, data) => api.put(`/suites/${id}`, data).then(r => r.data),
   delete: (id) => api.delete(`/suites/${id}`),
+  deleteImpact: (id) => api.get(`/suites/${id}/delete-impact`).then(r => r.data),
+  archive: (id) => api.post(`/suites/${id}/archive`).then(r => r.data),
 
   createStep: (suiteId, data) => api.post(`/suites/${suiteId}/steps`, data).then(r => r.data),
   updateStep: (suiteId, stepId, data) => api.put(`/suites/${suiteId}/steps/${stepId}`, data).then(r => r.data),
