@@ -1,5 +1,25 @@
+import os
+
 from robot.api import logger
 from robot.api.deco import keyword
+
+
+SUITE_ADMIN_USERNAME_PREFIX = "e2e_"
+
+
+def _scoped_project_name(name: str) -> str:
+    """Append the per-suite admin slug so concurrent suites cannot collide on
+    globally-unique project names. No-op when running outside the orchestrator
+    (e.g. plain `robot` invocations) where ``TESTJAM_USER`` is the global admin.
+    Idempotent: calling with an already-scoped name returns it unchanged.
+    """
+    suite_admin = os.getenv("TESTJAM_USER", "")
+    if not suite_admin.startswith(SUITE_ADMIN_USERNAME_PREFIX):
+        return name
+    suffix = f" [{suite_admin}]"
+    if name.endswith(suffix):
+        return name
+    return f"{name}{suffix}"
 
 
 class ProjectMixin:
@@ -7,14 +27,15 @@ class ProjectMixin:
 
     @keyword("I create a project named ${name}")
     def create_project(self, name: str) -> int:
-        response = self.client.post("/projects", json={"name": name})
+        scoped = _scoped_project_name(name)
+        response = self.client.post("/projects", json={"name": scoped})
         if response.status_code == 409 and "already exists" in response.text:
-            self.current_project_id = self._lookup_project_id_by_name(name)
-            logger.info(f"Reusing existing project '{name}' → id={self.current_project_id}")
+            self.current_project_id = self._lookup_project_id_by_name(scoped)
+            logger.info(f"Reusing existing project '{scoped}' → id={self.current_project_id}")
             return self.current_project_id
         assert response.status_code == 201, f"Create project failed: {response.text}"
         self.current_project_id = response.json()["id"]
-        logger.info(f"Created project '{name}' → id={self.current_project_id}")
+        logger.info(f"Created project '{scoped}' → id={self.current_project_id}")
         return self.current_project_id
 
     def _lookup_project_id_by_name(self, name: str) -> int:
@@ -25,7 +46,10 @@ class ProjectMixin:
 
     @keyword("I rename the project to ${name}")
     def rename_project(self, name: str) -> None:
-        response = self.client.put(f"/projects/{self.current_project_id}", json={"name": name})
+        response = self.client.put(
+            f"/projects/{self.current_project_id}",
+            json={"name": _scoped_project_name(name)},
+        )
         assert response.status_code == 200, response.text
 
     @keyword("I delete the project")
@@ -38,7 +62,8 @@ class ProjectMixin:
         response = self.client.get(f"/projects/{self.current_project_id}")
         assert response.status_code == 200
         actual = response.json()["name"]
-        assert actual == name, f"Expected '{name}', got '{actual}'"
+        expected = _scoped_project_name(name)
+        assert actual == expected, f"Expected '{expected}', got '{actual}'"
 
     @keyword("the project should no longer exist")
     def project_should_no_longer_exist(self) -> None:

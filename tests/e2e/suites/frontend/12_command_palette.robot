@@ -14,15 +14,21 @@ ${PROJECT_NAME}    UI-Palette-Project
 
 *** Test Cases ***
 Ctrl+K opens the command palette
-    # When
+    # Given
     I open the command palette via keyboard
+
+    # When
+    I search the palette for ${PROJECT_NAME}
 
     # Then
     The palette should list ${PROJECT_NAME}
 
 The sidebar search button also opens the palette
-    # When
+    # Given
     I open the command palette via the sidebar
+
+    # When
+    I search the palette for ${PROJECT_NAME}
 
     # Then
     The palette should list ${PROJECT_NAME}

@@ -144,6 +144,35 @@ def test_execution_with_version_string_reuses_existing(auth_client, project_id, 
     assert resp.json()["version_id"] == existing_id
 
 
+def test_duplicate_version_name_returns_conflict(auth_client, project_id):
+    first = auth_client.post(f"/api/v1/projects/{project_id}/versions", json={"name": "dup-1.0"})
+
+    second = auth_client.post(f"/api/v1/projects/{project_id}/versions", json={"name": "dup-1.0"})
+
+    assert first.status_code == 201
+    assert second.status_code == 409
+    assert "already exists" in second.json()["detail"]
+
+
+def test_duplicate_version_name_allowed_across_projects(auth_client, project_id):
+    other_project_id = auth_client.post("/api/v1/projects", json={"name": "Other"}).json()["id"]
+
+    a = auth_client.post(f"/api/v1/projects/{project_id}/versions", json={"name": "shared-1.0"})
+    b = auth_client.post(f"/api/v1/projects/{other_project_id}/versions", json={"name": "shared-1.0"})
+
+    assert a.status_code == 201
+    assert b.status_code == 201
+
+
+def test_update_version_to_existing_name_returns_conflict(auth_client, project_id):
+    auth_client.post(f"/api/v1/projects/{project_id}/versions", json={"name": "rename-a"})
+    second_id = auth_client.post(f"/api/v1/projects/{project_id}/versions", json={"name": "rename-b"}).json()["id"]
+
+    resp = auth_client.put(f"/api/v1/versions/{second_id}", json={"name": "rename-a"})
+
+    assert resp.status_code == 409
+
+
 def test_list_executions_filtered_by_version(auth_client, project_id, case_ids):
     v1 = auth_client.post(f"/api/v1/projects/{project_id}/versions", json={"name": "v1.0"}).json()["id"]
     v2 = auth_client.post(f"/api/v1/projects/{project_id}/versions", json={"name": "v2.0"}).json()["id"]

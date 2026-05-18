@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import get_current_user, require_project_access, require_writable_project_access
@@ -25,7 +26,14 @@ def create_version(id: int, body: ProjectVersionCreate, db: Session = Depends(ge
     if version.status == "released":
         version.released_at = datetime.now(timezone.utc)
     db.add(version)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Version '{data['name']}' already exists in this project",
+        )
     db.refresh(version)
     return version
 
@@ -52,7 +60,14 @@ def update_version(id: int, body: ProjectVersionUpdate, db: Session = Depends(ge
         v.released_at = datetime.now(timezone.utc)
     elif new_status and new_status != "released" and previous_status == "released":
         v.released_at = None
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Another version with this name already exists in this project",
+        )
     db.refresh(v)
     return v
 

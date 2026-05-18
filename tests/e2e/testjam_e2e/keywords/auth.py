@@ -56,6 +56,12 @@ class AuthMixin:
         actual = response.json()["username"]
         assert actual == username, f"Expected user '{username}', got '{actual}'"
 
+    @keyword("the current user email")
+    def current_user_email(self) -> str:
+        response = self.client.get("/users/me")
+        assert response.status_code == 200, response.text
+        return response.json()["email"]
+
     @keyword("the current user should have admin privileges")
     def current_user_should_have_admin_privileges(self) -> None:
         response = self.client.get("/users/me")
@@ -76,13 +82,13 @@ class AuthMixin:
         )
         self.last_status_code = response.status_code
 
-    @keyword("I extract the password reset token from the latest email")
-    def extract_reset_token_from_latest_email(self) -> str:
-        latest = self._latest_message()
+    @keyword("I extract the password reset token from the email to ${recipient}")
+    def extract_reset_token_for(self, recipient: str) -> str:
+        latest = self._latest_to(recipient)
         full = self._fetch_message(latest["ID"])
         body = (full.get("Text") or "") + (full.get("HTML") or "")
         match = RESET_TOKEN_PATTERN.search(body)
-        assert match, f"No reset link found in latest email body"
+        assert match, f"No reset link found in latest email body to {recipient}"
         token = match.group(1)
         logger.info(f"Extracted reset token (prefix={token[:8]}…)")
         return token

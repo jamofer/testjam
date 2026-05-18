@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from sqlalchemy import Date, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Date, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from testjam.database import Base
@@ -10,6 +10,9 @@ from testjam.models._types import UTCDateTime
 
 class ProjectVersion(Base):
     __tablename__ = "project_versions"
+    __table_args__ = (
+        UniqueConstraint("project_id", "name", name="uq_project_versions_project_name"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"))

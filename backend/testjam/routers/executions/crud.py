@@ -2,6 +2,7 @@
 from datetime import datetime, timezone
 
 from fastapi import BackgroundTasks, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from testjam.auth.dependencies import (
@@ -31,17 +32,28 @@ from testjam.services.permissions import effective_role
 REOPENABLE_STATUSES = {"completed", "aborted"}
 
 
-def _resolve_or_create_version(db: Session, project_id: int, name: str) -> ProjectVersion:
-    existing = (
+def _find_version_by_name(db: Session, project_id: int, name: str) -> ProjectVersion | None:
+    return (
         db.query(ProjectVersion)
         .filter(ProjectVersion.project_id == project_id, ProjectVersion.name.ilike(name))
         .first()
     )
+
+
+def _resolve_or_create_version(db: Session, project_id: int, name: str) -> ProjectVersion:
+    existing = _find_version_by_name(db, project_id, name)
     if existing:
         return existing
     row = ProjectVersion(project_id=project_id, name=name, status="active")
-    db.add(row)
-    db.flush()
+    try:
+        with db.begin_nested():
+            db.add(row)
+            db.flush()
+    except IntegrityError:
+        existing = _find_version_by_name(db, project_id, name)
+        if existing is None:
+            raise
+        return existing
     return row
 
 

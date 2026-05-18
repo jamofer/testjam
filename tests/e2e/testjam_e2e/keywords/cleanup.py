@@ -1,5 +1,14 @@
+import os
+
 from robot.api import logger
 from robot.api.deco import keyword
+
+
+SUITE_ADMIN_USERNAME_PREFIX = "e2e_"
+
+
+def _running_under_orchestrator() -> bool:
+    return os.getenv("TESTJAM_USER", "").startswith(SUITE_ADMIN_USERNAME_PREFIX)
 
 
 class CleanupMixin:
@@ -83,6 +92,13 @@ class CleanupMixin:
             self.client.delete(f"/projects/{self.current_project_id}")
             self.current_project_id = None
 
+    @keyword("the stashed settings and current project are restored")
+    def restore_stashed_settings_and_project(self) -> None:
+        self.restore_stashed_settings()
+        if self.current_project_id is not None:
+            self.client.delete(f"/projects/{self.current_project_id}")
+            self.current_project_id = None
+
     @keyword("the websocket session is cleaned up")
     def clean_up_websocket_session(self) -> None:
         self.close_websocket()
@@ -97,6 +113,9 @@ class CleanupMixin:
     def purge_frontend_resources(self) -> None:
         self.authenticate_as_admin()
         self.purge_my_tokens()
+        if _running_under_orchestrator():
+            logger.info("Skipping cross-suite user purge — orchestrator isolates each suite via a dedicated admin")
+            return
         self.purge_projects("UI-")
         self.purge_users("ui-")
         self.purge_users("notif-")

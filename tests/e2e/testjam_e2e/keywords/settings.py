@@ -75,6 +75,25 @@ class SettingsMixin:
     def set_export_inline_attachment_mb(self, mb: str) -> None:
         self._patch_settings({"export_inline_attachment_mb": int(mb)})
 
+    @keyword("I temporarily set the export inline attachment limit to ${mb} megabytes")
+    def temp_set_export_inline_mb(self, mb: str) -> None:
+        original = self.fetch_admin_settings()["export_inline_attachment_mb"]
+        self._stash_setting("export_inline_attachment_mb", original)
+        self._patch_settings({"export_inline_attachment_mb": int(mb)})
+
+    @keyword("the previous settings values are restored")
+    def restore_stashed_settings(self) -> None:
+        if not getattr(self, "_settings_stash", None):
+            return
+        self.authenticate_as_admin()
+        self._patch_settings(self._settings_stash)
+        self._settings_stash = {}
+
+    def _stash_setting(self, key: str, value) -> None:
+        if not hasattr(self, "_settings_stash") or self._settings_stash is None:
+            self._settings_stash = {}
+        self._settings_stash.setdefault(key, value)
+
     @keyword("I set the app name to ${name}")
     def set_app_name(self, name: str) -> None:
         self._patch_settings({"app_name": name})

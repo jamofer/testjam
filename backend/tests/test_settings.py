@@ -165,6 +165,39 @@ def test_assignment_sends_email_when_smtp_configured(auth_client: TestClient, pr
     assert "<a href" in html_arg
 
 
+def test_admin_put_persists_reply_to(client: TestClient):
+    c = _admin_client(client)
+    c.put("/api/v1/settings", json={"smtp_reply_to": "support@example.com"})
+
+    body = c.get("/api/v1/settings").json()
+
+    assert body["smtp_reply_to"] == "support@example.com"
+
+
+def test_admin_put_persists_ws_log_flush_ms(client: TestClient):
+    c = _admin_client(client)
+    c.put("/api/v1/settings", json={"ws_log_flush_ms": 250})
+
+    body = c.get("/api/v1/settings").json()
+
+    assert body["ws_log_flush_ms"] == 250
+
+
+def test_disabling_self_registration_hides_it_in_public_payload(client: TestClient):
+    c = _admin_client(client)
+    assert client.get("/api/v1/settings/public").json()["allow_registration"] is True
+
+    c.put("/api/v1/settings", json={"allow_registration": False})
+
+    assert client.get("/api/v1/settings/public").json()["allow_registration"] is False
+
+
+def test_anonymous_requests_to_admin_settings_are_rejected(client: TestClient):
+    resp = client.get("/api/v1/settings")
+
+    assert resp.status_code == 401
+
+
 def test_assignment_does_not_send_email_when_smtp_unset(auth_client: TestClient, project_id, case_ids):
     with TestingSession() as db:
         bob = User(username="bob", email="bob@x.com",

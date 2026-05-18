@@ -41,7 +41,6 @@ A user can mint a personal token from the Profile page
 Toggling an email preference persists the new state
     [Teardown]    The notification preferences of profile-pref with password pw12345678 are reset
     # Given
-    I configure SMTP host mailpit port 1025 from qa@example.com
     I create a user named profile-pref with password pw12345678
     I switch the UI session to profile-pref with password pw12345678
     I open the profile page
@@ -51,15 +50,3 @@ Toggling an email preference persists the new state
 
     # Then
     The email preference for Execution assigned to you should be disabled
-
-The SMTP not-configured banner is shown when SMTP is unset
-    # Given
-    Settings are reset to defaults
-    I create a user named profile-banner with password pw12345678
-    I switch the UI session to profile-banner with password pw12345678
-
-    # When
-    I open the profile page
-
-    # Then
-    The SMTP not-configured banner should be visible

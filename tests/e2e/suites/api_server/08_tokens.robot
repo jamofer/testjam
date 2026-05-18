@@ -2,13 +2,17 @@
 Library    testjam_e2e.testjam_library.TestjamLibrary
 
 
+*** Variables ***
+${ADMIN_USER}    %{TESTJAM_USER=admin}
+
+
 *** Test Cases ***
 Create and use a user token
     [Teardown]    The admin personal tokens are cleaned up
     I am authenticated as admin
     ${token}=    I create a user token named CI Pipeline
     I authenticate using token ${token}
-    The current user should be admin
+    The current user should be ${ADMIN_USER}
 
 User token is listed with prefix only
     [Teardown]    The admin personal tokens are cleaned up
@@ -24,7 +28,7 @@ Create and use a project token
     ${token}=    I create a project token named Listener
     the project should have 1 api tokens
     I authenticate using token ${token}
-    The current user should be admin
+    The current user should be ${ADMIN_USER}
 
 Revoke a project token blocks further access
     [Teardown]    I clean up the current project

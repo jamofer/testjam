@@ -1,6 +1,8 @@
 from robot.api.deco import keyword
 from robot.libraries.BuiltIn import BuiltIn
 
+from testjam_e2e.keywords.projects import _scoped_project_name
+
 
 NEW_SUITE_TRIGGER = 'button:has-text("New suite")'
 SUITE_DIALOG_INPUT = 'input[placeholder="Suite name…"]'
@@ -28,25 +30,27 @@ class SuitesUIMixin:
 
     @keyword("I open the project detail page for ${name}")
     def open_project_detail(self, name: str) -> None:
-        project = self._find_project_id_by_name(name)
+        scoped = _scoped_project_name(name)
+        project = self._find_project_id_by_name(scoped)
         BuiltIn().run_keyword("Go To", f"{self.frontend_url}/projects/{project}")
         BuiltIn().run_keyword(
             "Wait For Elements State",
-            f'h1:has-text("{name}")', "visible", "timeout=10s",
+            f'h1:has-text("{scoped}")', "visible", "timeout=10s",
         )
 
     @keyword("I have a fresh project named ${name}")
     def have_fresh_project(self, name: str) -> None:
         self.authenticate_as_admin()
+        scoped = _scoped_project_name(name)
         for project in self.client.get("/projects").json():
-            if project["name"] == name:
+            if project["name"] == scoped:
                 self.client.delete(f"/projects/{project['id']}")
-        created = self.client.post("/projects", json={"name": name}).json()
+        created = self.client.post("/projects", json={"name": scoped}).json()
         self.current_project_id = created["id"]
         BuiltIn().run_keyword("Go To", f"{self.frontend_url}/projects/{created['id']}/cases")
         BuiltIn().run_keyword(
             "Wait For Elements State",
-            f'h1:has-text("{name}")', "visible", "timeout=10s",
+            f'h1:has-text("{scoped}")', "visible", "timeout=10s",
         )
 
     @keyword("I create a suite via the UI named ${name}")
@@ -85,7 +89,8 @@ class SuitesUIMixin:
         )
 
     def _find_project_id_by_name(self, name: str) -> int:
+        scoped = _scoped_project_name(name)
         for project in self.client.get("/projects").json():
-            if project["name"] == name:
+            if project["name"] == scoped:
                 return project["id"]
-        raise AssertionError(f"Project '{name}' not found")
+        raise AssertionError(f"Project '{scoped}' not found")

@@ -7,7 +7,7 @@ Test Teardown    Self-delete teardown
 *** Variables ***
 ${ADMIN_USER}    %{TESTJAM_USER=admin}
 ${ADMIN_PASS}    %{TESTJAM_PASS=admin123}
-${SELF_USER}     sd-self
+${SELF_USER}     selfdel-self
 ${SELF_PASS}     pw-self
 
 
@@ -45,4 +45,4 @@ Self-delete user is fresh
 Self-delete teardown
     I log in as ${ADMIN_USER} with password ${ADMIN_PASS}
     I disable user self deletion
-    I purge users with prefix sd-
+    I purge users with prefix selfdel-

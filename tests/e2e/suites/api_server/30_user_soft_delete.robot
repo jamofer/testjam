@@ -5,7 +5,7 @@ Test Teardown    Soft-delete teardown
 
 
 *** Variables ***
-${TARGET_USER}      sd-target
+${TARGET_USER}      softdel-target
 ${TARGET_PASS}      pw-target
 
 
@@ -50,4 +50,4 @@ Restore brings the user back to active state
 *** Keywords ***
 Soft-delete teardown
     I am authenticated as admin
-    I purge users with prefix sd-
+    I purge users with prefix softdel-

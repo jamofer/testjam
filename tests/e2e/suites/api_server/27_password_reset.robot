@@ -1,6 +1,6 @@
 *** Settings ***
 Library    testjam_e2e.testjam_library.TestjamLibrary
-Test Setup       Reset password feature is ready
+Test Setup       I am authenticated as admin
 Test Teardown    I purge users with prefix reset-
 
 
@@ -15,15 +15,15 @@ ${NEW_PASS}        replaced-secret-1
 Requesting a reset for an existing user emails them
     # Given
     I create a user named ${TARGET_USER} with password ${ORIGINAL_PASS}
+    I purge emails to ${TARGET_EMAIL}
 
     # When
     I request a password reset for ${TARGET_EMAIL}
 
     # Then
     The response status should be 204
-    I wait for 1 emails in the mailbox
-    The latest email recipient should be ${TARGET_EMAIL}
-    The latest email subject should contain Reset your password
+    I wait for 1 emails to ${TARGET_EMAIL}
+    The latest email to ${TARGET_EMAIL} subject should contain Reset your password
 
 Requesting a reset for an unknown email returns 204 silently
     # When
@@ -31,14 +31,15 @@ Requesting a reset for an unknown email returns 204 silently
 
     # Then
     The response status should be 204
-    The mailbox should be empty
+    The mailbox should have no emails to ghost@nowhere.com
 
 Confirming with a valid token lets the user log in with the new password
     # Given
     I create a user named ${TARGET_USER} with password ${ORIGINAL_PASS}
+    I purge emails to ${TARGET_EMAIL}
     I request a password reset for ${TARGET_EMAIL}
-    I wait for 1 emails in the mailbox
-    ${token}=    I extract the password reset token from the latest email
+    I wait for 1 emails to ${TARGET_EMAIL}
+    ${token}=    I extract the password reset token from the email to ${TARGET_EMAIL}
 
     # When
     I confirm the password reset with token ${token} and password ${NEW_PASS}
@@ -53,9 +54,10 @@ Confirming with a valid token lets the user log in with the new password
 Confirming twice with the same token fails the second time
     # Given
     I create a user named ${TARGET_USER} with password ${ORIGINAL_PASS}
+    I purge emails to ${TARGET_EMAIL}
     I request a password reset for ${TARGET_EMAIL}
-    I wait for 1 emails in the mailbox
-    ${token}=    I extract the password reset token from the latest email
+    I wait for 1 emails to ${TARGET_EMAIL}
+    ${token}=    I extract the password reset token from the email to ${TARGET_EMAIL}
     I confirm the password reset with token ${token} and password ${NEW_PASS}
     The response status should be 204
 
@@ -71,9 +73,3 @@ Confirming with a bogus token returns 400
 
     # Then
     The response status should be 400
-
-
-*** Keywords ***
-Reset password feature is ready
-    The email pipeline is reset
-    I configure SMTP to use mailpit

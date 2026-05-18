@@ -1,6 +1,8 @@
 from robot.api import logger
 from robot.api.deco import keyword
 
+from testjam_e2e.keywords.projects import _scoped_project_name
+
 
 class UsersMixin:
     """Keywords covering user lifecycle and self-service profile changes."""
@@ -175,6 +177,7 @@ class UsersMixin:
         raise AssertionError(f"User '{username}' not found")
 
     def _resolve_project_id(self, name: str) -> int:
+        scoped = _scoped_project_name(name)
         listing = self.client.get("/projects?include_archived=true").json()
-        match = next(project for project in listing if project["name"] == name)
+        match = next(project for project in listing if project["name"] == scoped)
         return match["id"]
