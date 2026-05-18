@@ -20,6 +20,7 @@ from testjam_client.errors import raise_for_status
 from testjam_client.resources.cases import CasesResource
 from testjam_client.resources.environments import EnvironmentsResource
 from testjam_client.resources.executions import ExecutionsResource
+from testjam_client.resources.integrations import IntegrationsResource
 from testjam_client.resources.projects import ProjectsResource
 from testjam_client.resources.results import ResultsResource
 from testjam_client.resources.step_results import StepResultsResource
@@ -67,6 +68,7 @@ class TestjamClient:
         self.executions = ExecutionsResource(self)
         self.results = ResultsResource(self)
         self.step_results = StepResultsResource(self)
+        self.integrations = IntegrationsResource(self)
 
     def login(self, username: str, password: str) -> str:
         response = self._http.request(

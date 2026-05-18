@@ -64,3 +64,18 @@ class BugExternalLinkOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class ResultReportRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=255)
+    description: str | None = None
+    severity: str = "medium"
+    tags: list[str] | None = None
+    integration_id: int | None = None
+    labels: list[str] = Field(default_factory=list)
+
+
+class ResultReportResponse(BaseModel):
+    bug_id: int
+    bug_number: int
+    external_link: BugExternalLinkOut | None = None
