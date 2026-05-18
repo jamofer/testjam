@@ -397,7 +397,17 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
         { label: t("run.context.project"), value: project?.name },
         { label: t("run.context.status"), value: <StatusPill status={execution.status} /> },
         { label: t("run.context.type"), value: <TypePill type={execution.type} /> },
-        { label: t("run.context.version"), value: execution.version_name },
+        {
+          label: t("run.context.version"),
+          value: execution.version_id ? (
+            <Link
+              to={`/projects/${execution.project_id}/versions/${execution.version_id}`}
+              className="text-primary-600 dark:text-primary-400 hover:underline"
+            >
+              {execution.version_name}
+            </Link>
+          ) : execution.version_name,
+        },
         { label: t("run.context.environment"), value: execution.environment },
         { label: t("run.context.createdBy"), value: <UserLink user={execution.created_by} /> },
         { label: t("run.context.triggeredBy"), value: execution.triggered_by },
@@ -439,7 +449,18 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
               <LiveIndicator connected={live} />
             </h1>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {execution.version_name && <span>v{execution.version_name}</span>}
+              {execution.version_name && (
+                execution.version_id ? (
+                  <Link
+                    to={`/projects/${execution.project_id}/versions/${execution.version_id}`}
+                    className="text-primary-600 dark:text-primary-400 hover:underline"
+                  >
+                    v{execution.version_name}
+                  </Link>
+                ) : (
+                  <span>v{execution.version_name}</span>
+                )
+              )}
               {execution.environment && (
                 <EnvironmentBadge projectId={execution.project_id} slug={execution.environment} />
               )}
