@@ -113,6 +113,10 @@
         "project_key": "Project key",
         "issue_type": "Issue type",
         "email": "Atlassian account email"
+      },
+      "gitlab": {
+        "project": "Project",
+        "base_url": "Base URL (self-hosted only)"
       }
     },
     "help": {
@@ -124,6 +128,10 @@
         "base_url": "Site root, no trailing slash.",
         "issue_type": "Defaults to Bug. Use any type your workflow accepts.",
         "email": "Required for Atlassian Cloud (Basic auth). Leave empty for Server/DC PAT."
+      },
+      "gitlab": {
+        "project": "Full path (group/subgroup/project) or numeric project id.",
+        "base_url": "Leave empty for gitlab.com."
       }
     }
   },

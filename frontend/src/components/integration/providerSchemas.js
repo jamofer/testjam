@@ -53,6 +53,22 @@ export const PROVIDER_FIELDS = {
       help: "Required for Atlassian Cloud (Basic auth). Leave empty for Server/DC PAT.",
     },
   ],
+  gitlab: [
+    {
+      key: "project",
+      label: "Project",
+      placeholder: "acme/awesome  (or numeric id)",
+      required: true,
+      help: "Full path (group/subgroup/project) or numeric project id.",
+    },
+    {
+      key: "base_url",
+      label: "Base URL (self-hosted only)",
+      placeholder: "https://gitlab.com",
+      required: false,
+      help: "Leave empty for gitlab.com.",
+    },
+  ],
 }
 
 export function buildProviderConfig(provider, values) {

@@ -150,6 +150,9 @@ function slugForConfig(integration) {
   if (integration.provider === "jira" && config.project_key) {
     return `${(config.base_url ?? "").replace(/^https?:\/\//, "")} · ${config.project_key}`
   }
+  if (integration.provider === "gitlab" && config.project) {
+    return config.project
+  }
   return null
 }
 
