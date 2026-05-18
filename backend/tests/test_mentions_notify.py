@@ -155,3 +155,79 @@ def test_mention_inside_code_block_is_ignored(auth_client, project_id):
     )
 
     assert _notifications_for("alice") == []
+
+
+def test_bug_mention_notifies_assignee(auth_client, project_id):
+    alice_id = _seed_member(project_id, "alice")
+    target_bug = _bug(auth_client, project_id, title="Triage me", assigned_to_id=alice_id)
+    host_bug = _bug(auth_client, project_id, title="Other thread")
+
+    auth_client.post(
+        f"/api/v1/bugs/{host_bug['id']}/comments",
+        json={"body": f"see #{target_bug['number']} for context"},
+    )
+
+    notifications = _notifications_for("alice")
+    assert len(notifications) == 1
+    assert notifications[0]["link"] == f"/projects/{project_id}/bugs/{host_bug['number']}"
+
+
+def test_execution_mention_notifies_assignee(auth_client, project_id):
+    alice_id = _seed_member(project_id, "alice")
+    suite_id = auth_client.post(
+        f"/api/v1/projects/{project_id}/suites", json={"name": "S"},
+    ).json()["id"]
+    case_id = auth_client.post(
+        f"/api/v1/suites/{suite_id}/cases", json={"name": "TC", "suite_id": suite_id},
+    ).json()["id"]
+    execution = auth_client.post(
+        f"/api/v1/projects/{project_id}/executions",
+        json={
+            "title": "Smoke",
+            "type": "manual",
+            "test_case_ids": [case_id],
+            "assigned_to_id": alice_id,
+        },
+    ).json()
+    bug = _bug(auth_client, project_id)
+
+    auth_client.post(
+        f"/api/v1/bugs/{bug['id']}/comments",
+        json={"body": f"saw it on !{execution['id']}"},
+    )
+
+    assert len(_notifications_for("alice")) == 1
+
+
+def test_case_mention_notifies_creator(auth_client, project_id):
+    alice = _seed_member(project_id, "alice")
+    alice_client = _login("alice")
+    suite_id = auth_client.post(
+        f"/api/v1/projects/{project_id}/suites", json={"name": "S"},
+    ).json()["id"]
+    case_id = alice_client.post(
+        f"/api/v1/suites/{suite_id}/cases", json={"name": "TC", "suite_id": suite_id},
+    ).json()["id"]
+    bug = _bug(auth_client, project_id)
+
+    auth_client.post(
+        f"/api/v1/bugs/{bug['id']}/comments",
+        json={"body": f"related to ~{case_id}"},
+    )
+
+    notifications = _notifications_for("alice")
+    assert len(notifications) == 1
+    assert alice  # silence linter
+
+
+def test_bug_mention_for_unknown_number_does_not_crash(auth_client, project_id):
+    _seed_member(project_id, "alice")
+    host_bug = _bug(auth_client, project_id)
+
+    response = auth_client.post(
+        f"/api/v1/bugs/{host_bug['id']}/comments",
+        json={"body": "check #9999 if you can"},
+    )
+
+    assert response.status_code == 201
+    assert _notifications_for("alice") == []
