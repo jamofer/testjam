@@ -153,6 +153,10 @@ function slugForConfig(integration) {
   if (integration.provider === "gitlab" && config.project) {
     return config.project
   }
+  if (integration.provider === "azure_devops" && config.project) {
+    const host = (config.organization_url ?? "").replace(/^https?:\/\//, "")
+    return host ? `${host} · ${config.project}` : config.project
+  }
   return null
 }
 

@@ -69,6 +69,28 @@ export const PROVIDER_FIELDS = {
       help: "Leave empty for gitlab.com.",
     },
   ],
+  azure_devops: [
+    {
+      key: "organization_url",
+      label: "Organization URL",
+      placeholder: "https://dev.azure.com/acme",
+      required: true,
+      help: "Site root, no trailing slash.",
+    },
+    {
+      key: "project",
+      label: "Project",
+      placeholder: "Widgets",
+      required: true,
+    },
+    {
+      key: "work_item_type",
+      label: "Work item type",
+      placeholder: "Bug",
+      required: false,
+      help: "Defaults to Bug. Match a type your process template ships.",
+    },
+  ],
 }
 
 export function buildProviderConfig(provider, values) {

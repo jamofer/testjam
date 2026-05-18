@@ -117,6 +117,11 @@
       "gitlab": {
         "project": "Proyecto",
         "base_url": "URL base (solo self-hosted)"
+      },
+      "azure_devops": {
+        "organization_url": "URL de la organización",
+        "project": "Proyecto",
+        "work_item_type": "Tipo de work item"
       }
     },
     "help": {
@@ -132,6 +137,10 @@
       "gitlab": {
         "project": "Ruta completa (group/subgroup/project) o id numérico.",
         "base_url": "Déjalo vacío para gitlab.com."
+      },
+      "azure_devops": {
+        "organization_url": "Raíz del sitio, sin barra final.",
+        "work_item_type": "Por defecto Bug. Tipo que acepte tu process template."
       }
     }
   },
