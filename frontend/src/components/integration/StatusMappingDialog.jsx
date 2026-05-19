@@ -64,7 +64,7 @@ export function StatusMappingDialog({ projectId, integration, onClose }) {
                   <Input
                     value={row.source}
                     onChange={event => setSource(index, event.target.value)}
-                    placeholder="Done"
+                    placeholder={t("statusMapping.sourcePlaceholder")}
                   />
                 </div>
                 <div className="w-32 space-y-1">

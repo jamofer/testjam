@@ -127,7 +127,7 @@ function WebhookRow({ webhook, onEdit, onViewLog, onDelete }) {
       await testMutation.mutateAsync(webhook.id)
       toast.success(t("toast.testSent"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? "Failed")
+      toast.error(error?.response?.data?.detail ?? t("toast.failed"))
     }
   }
 
@@ -197,7 +197,7 @@ function WebhookDialog({ projectId, webhook, onClose }) {
         setCreatedSecret(created.secret)
       }
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? "Failed")
+      toast.error(error?.response?.data?.detail ?? t("toast.failed"))
     }
   }
 
@@ -286,7 +286,7 @@ function SecretReveal({ secret, onClose }) {
       await navigator.clipboard.writeText(secret)
       toast.success(t("form.copied"))
     } catch (error) {
-      toast.error("Copy failed")
+      toast.error(t("toast.copyFailed"))
     }
   }
   return (
@@ -381,7 +381,7 @@ function DeleteDialog({ projectId, webhook, onClose }) {
       toast.success(t("toast.deleted"))
       onClose()
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? "Failed")
+      toast.error(error?.response?.data?.detail ?? t("toast.failed"))
     }
   }
   return (

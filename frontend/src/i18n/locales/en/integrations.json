@@ -25,7 +25,9 @@
     "viewLog": "Delivery log",
     "cancel": "Cancel",
     "save": "Save",
-    "create": "Create"
+    "create": "Create",
+    "back": "Back",
+    "next": "Next"
   },
   "form": {
     "name": "Name",
@@ -61,7 +63,9 @@
     "created": "Webhook created",
     "updated": "Webhook updated",
     "deleted": "Webhook deleted",
-    "testSent": "Test delivery scheduled"
+    "testSent": "Test delivery scheduled",
+    "failed": "Failed",
+    "copyFailed": "Copy failed"
   },
   "webhooks": {
     "title": "Outbound webhooks",
@@ -160,6 +164,7 @@
     "help": "Map remote statuses (e.g. Done, In Review) to Testjam's open/closed.",
     "empty": "No mappings configured. Defaults apply.",
     "source": "Remote status",
+    "sourcePlaceholder": "Done",
     "target": "Maps to",
     "add": "Add mapping",
     "save": "Save mapping",

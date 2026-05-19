@@ -25,7 +25,9 @@
     "viewLog": "Registro de envíos",
     "cancel": "Cancelar",
     "save": "Guardar",
-    "create": "Crear"
+    "create": "Crear",
+    "back": "Atrás",
+    "next": "Siguiente"
   },
   "form": {
     "name": "Nombre",
@@ -61,7 +63,9 @@
     "created": "Webhook creado",
     "updated": "Webhook actualizado",
     "deleted": "Webhook eliminado",
-    "testSent": "Envío de prueba programado"
+    "testSent": "Envío de prueba programado",
+    "failed": "Falló",
+    "copyFailed": "No se pudo copiar"
   },
   "webhooks": {
     "title": "Webhooks salientes",
@@ -160,6 +164,7 @@
     "help": "Mapea status remotos (ej. Done, In Review) a open/closed de Testjam.",
     "empty": "Sin mappings. Se aplican defaults.",
     "source": "Status remoto",
+    "sourcePlaceholder": "Hecho",
     "target": "Mapea a",
     "add": "Añadir mapping",
     "save": "Guardar mapping",
