@@ -11,10 +11,9 @@ os.environ["SECRET_KEY"] = "x" * 32
 os.environ["REDIS_URL"] = ""
 # Fernet test key — 32 random bytes urlsafe-b64 encoded. Stable across runs so
 # tests can re-import the crypto helper without rotating keys mid-session.
-os.environ.setdefault(
-    "INTEGRATION_ENCRYPTION_KEY",
-    "eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg=",
-)
+# Force-overwrite any inherited value: an empty INTEGRATION_ENCRYPTION_KEY would
+# pass settings' "is configured" check but fail Fernet validation.
+os.environ["INTEGRATION_ENCRYPTION_KEY"] = "eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg="
 
 import pytest
 from fastapi.testclient import TestClient

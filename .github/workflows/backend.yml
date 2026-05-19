@@ -35,6 +35,7 @@ jobs:
         working-directory: backend
         env:
           UPLOAD_DIR: ${{ runner.temp }}/testjam-uploads
+          INTEGRATION_ENCRYPTION_KEY: eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg=
         run: pytest -q
 
       - name: Run client SDK tests
@@ -42,4 +43,5 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}/backend
           UPLOAD_DIR: ${{ runner.temp }}/testjam-uploads
+          INTEGRATION_ENCRYPTION_KEY: eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg=
         run: pytest -q
