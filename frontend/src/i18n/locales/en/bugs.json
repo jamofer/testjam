@@ -4,6 +4,13 @@
   "new": "New bug",
   "downloadHtml": "Download HTML",
   "downloadPdf": "Download PDF",
+  "watch": {
+    "watch": "Watch",
+    "watching": "Watching",
+    "watchTitle": "Subscribe to updates on this bug",
+    "unwatchTitle": "Stop receiving updates on this bug",
+    "failed": "Could not update watch state"
+  },
   "table": {
     "number": "#",
     "title": "Title",

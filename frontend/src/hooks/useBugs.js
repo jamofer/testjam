@@ -133,3 +133,33 @@ export function useDeleteBugLink() {
       queryClient.invalidateQueries({ queryKey: ["bug-links", variables.bugId] }),
   })
 }
+
+export function useBugWatchers(id) {
+  return useQuery({
+    queryKey: ["bug-watchers", id],
+    queryFn: () => bugsApi.listWatchers(id),
+    enabled: !!id,
+  })
+}
+
+export function useWatchBug() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id) => bugsApi.watch(id),
+    onSuccess: (bug) => {
+      queryClient.setQueryData(["bug", bug.id], bug)
+      queryClient.invalidateQueries({ queryKey: ["bug-watchers", bug.id] })
+    },
+  })
+}
+
+export function useUnwatchBug() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id) => bugsApi.unwatch(id),
+    onSuccess: (bug) => {
+      queryClient.setQueryData(["bug", bug.id], bug)
+      queryClient.invalidateQueries({ queryKey: ["bug-watchers", bug.id] })
+    },
+  })
+}

@@ -97,6 +97,10 @@
       "execution_failed": {
         "title": "Execution had failed tests",
         "description": "When a completed run had at least one failed test."
+      },
+      "bug_commented": {
+        "title": "Comment on a bug you watch",
+        "description": "When someone comments on a bug you are watching."
       }
     },
     "inAppFor": "In-app for {{title}}",

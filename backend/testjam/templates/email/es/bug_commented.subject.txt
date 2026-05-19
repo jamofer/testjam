@@ -1,0 +1,1 @@
+[{{ app_name }}] {{ actor }} comentó en {{ subject_object }}

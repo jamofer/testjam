@@ -1,0 +1,1 @@
+[{{ app_name }}] {{ actor }} ha comentat a {{ subject_object }}

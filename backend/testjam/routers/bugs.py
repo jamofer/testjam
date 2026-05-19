@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from testjam.auth.dependencies import (
     AuthContext,
@@ -46,12 +46,13 @@ from testjam.schemas.bug import (
     BugOut,
     BugStatusChange,
     BugUpdate,
+    BugWatcherOut,
     RECIPROCAL_LINK_KIND,
     TERMINAL_BUG_STATUSES,
 )
 from fastapi.responses import HTMLResponse, StreamingResponse
 
-from testjam.services import bug_activity, bug_context, bug_events, bug_reports, mention_notify
+from testjam.services import bug_activity, bug_context, bug_events, bug_reports, bug_watchers, mention_notify
 from testjam.services.bug_numbering import next_bug_number
 from testjam.services.environments import upsert_from_execution
 from testjam.services.permissions import effective_role
@@ -72,10 +73,10 @@ def _fan_out_mentions(
     previous_body: str | None,
     actor: User,
     background: BackgroundTasks,
-) -> None:
+) -> set[int]:
     if not body:
-        return
-    mention_notify.notify_mentions(
+        return set()
+    notified = mention_notify.notify_mentions(
         db,
         project_id=bug.project_id,
         body=body,
@@ -85,6 +86,7 @@ def _fan_out_mentions(
         actor=actor,
         background=background,
     )
+    return set(notified)
 
 
 WRITER_ROLES = {"tester", "owner"}
@@ -169,7 +171,11 @@ def list_bugs(
     _: User = Depends(require_project_access),
 ):
     limit = min(limit, 200)
-    query = db.query(Bug).filter(Bug.project_id == id)
+    query = (
+        db.query(Bug)
+        .options(selectinload(Bug.watchers))
+        .filter(Bug.project_id == id)
+    )
     if status:
         query = query.filter(Bug.status == status)
     if severity:
@@ -371,8 +377,10 @@ def add_comment(
     db.add(comment)
     db.commit()
     db.refresh(comment)
-    bug_events.on_bug_comment_added(comment)
-    _fan_out_mentions(db, bug, comment.body, None, current, background)
+    mentioned = _fan_out_mentions(db, bug, comment.body, None, current, background)
+    bug_events.on_bug_comment_added(
+        db, comment, current, background=background, mentioned_user_ids=mentioned,
+    )
     return comment
 
 
@@ -427,6 +435,47 @@ def get_bug_context(
     bug = _get_bug(db, id)
     _authorize_bug_access(ctx, bug)
     return bug_context.build_bug_context(db, bug)
+
+
+@bugs_router.get("/{id}/watchers", response_model=list[BugWatcherOut])
+def list_bug_watchers(
+    id: int,
+    db: Session = Depends(get_db),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    bug = _get_bug(db, id)
+    _authorize_bug_access(ctx, bug)
+    return bug_watchers.list_watchers(db, bug.id)
+
+
+@bugs_router.post("/{id}/watch", response_model=BugOut)
+def watch_bug(
+    id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    bug = _get_bug(db, id)
+    if not _can_write_project(db, current, bug.project_id):
+        raise HTTPException(status_code=403, detail="Not allowed")
+    bug_watchers.add_watcher(db, bug.id, current.id)
+    db.commit()
+    full = bug_events.load_bug_full(db, bug.id) or bug
+    return bug_events.bug_out(full)
+
+
+@bugs_router.delete("/{id}/watch", response_model=BugOut)
+def unwatch_bug(
+    id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    bug = _get_bug(db, id)
+    if not _can_write_project(db, current, bug.project_id):
+        raise HTTPException(status_code=403, detail="Not allowed")
+    bug_watchers.remove_watcher(db, bug.id, current.id)
+    db.commit()
+    full = bug_events.load_bug_full(db, bug.id) or bug
+    return bug_events.bug_out(full)
 
 
 @bugs_router.get("/{id}/links", response_model=list[BugLinkOut])

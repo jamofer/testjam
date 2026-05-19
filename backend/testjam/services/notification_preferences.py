@@ -19,6 +19,7 @@ DEFAULT_PREFERENCES: dict[str, tuple[bool, bool]] = {
     NotificationEvent.EXECUTION_ASSIGNED.value: (True, True),
     NotificationEvent.EXECUTION_FINISHED.value: (True, False),
     NotificationEvent.EXECUTION_FAILED.value: (True, True),
+    NotificationEvent.BUG_COMMENTED.value: (True, False),
 }
 
 

@@ -52,7 +52,7 @@ def test_list_lazy_creates_defaults(auth_client: TestClient):
 def test_list_is_stable_after_second_fetch(auth_client: TestClient):
     first = auth_client.get(BASE).json()
     second = auth_client.get(BASE).json()
-    assert len(first) == len(second) == 3
+    assert len(first) == len(second) == 4
     assert {entry["event_type"] for entry in first} == {entry["event_type"] for entry in second}
 
 

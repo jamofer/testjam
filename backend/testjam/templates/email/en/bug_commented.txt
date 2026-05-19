@@ -1,0 +1,9 @@
+{{ actor }} commented on '{{ subject_object }}':
+
+{{ excerpt }}
+
+Open the bug: {{ link_in_app }}
+
+—
+{{ footer_reason }}
+Manage preferences: {{ preferences_url }}

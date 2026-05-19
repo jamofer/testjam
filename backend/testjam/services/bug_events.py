@@ -27,7 +27,7 @@ from testjam.schemas.bug import (
     BugOut,
     TERMINAL_BUG_STATUSES,
 )
-from testjam.services import bug_activity, email_templates, webhook_events
+from testjam.services import bug_activity, bug_watchers, email_templates, webhook_events
 from testjam.services.notification_events import NotificationEvent
 from testjam.services.notifications import notify
 from testjam.services.settings import get_settings as get_app_settings
@@ -42,6 +42,7 @@ def load_bug_full(db: Session, bug_id: int) -> Bug | None:
             selectinload(Bug.updated_by),
             selectinload(Bug.version),
             selectinload(Bug.fixed_in_version),
+            selectinload(Bug.watchers),
         )
         .filter(Bug.id == bug_id)
         .first()
@@ -52,6 +53,7 @@ def bug_out(bug: Bug) -> BugOut:
     payload = BugOut.model_validate(bug)
     payload.version_name = bug.version.name if bug.version else None
     payload.fixed_in_version_name = bug.fixed_in_version.name if bug.fixed_in_version else None
+    payload.watcher_count = len(bug.watchers)
     return payload
 
 
@@ -121,6 +123,8 @@ def _bug_email_context(db: Session, bug: Bug, actor: User | None = None) -> dict
 
 
 def on_bug_created(db: Session, bug: Bug, actor: User, background: BackgroundTasks | None) -> None:
+    bug_watchers.auto_watch(db, bug, [bug.created_by_id, bug.assigned_to_id])
+    db.commit()
     full = load_bug_full(db, bug.id) or bug
     _broadcast_project("bug.created", full)
     webhook_events.fire_event(db, full.project_id, "bug.created", _bug_payload(full), background)
@@ -133,6 +137,7 @@ def on_bug_created(db: Session, bug: Bug, actor: User, background: BackgroundTas
             _bug_link(full),
             background,
         )
+        db.commit()
 
 
 def on_bug_updated(
@@ -163,6 +168,9 @@ def on_bug_assigned(
     db: Session, bug: Bug, previous_assignee_id: int | None, actor: User,
     background: BackgroundTasks | None,
 ) -> None:
+    if bug.assigned_to_id and bug.assigned_to_id != previous_assignee_id:
+        bug_watchers.auto_watch(db, bug, [bug.assigned_to_id])
+        db.commit()
     full = load_bug_full(db, bug.id) or bug
     _broadcast_project("bug.assigned", full)
     new_assignee = full.assigned_to_id
@@ -172,6 +180,7 @@ def on_bug_assigned(
         db, new_assignee, NotificationEvent.BUG_ASSIGNED,
         _bug_email_context(db, full, actor), _bug_link(full), background,
     )
+    db.commit()
 
 
 def on_bug_status_changed(
@@ -186,11 +195,8 @@ def on_bug_status_changed(
         bug_activity.activity_out(loaded).model_dump(mode="json"),
     )
 
-    recipients: set[int] = set()
-    if full.created_by_id and full.created_by_id != actor.id:
-        recipients.add(full.created_by_id)
-    if full.assigned_to_id and full.assigned_to_id != actor.id:
-        recipients.add(full.assigned_to_id)
+    recipients = bug_watchers.watcher_user_ids(db, full.id)
+    recipients.discard(actor.id)
 
     is_terminal = activity_row.to_value in TERMINAL_BUG_STATUSES
     event = NotificationEvent.BUG_RESOLVED if is_terminal else NotificationEvent.BUG_STATUS_CHANGED
@@ -203,17 +209,57 @@ def on_bug_status_changed(
             db, user_id, event,
             _bug_email_context(db, full, actor), _bug_link(full), background,
         )
+    if recipients:
+        db.commit()
 
 
 def on_bug_deleted(project_id: int, bug_id: int) -> None:
     notify_project(project_id, {"event": "bug.deleted", "data": {"id": bug_id}})
 
 
-def on_bug_comment_added(comment: BugComment) -> None:
+def on_bug_comment_added(
+    db: Session,
+    comment: BugComment,
+    actor: User,
+    background: BackgroundTasks | None = None,
+    mentioned_user_ids: set[int] | None = None,
+) -> None:
     _broadcast_bug(
         "bug.comment.added", comment.bug_id,
         BugCommentOut.model_validate(comment).model_dump(mode="json"),
     )
+    bug = db.get(Bug, comment.bug_id)
+    if bug is None:
+        return
+    bug_watchers.auto_watch(db, bug, [actor.id])
+    db.commit()
+
+    recipients = bug_watchers.watcher_user_ids(db, bug.id)
+    recipients.discard(actor.id)
+    if mentioned_user_ids:
+        recipients -= mentioned_user_ids
+    if not recipients:
+        return
+
+    full = load_bug_full(db, bug.id) or bug
+    context = _bug_email_context(db, full, actor)
+    context["excerpt"] = _comment_excerpt(comment.body)
+    for user_id in recipients:
+        _send_bug_email(
+            db, user_id, NotificationEvent.BUG_COMMENTED,
+            context, _bug_link(full), background,
+        )
+    db.commit()
+
+
+COMMENT_EXCERPT_MAX = 280
+
+
+def _comment_excerpt(body: str) -> str:
+    cleaned = body.strip().replace("\n", " ")
+    if len(cleaned) <= COMMENT_EXCERPT_MAX:
+        return cleaned
+    return cleaned[: COMMENT_EXCERPT_MAX - 1].rstrip() + "…"
 
 
 def on_bug_comment_updated(comment: BugComment) -> None:

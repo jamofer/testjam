@@ -167,9 +167,9 @@ def test_bug_mention_notifies_assignee(auth_client, project_id):
         json={"body": f"see #{target_bug['number']} for context"},
     )
 
-    notifications = _notifications_for("alice")
-    assert len(notifications) == 1
-    assert notifications[0]["link"] == f"/projects/{project_id}/bugs/{host_bug['number']}"
+    mention_link = f"/projects/{project_id}/bugs/{host_bug['number']}"
+    links = [notification["link"] for notification in _notifications_for("alice")]
+    assert mention_link in links
 
 
 def test_execution_mention_notifies_assignee(auth_client, project_id):

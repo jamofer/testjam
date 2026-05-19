@@ -68,6 +68,9 @@ _FOOTER_REASONS: dict[str, dict[str, str]] = {
         NotificationEvent.MENTION_IN_COMMENT.value: (
             "You're receiving this because someone mentioned you in a comment."
         ),
+        NotificationEvent.BUG_COMMENTED.value: (
+            "You're receiving this because you are watching this bug."
+        ),
     },
     "es": {
         NotificationEvent.EXECUTION_ASSIGNED.value: (
@@ -93,6 +96,9 @@ _FOOTER_REASONS: dict[str, dict[str, str]] = {
         ),
         NotificationEvent.MENTION_IN_COMMENT.value: (
             "Recibes este email porque alguien te mencionó en un comentario."
+        ),
+        NotificationEvent.BUG_COMMENTED.value: (
+            "Recibes este email porque estás siguiendo este bug."
         ),
     },
     "ca": {
@@ -120,6 +126,9 @@ _FOOTER_REASONS: dict[str, dict[str, str]] = {
         NotificationEvent.MENTION_IN_COMMENT.value: (
             "Reps aquest correu perquè algú t'ha mencionat en un comentari."
         ),
+        NotificationEvent.BUG_COMMENTED.value: (
+            "Reps aquest correu perquè segueixes aquest bug."
+        ),
     },
     "gl": {
         NotificationEvent.EXECUTION_ASSIGNED.value: (
@@ -146,6 +155,9 @@ _FOOTER_REASONS: dict[str, dict[str, str]] = {
         NotificationEvent.MENTION_IN_COMMENT.value: (
             "Recibes este correo porque alguén te mencionou nun comentario."
         ),
+        NotificationEvent.BUG_COMMENTED.value: (
+            "Recibes este correo porque estás a seguir este bug."
+        ),
     },
     "eu": {
         NotificationEvent.EXECUTION_ASSIGNED.value: (
@@ -171,6 +183,9 @@ _FOOTER_REASONS: dict[str, dict[str, str]] = {
         ),
         NotificationEvent.MENTION_IN_COMMENT.value: (
             "Mezu hau jaso duzu norbaitek iruzkin batean aipatu zaituelako."
+        ),
+        NotificationEvent.BUG_COMMENTED.value: (
+            "Mezu hau jaso duzu akats hau jarraitzen ari zarelako."
         ),
     },
 }

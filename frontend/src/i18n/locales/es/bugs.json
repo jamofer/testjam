@@ -4,6 +4,13 @@
   "new": "Nuevo bug",
   "downloadHtml": "Descargar HTML",
   "downloadPdf": "Descargar PDF",
+  "watch": {
+    "watch": "Seguir",
+    "watching": "Siguiendo",
+    "watchTitle": "Suscribirse a las novedades de este bug",
+    "unwatchTitle": "Dejar de recibir novedades de este bug",
+    "failed": "No se pudo actualizar la suscripción"
+  },
   "table": {
     "number": "#",
     "title": "Título",

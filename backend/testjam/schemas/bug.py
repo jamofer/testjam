@@ -82,6 +82,14 @@ class BugOut(BaseModel):
     created_at: datetime
     updated_at: datetime
     resolved_at: datetime | None
+    watcher_count: int = 0
+
+    model_config = {"from_attributes": True}
+
+
+class BugWatcherOut(BaseModel):
+    user: UserOut
+    created_at: datetime
 
     model_config = {"from_attributes": True}
 

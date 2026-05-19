@@ -27,6 +27,7 @@ class NotificationEvent(StrEnum):
     BUG_ASSIGNED = "bug_assigned"
     BUG_RESOLVED = "bug_resolved"
     BUG_STATUS_CHANGED = "bug_status_changed"
+    BUG_COMMENTED = "bug_commented"
 
     # Reserved for future work — not yet emitted.
     MENTION_IN_COMMENT = "mention_in_comment"

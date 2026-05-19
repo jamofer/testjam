@@ -1,0 +1,1 @@
+[{{ app_name }}] {{ actor }}: iruzkin berria {{ subject_object }} akatsean

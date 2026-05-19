@@ -26,6 +26,9 @@ export const bugsApi = {
   listLinks: (id) => api.get(`/bugs/${id}/links`).then(r => r.data),
   addLink: (id, data) => api.post(`/bugs/${id}/links`, data).then(r => r.data),
   deleteLink: (id, linkId) => api.delete(`/bugs/${id}/links/${linkId}`),
+  listWatchers: (id) => api.get(`/bugs/${id}/watchers`).then(r => r.data),
+  watch: (id) => api.post(`/bugs/${id}/watch`).then(r => r.data),
+  unwatch: (id) => api.delete(`/bugs/${id}/watch`).then(r => r.data),
   exportHtml: async (projectId, projectName = "") => {
     const r = await api.get(`/projects/${projectId}/bugs/report?format=html`, { responseType: "blob" })
     const slug = (projectName || `project_${projectId}`).replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_-]/g, "")

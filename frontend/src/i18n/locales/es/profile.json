@@ -97,6 +97,10 @@
       "execution_failed": {
         "title": "Ejecución con fallos",
         "description": "Cuando una ejecución terminada tuvo al menos un test fallido."
+      },
+      "bug_commented": {
+        "title": "Comentario en un bug que sigues",
+        "description": "Cuando alguien comenta en un bug que estás siguiendo."
       }
     },
     "inAppFor": "En la app para {{title}}",

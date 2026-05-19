@@ -88,6 +88,10 @@ class Bug(Base):
         order_by="BugLink.created_at.asc(), BugLink.id.asc()",
         foreign_keys="BugLink.bug_id",
     )
+    watchers: Mapped[list["BugWatcher"]] = relationship(
+        back_populates="bug",
+        cascade="all, delete-orphan",
+    )
 
 
 class BugComment(Base):
@@ -183,3 +187,18 @@ class BugActivity(Base):
 
     bug: Mapped[Bug] = relationship(back_populates="activity")
     changed_by: Mapped["User | None"] = relationship(foreign_keys=[changed_by_id])  # noqa: F821
+
+
+class BugWatcher(Base):
+    __tablename__ = "bug_watchers"
+
+    bug_id: Mapped[int] = mapped_column(
+        ForeignKey("bugs.id", ondelete="CASCADE"), primary_key=True
+    )
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
+
+    bug: Mapped[Bug] = relationship(back_populates="watchers")
+    user: Mapped["User"] = relationship()  # noqa: F821

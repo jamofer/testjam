@@ -6,6 +6,8 @@ import {
   CalendarPlus,
   CheckCircle2,
   Clock,
+  Eye,
+  EyeOff,
   ExternalLink,
   GitBranch,
   Pencil,
@@ -24,12 +26,15 @@ import {
   useBugComments,
   useBugContext,
   useBugLinks,
+  useBugWatchers,
   useChangeBugStatus,
   useDeleteBug,
   useDeleteBugComment,
   useDeleteBugLink,
+  useUnwatchBug,
   useUpdateBug,
   useUpdateBugComment,
+  useWatchBug,
 } from "../hooks/useBugs"
 import { useProject } from "../hooks/useProjects"
 import { useMe } from "../hooks/useAuth"
@@ -91,6 +96,20 @@ export function BugDetailPage() {
   const updateComment = useUpdateBugComment()
   const removeComment = useDeleteBugComment()
   const removeLink = useDeleteBugLink()
+  const { data: watchers = [] } = useBugWatchers(bugId)
+  const watchBug = useWatchBug()
+  const unwatchBug = useUnwatchBug()
+  const isWatching = useMemo(
+    () => !!me && watchers.some(watcher => watcher.user.id === me.id),
+    [watchers, me],
+  )
+  const toggleWatch = () => {
+    if (!bugId) return
+    const action = isWatching ? unwatchBug : watchBug
+    action.mutate(bugId, {
+      onError: (error) => toast.error(error?.response?.data?.detail ?? t("watch.failed")),
+    })
+  }
 
   const [commentDraft, setCommentDraft] = useState("")
   const [editingComment, setEditingComment] = useState(null)
@@ -273,6 +292,17 @@ export function BugDetailPage() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 md:shrink-0">
+            <Button
+              variant={isWatching ? "default" : "outline"}
+              size="sm"
+              onClick={toggleWatch}
+              disabled={watchBug.isPending || unwatchBug.isPending}
+              title={isWatching ? t("watch.unwatchTitle") : t("watch.watchTitle")}
+            >
+              {isWatching ? <EyeOff size={13} /> : <Eye size={13} />}
+              <span>{isWatching ? t("watch.watching") : t("watch.watch")}</span>
+              <span className="ml-1 text-xs opacity-70">{bug.watcher_count ?? watchers.length}</span>
+            </Button>
             <Select value={bug.status} onValueChange={handleStatusChange}>
               <SelectTrigger className="h-9 w-auto min-w-[10rem] text-sm">
                 <SelectValue />
