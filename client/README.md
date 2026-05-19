@@ -70,6 +70,17 @@ client.login("user", "pass")
 - `client.executions` — CRUD + `list_results`, `upload_attachment`.
 - `client.results` — `get`, `create`, `update`.
 - `client.step_results` — `start`, `update`, `append_log`.
+- `client.bugs` — CRUD, `get_by_number`, `change_status`, comments,
+  watchers (`watch` / `unwatch` / `list_watchers`), links, activity,
+  attachments, `context`, `download_report`.
+- `client.plans` — CRUD test plans plus `add_cases`.
+- `client.webhooks` — CRUD, `test`, `list_deliveries` (create returns
+  the secret; subsequent reads omit it).
+- `client.tokens` — `list_user_tokens` / `create_user_token` /
+  `rotate_user_token` / `delete_user_token`, plus the
+  `*_project_token` equivalents for project-scoped API keys.
+- `client.integrations` — provider catalogue, project integrations,
+  bug external links, `report_from_result`.
 
 ## Errors
 

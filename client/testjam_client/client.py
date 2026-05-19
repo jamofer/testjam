@@ -17,6 +17,7 @@ from typing import Any, Protocol
 import httpx
 
 from testjam_client.errors import raise_for_status
+from testjam_client.resources.bugs import BugsResource
 from testjam_client.resources.cases import CasesResource
 from testjam_client.resources.environments import EnvironmentsResource
 from testjam_client.resources.executions import ExecutionsResource
@@ -25,7 +26,10 @@ from testjam_client.resources.projects import ProjectsResource
 from testjam_client.resources.results import ResultsResource
 from testjam_client.resources.step_results import StepResultsResource
 from testjam_client.resources.suites import SuitesResource
+from testjam_client.resources.testplans import TestPlansResource
+from testjam_client.resources.tokens import TokensResource
 from testjam_client.resources.versions import VersionsResource
+from testjam_client.resources.webhooks import WebhooksResource
 
 
 DEFAULT_TIMEOUT_SECONDS = 30.0
@@ -69,6 +73,10 @@ class TestjamClient:
         self.results = ResultsResource(self)
         self.step_results = StepResultsResource(self)
         self.integrations = IntegrationsResource(self)
+        self.bugs = BugsResource(self)
+        self.plans = TestPlansResource(self)
+        self.webhooks = WebhooksResource(self)
+        self.tokens = TokensResource(self)
 
     def login(self, username: str, password: str) -> str:
         response = self._http.request(
