@@ -85,13 +85,12 @@ def create_public_report(
     except public_reports.PublicReportError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    out = PublicReportCreated.model_validate(row, from_attributes=True).model_copy(
-        update={
-            "token": raw_token,
-            "url_path": public_reports.url_path_for(row, raw_token),
-        }
+    base = PublicReportOut.model_validate(row, from_attributes=True)
+    return PublicReportCreated(
+        **base.model_dump(),
+        token=raw_token,
+        url_path=public_reports.url_path_for(row, raw_token),
     )
-    return out
 
 
 @projects_router.delete(
