@@ -1,0 +1,31 @@
+# CI-only override: enables BuildKit GitHub Actions cache for each built image.
+# Requires `docker/setup-buildx-action` to be active so the docker-container
+# builder + ACTIONS_RUNTIME_TOKEN are wired up.
+services:
+  api:
+    build:
+      cache_from:
+        - type=gha,scope=api
+      cache_to:
+        - type=gha,scope=api,mode=max
+
+  frontend:
+    build:
+      cache_from:
+        - type=gha,scope=frontend
+      cache_to:
+        - type=gha,scope=frontend,mode=max
+
+  web:
+    build:
+      cache_from:
+        - type=gha,scope=web
+      cache_to:
+        - type=gha,scope=web,mode=max
+
+  e2e:
+    build:
+      cache_from:
+        - type=gha,scope=e2e
+      cache_to:
+        - type=gha,scope=e2e,mode=max

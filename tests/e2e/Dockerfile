@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 FROM python:3.12-slim
 
 RUN apt-get update \
@@ -10,7 +11,8 @@ COPY client /client
 COPY listener /listener
 COPY tests/e2e /tests/e2e
 
-RUN pip install --no-cache-dir -e /client -e /listener -e /tests/e2e pytest
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -e /client -e /listener -e /tests/e2e pytest
 RUN rfbrowser init chromium \
  && npx --yes playwright install-deps chromium
 

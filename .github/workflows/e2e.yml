@@ -17,8 +17,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build images
-        run: docker compose -f docker-compose-dev.yml --profile e2e build
+        run: docker compose -f docker-compose-dev.yml -f docker-compose-ci.yml --profile e2e build
 
       - name: Start stack
         run: docker compose -f docker-compose-dev.yml up -d --wait db api frontend mailpit
