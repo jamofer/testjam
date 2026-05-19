@@ -37,6 +37,7 @@ import {
   useWatchBug,
 } from "../hooks/useBugs"
 import { useProject } from "../hooks/useProjects"
+import { useVersions } from "../hooks/useVersions"
 import { useMe } from "../hooks/useAuth"
 import { useBugLive } from "../hooks/useBugLive"
 import { PageBody, PageHeader } from "../components/ui/page-header"
@@ -82,6 +83,7 @@ export function BugDetailPage() {
   const bugId = resolvedId
   const { data: bug, isLoading } = useBug(bugId)
   const { data: project } = useProject(bug?.project_id)
+  const { data: versions = [] } = useVersions(bug?.project_id)
   const { connected: live } = useBugLive(bugId, { enabled: !!me && !!bugId })
   const { data: comments = [] } = useBugComments(bugId)
   const { data: activity = [] } = useBugActivity(bugId)
@@ -122,12 +124,24 @@ export function BugDetailPage() {
   )
   const historyCount = activity.length + comments.length
 
+  const fixedInVersionPicker = bug ? (
+    <FixedInVersionPicker
+      bug={bug}
+      versions={versions}
+      onChange={(versionId) =>
+        updateBug.mutateAsync({ id: bug.id, data: { fixed_in_version_id: versionId } })
+      }
+      saving={updateBug.isPending}
+    />
+  ) : null
+
   const contextSections = useMemo(() => {
     if (!bug) return []
     return buildContextSections({
       bug,
       links,
       linkContext,
+      fixedInVersionPicker,
       onDeleteLink: (linkId) => removeLink.mutateAsync({ bugId: bug.id, linkId }),
       addLinkDialog: (
         <AddBugLinkDialog
@@ -145,7 +159,7 @@ export function BugDetailPage() {
       ),
       t,
     })
-  }, [bug, links, linkContext, removeLink, t])
+  }, [bug, links, linkContext, removeLink, fixedInVersionPicker, t])
 
   if (isLoading || !bug) {
     return (
@@ -461,7 +475,7 @@ export function BugDetailPage() {
   )
 }
 
-function buildContextSections({ bug, links, linkContext, onDeleteLink, addLinkDialog, t }) {
+function buildContextSections({ bug, links, linkContext, onDeleteLink, addLinkDialog, fixedInVersionPicker, t }) {
   const sections = []
 
   sections.push({
@@ -513,16 +527,7 @@ function buildContextSections({ bug, links, linkContext, onDeleteLink, addLinkDi
       {
         label: t("context.fixedInVersion"),
         icon: GitBranch,
-        value: bug.fixed_in_version_id && bug.fixed_in_version_name
-          ? (
-            <Link
-              to={`/projects/${bug.project_id}/versions/${bug.fixed_in_version_id}`}
-              className="text-primary-600 dark:text-primary-400 hover:underline"
-            >
-              {bug.fixed_in_version_name}
-            </Link>
-          )
-          : null,
+        value: fixedInVersionPicker,
       },
       {
         label: t("context.resolved"),
@@ -827,4 +832,29 @@ function OtherLinkContent({ link, bug, t }) {
     )
   }
   return <span className="text-gray-500 dark:text-gray-400">{link.label}</span>
+}
+
+const FIXED_IN_NONE = "__none__"
+
+function FixedInVersionPicker({ bug, versions, onChange, saving }) {
+  const { t } = useTranslation("bugs")
+  const value = bug.fixed_in_version_id ? String(bug.fixed_in_version_id) : FIXED_IN_NONE
+  const handleChange = (next) => {
+    const nextId = next === FIXED_IN_NONE ? null : Number(next)
+    if (nextId === (bug.fixed_in_version_id ?? null)) return
+    onChange(nextId)
+  }
+  return (
+    <Select value={value} onValueChange={handleChange} disabled={saving}>
+      <SelectTrigger className="h-7 text-xs w-full">
+        <SelectValue placeholder={t("fields.fixedInVersionPlaceholder")} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value={FIXED_IN_NONE}>{t("fields.fixedInVersionNone")}</SelectItem>
+        {versions.map(version => (
+          <SelectItem key={version.id} value={String(version.id)}>{version.name}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
 }

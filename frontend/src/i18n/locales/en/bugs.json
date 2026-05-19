@@ -4,6 +4,8 @@
   "new": "New bug",
   "downloadHtml": "Download HTML",
   "downloadPdf": "Download PDF",
+  "downloadReleaseNotes": "Release notes",
+  "duplicateOf": "merged into #{{number}}",
   "watch": {
     "watch": "Watch",
     "watching": "Watching",
@@ -58,7 +60,10 @@
     "version": "Version",
     "environment": "Environment",
     "assignee": "Assignee",
-    "externalUrl": "External ticket URL"
+    "externalUrl": "External ticket URL",
+    "fixedInVersion": "Fixed in version",
+    "fixedInVersionPlaceholder": "Pick a version…",
+    "fixedInVersionNone": "Not set"
   },
   "actions": {
     "save": "Save",

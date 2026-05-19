@@ -34,4 +34,9 @@ export const bugsApi = {
     const slug = (projectName || `project_${projectId}`).replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_-]/g, "")
     downloadBlob(r.data, `bugs_${slug}.html`)
   },
+  releaseNotesHtml: async (projectId, projectName = "") => {
+    const r = await api.get(`/projects/${projectId}/bugs/release-notes`, { responseType: "blob" })
+    const slug = (projectName || `project_${projectId}`).replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_-]/g, "")
+    downloadBlob(r.data, `release_notes_${slug}.html`)
+  },
 }

@@ -33,6 +33,7 @@ from testjam.models.bug import Bug, BugActivity, BugAttachment, BugComment, BugL
 from testjam.models.execution import TestExecution
 from testjam.models.project import Project
 from testjam.models.user import User
+from testjam.models.version import ProjectVersion
 from testjam.schemas.bug import (
     BugActivityOut,
     BugAttachmentOut,
@@ -155,6 +156,19 @@ def _resolve_environment_from_execution(
     return execution.environment if execution else None
 
 
+def _latest_active_version_id(db: Session, project_id: int) -> int | None:
+    row = (
+        db.query(ProjectVersion.id)
+        .filter(
+            ProjectVersion.project_id == project_id,
+            ProjectVersion.status == "active",
+        )
+        .order_by(ProjectVersion.created_at.desc(), ProjectVersion.id.desc())
+        .first()
+    )
+    return row[0] if row else None
+
+
 @projects_router.get("/{id}/bugs", response_model=list[BugOut])
 def list_bugs(
     id: int,
@@ -173,7 +187,10 @@ def list_bugs(
     limit = min(limit, 200)
     query = (
         db.query(Bug)
-        .options(selectinload(Bug.watchers))
+        .options(
+            selectinload(Bug.watchers),
+            selectinload(Bug.links).selectinload(BugLink.target_bug),
+        )
         .filter(Bug.project_id == id)
     )
     if status:
@@ -323,6 +340,8 @@ def change_bug_status(
         bug.resolved_at = datetime.now(timezone.utc)
     elif body.status not in TERMINAL_BUG_STATUSES:
         bug.resolved_at = None
+    if body.status == "resolved" and bug.fixed_in_version_id is None:
+        bug.fixed_in_version_id = _latest_active_version_id(db, bug.project_id)
     activity_row = bug_activity.record_status_change(
         db, bug.id, previous_status, body.status, current.id, body.note,
     )
@@ -645,4 +664,17 @@ def download_bug_report(
     if format != "html":
         raise HTTPException(status_code=400, detail="format must be 'html' or 'xlsx'")
     html = bug_reports.render_html(db, project, current, version_id, environment)
+    return HTMLResponse(content=html)
+
+
+@projects_router.get("/{id}/bugs/release-notes")
+def download_release_notes(
+    id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(require_project_access),
+):
+    project = db.get(Project, id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    html = bug_reports.render_release_notes_html(db, project, current)
     return HTMLResponse(content=html)

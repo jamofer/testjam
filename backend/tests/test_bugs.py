@@ -448,6 +448,108 @@ def test_fixed_in_version_round_trip(auth_client, project_id):
     assert updated["fixed_in_version_name"] == "v1.2"
 
 
+def test_resolve_auto_sets_fixed_in_version_from_active(auth_client, project_id):
+    version = auth_client.post(
+        f"/api/v1/projects/{project_id}/versions", json={"name": "v2.0"},
+    ).json()
+    bug = _create_bug(auth_client, project_id).json()
+
+    resolved = auth_client.post(
+        f"/api/v1/bugs/{bug['id']}/status", json={"status": "resolved"},
+    ).json()
+
+    assert resolved["fixed_in_version_id"] == version["id"]
+    assert resolved["fixed_in_version_name"] == "v2.0"
+
+
+def test_resolve_preserves_existing_fixed_in_version(auth_client, project_id):
+    existing = auth_client.post(
+        f"/api/v1/projects/{project_id}/versions", json={"name": "v1.9"},
+    ).json()
+    newer = auth_client.post(
+        f"/api/v1/projects/{project_id}/versions", json={"name": "v2.0"},
+    ).json()
+    bug = auth_client.put(
+        f"/api/v1/bugs/{_create_bug(auth_client, project_id).json()['id']}",
+        json={"fixed_in_version_id": existing["id"]},
+    ).json()
+
+    resolved = auth_client.post(
+        f"/api/v1/bugs/{bug['id']}/status", json={"status": "resolved"},
+    ).json()
+
+    assert resolved["fixed_in_version_id"] == existing["id"]
+    assert resolved["fixed_in_version_id"] != newer["id"]
+
+
+def test_resolve_skips_when_no_active_version(auth_client, project_id):
+    bug = _create_bug(auth_client, project_id).json()
+
+    resolved = auth_client.post(
+        f"/api/v1/bugs/{bug['id']}/status", json={"status": "resolved"},
+    ).json()
+
+    assert resolved["fixed_in_version_id"] is None
+
+
+def test_release_notes_groups_resolved_bugs_by_fixed_in_version(auth_client, project_id):
+    v1 = auth_client.post(
+        f"/api/v1/projects/{project_id}/versions", json={"name": "v1.0"},
+    ).json()
+    v2 = auth_client.post(
+        f"/api/v1/projects/{project_id}/versions", json={"name": "v2.0"},
+    ).json()
+    fixed_v1 = _create_bug(auth_client, project_id, title="Crash on login").json()
+    fixed_v2 = _create_bug(auth_client, project_id, title="Race in cache").json()
+    still_open = _create_bug(auth_client, project_id, title="Still open").json()
+    auth_client.put(
+        f"/api/v1/bugs/{fixed_v1['id']}", json={"fixed_in_version_id": v1["id"]},
+    )
+    auth_client.put(
+        f"/api/v1/bugs/{fixed_v2['id']}", json={"fixed_in_version_id": v2["id"]},
+    )
+    for bug_id in (fixed_v1["id"], fixed_v2["id"]):
+        auth_client.post(f"/api/v1/bugs/{bug_id}/status", json={"status": "resolved"})
+
+    response = auth_client.get(f"/api/v1/projects/{project_id}/bugs/release-notes")
+
+    assert response.status_code == 200
+    body = response.text
+    assert "Release notes" in body
+    assert "v1.0" in body
+    assert "v2.0" in body
+    assert "Crash on login" in body
+    assert "Race in cache" in body
+    assert still_open["title"] not in body
+
+
+def test_release_notes_includes_unassigned_bucket(auth_client, project_id):
+    bug = _create_bug(auth_client, project_id, title="Pre-versioning bug").json()
+    auth_client.post(f"/api/v1/bugs/{bug['id']}/status", json={"status": "resolved"})
+
+    response = auth_client.get(f"/api/v1/projects/{project_id}/bugs/release-notes")
+
+    body = response.text
+    assert "Unassigned" in body
+    assert "Pre-versioning bug" in body
+
+
+def test_duplicate_of_number_appears_in_bug_payload(auth_client, project_id):
+    original = _create_bug(auth_client, project_id, title="Original").json()
+    duplicate = _create_bug(auth_client, project_id, title="Duplicate").json()
+
+    auth_client.post(
+        f"/api/v1/bugs/{duplicate['id']}/links",
+        json={"kind": "duplicate_of", "target_bug_id": original["id"]},
+    )
+
+    listed = auth_client.get(f"/api/v1/projects/{project_id}/bugs").json()
+    by_number = {bug["number"]: bug for bug in listed}
+
+    assert by_number[duplicate["number"]]["duplicate_of_number"] == original["number"]
+    assert by_number[original["number"]]["duplicate_of_number"] is None
+
+
 def test_link_kind_persists_in_response(auth_client, project_id):
     a = _create_bug(auth_client, project_id, title="A").json()
     b = _create_bug(auth_client, project_id, title="B").json()

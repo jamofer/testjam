@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session, selectinload
 from testjam.models.bug import Bug, BugComment
 from testjam.models.project import Project
 from testjam.models.user import User
+from testjam.models.version import ProjectVersion
 from testjam.services.timezones import format_in_user_zone, user_zone_label
 
 
@@ -249,4 +250,130 @@ def _render_discussion(bug: Bug, user: User) -> str:
         f"<h3>Discussion ({len(bug.comments)})</h3>"
         f"<ol>{''.join(items)}</ol>"
         "</div>"
+    )
+
+
+def render_release_notes_html(db: Session, project: Project, user: User) -> str:
+    bugs = _query_release_notes_bugs(db, project.id)
+    by_version_id: dict[int | None, list[Bug]] = {}
+    for bug in bugs:
+        by_version_id.setdefault(bug.fixed_in_version_id, []).append(bug)
+
+    versions = _order_versions_for_release_notes(db, project.id, by_version_id.keys())
+    generated_at = format_in_user_zone(
+        datetime.now(timezone.utc), user, "%Y-%m-%d %H:%M %Z",
+    )
+    title = f"Release notes — {project.name}"
+    return _build_release_notes_html(title, versions, by_version_id, generated_at, user)
+
+
+def _query_release_notes_bugs(db: Session, project_id: int) -> list[Bug]:
+    return (
+        db.query(Bug)
+        .options(
+            selectinload(Bug.assigned_to),
+            selectinload(Bug.fixed_in_version),
+        )
+        .filter(
+            Bug.project_id == project_id,
+            Bug.status == "resolved",
+        )
+        .order_by(Bug.number.asc())
+        .all()
+    )
+
+
+def _order_versions_for_release_notes(
+    db: Session, project_id: int, seen_ids,
+) -> list[ProjectVersion | None]:
+    relevant = [version_id for version_id in seen_ids if version_id is not None]
+    rows: list[ProjectVersion] = []
+    if relevant:
+        rows = (
+            db.query(ProjectVersion)
+            .filter(
+                ProjectVersion.project_id == project_id,
+                ProjectVersion.id.in_(relevant),
+            )
+            .order_by(
+                ProjectVersion.release_date.desc().nulls_last(),
+                ProjectVersion.created_at.desc(),
+            )
+            .all()
+        )
+    ordered: list[ProjectVersion | None] = list(rows)
+    if None in seen_ids:
+        ordered.append(None)
+    return ordered
+
+
+def _build_release_notes_html(
+    title: str,
+    versions: list[ProjectVersion | None],
+    by_version_id: dict[int | None, list[Bug]],
+    generated_at: str,
+    user: User,
+) -> str:
+    e = html_lib.escape
+    sections: list[str] = []
+    for version in versions:
+        version_id = version.id if version is not None else None
+        bugs = by_version_id.get(version_id, [])
+        if not bugs:
+            continue
+        heading = e(version.name) if version is not None else "Unassigned"
+        date_line = ""
+        if version is not None and version.release_date is not None:
+            date_line = f" <span class='version-date'>{e(version.release_date.isoformat())}</span>"
+        sections.append(
+            f"<section class='version'>"
+            f"<h2>{heading}{date_line} <span class='count'>({len(bugs)})</span></h2>"
+            f"<ul>{''.join(_render_release_notes_row(bug) for bug in bugs)}</ul>"
+            "</section>"
+        )
+    if not sections:
+        sections.append("<p class='empty'>No resolved bugs to report.</p>")
+
+    return (
+        "<!doctype html>\n<html lang='en'>\n<head>\n"
+        "<meta charset='utf-8' />\n"
+        f"<title>{e(title)}</title>\n"
+        "<style>\n"
+        "body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; "
+        "max-width: 960px; margin: 32px auto; padding: 0 16px; color: #1f2937; }\n"
+        "h1 { margin: 0 0 4px; font-size: 22px; }\n"
+        ".meta { color: #6b7280; font-size: 13px; margin-bottom: 24px; }\n"
+        ".version { margin-bottom: 32px; }\n"
+        ".version h2 { font-size: 18px; margin-bottom: 12px; padding-bottom: 4px; "
+        "border-bottom: 1px solid #e5e7eb; }\n"
+        ".version-date { color: #6b7280; font-size: 13px; font-weight: normal; margin-left: 6px; }\n"
+        ".count { color: #9ca3af; font-size: 14px; font-weight: normal; }\n"
+        "ul { list-style: none; padding-left: 0; }\n"
+        "li { padding: 8px 0; border-bottom: 1px solid #f3f4f6; }\n"
+        ".bug-number { font-family: monospace; color: #6b7280; margin-right: 6px; }\n"
+        ".bug-severity { display: inline-block; padding: 1px 6px; border-radius: 4px; "
+        "font-size: 11px; margin-left: 6px; }\n"
+        ".sev-critical { background: #fee2e2; color: #991b1b; }\n"
+        ".sev-high { background: #ffedd5; color: #9a3412; }\n"
+        ".sev-medium { background: #fef3c7; color: #92400e; }\n"
+        ".sev-low { background: #f3f4f6; color: #4b5563; }\n"
+        ".empty { color: #9ca3af; font-style: italic; }\n"
+        "</style>\n"
+        "</head>\n<body>\n"
+        f"<h1>{e(title)}</h1>\n"
+        f"<p class='meta'>Generated {e(generated_at)} by {e(user.username)}</p>\n"
+        + "\n".join(sections)
+        + "\n</body>\n</html>\n"
+    )
+
+
+def _render_release_notes_row(bug: Bug) -> str:
+    e = html_lib.escape
+    severity_class = f"sev-{bug.severity}"
+    return (
+        "<li>"
+        f"<span class='bug-number'>#{bug.number}</span>"
+        f"<strong>{e(bug.title)}</strong>"
+        f"<span class='bug-severity {severity_class}'>{e(bug.severity)}</span>"
+        "</li>"
     )

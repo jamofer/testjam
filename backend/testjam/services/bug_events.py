@@ -43,6 +43,7 @@ def load_bug_full(db: Session, bug_id: int) -> Bug | None:
             selectinload(Bug.version),
             selectinload(Bug.fixed_in_version),
             selectinload(Bug.watchers),
+            selectinload(Bug.links).selectinload(BugLink.target_bug),
         )
         .filter(Bug.id == bug_id)
         .first()
@@ -54,7 +55,24 @@ def bug_out(bug: Bug) -> BugOut:
     payload.version_name = bug.version.name if bug.version else None
     payload.fixed_in_version_name = bug.fixed_in_version.name if bug.fixed_in_version else None
     payload.watcher_count = len(bug.watchers)
+    payload.duplicate_of_number = _duplicate_of_number(bug)
     return payload
+
+
+def _duplicate_of_number(bug: Bug) -> int | None:
+    """Resolve the canonical bug this one is merged into.
+
+    duplicate_of links are reciprocal, so both bugs hold a row pointing at each
+    other. Treat the older bug (lower number) as the canonical one, and only
+    surface the link on the newer side — that matches how teams talk about
+    "merging into" the earlier ticket.
+    """
+    for link in bug.links:
+        if link.kind != "duplicate_of" or link.target_bug is None:
+            continue
+        if link.target_bug.number < bug.number:
+            return link.target_bug.number
+    return None
 
 
 def _build_public_link(site_url: str | None, path: str) -> str:

@@ -83,6 +83,7 @@ class BugOut(BaseModel):
     updated_at: datetime
     resolved_at: datetime | None
     watcher_count: int = 0
+    duplicate_of_number: int | None = None
 
     model_config = {"from_attributes": True}
 

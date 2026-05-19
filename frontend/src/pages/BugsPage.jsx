@@ -75,6 +75,14 @@ export function BugsPage() {
     }
   }
 
+  const downloadReleaseNotes = async () => {
+    try {
+      await bugsApi.releaseNotesHtml(projectId, project?.name)
+    } catch (error) {
+      toast.error(error?.response?.data?.detail ?? t("toast.reportFailed"))
+    }
+  }
+
   const downloadPdf = async () => {
     try {
       const { exportBugsPdf } = await import("../lib/exportPdf")
@@ -104,6 +112,9 @@ export function BugsPage() {
             </Button>
             <Button variant="outline" size="sm" onClick={downloadPdf}>
               <Download size={13} /> {t("downloadPdf")}
+            </Button>
+            <Button variant="outline" size="sm" onClick={downloadReleaseNotes}>
+              <Download size={13} /> {t("downloadReleaseNotes")}
             </Button>
             <NewBugDialog projectId={projectId} trigger={(
               <Button size="sm"><Plus size={14} /> {t("new")}</Button>
@@ -191,6 +202,11 @@ export function BugsPage() {
                           <EnvironmentBadge projectId={projectId} slug={bug.environment} />
                         )}
                         {bug.version_name && <span>v{bug.version_name}</span>}
+                        {bug.duplicate_of_number && (
+                          <Badge variant="outline" className="font-mono">
+                            {t("duplicateOf", { number: bug.duplicate_of_number })}
+                          </Badge>
+                        )}
                         {bug.assigned_to && <span>@{bug.assigned_to.username}</span>}
                         <DateLabel value={bug.created_at} />
                       </div>

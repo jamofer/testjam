@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { useCreateBug } from "../../hooks/useBugs"
+import { useVersions } from "../../hooks/useVersions"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
 import { Input } from "../ui/input"
@@ -10,6 +11,8 @@ import { Label } from "../ui/label"
 import { Textarea } from "../ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { EnvironmentPicker } from "../environment/EnvironmentPicker"
+
+const VERSION_NONE = "__none__"
 
 const SEVERITIES = ["critical", "high", "medium", "low"]
 
@@ -22,6 +25,8 @@ export function NewBugDialog({ projectId, trigger, prefill = {}, onCreated }) {
   const [severity, setSeverity] = useState(prefill.severity ?? "medium")
   const [tagsInput, setTagsInput] = useState((prefill.tags ?? []).join(", "))
   const [environment, setEnvironment] = useState(prefill.environment ?? null)
+  const [fixedInVersionId, setFixedInVersionId] = useState(prefill.fixed_in_version_id ?? null)
+  const { data: versions = [] } = useVersions(projectId)
 
   const reset = () => {
     setTitle("")
@@ -29,6 +34,7 @@ export function NewBugDialog({ projectId, trigger, prefill = {}, onCreated }) {
     setSeverity(prefill.severity ?? "medium")
     setTagsInput((prefill.tags ?? []).join(", "))
     setEnvironment(prefill.environment ?? null)
+    setFixedInVersionId(prefill.fixed_in_version_id ?? null)
   }
 
   const handleSubmit = async (event) => {
@@ -48,6 +54,7 @@ export function NewBugDialog({ projectId, trigger, prefill = {}, onCreated }) {
         result_id: prefill.result_id ?? null,
         execution_id: prefill.execution_id ?? null,
         version_id: prefill.version_id ?? null,
+        fixed_in_version_id: fixedInVersionId,
       })
       toast.success(t("toast.created"))
       setOpen(false)
@@ -96,6 +103,21 @@ export function NewBugDialog({ projectId, trigger, prefill = {}, onCreated }) {
               onChange={event => setTagsInput(event.target.value)}
               placeholder="crash, regression"
             />
+          </div>
+          <div className="space-y-1">
+            <Label>{t("fields.fixedInVersion")}</Label>
+            <Select
+              value={fixedInVersionId ? String(fixedInVersionId) : VERSION_NONE}
+              onValueChange={(next) => setFixedInVersionId(next === VERSION_NONE ? null : Number(next))}
+            >
+              <SelectTrigger><SelectValue placeholder={t("fields.fixedInVersionPlaceholder")} /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={VERSION_NONE}>{t("fields.fixedInVersionNone")}</SelectItem>
+                {versions.map(version => (
+                  <SelectItem key={version.id} value={String(version.id)}>{version.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button type="submit" className="w-full" disabled={create.isPending || !title.trim()}>
             {t("actions.save")}
