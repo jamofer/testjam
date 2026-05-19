@@ -32,6 +32,7 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-480}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      INTEGRATION_ENCRYPTION_KEY: ${INTEGRATION_ENCRYPTION_KEY}
     volumes:
       - uploads:/app/uploads
     depends_on:

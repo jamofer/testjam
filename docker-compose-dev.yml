@@ -36,6 +36,8 @@ services:
       RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-false}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       API_WORKERS: ${API_WORKERS:-1}
+      # Fernet key (urlsafe-b64 of 32 bytes). Dev default; rotate in prod env file.
+      INTEGRATION_ENCRYPTION_KEY: ${INTEGRATION_ENCRYPTION_KEY:-dGVzdGphbS1kZXYta2V5LWZvci1pbnRlZ3JhdGlvbnM=}
     volumes:
       - ./backend:/app
       - ./client:/client
