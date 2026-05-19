@@ -15,6 +15,7 @@ from __future__ import annotations
 import os
 import re
 import time
+from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
@@ -51,13 +52,15 @@ def run_pool(
     output_dir: Path,
     suite_filters: list[str] | None = None,
     test_filters: list[str] | None = None,
+    on_complete: Callable[[SuiteResult, int, int], None] | None = None,
 ) -> list[SuiteResult]:
     output_dir.mkdir(parents=True, exist_ok=True)
     results: list[SuiteResult] = []
     if not suites:
         return results
     admins = _provision_suite_admins(suites, base_env)
-    capped = max(1, min(workers, len(suites)))
+    total = len(suites)
+    capped = max(1, min(workers, total))
     with ProcessPoolExecutor(max_workers=capped) as pool:
         futures = {
             pool.submit(
@@ -67,7 +70,10 @@ def run_pool(
             for suite in suites
         }
         for future in as_completed(futures):
-            results.append(future.result())
+            result = future.result()
+            results.append(result)
+            if on_complete is not None:
+                on_complete(result, len(results), total)
     results.sort(key=lambda r: r.suite.longname)
     return results
 
