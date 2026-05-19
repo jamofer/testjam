@@ -68,14 +68,29 @@ def main(argv: list[str] | None = None) -> int:
         f"version={base_env.get('TESTJAM_VERSION') or '(none)'}, output={output_dir}",
     )
 
+    def on_complete(result: SuiteResult, done: int, total: int) -> None:
+        _print_progress(result, done, total, color=color)
+
     results = run_pool(
         suites, root=root, workers=args.workers,
         base_env=base_env, output_dir=output_dir,
         suite_filters=args.suite, test_filters=args.test,
+        on_complete=on_complete,
     )
 
     _print_summary(results, color=color)
     return max((r.exit_code for r in results), default=0)
+
+
+def _print_progress(result: SuiteResult, done: int, total: int, *, color: bool) -> None:
+    ok = result.exit_code == 0
+    status = paint("ok" if ok else "FAIL", "green" if ok else "red", enabled=color)
+    counter = paint(f"[{done}/{total}]", "bold", enabled=color)
+    print(
+        f"{counter} {status} {result.suite.longname} "
+        f"({result.duration_seconds:.1f}s)",
+        flush=True,
+    )
 
 
 def _matches_any(longname: str, leaf: str, patterns: list[str]) -> bool:
