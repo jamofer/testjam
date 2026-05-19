@@ -54,6 +54,7 @@ from testjam.schemas.bug import (
 from fastapi.responses import HTMLResponse, StreamingResponse
 
 from testjam.services import bug_activity, bug_context, bug_events, bug_reports, bug_watchers, mention_notify
+from testjam.services import custom_fields as custom_field_service
 from testjam.services.bug_numbering import next_bug_number
 from testjam.services.environments import upsert_from_execution
 from testjam.services.permissions import effective_role
@@ -156,6 +157,19 @@ def _resolve_environment_from_execution(
     return execution.environment if execution else None
 
 
+def _matches_custom_field(
+    custom_fields: dict | None, key: str, value: str | None
+) -> bool:
+    if not custom_fields or key not in custom_fields:
+        return False
+    if value is None:
+        return True
+    actual = custom_fields[key]
+    if isinstance(actual, list):
+        return value in actual
+    return str(actual) == value
+
+
 def _latest_active_version_id(db: Session, project_id: int) -> int | None:
     row = (
         db.query(ProjectVersion.id)
@@ -179,6 +193,8 @@ def list_bugs(
     assigned_to_id: int | None = None,
     tag: str | None = None,
     search: str | None = None,
+    cf_key: str | None = None,
+    cf_value: str | None = None,
     skip: int = 0,
     limit: int = 50,
     db: Session = Depends(get_db),
@@ -209,6 +225,8 @@ def list_bugs(
     rows = query.order_by(Bug.number.desc()).offset(skip).limit(limit).all()
     if tag:
         rows = [bug for bug in rows if bug.tags and tag in bug.tags]
+    if cf_key:
+        rows = [bug for bug in rows if _matches_custom_field(bug.custom_fields, cf_key, cf_value)]
     return [_bug_out(bug) for bug in rows]
 
 
@@ -229,6 +247,9 @@ def create_bug(
     environment = _resolve_environment_from_execution(
         db, id, payload.get("execution_id"), payload.get("environment"),
     )
+    custom_fields_value = custom_field_service.validate_payload(
+        db, id, "bug", payload.get("custom_fields"), is_create=True,
+    )
     bug = Bug(
         project_id=id,
         number=next_bug_number(db, id),
@@ -237,6 +258,7 @@ def create_bug(
         severity=payload.get("severity", "medium"),
         status="open",
         tags=payload.get("tags") or None,
+        custom_fields=custom_fields_value,
         result_id=payload.get("result_id"),
         execution_id=payload.get("execution_id"),
         version_id=payload.get("version_id"),
@@ -308,6 +330,15 @@ def update_bug(
     if "environment" in update_data and update_data["environment"]:
         update_data["environment"] = upsert_from_execution(
             db, bug.project_id, update_data["environment"],
+        )
+    if "custom_fields" in update_data:
+        update_data["custom_fields"] = custom_field_service.validate_payload(
+            db,
+            bug.project_id,
+            "bug",
+            update_data["custom_fields"],
+            is_create=False,
+            existing=bug.custom_fields,
         )
     for field, value in update_data.items():
         setattr(bug, field, value)

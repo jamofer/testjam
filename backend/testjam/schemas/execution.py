@@ -1,4 +1,6 @@
 from datetime import datetime
+from typing import Any
+
 from pydantic import BaseModel, Field, computed_field
 from testjam.core.config import settings
 from testjam.schemas.testcase import AttachmentOut
@@ -133,6 +135,7 @@ class TestExecutionCreate(BaseModel):
     assigned_to_id: int | None = None
     triggered_by: str | None = None
     test_case_ids: list[int] = []
+    custom_fields: dict[str, Any] | None = None
 
 
 class TestExecutionUpdate(BaseModel):
@@ -144,6 +147,7 @@ class TestExecutionUpdate(BaseModel):
     environment: str | None = None
     assigned_to_id: int | None = None
     finished_at: datetime | None = None
+    custom_fields: dict[str, Any] | None = None
 
 
 class TestExecutionOut(BaseModel):
@@ -165,5 +169,6 @@ class TestExecutionOut(BaseModel):
     created_at: datetime
     summary: ExecutionSummary = ExecutionSummary()
     attachments: list[ExecutionAttachmentOut] = []
+    custom_fields: dict[str, Any] = Field(default_factory=dict)
 
     model_config = {"from_attributes": True}

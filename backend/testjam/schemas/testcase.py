@@ -1,4 +1,6 @@
 from datetime import datetime
+from typing import Any
+
 from pydantic import BaseModel, Field, computed_field
 from testjam.core.config import settings
 from testjam.schemas.user import UserOut
@@ -64,6 +66,7 @@ class TestCaseBase(BaseModel):
 
 class TestCaseCreate(TestCaseBase):
     suite_id: int
+    custom_fields: dict[str, Any] | None = None
 
 
 class TestCaseUpdate(BaseModel):
@@ -75,6 +78,7 @@ class TestCaseUpdate(BaseModel):
     teardown: str | None = None
     external_id: str | None = None
     suite_id: int | None = None
+    custom_fields: dict[str, Any] | None = None
 
 
 class UserMini(BaseModel):
@@ -95,6 +99,7 @@ class TestCaseOut(TestCaseBase):
     updated_by: UserMini | None = None
     steps: list[TestStepOut] = []
     attachments: list[AttachmentOut] = []
+    custom_fields: dict[str, Any] = Field(default_factory=dict)
 
     model_config = {"from_attributes": True}
 

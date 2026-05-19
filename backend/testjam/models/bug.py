@@ -24,6 +24,9 @@ class Bug(Base):
     severity: Mapped[str] = mapped_column(String(16), nullable=False, default="medium")
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="open", index=True)
     tags: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    custom_fields: Mapped[dict] = mapped_column(
+        JSON, nullable=False, default=dict, server_default="{}"
+    )
 
     result_id: Mapped[int | None] = mapped_column(
         ForeignKey("test_results.id", ondelete="SET NULL"), nullable=True

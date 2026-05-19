@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -40,6 +40,7 @@ class BugCreate(BaseModel):
     fixed_in_version_id: int | None = None
     environment: str | None = None
     assigned_to_id: int | None = None
+    custom_fields: dict[str, Any] | None = None
 
 
 class BugUpdate(BaseModel):
@@ -52,6 +53,7 @@ class BugUpdate(BaseModel):
     environment: str | None = None
     assigned_to_id: int | None = None
     external_ticket_url: str | None = None
+    custom_fields: dict[str, Any] | None = None
 
 
 class BugStatusChange(BaseModel):
@@ -84,6 +86,7 @@ class BugOut(BaseModel):
     resolved_at: datetime | None
     watcher_count: int = 0
     duplicate_of_number: int | None = None
+    custom_fields: dict[str, Any] = Field(default_factory=dict)
 
     model_config = {"from_attributes": True}
 

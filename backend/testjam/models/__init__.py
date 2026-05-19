@@ -15,3 +15,4 @@ from testjam.models.settings import AppSettings
 from testjam.models.password_reset import PasswordResetToken
 from testjam.models.webhook import Webhook, WebhookDelivery
 from testjam.models.public_report import PublicReport
+from testjam.models.custom_field import CustomFieldDefinition

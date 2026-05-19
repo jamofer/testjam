@@ -21,6 +21,7 @@ from testjam.schemas.testcase import (
     TestStepCreate, TestStepOut, TestStepUpdate,
 )
 from testjam.services import case_events, mention_notify
+from testjam.services import custom_fields as custom_field_service
 from testjam.services.case_revisions import write_revision
 from testjam.services.permissions import effective_role
 
@@ -36,6 +37,8 @@ def search_project_cases(
     id: int,
     q: str | None = None,
     tags: list[str] | None = Query(None),
+    cf_key: str | None = None,
+    cf_value: str | None = None,
     skip: int = 0,
     limit: int = 100,
     include_archived: bool = False,
@@ -53,7 +56,22 @@ def search_project_cases(
     if tags:
         tagset = set(tags)
         rows = [c for c in rows if c.tags and tagset.intersection(c.tags)]
+    if cf_key:
+        rows = [c for c in rows if _matches_custom_field(c.custom_fields, cf_key, cf_value)]
     return rows
+
+
+def _matches_custom_field(
+    custom_fields: dict | None, key: str, value: str | None
+) -> bool:
+    if not custom_fields or key not in custom_fields:
+        return False
+    if value is None:
+        return True
+    actual = custom_fields[key]
+    if isinstance(actual, list):
+        return value in actual
+    return str(actual) == value
 
 
 @suites_router.get("/{id}/cases", response_model=list[TestCaseOut])
@@ -77,16 +95,23 @@ def list_cases(
 
 @suites_router.post("/{id}/cases", response_model=TestCaseOut, status_code=status.HTTP_201_CREATED)
 def create_case(id: int, body: TestCaseCreate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    suite = db.get(TestSuite, id)
+    if suite is None:
+        raise HTTPException(status_code=404, detail="Suite not found")
     duplicate = db.query(TestCase).filter(TestCase.suite_id == id, TestCase.name == body.name).first()
     if duplicate:
         raise HTTPException(status_code=409, detail=f"Test case '{body.name}' already exists")
     max_order = db.query(TestCase).filter(TestCase.suite_id == id).count()
+    payload = body.model_dump(exclude={"suite_id", "custom_fields"})
+    payload["custom_fields"] = custom_field_service.validate_payload(
+        db, suite.project_id, "test_case", body.custom_fields, is_create=True,
+    )
     case = TestCase(
         suite_id=id,
         order=max_order + 1,
         created_by_id=current.id,
         updated_by_id=current.id,
-        **body.model_dump(exclude={"suite_id"}),
+        **payload,
     )
     db.add(case)
     db.flush()
@@ -109,7 +134,19 @@ def update_case(id: int, body: TestCaseUpdate, db: Session = Depends(get_db), cu
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
-    for field, value in body.model_dump(exclude_none=True).items():
+    update_data = body.model_dump(exclude_unset=True)
+    incoming_custom_fields = update_data.pop("custom_fields", None)
+    update_data = {key: value for key, value in update_data.items() if value is not None}
+    if incoming_custom_fields is not None:
+        update_data["custom_fields"] = custom_field_service.validate_payload(
+            db,
+            case.suite.project_id,
+            "test_case",
+            incoming_custom_fields,
+            is_create=False,
+            existing=case.custom_fields,
+        )
+    for field, value in update_data.items():
         setattr(case, field, value)
     case.updated_by_id = current.id
     db.flush()

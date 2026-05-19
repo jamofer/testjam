@@ -30,6 +30,9 @@ class Project(Base):
     bugs: Mapped[list["Bug"]] = relationship(  # noqa: F821
         back_populates="project", cascade="all, delete-orphan"
     )
+    custom_field_definitions: Mapped[list["CustomFieldDefinition"]] = relationship(  # noqa: F821
+        back_populates="project", cascade="all, delete-orphan"
+    )
 
 
 class ProjectMember(Base):

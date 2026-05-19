@@ -27,6 +27,7 @@ from testjam.schemas.execution import (
     TestExecutionUpdate,
 )
 from testjam.services import environments as env_service, execution_events
+from testjam.services import custom_fields as custom_field_service
 from testjam.services.permissions import effective_role
 
 REOPENABLE_STATUSES = {"completed", "aborted"}
@@ -129,6 +130,9 @@ def create_execution(
     data["environment"] = env_service.upsert_from_execution(db, id, data.get("environment"))
     if body.type == "manual" and not data.get("triggered_by"):
         data["triggered_by"] = ctx.user.username
+    data["custom_fields"] = custom_field_service.validate_payload(
+        db, id, "execution", data.get("custom_fields"), is_create=True,
+    )
     ex = TestExecution(**data, started_at=datetime.now(timezone.utc))
     db.add(ex)
     db.flush()
@@ -161,13 +165,24 @@ def update_execution(
         raise HTTPException(status_code=404, detail="Not found")
     previous_status = ex.status
     previous_assignee_id = ex.assigned_to_id
-    update_data = body.model_dump(exclude_none=True)
+    raw_update = body.model_dump(exclude_unset=True)
+    incoming_custom_fields = raw_update.pop("custom_fields", None)
+    update_data = {key: value for key, value in raw_update.items() if value is not None}
     free_text_version = update_data.pop("version", None)
     if free_text_version and not update_data.get("version_id"):
         update_data["version_id"] = _resolve_or_create_version(db, ex.project_id, free_text_version.strip()).id
     if "environment" in update_data:
         update_data["environment"] = env_service.upsert_from_execution(
             db, ex.project_id, update_data["environment"]
+        )
+    if incoming_custom_fields is not None:
+        update_data["custom_fields"] = custom_field_service.validate_payload(
+            db,
+            ex.project_id,
+            "execution",
+            incoming_custom_fields,
+            is_create=False,
+            existing=ex.custom_fields,
         )
     for field, value in update_data.items():
         setattr(ex, field, value)

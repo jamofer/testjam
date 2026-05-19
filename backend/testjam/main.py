@@ -18,7 +18,7 @@ configure_sentry()
 from testjam.database import SessionLocal
 from testjam.realtime import manager, set_main_loop
 from testjam.realtime_backplane import build_backplane, set_backplane
-from testjam.routers import admin, auth, users, groups, projects, project_groups, dashboard, suites, cases, testplans, executions, versions, environments, bugs, coverage, members, mentions, public_reports, tokens, notifications, notification_preferences, settings as settings_router, webhooks, ws, health, integrations
+from testjam.routers import admin, auth, users, groups, projects, project_groups, dashboard, suites, cases, testplans, executions, versions, environments, bugs, custom_fields, coverage, members, mentions, public_reports, tokens, notifications, notification_preferences, settings as settings_router, webhooks, ws, health, integrations
 from testjam.services.log_flusher import configure_from_settings as configure_log_flusher
 from testjam.services.settings import get_settings as get_app_settings
 
@@ -89,6 +89,8 @@ app.include_router(environments.projects_router, prefix=settings.API_V1_PREFIX)
 app.include_router(environments.environments_router, prefix=settings.API_V1_PREFIX)
 app.include_router(bugs.projects_router, prefix=settings.API_V1_PREFIX)
 app.include_router(bugs.bugs_router, prefix=settings.API_V1_PREFIX)
+app.include_router(custom_fields.projects_router, prefix=settings.API_V1_PREFIX)
+app.include_router(custom_fields.custom_fields_router, prefix=settings.API_V1_PREFIX)
 app.include_router(public_reports.projects_router, prefix=settings.API_V1_PREFIX)
 app.include_router(public_reports.public_router, prefix=settings.API_V1_PREFIX)
 app.include_router(coverage.router, prefix=settings.API_V1_PREFIX)

@@ -50,6 +50,9 @@ class TestCase(Base):
     setup: Mapped[str | None] = mapped_column(Text, nullable=True)
     teardown: Mapped[str | None] = mapped_column(Text, nullable=True)
     tags: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    custom_fields: Mapped[dict] = mapped_column(
+        JSON, nullable=False, default=dict, server_default="{}"
+    )
     # used to match automated results (e.g. "tests/login.py::test_login" or "Suite.Test Name")
     external_id: Mapped[str | None] = mapped_column(String(512), nullable=True, index=True)
     order: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
