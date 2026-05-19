@@ -33,7 +33,7 @@ jobs:
         run: make test-orchestrator
 
       - name: Run e2e via orchestrator
-        run: make test-e2e
+        run: make test-e2e POOL=4
 
       - name: Upload artifacts
         if: always()
