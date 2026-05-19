@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 FROM python:3.12-slim
 
 RUN apt-get update \
@@ -7,7 +8,8 @@ RUN apt-get update \
 WORKDIR /app
 
 COPY . .
-RUN pip install --no-cache-dir -e ".[dev]"
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -e ".[dev]"
 
 RUN mkdir -p /app/uploads/cases /app/uploads/results
 
