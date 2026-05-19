@@ -112,6 +112,33 @@ class CasesResource(Resource):
             "POST", f"/cases/{case_id}/steps/replace", json={"steps": steps},
         ).json()
 
+    def list_attachments(self, case_id: int) -> list[dict]:
+        return self._request("GET", f"/cases/{case_id}/attachments").json()
+
+    def upload_attachment(
+        self,
+        case_id: int,
+        *,
+        filename: str,
+        content,
+        mime: str,
+    ) -> dict:
+        files = {"file": (filename, content, mime)}
+        return self._request(
+            "POST", f"/cases/{case_id}/attachments", files=files,
+        ).json()
+
+    def download_attachment(self, case_id: int, attachment_id: int) -> bytes:
+        response = self._request(
+            "GET", f"/cases/{case_id}/attachments/{attachment_id}/download",
+        )
+        return response.content
+
+    def delete_attachment(self, case_id: int, attachment_id: int) -> None:
+        self._request(
+            "DELETE", f"/cases/{case_id}/attachments/{attachment_id}",
+        )
+
     def reconcile(
         self,
         suite_id: int,
