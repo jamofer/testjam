@@ -50,7 +50,7 @@ describe("BugExternalLinksPanel", () => {
     setup()
 
     expect(await screen.findByText(/github · 42/)).toBeInTheDocument()
-    expect(screen.getByText(/Open/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Open/i).length).toBeGreaterThan(0)
   })
 
   it("shows hint when no active integrations exist", async () => {

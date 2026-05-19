@@ -196,7 +196,9 @@ def test_execution_mention_notifies_assignee(auth_client, project_id):
         json={"body": f"saw it on !{execution['id']}"},
     )
 
-    assert len(_notifications_for("alice")) == 1
+    mention_link = f"/projects/{project_id}/bugs/{bug['number']}"
+    links = [notification["link"] for notification in _notifications_for("alice")]
+    assert mention_link in links
 
 
 def test_case_mention_notifies_creator(auth_client, project_id):

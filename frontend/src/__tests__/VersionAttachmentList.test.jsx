@@ -49,6 +49,7 @@ describe("VersionAttachmentList", () => {
   it("uploads the file picked from the input", async () => {
     versionsApi.listAttachments.mockResolvedValue([])
     setup()
+    await screen.findByRole("button", { name: /upload/i })
     const file = new File(["payload"], "notes.txt", { type: "text/plain" })
 
     const input = document.querySelector("input[type=file]")

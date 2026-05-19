@@ -42,7 +42,8 @@ describe("UserProfilePage", () => {
 
     setup()
 
-    expect(await screen.findByText("Alice Adams")).toBeInTheDocument()
+    const fullNameMatches = await screen.findAllByText("Alice Adams")
+    expect(fullNameMatches).toHaveLength(2)
     expect(screen.getByText("@alice")).toBeInTheDocument()
     expect(screen.getByText("es")).toBeInTheDocument()
     expect(usersApi.getByUsername).toHaveBeenCalledWith("alice")
