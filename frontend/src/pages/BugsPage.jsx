@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { Bug as BugIcon, Download, Plus, Trash2 } from "lucide-react"
+import { Bug as BugIcon, Download, Link2, Plus, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { bugsApi } from "../api/bugs"
@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { DateLabel } from "../components/ui/date-label"
 import { EnvironmentBadge } from "../components/environment/EnvironmentBadge"
 import { NewBugDialog } from "../components/bug/NewBugDialog"
+import { PublicReportDialog } from "../components/share/PublicReportDialog"
 import { SEVERITY_VARIANT, STATUS_VARIANT } from "../lib/bugConfig"
 
 const STATUS_OPTIONS = ["any", "open", "in_progress", "resolved", "closed", "wont_fix", "not_a_bug"]
@@ -116,6 +117,16 @@ export function BugsPage() {
             <Button variant="outline" size="sm" onClick={downloadReleaseNotes}>
               <Download size={13} /> {t("downloadReleaseNotes")}
             </Button>
+            <PublicReportDialog
+              projectId={projectId}
+              defaultKind="bug_report"
+              versionId={versionFilter !== "any" ? versionFilter : null}
+              trigger={(
+                <Button variant="outline" size="sm">
+                  <Link2 size={13} /> {t("publicReports:share")}
+                </Button>
+              )}
+            />
             <NewBugDialog projectId={projectId} trigger={(
               <Button size="sm"><Plus size={14} /> {t("new")}</Button>
             )} />

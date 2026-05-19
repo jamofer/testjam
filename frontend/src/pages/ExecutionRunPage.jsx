@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react"
 import { useParams, useLocation, Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { ExternalLink, Clock, Keyboard, User, Download } from "lucide-react"
+import { ExternalLink, Clock, Keyboard, Link2, User, Download } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { useExecution, useExecutionResults, useUpdateResult } from "../hooks/useExecutions"
@@ -21,6 +21,7 @@ import { RunSuiteGroup } from "../components/execution/RunSuiteGroup"
 import { EnvironmentBadge } from "../components/environment/EnvironmentBadge"
 import { ImportResultsButton } from "../components/execution/ImportResultsButton"
 import { ShortcutHelpDialog, SHORTCUT_TO_STATUS } from "../components/execution/ShortcutHelpDialog"
+import { PublicReportDialog } from "../components/share/PublicReportDialog"
 
 const TERMINAL_STATUSES = new Set(["completed", "aborted"])
 
@@ -537,6 +538,17 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
             <Button variant="outline" size="sm" onClick={() => exportHtml(id, execution.title)}>
               <Download size={13} /> {t("run.exportHtml")}
             </Button>
+            <PublicReportDialog
+              projectId={execution.project_id}
+              defaultKind="execution"
+              executionId={Number(id)}
+              trigger={(
+                <Button variant="outline" size="sm">
+                  <Link2 size={13} /> {t("publicReports:share")}
+                </Button>
+              )}
+            />
+
             {isTerminal ? (
               <Button
                 variant="outline"

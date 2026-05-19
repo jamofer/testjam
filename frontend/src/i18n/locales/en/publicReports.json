@@ -1,0 +1,33 @@
+{
+  "title": {
+    "bug_report": "Public bug report link",
+    "execution": "Public execution link"
+  },
+  "description": "Anyone with the link can view this report without signing in. Revoke at any time.",
+  "share": "Share",
+  "publicLink": "Public link",
+  "labelField": "Label (optional)",
+  "labelPlaceholder": "e.g. Sprint 7 release notes",
+  "expiresField": "Expires at (optional)",
+  "expiresHelp": "Leave blank for no expiration. Time uses your local timezone.",
+  "generate": "Generate link",
+  "newLinkHeading": "Copy and share this URL",
+  "tokenOnceWarning": "This is the only time the URL is shown in full. Save it now.",
+  "existingHeading": "Active links",
+  "noneYet": "No public links yet.",
+  "untitled": "(no label)",
+  "createdAt": "Created",
+  "expiresAt": "Expires",
+  "revokedAt": "Revoked",
+  "viewCount_one": "{{count}} view",
+  "viewCount_other": "{{count}} views",
+  "copy": "Copy",
+  "copied": "Link copied",
+  "copyFailed": "Could not copy",
+  "revoke": "Revoke",
+  "revokeConfirm": "Revoke this public link? Anyone with it will see a 404.",
+  "revoked": "Link revoked",
+  "revokeFailed": "Could not revoke link",
+  "created": "Public link generated",
+  "createFailed": "Could not create link"
+}

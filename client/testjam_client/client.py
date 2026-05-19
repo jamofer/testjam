@@ -24,6 +24,7 @@ from testjam_client.resources.executions import ExecutionsResource
 from testjam_client.resources.integrations import IntegrationsResource
 from testjam_client.resources.mentions import MentionsResource
 from testjam_client.resources.projects import ProjectsResource
+from testjam_client.resources.public_reports import PublicReportsResource
 from testjam_client.resources.results import ResultsResource
 from testjam_client.resources.step_results import StepResultsResource
 from testjam_client.resources.suites import SuitesResource
@@ -79,6 +80,7 @@ class TestjamClient:
         self.webhooks = WebhooksResource(self)
         self.tokens = TokensResource(self)
         self.mentions = MentionsResource(self)
+        self.public_reports = PublicReportsResource(self)
 
     def login(self, username: str, password: str) -> str:
         response = self._http.request(

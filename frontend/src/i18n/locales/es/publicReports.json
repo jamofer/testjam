@@ -1,0 +1,33 @@
+{
+  "title": {
+    "bug_report": "Enlace público al informe de bugs",
+    "execution": "Enlace público a la ejecución"
+  },
+  "description": "Cualquiera con el enlace podrá ver este informe sin iniciar sesión. Puedes revocarlo en cualquier momento.",
+  "share": "Compartir",
+  "publicLink": "Enlace público",
+  "labelField": "Etiqueta (opcional)",
+  "labelPlaceholder": "p. ej. Sprint 7 release notes",
+  "expiresField": "Caduca el (opcional)",
+  "expiresHelp": "Déjalo en blanco para que no caduque. La hora usa tu zona horaria local.",
+  "generate": "Generar enlace",
+  "newLinkHeading": "Copia y comparte esta URL",
+  "tokenOnceWarning": "Esta es la única vez que verás la URL completa. Guárdala ahora.",
+  "existingHeading": "Enlaces activos",
+  "noneYet": "Aún no hay enlaces públicos.",
+  "untitled": "(sin etiqueta)",
+  "createdAt": "Creado",
+  "expiresAt": "Caduca",
+  "revokedAt": "Revocado",
+  "viewCount_one": "{{count}} visita",
+  "viewCount_other": "{{count}} visitas",
+  "copy": "Copiar",
+  "copied": "Enlace copiado",
+  "copyFailed": "No se pudo copiar",
+  "revoke": "Revocar",
+  "revokeConfirm": "¿Revocar este enlace público? Quien lo tenga verá un 404.",
+  "revoked": "Enlace revocado",
+  "revokeFailed": "No se pudo revocar el enlace",
+  "created": "Enlace público generado",
+  "createFailed": "No se pudo crear el enlace"
+}
