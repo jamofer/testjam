@@ -60,6 +60,27 @@ def test_change_status_marks_resolved_at(auth_client):
     assert resolved["resolved_at"] is not None
 
 
+def test_resolve_auto_fills_fixed_in_version(auth_client):
+    project, bug = _seed_bug(auth_client)
+    version = auth_client.versions.find_or_create(project["id"], "v1.0")
+
+    resolved = auth_client.bugs.change_status(bug["id"], "resolved")
+
+    assert resolved["fixed_in_version_id"] == version["id"]
+
+
+def test_duplicate_of_number_exposed_on_target(auth_client):
+    project, bug = _seed_bug(auth_client)
+    dup = auth_client.bugs.create(project["id"], title="Same crash")
+
+    auth_client.bugs.add_link(
+        dup["id"], kind="duplicate_of", target_bug_id=bug["id"],
+    )
+
+    refreshed_dup = auth_client.bugs.get(dup["id"])
+    assert refreshed_dup["duplicate_of_number"] == bug["number"]
+
+
 def test_comments_lifecycle(auth_client):
     _, bug = _seed_bug(auth_client)
 
@@ -123,6 +144,14 @@ def test_download_html_report(auth_client):
     project, _ = _seed_bug(auth_client)
 
     payload = auth_client.bugs.download_report(project["id"], format="html")
+
+    assert payload.startswith(b"<")
+
+
+def test_download_release_notes(auth_client):
+    project, _ = _seed_bug(auth_client)
+
+    payload = auth_client.bugs.download_release_notes(project["id"])
 
     assert payload.startswith(b"<")
 

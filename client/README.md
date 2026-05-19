@@ -72,7 +72,7 @@ client.login("user", "pass")
 - `client.step_results` — `start`, `update`, `append_log`.
 - `client.bugs` — CRUD, `get_by_number`, `change_status`, comments,
   watchers (`watch` / `unwatch` / `list_watchers`), links, activity,
-  attachments, `context`, `download_report`.
+  attachments, `context`, `download_report`, `download_release_notes`.
 - `client.plans` — CRUD test plans plus `add_cases`.
 - `client.webhooks` — CRUD, `test`, `list_deliveries` (create returns
   the secret; subsequent reads omit it).

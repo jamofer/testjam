@@ -193,3 +193,9 @@ class BugsResource(Resource):
             "GET", f"/projects/{project_id}/bugs/report", params=params,
         )
         return response.content
+
+    def download_release_notes(self, project_id: int) -> bytes:
+        response = self._request(
+            "GET", f"/projects/{project_id}/bugs/release-notes",
+        )
+        return response.content
