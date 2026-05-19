@@ -101,7 +101,8 @@ describe("PlanDetailPage — add cases", () => {
     const summary = within(dialog).getByText("Auth Suite").closest("summary")
     fireEvent.click(summary)
 
-    const checkbox = await screen.findByRole("checkbox")
+    const caseLabel = await within(dialog).findByText("New case")
+    const checkbox = caseLabel.closest("label").querySelector("input[type=checkbox]")
     fireEvent.click(checkbox)
 
     fireEvent.click(screen.getByRole("button", { name: /add to plan/i }))

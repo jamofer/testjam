@@ -1,4 +1,5 @@
 import { api } from "./client"
+import { downloadBlob } from "../lib/download"
 
 export const bugsApi = {
   list: (projectId, params = {}) =>
@@ -25,12 +26,9 @@ export const bugsApi = {
   listLinks: (id) => api.get(`/bugs/${id}/links`).then(r => r.data),
   addLink: (id, data) => api.post(`/bugs/${id}/links`, data).then(r => r.data),
   deleteLink: (id, linkId) => api.delete(`/bugs/${id}/links/${linkId}`),
-  reportUrl: (projectId, { format = "html", versionId, environment } = {}) => {
-    const params = new URLSearchParams({ format })
-    if (versionId) params.set("version_id", versionId)
-    if (environment) params.set("environment", environment)
-    return `/projects/${projectId}/bugs/report?${params.toString()}`
+  exportHtml: async (projectId, projectName = "") => {
+    const r = await api.get(`/projects/${projectId}/bugs/report?format=html`, { responseType: "blob" })
+    const slug = (projectName || `project_${projectId}`).replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_-]/g, "")
+    downloadBlob(r.data, `bugs_${slug}.html`)
   },
-  downloadReport: (projectId, options) =>
-    api.get(bugsApi.reportUrl(projectId, options), { responseType: "blob" }),
 }

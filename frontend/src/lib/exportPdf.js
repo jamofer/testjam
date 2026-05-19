@@ -216,3 +216,141 @@ export function exportExecutionPdf(execution, results, projectName = "", options
 
   doc.save(`execution_${execution.id}_${execution.title.replace(/\s+/g, "_")}.pdf`)
 }
+
+const BUG_SEVERITY_COLORS = {
+  critical: { bg: C.failed,  fg: C.failedText  },
+  high:     { bg: C.blocked, fg: C.blockedText },
+  medium:   { bg: C.notrun,  fg: C.notrunText  },
+  low:      { bg: C.notrun,  fg: C.notrunText  },
+}
+
+const BUG_STATUS_COLORS = {
+  open:        { bg: C.failed,  fg: C.failedText  },
+  in_progress: { bg: C.blocked, fg: C.blockedText },
+  resolved:    { bg: C.passed,  fg: C.passedText  },
+  closed:      { bg: C.notrun,  fg: C.notrunText  },
+  wont_fix:    { bg: C.notrun,  fg: C.notrunText  },
+  not_a_bug:   { bg: C.notrun,  fg: C.notrunText  },
+}
+
+const BUG_SEVERITY_LABEL = {
+  critical: "Critical", high: "High", medium: "Medium", low: "Low",
+}
+
+const BUG_STATUS_LABEL = {
+  open: "Open", in_progress: "In progress", resolved: "Resolved",
+  closed: "Closed", wont_fix: "Won't fix", not_a_bug: "Not a bug",
+}
+
+export function exportBugsPdf(bugs, projectName = "", options = {}) {
+  const { timezone = "UTC", username = "" } = options
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
+  const pageW = doc.internal.pageSize.getWidth()
+  const margin = 14
+
+  doc.setFillColor(...C.brand)
+  doc.rect(0, 0, pageW, 18, "F")
+
+  doc.setTextColor(...C.headerFg)
+  doc.setFont("helvetica", "bold")
+  doc.setFontSize(11)
+  doc.text("Testjam", margin, 11)
+
+  doc.setFont("helvetica", "normal")
+  doc.setFontSize(9)
+  doc.text("Bug Report", pageW - margin, 11, { align: "right" })
+
+  let y = 28
+  doc.setTextColor(...C.text)
+  doc.setFont("helvetica", "bold")
+  doc.setFontSize(16)
+  doc.text(projectName || "Bugs", margin, y)
+
+  y += 8
+  doc.setFont("helvetica", "normal")
+  doc.setFontSize(9)
+  doc.setTextColor(...C.muted)
+  doc.text(`${bugs.length} bug${bugs.length === 1 ? "" : "s"}`, margin, y)
+
+  y += 8
+
+  const rows = bugs.map(bug => [
+    `#${bug.number}`,
+    bug.title || "—",
+    BUG_SEVERITY_LABEL[bug.severity] ?? bug.severity ?? "—",
+    BUG_STATUS_LABEL[bug.status] ?? bug.status ?? "—",
+    bug.version_name || "—",
+    bug.assigned_to?.username || "—",
+    fmtDate(bug.created_at, timezone),
+  ])
+
+  autoTable(doc, {
+    startY: y,
+    head: [["#", "Title", "Severity", "Status", "Version", "Assignee", "Created"]],
+    body: rows,
+    margin: { left: margin, right: margin },
+    styles: {
+      fontSize: 8,
+      cellPadding: { top: 3, bottom: 3, left: 4, right: 4 },
+      textColor: C.text,
+      lineColor: C.border,
+      lineWidth: 0.1,
+    },
+    headStyles: {
+      fillColor: C.headerBg,
+      textColor: C.headerFg,
+      fontStyle: "bold",
+      fontSize: 8,
+    },
+    alternateRowStyles: { fillColor: C.rowAlt },
+    tableWidth: pageW - margin * 2,
+    columnStyles: {
+      0: { cellWidth: 14, halign: "right" },
+      1: { cellWidth: 62 },
+      2: { cellWidth: 20, halign: "center" },
+      3: { cellWidth: 22, halign: "center" },
+      4: { cellWidth: 20 },
+      5: { cellWidth: 22 },
+      6: { cellWidth: 22 },
+    },
+    didParseCell(data) {
+      if (data.section !== "body") return
+      const bug = bugs[data.row.index]
+      if (data.column.index === 2) {
+        const colors = BUG_SEVERITY_COLORS[bug?.severity]
+        if (colors) {
+          data.cell.styles.fillColor = colors.bg
+          data.cell.styles.textColor = colors.fg
+          data.cell.styles.fontStyle = "bold"
+        }
+      } else if (data.column.index === 3) {
+        const colors = BUG_STATUS_COLORS[bug?.status]
+        if (colors) {
+          data.cell.styles.fillColor = colors.bg
+          data.cell.styles.textColor = colors.fg
+          data.cell.styles.fontStyle = "bold"
+        }
+      }
+    },
+    showHead: "everyPage",
+    rowPageBreak: "avoid",
+  })
+
+  const totalPages = doc.internal.getNumberOfPages()
+  const pageH = doc.internal.pageSize.getHeight()
+  const generatedAt = new Date().toLocaleString(undefined, {
+    dateStyle: "medium", timeStyle: "short", timeZone: timezone,
+  })
+  const tzAbbreviation = fmtTimezoneAbbreviation(timezone)
+  const byClause = username ? ` by ${username}` : ""
+  const generated = `${generatedAt} ${tzAbbreviation}${byClause}`
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p)
+    doc.setFontSize(7)
+    doc.setTextColor(...C.muted)
+    doc.text(`Page ${p} of ${totalPages}  ·  Generated ${generated}`, pageW / 2, pageH - 8, { align: "center" })
+  }
+
+  const slug = (projectName || "bugs").replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_-]/g, "")
+  doc.save(`bugs_${slug}.pdf`)
+}

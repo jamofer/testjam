@@ -72,6 +72,7 @@ export function IntegrationsPage() {
               icon={PlayCircle}
               title={t("empty.title")}
               description={t("empty.description")}
+              compact
             />
           ) : (
             <ul className="space-y-2">

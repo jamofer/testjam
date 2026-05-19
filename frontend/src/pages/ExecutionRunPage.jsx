@@ -164,6 +164,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
   const updateResult = useUpdateResult(id)
   const [focusedResultId, setFocusedResultId] = useState(null)
   const [focusedStepId, setFocusedStepId] = useState(null)
+  const [pendingStepEdge, setPendingStepEdge] = useState(null)
   const [helpOpen, setHelpOpen] = useState(false)
   const [followLive, setFollowLive] = useState(true)
   const [expandState, setExpandState] = useState({ version: 0, desiredOpen: null })
@@ -307,16 +308,50 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
     if (firstItem) setFocusedResultId(firstItem.id)
   }
 
-  const stepNav = (delta) => {
-    if (focusedSteps.length === 0) return
-    const idx = focusedSteps.findIndex(step => step.id === focusedStepId)
-    if (idx < 0) {
-      setFocusedStepId(delta > 0 ? focusedSteps[0].id : focusedSteps[focusedSteps.length - 1].id)
+  const stepCross = (delta) => {
+    if (focusedResultId == null) {
+      if (orderedResults[0]) setFocusedResultId(orderedResults[0].id)
       return
     }
-    const next = focusedSteps[Math.max(0, Math.min(focusedSteps.length - 1, idx + delta))]
-    if (next) setFocusedStepId(next.id)
+    if (focusedSteps.length > 0) {
+      const idx = focusedSteps.findIndex(step => step.id === focusedStepId)
+      if (idx < 0) {
+        setFocusedStepId(delta > 0 ? focusedSteps[0].id : focusedSteps[focusedSteps.length - 1].id)
+        return
+      }
+      const newIdx = idx + delta
+      if (newIdx >= 0 && newIdx < focusedSteps.length) {
+        setFocusedStepId(focusedSteps[newIdx].id)
+        return
+      }
+    }
+    const resultIdx = orderedResults.findIndex(result => result.id === focusedResultId)
+    if (resultIdx < 0) return
+    const targetIdx = resultIdx + delta
+    if (targetIdx < 0 || targetIdx >= orderedResults.length) return
+    const target = orderedResults[targetIdx]
+    setFocusedResultId(target.id)
+    setPendingStepEdge({ resultId: target.id, edge: delta > 0 ? "first" : "last" })
   }
+
+  useEffect(() => {
+    if (!pendingStepEdge) return
+    if (focused?.id !== pendingStepEdge.resultId) return
+    if (focusedSteps.length === 0) {
+      setPendingStepEdge(null)
+      return
+    }
+    const stepId = pendingStepEdge.edge === "first"
+      ? focusedSteps[0].id
+      : focusedSteps[focusedSteps.length - 1].id
+    setFocusedStepId(stepId)
+    const targetResultId = pendingStepEdge.resultId
+    setPendingStepEdge(null)
+    requestAnimationFrame(() => {
+      const card = document.querySelector(`[data-result-id="${targetResultId}"]`)
+      card?.dispatchEvent(new CustomEvent("result-toggle", { detail: { open: true } }))
+    })
+  }, [pendingStepEdge, focused, focusedSteps])
 
   const jumpToStatus = (status) => {
     if (orderedResults.length === 0) return
@@ -352,12 +387,12 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
   })
 
   useKeyboardShortcuts({
-    j: () => stepBy(1),
-    ArrowDown: () => stepBy(1),
-    k: () => stepBy(-1),
-    ArrowUp: () => stepBy(-1),
-    J: () => stepNav(1),
-    K: () => stepNav(-1),
+    j: () => stepCross(1),
+    ArrowDown: () => stepCross(1),
+    k: () => stepCross(-1),
+    ArrowUp: () => stepCross(-1),
+    J: () => stepBy(1),
+    K: () => stepBy(-1),
     ArrowLeft: collapseFocused,
     h: collapseFocused,
     ArrowRight: expandFocused,

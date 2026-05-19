@@ -2,11 +2,8 @@
   "title": "Bugs",
   "subtitle": "Issues raised against this project",
   "new": "New bug",
-  "downloadReport": "Download report",
-  "reportFormats": {
-    "html": "HTML",
-    "xlsx": "Excel"
-  },
+  "downloadHtml": "Download HTML",
+  "downloadPdf": "Download PDF",
   "table": {
     "number": "#",
     "title": "Title",
@@ -24,7 +21,13 @@
     "version": "Version",
     "assignee": "Assignee",
     "tag": "Tag",
-    "any": "Any"
+    "any": "Any",
+    "statusLabel": "Filter by status",
+    "severityLabel": "Filter by severity",
+    "versionLabel": "Filter by version",
+    "anyStatus": "Any status",
+    "anySeverity": "Any severity",
+    "anyVersion": "Any version"
   },
   "severity": {
     "critical": "Critical",

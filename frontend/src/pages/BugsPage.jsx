@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { bugsApi } from "../api/bugs"
 import { useBugs, useDeleteBug } from "../hooks/useBugs"
 import { useProject } from "../hooks/useProjects"
+import { useVersions } from "../hooks/useVersions"
 import { useMe } from "../hooks/useAuth"
 import { useProjectBugsLive } from "../hooks/useProjectBugsLive"
 import { useDebounced } from "../hooks/useDebounced"
@@ -34,15 +35,18 @@ export function BugsPage() {
   const { connected: live } = useProjectBugsLive(projectId, { enabled: !!me })
   const [statusFilter, setStatusFilter] = useState("any")
   const [severityFilter, setSeverityFilter] = useState("any")
+  const [versionFilter, setVersionFilter] = useState("any")
   const [search, setSearch] = useState("")
   const debouncedSearch = useDebounced(search, 200)
+  const { data: versions = [] } = useVersions(projectId)
 
   const queryParams = useMemo(() => {
     const params = {}
     if (statusFilter !== "any") params.status = statusFilter
     if (severityFilter !== "any") params.severity = severityFilter
+    if (versionFilter !== "any") params.version_id = versionFilter
     return params
-  }, [statusFilter, severityFilter])
+  }, [statusFilter, severityFilter, versionFilter])
 
   const { data: bugs = [], isLoading } = useBugs(projectId, queryParams)
   const deleteBug = useDeleteBug(projectId)
@@ -63,9 +67,21 @@ export function BugsPage() {
     }
   }
 
-  const downloadReport = (format) => {
-    const url = `/api/v1${bugsApi.reportUrl(projectId, { format })}`
-    window.open(url, "_blank", "noopener,noreferrer")
+  const downloadHtml = async () => {
+    try {
+      await bugsApi.exportHtml(projectId, project?.name)
+    } catch (error) {
+      toast.error(error?.response?.data?.detail ?? t("toast.reportFailed"))
+    }
+  }
+
+  const downloadPdf = async () => {
+    try {
+      const { exportBugsPdf } = await import("../lib/exportPdf")
+      exportBugsPdf(filtered, project?.name, { username: me?.username, timezone: me?.timezone })
+    } catch (error) {
+      toast.error(error?.response?.data?.detail ?? t("toast.reportFailed"))
+    }
   }
 
   return (
@@ -83,15 +99,12 @@ export function BugsPage() {
             <LiveIndicator connected={live} />
           </div>
           <div className="flex items-center gap-2">
-            <Select onValueChange={downloadReport}>
-              <SelectTrigger className="h-9 w-44">
-                <SelectValue placeholder={t("downloadReport")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="html">{t("reportFormats.html")}</SelectItem>
-                <SelectItem value="xlsx">{t("reportFormats.xlsx")}</SelectItem>
-              </SelectContent>
-            </Select>
+            <Button variant="outline" size="sm" onClick={downloadHtml}>
+              <Download size={13} /> {t("downloadHtml")}
+            </Button>
+            <Button variant="outline" size="sm" onClick={downloadPdf}>
+              <Download size={13} /> {t("downloadPdf")}
+            </Button>
             <NewBugDialog projectId={projectId} trigger={(
               <Button size="sm"><Plus size={14} /> {t("new")}</Button>
             )} />
@@ -109,25 +122,38 @@ export function BugsPage() {
               className="max-w-xs"
             />
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-9 w-40">
+              <SelectTrigger className="h-9 w-44" aria-label={t("filters.statusLabel")}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {STATUS_OPTIONS.map(option => (
                   <SelectItem key={option} value={option}>
-                    {option === "any" ? t("filters.any") : t(`statuses.${option}`)}
+                    {option === "any" ? t("filters.anyStatus") : t(`statuses.${option}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Select value={severityFilter} onValueChange={setSeverityFilter}>
-              <SelectTrigger className="h-9 w-40">
+              <SelectTrigger className="h-9 w-44" aria-label={t("filters.severityLabel")}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {SEVERITY_OPTIONS.map(option => (
                   <SelectItem key={option} value={option}>
-                    {option === "any" ? t("filters.any") : t(`severity.${option}`)}
+                    {option === "any" ? t("filters.anySeverity") : t(`severity.${option}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={versionFilter} onValueChange={setVersionFilter}>
+              <SelectTrigger className="h-9 w-44" aria-label={t("filters.versionLabel")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">{t("filters.anyVersion")}</SelectItem>
+                {versions.map(version => (
+                  <SelectItem key={version.id} value={String(version.id)}>
+                    {version.name}
                   </SelectItem>
                 ))}
               </SelectContent>

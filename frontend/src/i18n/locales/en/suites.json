@@ -102,6 +102,7 @@
     "caseCreated": "Test case created"
   },
   "picker": {
-    "allExcluded": "All cases already added"
+    "allExcluded": "All cases already added",
+    "selectAllInSuite": "Select all cases in {{name}}"
   }
 }

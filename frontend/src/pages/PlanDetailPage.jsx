@@ -104,6 +104,13 @@ function AddCasesDialog({ plan, projectId }) {
   const toggle = (id) =>
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
 
+  const toggleMany = (ids, shouldSelect) =>
+    setSelected(prev => {
+      const set = new Set(prev)
+      ids.forEach(id => shouldSelect ? set.add(id) : set.delete(id))
+      return Array.from(set)
+    })
+
   const handleAdd = async () => {
     if (!selected.length) return
     await plansApi.addCases(plan.id, selected)
@@ -125,6 +132,7 @@ function AddCasesDialog({ plan, projectId }) {
             projectId={projectId}
             selected={selected}
             onToggle={toggle}
+            onToggleMany={toggleMany}
             excludeIds={plan.test_case_ids}
           />
           <p className="text-xs text-gray-400 dark:text-gray-500">{t("detail.selectedCount", { count: selected.length })}</p>

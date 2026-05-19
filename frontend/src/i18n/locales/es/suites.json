@@ -102,6 +102,7 @@
     "caseCreated": "Caso creado"
   },
   "picker": {
-    "allExcluded": "Todos los casos ya están añadidos"
+    "allExcluded": "Todos los casos ya están añadidos",
+    "selectAllInSuite": "Seleccionar todos los casos de {{name}}"
   }
 }

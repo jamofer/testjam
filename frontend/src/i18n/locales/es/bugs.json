@@ -2,11 +2,8 @@
   "title": "Bugs",
   "subtitle": "Incidencias abiertas en este proyecto",
   "new": "Nuevo bug",
-  "downloadReport": "Descargar informe",
-  "reportFormats": {
-    "html": "HTML",
-    "xlsx": "Excel"
-  },
+  "downloadHtml": "Descargar HTML",
+  "downloadPdf": "Descargar PDF",
   "table": {
     "number": "#",
     "title": "Título",
@@ -24,7 +21,13 @@
     "version": "Versión",
     "assignee": "Asignado",
     "tag": "Etiqueta",
-    "any": "Cualquiera"
+    "any": "Cualquiera",
+    "statusLabel": "Filtrar por estado",
+    "severityLabel": "Filtrar por severidad",
+    "versionLabel": "Filtrar por versión",
+    "anyStatus": "Cualquier estado",
+    "anySeverity": "Cualquier severidad",
+    "anyVersion": "Cualquier versión"
   },
   "severity": {
     "critical": "Crítica",

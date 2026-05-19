@@ -9,10 +9,10 @@ export function ShortcutHelpDialog({ open, onOpenChange, isAutomated }) {
   const statusLabel = (status) => t(`common:status.${status}`, STATUS_CONFIG[status]?.label ?? status)
 
   const navigationRows = [
-    { keys: ["j", "↓"], description: t("run.shortcuts.rows.nextResult") },
-    { keys: ["k", "↑"], description: t("run.shortcuts.rows.prevResult") },
-    { keys: ["Shift+J"], description: t("run.shortcuts.rows.nextStep") },
-    { keys: ["Shift+K"], description: t("run.shortcuts.rows.prevStep") },
+    { keys: ["j", "↓"], description: t("run.shortcuts.rows.nextStep") },
+    { keys: ["k", "↑"], description: t("run.shortcuts.rows.prevStep") },
+    { keys: ["Shift+J"], description: t("run.shortcuts.rows.nextResult") },
+    { keys: ["Shift+K"], description: t("run.shortcuts.rows.prevResult") },
     { keys: ["Home"], description: t("run.shortcuts.rows.firstResult") },
     { keys: ["End"], description: t("run.shortcuts.rows.lastResult") },
     { keys: ["PgDn"], description: t("run.shortcuts.rows.nextSuite") },

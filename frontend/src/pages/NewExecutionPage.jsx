@@ -47,6 +47,13 @@ export function NewExecutionPage() {
   const toggleCase = (id) =>
     setSelectedCases(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
 
+  const toggleManyCases = (ids, shouldSelect) =>
+    setSelectedCases(prev => {
+      const set = new Set(prev)
+      ids.forEach(id => shouldSelect ? set.add(id) : set.delete(id))
+      return Array.from(set)
+    })
+
   const handleSubmit = async (event) => {
     event.preventDefault()
     if (!title.trim()) return toast.error(t("new.titleRequired"))
@@ -184,6 +191,7 @@ export function NewExecutionPage() {
               projectId={projectId}
               selected={selectedCases}
               onToggle={toggleCase}
+              onToggleMany={toggleManyCases}
               maxHeight="max-h-56"
             />
           )}
