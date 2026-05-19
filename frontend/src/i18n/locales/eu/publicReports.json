@@ -1,0 +1,33 @@
+{
+  "title": {
+    "bug_report": "Erroreen txostenaren esteka publikoa",
+    "execution": "Exekuzioaren esteka publikoa"
+  },
+  "description": "Esteka duen edonork ikus dezake txosten hau saioa hasi gabe. Edozein momentutan baliogabetu dezakezu.",
+  "share": "Partekatu",
+  "publicLink": "Esteka publikoa",
+  "labelField": "Etiketa (aukerakoa)",
+  "labelPlaceholder": "adib. Sprint 7 release notes",
+  "expiresField": "Iraungitze-data (aukerakoa)",
+  "expiresHelp": "Utzi hutsik iraungitzerik ez izateko. Ordua zure ordu-eremu lokala erabiltzen du.",
+  "generate": "Sortu esteka",
+  "newLinkHeading": "Kopiatu eta partekatu URL hau",
+  "tokenOnceWarning": "Hau da URL osoa ikusiko duzun azken aldia. Gorde orain.",
+  "existingHeading": "Esteka aktiboak",
+  "noneYet": "Oraindik ez dago esteka publikorik.",
+  "untitled": "(etiketarik gabe)",
+  "createdAt": "Sortua",
+  "expiresAt": "Iraungitzea",
+  "revokedAt": "Baliogabetua",
+  "viewCount_one": "{{count}} bisita",
+  "viewCount_other": "{{count}} bisita",
+  "copy": "Kopiatu",
+  "copied": "Esteka kopiatu da",
+  "copyFailed": "Ezin izan da kopiatu",
+  "revoke": "Baliogabetu",
+  "revokeConfirm": "Esteka publiko hau baliogabetu? Edukitzaileak 404 bat ikusiko du.",
+  "revoked": "Esteka baliogabetuta",
+  "revokeFailed": "Ezin izan da esteka baliogabetu",
+  "created": "Esteka publikoa sortu da",
+  "createFailed": "Ezin izan da esteka sortu"
+}

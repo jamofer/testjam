@@ -48,9 +48,11 @@ def _query_bugs(
 def render_html(
     db: Session,
     project: Project,
-    user: User,
+    user: User | None,
     version_id: int | None = None,
     environment: str | None = None,
+    *,
+    viewer_label: str | None = None,
 ) -> str:
     bugs = _query_bugs(db, project.id, version_id, environment)
     bugs.sort(key=lambda bug: (SEVERITY_ORDER.get(bug.severity, 99), bug.number))
@@ -68,7 +70,8 @@ def render_html(
         title_parts.append(f"environment {environment}")
     title = " · ".join(title_parts)
 
-    return _build_html(title, bugs, generated_at, timezone_label, user)
+    actor_label = user.username if user is not None else (viewer_label or "shared link")
+    return _build_html(title, bugs, generated_at, timezone_label, user, actor_label)
 
 
 def render_xlsx(
@@ -142,7 +145,12 @@ def _append_comments_sheet(workbook, bugs: list[Bug], user: User, timezone_label
 
 
 def _build_html(
-    title: str, bugs: list[Bug], generated_at: str, timezone_label: str, user: User,
+    title: str,
+    bugs: list[Bug],
+    generated_at: str,
+    timezone_label: str,
+    user: User | None,
+    actor_label: str,
 ) -> str:
     e = html_lib.escape
     groups: dict[str, list[Bug]] = {}
@@ -199,13 +207,13 @@ def _build_html(
         "</style>\n"
         "</head>\n<body>\n"
         f"<h1>{e(title)}</h1>\n"
-        f"<p class='meta'>Generated {e(generated_at)} by {e(user.username)}</p>\n"
+        f"<p class='meta'>Generated {e(generated_at)} by {e(actor_label)}</p>\n"
         + "\n".join(sections)
         + "\n</body>\n</html>\n"
     )
 
 
-def _render_row(bug: Bug, user: User) -> str:
+def _render_row(bug: Bug, user: User | None) -> str:
     e = html_lib.escape
     assignee = bug.assigned_to.username if bug.assigned_to else "unassigned"
     parts = [
@@ -231,7 +239,7 @@ def _render_row(bug: Bug, user: User) -> str:
     )
 
 
-def _render_discussion(bug: Bug, user: User) -> str:
+def _render_discussion(bug: Bug, user: User | None) -> str:
     if not bug.comments:
         return ""
     e = html_lib.escape

@@ -1,0 +1,33 @@
+{
+  "title": {
+    "bug_report": "Enllaç públic a l'informe d'errors",
+    "execution": "Enllaç públic a l'execució"
+  },
+  "description": "Qualsevol amb l'enllaç podrà veure aquest informe sense iniciar sessió. Pots revocar-lo en qualsevol moment.",
+  "share": "Compartir",
+  "publicLink": "Enllaç públic",
+  "labelField": "Etiqueta (opcional)",
+  "labelPlaceholder": "p. ex. Sprint 7 release notes",
+  "expiresField": "Caduca el (opcional)",
+  "expiresHelp": "Deixa-ho en blanc perquè no caduqui. L'hora utilitza la teva zona horària local.",
+  "generate": "Generar enllaç",
+  "newLinkHeading": "Copia i comparteix aquesta URL",
+  "tokenOnceWarning": "Aquesta és l'única vegada que veuràs la URL completa. Desa-la ara.",
+  "existingHeading": "Enllaços actius",
+  "noneYet": "Encara no hi ha enllaços públics.",
+  "untitled": "(sense etiqueta)",
+  "createdAt": "Creat",
+  "expiresAt": "Caduca",
+  "revokedAt": "Revocat",
+  "viewCount_one": "{{count}} visita",
+  "viewCount_other": "{{count}} visites",
+  "copy": "Copiar",
+  "copied": "Enllaç copiat",
+  "copyFailed": "No s'ha pogut copiar",
+  "revoke": "Revocar",
+  "revokeConfirm": "Revocar aquest enllaç públic? Qui el tingui veurà un 404.",
+  "revoked": "Enllaç revocat",
+  "revokeFailed": "No s'ha pogut revocar l'enllaç",
+  "created": "Enllaç públic generat",
+  "createFailed": "No s'ha pogut crear l'enllaç"
+}

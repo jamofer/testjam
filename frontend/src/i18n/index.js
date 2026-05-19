@@ -18,6 +18,7 @@ import enUi from "./locales/en/ui.json"
 import enEnvironments from "./locales/en/environments.json"
 import enBugs from "./locales/en/bugs.json"
 import enIntegrations from "./locales/en/integrations.json"
+import enPublicReports from "./locales/en/publicReports.json"
 import esCommon from "./locales/es/common.json"
 import esProfile from "./locales/es/profile.json"
 import esAuth from "./locales/es/auth.json"
@@ -35,6 +36,7 @@ import esUi from "./locales/es/ui.json"
 import esEnvironments from "./locales/es/environments.json"
 import esBugs from "./locales/es/bugs.json"
 import esIntegrations from "./locales/es/integrations.json"
+import esPublicReports from "./locales/es/publicReports.json"
 import caCommon from "./locales/ca/common.json"
 import caProfile from "./locales/ca/profile.json"
 import caAuth from "./locales/ca/auth.json"
@@ -51,6 +53,7 @@ import caAdmin from "./locales/ca/admin.json"
 import caUi from "./locales/ca/ui.json"
 import caEnvironments from "./locales/ca/environments.json"
 import caBugs from "./locales/ca/bugs.json"
+import caPublicReports from "./locales/ca/publicReports.json"
 import glCommon from "./locales/gl/common.json"
 import glProfile from "./locales/gl/profile.json"
 import glAuth from "./locales/gl/auth.json"
@@ -67,6 +70,7 @@ import glAdmin from "./locales/gl/admin.json"
 import glUi from "./locales/gl/ui.json"
 import glEnvironments from "./locales/gl/environments.json"
 import glBugs from "./locales/gl/bugs.json"
+import glPublicReports from "./locales/gl/publicReports.json"
 import euCommon from "./locales/eu/common.json"
 import euProfile from "./locales/eu/profile.json"
 import euAuth from "./locales/eu/auth.json"
@@ -83,6 +87,7 @@ import euAdmin from "./locales/eu/admin.json"
 import euUi from "./locales/eu/ui.json"
 import euEnvironments from "./locales/eu/environments.json"
 import euBugs from "./locales/eu/bugs.json"
+import euPublicReports from "./locales/eu/publicReports.json"
 
 const STORAGE_KEY = "testjam.locale"
 
@@ -100,16 +105,16 @@ function detectLocale() {
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { common: enCommon, profile: enProfile, auth: enAuth, nav: enNav, projects: enProjects, dashboard: enDashboard, suites: enSuites, cases: enCases, plans: enPlans, versions: enVersions, members: enMembers, executions: enExecutions, admin: enAdmin, ui: enUi, environments: enEnvironments, bugs: enBugs, integrations: enIntegrations },
-    es: { common: esCommon, profile: esProfile, auth: esAuth, nav: esNav, projects: esProjects, dashboard: esDashboard, suites: esSuites, cases: esCases, plans: esPlans, versions: esVersions, members: esMembers, executions: esExecutions, admin: esAdmin, ui: esUi, environments: esEnvironments, bugs: esBugs, integrations: esIntegrations },
-    ca: { common: caCommon, profile: caProfile, auth: caAuth, nav: caNav, projects: caProjects, dashboard: caDashboard, suites: caSuites, cases: caCases, plans: caPlans, versions: caVersions, members: caMembers, executions: caExecutions, admin: caAdmin, ui: caUi, environments: caEnvironments, bugs: caBugs, integrations: enIntegrations },
-    gl: { common: glCommon, profile: glProfile, auth: glAuth, nav: glNav, projects: glProjects, dashboard: glDashboard, suites: glSuites, cases: glCases, plans: glPlans, versions: glVersions, members: glMembers, executions: glExecutions, admin: glAdmin, ui: glUi, environments: glEnvironments, bugs: glBugs, integrations: enIntegrations },
-    eu: { common: euCommon, profile: euProfile, auth: euAuth, nav: euNav, projects: euProjects, dashboard: euDashboard, suites: euSuites, cases: euCases, plans: euPlans, versions: euVersions, members: euMembers, executions: euExecutions, admin: euAdmin, ui: euUi, environments: euEnvironments, bugs: euBugs, integrations: enIntegrations },
+    en: { common: enCommon, profile: enProfile, auth: enAuth, nav: enNav, projects: enProjects, dashboard: enDashboard, suites: enSuites, cases: enCases, plans: enPlans, versions: enVersions, members: enMembers, executions: enExecutions, admin: enAdmin, ui: enUi, environments: enEnvironments, bugs: enBugs, integrations: enIntegrations, publicReports: enPublicReports },
+    es: { common: esCommon, profile: esProfile, auth: esAuth, nav: esNav, projects: esProjects, dashboard: esDashboard, suites: esSuites, cases: esCases, plans: esPlans, versions: esVersions, members: esMembers, executions: esExecutions, admin: esAdmin, ui: esUi, environments: esEnvironments, bugs: esBugs, integrations: esIntegrations, publicReports: esPublicReports },
+    ca: { common: caCommon, profile: caProfile, auth: caAuth, nav: caNav, projects: caProjects, dashboard: caDashboard, suites: caSuites, cases: caCases, plans: caPlans, versions: caVersions, members: caMembers, executions: caExecutions, admin: caAdmin, ui: caUi, environments: caEnvironments, bugs: caBugs, integrations: enIntegrations, publicReports: caPublicReports },
+    gl: { common: glCommon, profile: glProfile, auth: glAuth, nav: glNav, projects: glProjects, dashboard: glDashboard, suites: glSuites, cases: glCases, plans: glPlans, versions: glVersions, members: glMembers, executions: glExecutions, admin: glAdmin, ui: glUi, environments: glEnvironments, bugs: glBugs, integrations: enIntegrations, publicReports: glPublicReports },
+    eu: { common: euCommon, profile: euProfile, auth: euAuth, nav: euNav, projects: euProjects, dashboard: euDashboard, suites: euSuites, cases: euCases, plans: euPlans, versions: euVersions, members: euMembers, executions: euExecutions, admin: euAdmin, ui: euUi, environments: euEnvironments, bugs: euBugs, integrations: enIntegrations, publicReports: euPublicReports },
   },
   lng: detectLocale(),
   fallbackLng: DEFAULT_LOCALE,
   supportedLngs: SUPPORTED_LOCALES,
-  ns: ["common", "profile", "auth", "nav", "projects", "dashboard", "suites", "cases", "plans", "versions", "members", "executions", "admin", "ui", "environments", "bugs", "integrations"],
+  ns: ["common", "profile", "auth", "nav", "projects", "dashboard", "suites", "cases", "plans", "versions", "members", "executions", "admin", "ui", "environments", "bugs", "integrations", "publicReports"],
   defaultNS: "common",
   interpolation: { escapeValue: false },
   returnNull: false,

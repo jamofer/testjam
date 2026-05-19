@@ -81,6 +81,8 @@ client.login("user", "pass")
   `*_project_token` equivalents for project-scoped API keys.
 - `client.integrations` — provider catalogue, project integrations,
   bug external links, `report_from_result`.
+- `client.public_reports` — `create`, `list`, `revoke`, `fetch_html`.
+  Generates anonymous share tokens for bug or execution reports.
 
 ## Errors
 

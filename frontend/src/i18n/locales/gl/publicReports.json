@@ -1,0 +1,33 @@
+{
+  "title": {
+    "bug_report": "Ligazón pública ao informe de erros",
+    "execution": "Ligazón pública á execución"
+  },
+  "description": "Calquera coa ligazón poderá ver este informe sen iniciar sesión. Podes revogala en calquera momento.",
+  "share": "Compartir",
+  "publicLink": "Ligazón pública",
+  "labelField": "Etiqueta (opcional)",
+  "labelPlaceholder": "p. ex. Sprint 7 release notes",
+  "expiresField": "Caduca o (opcional)",
+  "expiresHelp": "Déixao en branco para que non caduque. A hora usa o teu fuso horario local.",
+  "generate": "Xerar ligazón",
+  "newLinkHeading": "Copia e comparte esta URL",
+  "tokenOnceWarning": "Esta é a única vez que verás a URL completa. Gárdaa agora.",
+  "existingHeading": "Ligazóns activas",
+  "noneYet": "Aínda non hai ligazóns públicas.",
+  "untitled": "(sen etiqueta)",
+  "createdAt": "Creado",
+  "expiresAt": "Caduca",
+  "revokedAt": "Revogado",
+  "viewCount_one": "{{count}} visita",
+  "viewCount_other": "{{count}} visitas",
+  "copy": "Copiar",
+  "copied": "Ligazón copiada",
+  "copyFailed": "Non se puido copiar",
+  "revoke": "Revogar",
+  "revokeConfirm": "Revogar esta ligazón pública? Quen a teña verá un 404.",
+  "revoked": "Ligazón revogada",
+  "revokeFailed": "Non se puido revogar a ligazón",
+  "created": "Ligazón pública xerada",
+  "createFailed": "Non se puido crear a ligazón"
+}
