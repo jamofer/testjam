@@ -8,6 +8,7 @@ import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-
 import { CSS } from "@dnd-kit/utilities"
 import { useProject } from "../hooks/useProjects"
 import { useSuites, useSuitesAll, useCreateSuite, useSearchCases, useReorderProjectSuites } from "../hooks/useSuites"
+import { useCustomFields } from "../hooks/useCustomFields"
 import { useDebounced } from "../hooks/useDebounced"
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts"
 import { Button } from "../components/ui/button"
@@ -19,6 +20,10 @@ import { EmptyState } from "../components/ui/empty-state"
 import { Skeleton, SkeletonList } from "../components/ui/skeleton"
 import { ShortcutsDialog } from "../components/ui/shortcuts-dialog"
 import { SuiteRow, SuiteCollapseContext } from "../components/project/SuiteRow"
+import { CustomFieldFilter } from "../components/customField/CustomFieldFilter"
+import { CustomFieldColumnToggle } from "../components/customField/CustomFieldColumnToggle"
+import { CustomFieldValue } from "../components/customField/CustomFieldInput"
+import { useCustomFieldColumns } from "../hooks/useCustomFieldColumns"
 import { toast } from "sonner"
 
 function buildShortcutSections(t) {
@@ -132,8 +137,22 @@ export function SuitesPage() {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
   const [search, setSearch] = useState("")
   const debouncedSearch = useDebounced(search, 200)
-  const { data: searchResults = [], isFetching: searching } = useSearchCases(id, { q: debouncedSearch })
-  const isSearching = debouncedSearch.trim().length > 0
+  const [cfFieldKey, setCfFieldKey] = useState("any")
+  const [cfFieldValue, setCfFieldValue] = useState("any")
+  const { data: customFieldDefs = [] } = useCustomFields(id, "test_case")
+  const selectedCfDef = customFieldDefs.find(definition => definition.key === cfFieldKey)
+  const { visibleKeys: visibleCfColumns, toggle: toggleCfColumn } = useCustomFieldColumns("test_case", id)
+  const visibleCfDefs = useMemo(
+    () => customFieldDefs.filter(definition => visibleCfColumns.includes(definition.key)),
+    [customFieldDefs, visibleCfColumns],
+  )
+  const cfFilterActive = cfFieldKey !== "any"
+  const { data: searchResults = [], isFetching: searching } = useSearchCases(id, {
+    q: debouncedSearch,
+    cfKey: cfFilterActive ? cfFieldKey : undefined,
+    cfValue: cfFilterActive && cfFieldValue !== "any" ? cfFieldValue : undefined,
+  })
+  const isSearching = debouncedSearch.trim().length > 0 || cfFilterActive
   const { data: allSuites = [] } = useSuitesAll(id)
   const suitePathById = useMemo(() => {
     const byId = new Map(allSuites.map(suite => [suite.id, suite]))
@@ -240,9 +259,27 @@ export function SuitesPage() {
               <CreateSuiteDialog projectId={id} />
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <SearchInput ref={searchRef} value={search} onChange={setSearch}
-              placeholder={t("searchPlaceholder")} className="flex-1" />
+              placeholder={t("searchPlaceholder")} className="flex-1 min-w-[12rem]" />
+            {customFieldDefs.length > 0 && (
+              <CustomFieldFilter
+                definitions={customFieldDefs}
+                fieldKey={cfFieldKey}
+                fieldValue={cfFieldValue}
+                onFieldKeyChange={(next) => {
+                  setCfFieldKey(next)
+                  setCfFieldValue("any")
+                }}
+                onFieldValueChange={setCfFieldValue}
+                selectedDefinition={selectedCfDef}
+              />
+            )}
+            <CustomFieldColumnToggle
+              definitions={customFieldDefs}
+              visibleKeys={visibleCfColumns}
+              onToggle={toggleCfColumn}
+            />
             {!isSearching && suites.length > 0 && (
               <div className="flex gap-1 shrink-0">
                 <Button size="sm" variant="outline" onClick={expandAll} title={t("expandAll")}>
@@ -303,6 +340,19 @@ export function SuitesPage() {
                               <div className="flex flex-wrap gap-1 mt-1">
                                 {tc.tags.map(tag => (
                                   <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">{tag}</span>
+                                ))}
+                              </div>
+                            )}
+                            {visibleCfDefs.length > 0 && (
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+                                {visibleCfDefs.map(definition => (
+                                  <span key={definition.id} className="inline-flex items-center gap-1">
+                                    <span className="text-gray-400 dark:text-gray-500">{definition.label}:</span>
+                                    <CustomFieldValue
+                                      definition={definition}
+                                      value={(tc.custom_fields ?? {})[definition.key]}
+                                    />
+                                  </span>
                                 ))}
                               </div>
                             )}

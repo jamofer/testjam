@@ -24,6 +24,9 @@ import { DateLabel } from "../components/ui/date-label"
 import { EnvironmentBadge } from "../components/environment/EnvironmentBadge"
 import { NewBugDialog } from "../components/bug/NewBugDialog"
 import { CustomFieldFilter } from "../components/customField/CustomFieldFilter"
+import { CustomFieldColumnToggle } from "../components/customField/CustomFieldColumnToggle"
+import { CustomFieldValue } from "../components/customField/CustomFieldInput"
+import { useCustomFieldColumns } from "../hooks/useCustomFieldColumns"
 import { PublicReportDialog } from "../components/share/PublicReportDialog"
 import { SEVERITY_VARIANT, STATUS_VARIANT } from "../lib/bugConfig"
 
@@ -46,6 +49,11 @@ export function BugsPage() {
   const { data: versions = [] } = useVersions(projectId)
   const { data: customFieldDefs = [] } = useCustomFields(projectId, "bug")
   const selectedCfDef = customFieldDefs.find(definition => definition.key === cfFieldKey)
+  const { visibleKeys: visibleCfColumns, toggle: toggleCfColumn } = useCustomFieldColumns("bug", projectId)
+  const visibleCfDefs = useMemo(
+    () => customFieldDefs.filter(definition => visibleCfColumns.includes(definition.key)),
+    [customFieldDefs, visibleCfColumns],
+  )
 
   const queryParams = useMemo(() => {
     const params = {}
@@ -200,6 +208,13 @@ export function BugsPage() {
                 selectedDefinition={selectedCfDef}
               />
             )}
+            <div className="ml-auto">
+              <CustomFieldColumnToggle
+                definitions={customFieldDefs}
+                visibleKeys={visibleCfColumns}
+                onToggle={toggleCfColumn}
+              />
+            </div>
           </div>
 
           {isLoading ? (
@@ -243,6 +258,19 @@ export function BugsPage() {
                       </div>
                     </div>
                   </Link>
+                  {visibleCfDefs.length > 0 && (
+                    <div className="hidden md:flex flex-col items-end gap-0.5 text-[11px] text-gray-500 dark:text-gray-400 max-w-[12rem]">
+                      {visibleCfDefs.map(definition => (
+                        <div key={definition.id} className="flex items-center gap-1 truncate">
+                          <span className="text-gray-400 dark:text-gray-500">{definition.label}:</span>
+                          <CustomFieldValue
+                            definition={definition}
+                            value={(bug.custom_fields ?? {})[definition.key]}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <Badge variant={SEVERITY_VARIANT[bug.severity] ?? "secondary"}>
                     {t(`severity.${bug.severity}`)}
                   </Badge>

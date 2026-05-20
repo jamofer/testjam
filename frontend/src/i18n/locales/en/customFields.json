@@ -66,5 +66,9 @@
     "valuePlaceholder": "Value",
     "any": "Any value",
     "clear": "Clear"
+  },
+  "columns": {
+    "title": "Columns",
+    "subtitle": "Show custom fields"
   }
 }

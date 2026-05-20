@@ -114,11 +114,13 @@ export function useCase(id) {
   return useQuery({ queryKey: ["case", id], queryFn: () => casesApi.get(id), enabled: !!id })
 }
 
-export function useSearchCases(projectId, { q, tags } = {}) {
-  const enabled = Boolean(projectId) && (Boolean(q) || (Array.isArray(tags) && tags.length > 0))
+export function useSearchCases(projectId, { q, tags, cfKey, cfValue } = {}) {
+  const enabled = Boolean(projectId) && (
+    Boolean(q) || (Array.isArray(tags) && tags.length > 0) || Boolean(cfKey)
+  )
   return useQuery({
-    queryKey: ["cases-search", projectId, q || "", tags || []],
-    queryFn: () => casesApi.search(projectId, { q, tags }),
+    queryKey: ["cases-search", projectId, q || "", tags || [], cfKey || "", cfValue || ""],
+    queryFn: () => casesApi.search(projectId, { q, tags, cfKey, cfValue }),
     enabled,
     placeholderData: (prev) => prev,
   })

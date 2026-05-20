@@ -27,9 +27,15 @@ export const suitesApi = {
 
 export const casesApi = {
   list: (suiteId) => api.get(`/suites/${suiteId}/cases`).then(r => r.data),
-  search: (projectId, { q, tags } = {}) =>
-    api.get(`/projects/${projectId}/cases`, { params: { q: q || undefined, tags: tags?.length ? tags : undefined } })
-      .then(r => r.data),
+  search: (projectId, { q, tags, cfKey, cfValue } = {}) =>
+    api.get(`/projects/${projectId}/cases`, {
+      params: {
+        q: q || undefined,
+        tags: tags?.length ? tags : undefined,
+        cf_key: cfKey || undefined,
+        cf_value: cfValue || undefined,
+      },
+    }).then(r => r.data),
   get: (id) => api.get(`/cases/${id}`).then(r => r.data),
   create: (suiteId, data) => api.post(`/suites/${suiteId}/cases`, data).then(r => r.data),
   update: (id, data) => api.put(`/cases/${id}`, data).then(r => r.data),

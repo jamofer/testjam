@@ -53,11 +53,12 @@ import { EnvironmentBadge } from "../components/environment/EnvironmentBadge"
 import { AddBugLinkDialog } from "../components/bug/AddBugLinkDialog"
 import { BugTimeline } from "../components/bug/BugTimeline"
 import { BugExternalLinksPanel } from "../components/integration/BugExternalLinksPanel"
+import { CustomFieldsEditableBody } from "../components/customField/CustomFieldInput"
 import { MdEditor, MdViewer } from "../components/MdEditor"
 import { SEVERITY_VARIANT, STATUS_VARIANT, STATUSES } from "../lib/bugConfig"
 
 export function BugDetailPage() {
-  const { t } = useTranslation(["bugs", "nav"])
+  const { t } = useTranslation(["bugs", "nav", "customFields"])
   const { bugId: directBugId, projectId, number } = useParams()
   const navigate = useNavigate()
   const { data: me } = useMe()
@@ -135,6 +136,21 @@ export function BugDetailPage() {
     />
   ) : null
 
+  const customFieldsSection = bug ? {
+    title: t("customFields:section.heading"),
+    body: (
+      <CustomFieldsEditableBody
+        projectId={bug.project_id}
+        entityType="bug"
+        values={bug.custom_fields}
+        onSave={(values) =>
+          updateBug.mutateAsync({ id: bug.id, data: { custom_fields: values } })
+        }
+        saving={updateBug.isPending}
+      />
+    ),
+  } : null
+
   const contextSections = useMemo(() => {
     if (!bug) return []
     return buildContextSections({
@@ -142,6 +158,7 @@ export function BugDetailPage() {
       links,
       linkContext,
       fixedInVersionPicker,
+      customFieldsSection,
       onDeleteLink: (linkId) => removeLink.mutateAsync({ bugId: bug.id, linkId }),
       addLinkDialog: (
         <AddBugLinkDialog
@@ -159,7 +176,7 @@ export function BugDetailPage() {
       ),
       t,
     })
-  }, [bug, links, linkContext, removeLink, fixedInVersionPicker, t])
+  }, [bug, links, linkContext, removeLink, fixedInVersionPicker, customFieldsSection, t])
 
   if (isLoading || !bug) {
     return (
@@ -475,7 +492,7 @@ export function BugDetailPage() {
   )
 }
 
-function buildContextSections({ bug, links, linkContext, onDeleteLink, addLinkDialog, fixedInVersionPicker, t }) {
+function buildContextSections({ bug, links, linkContext, onDeleteLink, addLinkDialog, fixedInVersionPicker, customFieldsSection, t }) {
   const sections = []
 
   sections.push({
@@ -585,6 +602,10 @@ function buildContextSections({ bug, links, linkContext, onDeleteLink, addLinkDi
     defaultOpen: false,
     body: <div className="text-xs">{addLinkDialog}</div>,
   })
+
+  if (customFieldsSection) {
+    sections.push(customFieldsSection)
+  }
 
   sections.push({
     title: t("context.tags"),
