@@ -3,8 +3,24 @@ name: Frontend
 on:
   push:
     branches: [master]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - "LICENSE"
+      - "backend/**"
+      - "client/**"
+      - "listener/**"
+      - "tests/**"
   pull_request:
     branches: [master]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - "LICENSE"
+      - "backend/**"
+      - "client/**"
+      - "listener/**"
+      - "tests/**"
 
 concurrency:
   group: frontend-${{ github.ref }}

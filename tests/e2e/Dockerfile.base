@@ -1,0 +1,42 @@
+# syntax=docker/dockerfile:1.7
+#
+# Heavy, source-independent layer cake for the e2e runner image.
+#
+# Splits the apt + nodejs + python deps + chromium download out of the per-PR
+# build so they live in a stable GHCR image. The final `tests/e2e/Dockerfile`
+# uses `FROM ${E2E_BASE}` and only re-copies + reinstalls source on top.
+#
+# Rebuilt by `.github/workflows/e2e-base-image.yml` when any of:
+#   - this Dockerfile
+#   - client/pyproject.toml
+#   - listener/pyproject.toml
+#   - tests/e2e/pyproject.toml
+# changes on master.
+
+FROM python:3.14-slim
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl ca-certificates gnupg git \
+ && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+ && apt-get install -y --no-install-recommends nodejs \
+ && rm -rf /var/lib/apt/lists/*
+
+# Stub package layouts so editable installs resolve without copying real source.
+# `pip install -e` only needs the package directory to exist; later in
+# `tests/e2e/Dockerfile` the real source is copied on top of these stubs and
+# re-installed with `--no-deps` so dependency resolution is skipped.
+COPY client/pyproject.toml /client/
+COPY listener/pyproject.toml /listener/
+COPY tests/e2e/pyproject.toml /tests/e2e/
+RUN mkdir -p /client/testjam_client /listener/testjam_listener /tests/e2e/testjam_e2e \
+ && touch /client/testjam_client/__init__.py \
+          /listener/testjam_listener/__init__.py \
+          /tests/e2e/testjam_e2e/__init__.py
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -e /client -e /listener -e /tests/e2e pytest
+
+RUN rfbrowser init chromium \
+ && npx --yes playwright install-deps chromium
+
+WORKDIR /tests/e2e
