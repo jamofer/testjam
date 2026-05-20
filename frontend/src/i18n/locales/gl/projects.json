@@ -7,6 +7,7 @@
   "projectName": "Nome do proxecto…",
   "createProject": "Crear proxecto",
   "created": "Proxecto creado",
+  "deletedRemotely": "Eliminouse o proxecto «{{name}}»",
   "archived": "ARQUIVADO",
   "archive": "Arquivar proxecto",
   "unarchive": "Desarquivar proxecto",

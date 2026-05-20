@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Sidebar } from './Sidebar'
 import { CommandPalette } from '../ui/command-palette'
 import { useMe, useUpdateMe } from '../../hooks/useAuth'
+import { useProjectDeletionWatcher } from '../../hooks/useProjectDeletionWatcher'
 import { browserTimezone } from '../../lib/format'
 import i18n, { setLocale, SUPPORTED_LOCALES } from '../../i18n'
 
@@ -45,6 +46,8 @@ export function AppLayout() {
   }, [])
 
   useEffect(() => { setMobileOpen(false) }, [location.pathname])
+
+  useProjectDeletionWatcher()
 
   if (isLoading) return <div className="flex items-center justify-center h-screen text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-950">{t('common:actions.loading')}</div>
   if (isError) return <Navigate to="/login" replace />

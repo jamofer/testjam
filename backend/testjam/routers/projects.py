@@ -19,6 +19,7 @@ from testjam.schemas.project import (
     TransferOwnershipRequest,
 )
 from testjam.services.permissions import accessible_project_ids, effective_role
+from testjam.services.project_events import on_project_deleted
 from testjam.services.project_export import cleanup_archive, export_project
 from testjam.services.project_ownership import transfer_ownership
 
@@ -134,8 +135,10 @@ def delete_project(id: int, db: Session = Depends(get_db), _: User = Depends(req
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Not found")
+    project_name = project.name
     db.delete(project)
     db.commit()
+    on_project_deleted(id, project_name)
 
 
 @router.post("/{id}/archive", response_model=ProjectOut)

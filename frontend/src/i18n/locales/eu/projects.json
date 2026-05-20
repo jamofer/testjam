@@ -7,6 +7,7 @@
   "projectName": "Proiektuaren izena…",
   "createProject": "Sortu proiektua",
   "created": "Proiektua sortuta",
+  "deletedRemotely": "«{{name}}» proiektua ezabatu da",
   "archived": "ARTXIBATUTA",
   "archive": "Artxibatu proiektua",
   "unarchive": "Desartxibatu proiektua",
