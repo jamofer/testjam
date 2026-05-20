@@ -1,0 +1,70 @@
+{
+  "title": "Custom fields",
+  "subtitle": "Define structured fields for bugs, test cases and executions.",
+  "add": "Add field",
+  "entities": {
+    "bug": "Bugs",
+    "test_case": "Test cases",
+    "execution": "Executions"
+  },
+  "types": {
+    "text": "Text",
+    "number": "Number",
+    "bool": "Yes / No",
+    "single_select": "Single select",
+    "multi_select": "Multi select",
+    "date": "Date"
+  },
+  "fields": {
+    "entity_type": "Applies to",
+    "key": "Key",
+    "keyHint": "Lowercase, letters digits and underscores. Cannot change later.",
+    "label": "Label",
+    "type": "Type",
+    "options": "Options",
+    "optionsHint": "One per line — value | label",
+    "required": "Required on create",
+    "default": "Default value",
+    "defaultHint": "Pre-fills new records. Required for executions with required=true."
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "archive": "Archive",
+    "unarchive": "Restore",
+    "delete": "Delete"
+  },
+  "badges": {
+    "required": "required",
+    "archived": "archived"
+  },
+  "toast": {
+    "created": "Custom field created",
+    "updated": "Custom field updated",
+    "deleted": "Custom field removed",
+    "archived": "Custom field archived",
+    "unarchived": "Custom field restored",
+    "deleteFailed": "Could not delete: values still exist. Archive instead."
+  },
+  "errors": {
+    "invalidKey": "Key must be lowercase letters, digits and underscores",
+    "duplicateKey": "Key already exists for this entity",
+    "executionRequiresDefault": "Required fields on executions need a default value"
+  },
+  "empty": {
+    "title": "No custom fields yet",
+    "description": "Add one to capture structured data on bugs, cases or executions."
+  },
+  "section": {
+    "heading": "Custom fields",
+    "none": "No custom fields defined for this entity."
+  },
+  "filter": {
+    "label": "Custom field",
+    "fieldPlaceholder": "Pick field",
+    "valuePlaceholder": "Value",
+    "any": "Any value",
+    "clear": "Clear"
+  }
+}

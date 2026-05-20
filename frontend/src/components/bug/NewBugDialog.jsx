@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 
 import { useCreateBug } from "../../hooks/useBugs"
+import { useCustomFields } from "../../hooks/useCustomFields"
 import { useVersions } from "../../hooks/useVersions"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
@@ -11,6 +12,7 @@ import { Label } from "../ui/label"
 import { Textarea } from "../ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { EnvironmentPicker } from "../environment/EnvironmentPicker"
+import { CustomFieldsForm } from "../customField/CustomFieldInput"
 
 const VERSION_NONE = "__none__"
 
@@ -26,7 +28,9 @@ export function NewBugDialog({ projectId, trigger, prefill = {}, onCreated }) {
   const [tagsInput, setTagsInput] = useState((prefill.tags ?? []).join(", "))
   const [environment, setEnvironment] = useState(prefill.environment ?? null)
   const [fixedInVersionId, setFixedInVersionId] = useState(prefill.fixed_in_version_id ?? null)
+  const [customFields, setCustomFields] = useState({})
   const { data: versions = [] } = useVersions(projectId)
+  const { data: customFieldDefs = [] } = useCustomFields(projectId, "bug")
 
   const reset = () => {
     setTitle("")
@@ -35,6 +39,7 @@ export function NewBugDialog({ projectId, trigger, prefill = {}, onCreated }) {
     setTagsInput((prefill.tags ?? []).join(", "))
     setEnvironment(prefill.environment ?? null)
     setFixedInVersionId(prefill.fixed_in_version_id ?? null)
+    setCustomFields({})
   }
 
   const handleSubmit = async (event) => {
@@ -55,6 +60,7 @@ export function NewBugDialog({ projectId, trigger, prefill = {}, onCreated }) {
         execution_id: prefill.execution_id ?? null,
         version_id: prefill.version_id ?? null,
         fixed_in_version_id: fixedInVersionId,
+        custom_fields: Object.keys(customFields).length ? customFields : null,
       })
       toast.success(t("toast.created"))
       setOpen(false)
@@ -119,6 +125,15 @@ export function NewBugDialog({ projectId, trigger, prefill = {}, onCreated }) {
               </SelectContent>
             </Select>
           </div>
+          {customFieldDefs.length > 0 && (
+            <div className="space-y-2 border-t pt-3">
+              <CustomFieldsForm
+                definitions={customFieldDefs}
+                values={customFields}
+                onChange={setCustomFields}
+              />
+            </div>
+          )}
           <Button type="submit" className="w-full" disabled={create.isPending || !title.trim()}>
             {t("actions.save")}
           </Button>

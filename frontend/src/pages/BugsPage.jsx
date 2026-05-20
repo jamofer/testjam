@@ -8,6 +8,7 @@ import { bugsApi } from "../api/bugs"
 import { useBugs, useDeleteBug } from "../hooks/useBugs"
 import { useProject } from "../hooks/useProjects"
 import { useVersions } from "../hooks/useVersions"
+import { useCustomFields } from "../hooks/useCustomFields"
 import { useMe } from "../hooks/useAuth"
 import { useProjectBugsLive } from "../hooks/useProjectBugsLive"
 import { useDebounced } from "../hooks/useDebounced"
@@ -22,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { DateLabel } from "../components/ui/date-label"
 import { EnvironmentBadge } from "../components/environment/EnvironmentBadge"
 import { NewBugDialog } from "../components/bug/NewBugDialog"
+import { CustomFieldFilter } from "../components/customField/CustomFieldFilter"
 import { PublicReportDialog } from "../components/share/PublicReportDialog"
 import { SEVERITY_VARIANT, STATUS_VARIANT } from "../lib/bugConfig"
 
@@ -37,17 +39,25 @@ export function BugsPage() {
   const [statusFilter, setStatusFilter] = useState("any")
   const [severityFilter, setSeverityFilter] = useState("any")
   const [versionFilter, setVersionFilter] = useState("any")
+  const [cfFieldKey, setCfFieldKey] = useState("any")
+  const [cfFieldValue, setCfFieldValue] = useState("any")
   const [search, setSearch] = useState("")
   const debouncedSearch = useDebounced(search, 200)
   const { data: versions = [] } = useVersions(projectId)
+  const { data: customFieldDefs = [] } = useCustomFields(projectId, "bug")
+  const selectedCfDef = customFieldDefs.find(definition => definition.key === cfFieldKey)
 
   const queryParams = useMemo(() => {
     const params = {}
     if (statusFilter !== "any") params.status = statusFilter
     if (severityFilter !== "any") params.severity = severityFilter
     if (versionFilter !== "any") params.version_id = versionFilter
+    if (cfFieldKey !== "any") {
+      params.cf_key = cfFieldKey
+      if (cfFieldValue !== "any") params.cf_value = cfFieldValue
+    }
     return params
-  }, [statusFilter, severityFilter, versionFilter])
+  }, [statusFilter, severityFilter, versionFilter, cfFieldKey, cfFieldValue])
 
   const { data: bugs = [], isLoading } = useBugs(projectId, queryParams)
   const deleteBug = useDeleteBug(projectId)
@@ -180,6 +190,16 @@ export function BugsPage() {
                 ))}
               </SelectContent>
             </Select>
+            {customFieldDefs.length > 0 && (
+              <CustomFieldFilter
+                definitions={customFieldDefs}
+                fieldKey={cfFieldKey}
+                fieldValue={cfFieldValue}
+                onFieldKeyChange={(key) => { setCfFieldKey(key); setCfFieldValue("any") }}
+                onFieldValueChange={setCfFieldValue}
+                selectedDefinition={selectedCfDef}
+              />
+            )}
           </div>
 
           {isLoading ? (
