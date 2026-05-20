@@ -20,7 +20,7 @@ vi.mock("../hooks/useTopicSocket", () => {
   }
 })
 
-const toastMock = { warning: vi.fn() }
+const { toastMock } = vi.hoisted(() => ({ toastMock: { warning: vi.fn() } }))
 vi.mock("sonner", () => ({ toast: toastMock }))
 
 import {
