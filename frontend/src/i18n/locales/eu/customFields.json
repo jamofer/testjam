@@ -1,0 +1,74 @@
+{
+  "title": "Eremu pertsonalizatuak",
+  "subtitle": "Definitu eremu egituratuak akatsetarako, proba-kasuetarako eta exekuzioetarako.",
+  "add": "Gehitu eremua",
+  "entities": {
+    "bug": "Akatsak",
+    "test_case": "Proba-kasuak",
+    "execution": "Exekuzioak"
+  },
+  "types": {
+    "text": "Testua",
+    "number": "Zenbakia",
+    "bool": "Bai / Ez",
+    "single_select": "Aukera bakarra",
+    "multi_select": "Hainbat aukera",
+    "date": "Data"
+  },
+  "fields": {
+    "entity_type": "Aplikatzen zaio",
+    "key": "Gakoa",
+    "keyHint": "Letra xeheak, zifrak eta azpimarrak. Ezin da geroago aldatu.",
+    "label": "Etiketa",
+    "type": "Mota",
+    "options": "Aukerak",
+    "optionsHint": "Bat lerroko — balioa | etiketa",
+    "required": "Beharrezkoa sortzean",
+    "default": "Lehenetsitako balioa",
+    "defaultHint": "Erregistro berriak aurrez betetzen ditu. Beharrezkoa required=true duten exekuzioetarako."
+  },
+  "actions": {
+    "save": "Gorde",
+    "cancel": "Utzi",
+    "edit": "Editatu",
+    "archive": "Artxibatu",
+    "unarchive": "Berreskuratu",
+    "delete": "Ezabatu"
+  },
+  "badges": {
+    "required": "beharrezkoa",
+    "archived": "artxibatuta"
+  },
+  "toast": {
+    "created": "Eremua sortuta",
+    "updated": "Eremua eguneratuta",
+    "deleted": "Eremua kenduta",
+    "archived": "Eremua artxibatuta",
+    "unarchived": "Eremua berreskuratuta",
+    "deleteFailed": "Ezin da ezabatu: balioak daude oraindik. Artxibatu horren ordez."
+  },
+  "errors": {
+    "invalidKey": "Gakoak letra xeheak, zifrak eta azpimarrak izan behar ditu",
+    "duplicateKey": "Gakoa dagoeneko existitzen da entitate honetarako",
+    "executionRequiresDefault": "Beharrezko eremuek lehenetsitako balioa behar dute exekuzioetan"
+  },
+  "empty": {
+    "title": "Oraindik ez dago eremu pertsonalizaturik",
+    "description": "Gehitu bat akatsetan, kasuetan edo exekuzioetan datu egituratuak jasotzeko."
+  },
+  "section": {
+    "heading": "Eremu pertsonalizatuak",
+    "none": "Ez dago entitate honetarako eremu pertsonalizaturik definitu."
+  },
+  "filter": {
+    "label": "Eremu pertsonalizatua",
+    "fieldPlaceholder": "Aukeratu eremua",
+    "valuePlaceholder": "Balioa",
+    "any": "Edozein balio",
+    "clear": "Garbitu"
+  },
+  "columns": {
+    "title": "Zutabeak",
+    "subtitle": "Erakutsi eremu pertsonalizatuak"
+  }
+}

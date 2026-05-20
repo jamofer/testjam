@@ -1,0 +1,74 @@
+{
+  "title": "Campos personalizados",
+  "subtitle": "Define campos estructurados para bugs, casos de prueba y ejecuciones.",
+  "add": "Añadir campo",
+  "entities": {
+    "bug": "Bugs",
+    "test_case": "Casos de prueba",
+    "execution": "Ejecuciones"
+  },
+  "types": {
+    "text": "Texto",
+    "number": "Número",
+    "bool": "Sí / No",
+    "single_select": "Selección única",
+    "multi_select": "Selección múltiple",
+    "date": "Fecha"
+  },
+  "fields": {
+    "entity_type": "Aplica a",
+    "key": "Clave",
+    "keyHint": "Minúsculas, letras, dígitos y guiones bajos. No se puede cambiar después.",
+    "label": "Etiqueta",
+    "type": "Tipo",
+    "options": "Opciones",
+    "optionsHint": "Una por línea — valor | etiqueta",
+    "required": "Obligatorio al crear",
+    "default": "Valor por defecto",
+    "defaultHint": "Pre-rellena los nuevos registros. Obligatorio para ejecuciones con required=true."
+  },
+  "actions": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "archive": "Archivar",
+    "unarchive": "Restaurar",
+    "delete": "Eliminar"
+  },
+  "badges": {
+    "required": "obligatorio",
+    "archived": "archivado"
+  },
+  "toast": {
+    "created": "Campo creado",
+    "updated": "Campo actualizado",
+    "deleted": "Campo eliminado",
+    "archived": "Campo archivado",
+    "unarchived": "Campo restaurado",
+    "deleteFailed": "No se puede eliminar: aún hay valores. Archívalo en su lugar."
+  },
+  "errors": {
+    "invalidKey": "La clave debe contener solo letras minúsculas, dígitos y guiones bajos",
+    "duplicateKey": "La clave ya existe para esta entidad",
+    "executionRequiresDefault": "Los campos obligatorios de ejecuciones necesitan un valor por defecto"
+  },
+  "empty": {
+    "title": "Aún no hay campos personalizados",
+    "description": "Añade uno para capturar datos estructurados en bugs, casos o ejecuciones."
+  },
+  "section": {
+    "heading": "Campos personalizados",
+    "none": "No hay campos personalizados definidos para esta entidad."
+  },
+  "filter": {
+    "label": "Campo personalizado",
+    "fieldPlaceholder": "Elige campo",
+    "valuePlaceholder": "Valor",
+    "any": "Cualquier valor",
+    "clear": "Limpiar"
+  },
+  "columns": {
+    "title": "Columnas",
+    "subtitle": "Mostrar campos personalizados"
+  }
+}

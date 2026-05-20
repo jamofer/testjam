@@ -1,13 +1,17 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Archive, ArchiveRestore, Plus, Settings2, Trash2 } from "lucide-react"
+import { Archive, ArchiveRestore, GripVertical, Plus, Settings2, Trash2 } from "lucide-react"
 import { toast } from "sonner"
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 
 import {
   useArchiveCustomField,
   useCreateCustomField,
   useCustomFields,
   useDeleteCustomField,
+  useReorderCustomFields,
   useUnarchiveCustomField,
 } from "../../hooks/useCustomFields"
 import { Button } from "../ui/button"
@@ -28,6 +32,23 @@ export function CustomFieldsPanel({ projectId }) {
   const [entityType, setEntityType] = useState("bug")
   const [dialogOpen, setDialogOpen] = useState(false)
   const { data: definitions = [] } = useCustomFields(projectId, entityType, { includeArchived: true })
+  const reorder = useReorderCustomFields(projectId)
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
+
+  const activeDefs = definitions.filter(definition => definition.archived_at === null)
+  const archivedDefs = definitions.filter(definition => definition.archived_at !== null)
+
+  const handleDragEnd = ({ active, over }) => {
+    if (!over || active.id === over.id) return
+    const ids = activeDefs.map(definition => definition.id)
+    const oldIndex = ids.indexOf(active.id)
+    const newIndex = ids.indexOf(over.id)
+    if (oldIndex < 0 || newIndex < 0) return
+    const next = [...ids]
+    const [moved] = next.splice(oldIndex, 1)
+    next.splice(newIndex, 0, moved)
+    reorder.mutate(next)
+  }
 
   return (
     <div className="space-y-4">
@@ -46,15 +67,32 @@ export function CustomFieldsPanel({ projectId }) {
           compact
         />
       ) : (
-        <ul className="space-y-2">
-          {definitions.map(definition => (
-            <DefinitionRow
-              key={definition.id}
-              definition={definition}
-              projectId={projectId}
-            />
-          ))}
-        </ul>
+        <div className="space-y-2">
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={activeDefs.map(definition => definition.id)} strategy={verticalListSortingStrategy}>
+              <ul className="space-y-2">
+                {activeDefs.map(definition => (
+                  <SortableDefinitionRow
+                    key={definition.id}
+                    definition={definition}
+                    projectId={projectId}
+                  />
+                ))}
+              </ul>
+            </SortableContext>
+          </DndContext>
+          {archivedDefs.length > 0 && (
+            <ul className="space-y-2">
+              {archivedDefs.map(definition => (
+                <DefinitionRow
+                  key={definition.id}
+                  definition={definition}
+                  projectId={projectId}
+                />
+              ))}
+            </ul>
+          )}
+        </div>
       )}
 
       <CreateFieldDialog
@@ -63,6 +101,25 @@ export function CustomFieldsPanel({ projectId }) {
         projectId={projectId}
         defaultEntityType={entityType}
         onCreated={() => setDialogOpen(false)}
+      />
+    </div>
+  )
+}
+
+function SortableDefinitionRow({ definition, projectId }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: definition.id })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.55 : 1,
+  }
+  return (
+    <div ref={setNodeRef} style={style}>
+      <DefinitionRow
+        definition={definition}
+        projectId={projectId}
+        dragHandleProps={{ ...attributes, ...listeners }}
       />
     </div>
   )
@@ -89,7 +146,7 @@ function EntityTabs({ value, onChange }) {
   )
 }
 
-function DefinitionRow({ definition, projectId }) {
+function DefinitionRow({ definition, projectId, dragHandleProps }) {
   const { t } = useTranslation("customFields")
   const archive = useArchiveCustomField(projectId)
   const unarchive = useUnarchiveCustomField(projectId)
@@ -113,6 +170,16 @@ function DefinitionRow({ definition, projectId }) {
 
   return (
     <li className="flex items-center gap-3 border rounded-lg px-4 py-3 bg-white dark:bg-gray-900">
+      {dragHandleProps && (
+        <button
+          type="button"
+          {...dragHandleProps}
+          className="cursor-grab text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-300 touch-none"
+          aria-label="drag"
+        >
+          <GripVertical size={14} />
+        </button>
+      )}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-medium text-sm text-gray-800 dark:text-gray-100 truncate">

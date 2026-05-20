@@ -1,0 +1,74 @@
+{
+  "title": "Campos personalizados",
+  "subtitle": "Define campos estruturados para bugs, casos de proba e execucións.",
+  "add": "Engadir campo",
+  "entities": {
+    "bug": "Bugs",
+    "test_case": "Casos de proba",
+    "execution": "Execucións"
+  },
+  "types": {
+    "text": "Texto",
+    "number": "Número",
+    "bool": "Si / Non",
+    "single_select": "Selección única",
+    "multi_select": "Selección múltiple",
+    "date": "Data"
+  },
+  "fields": {
+    "entity_type": "Aplícase a",
+    "key": "Clave",
+    "keyHint": "Minúsculas, letras, díxitos e guións baixos. Non se pode cambiar despois.",
+    "label": "Etiqueta",
+    "type": "Tipo",
+    "options": "Opcións",
+    "optionsHint": "Unha por liña — valor | etiqueta",
+    "required": "Obrigatorio ao crear",
+    "default": "Valor por defecto",
+    "defaultHint": "Preenche os novos rexistros. Obrigatorio para execucións con required=true."
+  },
+  "actions": {
+    "save": "Gardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "archive": "Arquivar",
+    "unarchive": "Restaurar",
+    "delete": "Eliminar"
+  },
+  "badges": {
+    "required": "obrigatorio",
+    "archived": "arquivado"
+  },
+  "toast": {
+    "created": "Campo creado",
+    "updated": "Campo actualizado",
+    "deleted": "Campo eliminado",
+    "archived": "Campo arquivado",
+    "unarchived": "Campo restaurado",
+    "deleteFailed": "Non se pode eliminar: aínda hai valores. Arquívao no seu lugar."
+  },
+  "errors": {
+    "invalidKey": "A clave debe conter só letras minúsculas, díxitos e guións baixos",
+    "duplicateKey": "A clave xa existe para esta entidade",
+    "executionRequiresDefault": "Os campos obrigatorios de execucións precisan un valor por defecto"
+  },
+  "empty": {
+    "title": "Aínda non hai campos personalizados",
+    "description": "Engade un para capturar datos estruturados en bugs, casos ou execucións."
+  },
+  "section": {
+    "heading": "Campos personalizados",
+    "none": "Non hai campos personalizados definidos para esta entidade."
+  },
+  "filter": {
+    "label": "Campo personalizado",
+    "fieldPlaceholder": "Elixe campo",
+    "valuePlaceholder": "Valor",
+    "any": "Calquera valor",
+    "clear": "Limpar"
+  },
+  "columns": {
+    "title": "Columnas",
+    "subtitle": "Mostrar campos personalizados"
+  }
+}

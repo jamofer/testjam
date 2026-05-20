@@ -5,6 +5,7 @@ import { useCreateExecution } from "../hooks/useExecutions"
 import { useVersions } from "../hooks/useVersions"
 import { useMembers } from "../hooks/useMembers"
 import { useProject } from "../hooks/useProjects"
+import { useCustomFields } from "../hooks/useCustomFields"
 import { useQuery } from "@tanstack/react-query"
 import { plansApi } from "../api/testplans"
 import { Button } from "../components/ui/button"
@@ -15,10 +16,11 @@ import { PageBody, PageHeader } from "../components/ui/page-header"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import { CasePicker } from "../components/ui/case-picker"
 import { EnvironmentPicker } from "../components/environment/EnvironmentPicker"
+import { CustomFieldsForm } from "../components/customField/CustomFieldInput"
 import { toast } from "sonner"
 
 export function NewExecutionPage() {
-  const { t } = useTranslation(["executions", "nav"])
+  const { t } = useTranslation(["executions", "nav", "customFields"])
   const { id: projectId } = useParams()
   const navigate = useNavigate()
   const createExecution = useCreateExecution(projectId)
@@ -26,6 +28,7 @@ export function NewExecutionPage() {
   const { data: versions = [] } = useVersions(projectId)
   const activeVersions = versions.filter(version => version.status === "active")
   const { data: members = [] } = useMembers(projectId)
+  const { data: customFieldDefs = [] } = useCustomFields(projectId, "execution")
 
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -37,6 +40,7 @@ export function NewExecutionPage() {
   const [source, setSource] = useState("cases")
   const [planId, setPlanId] = useState("")
   const [selectedCases, setSelectedCases] = useState([])
+  const [customFields, setCustomFields] = useState({})
 
   const { data: plans = [] } = useQuery({
     queryKey: ["plans", projectId],
@@ -71,6 +75,7 @@ export function NewExecutionPage() {
       triggered_by: type === "automatic" ? triggeredBy || undefined : undefined,
       assigned_to_id: assigneeId ? parseInt(assigneeId) : undefined,
       test_case_ids: source === "cases" ? selectedCases : (selectedPlan?.test_case_ids ?? []),
+      custom_fields: Object.keys(customFields).length ? customFields : undefined,
     }
 
     try {
@@ -199,6 +204,19 @@ export function NewExecutionPage() {
             <p className="text-xs text-gray-400 dark:text-gray-500">{t("new.selectedCount", { count: selectedCases.length })}</p>
           )}
         </div>
+
+        {customFieldDefs.length > 0 && (
+          <div className="space-y-2 border-t pt-4">
+            <Label className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              {t("customFields:section.heading")}
+            </Label>
+            <CustomFieldsForm
+              definitions={customFieldDefs}
+              values={customFields}
+              onChange={setCustomFields}
+            />
+          </div>
+        )}
 
           <Button type="submit" className="w-full" disabled={createExecution.isPending}>
             {createExecution.isPending ? t("new.creating") : t("new.create")}

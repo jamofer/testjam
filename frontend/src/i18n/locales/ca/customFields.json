@@ -1,0 +1,74 @@
+{
+  "title": "Camps personalitzats",
+  "subtitle": "Defineix camps estructurats per a bugs, casos de prova i execucions.",
+  "add": "Afegeix camp",
+  "entities": {
+    "bug": "Bugs",
+    "test_case": "Casos de prova",
+    "execution": "Execucions"
+  },
+  "types": {
+    "text": "Text",
+    "number": "Nombre",
+    "bool": "Sí / No",
+    "single_select": "Selecció única",
+    "multi_select": "Selecció múltiple",
+    "date": "Data"
+  },
+  "fields": {
+    "entity_type": "S'aplica a",
+    "key": "Clau",
+    "keyHint": "Minúscules, lletres, dígits i guions baixos. No es pot canviar després.",
+    "label": "Etiqueta",
+    "type": "Tipus",
+    "options": "Opcions",
+    "optionsHint": "Una per línia — valor | etiqueta",
+    "required": "Obligatori en crear",
+    "default": "Valor per defecte",
+    "defaultHint": "Pre-omple els registres nous. Obligatori per a execucions amb required=true."
+  },
+  "actions": {
+    "save": "Desa",
+    "cancel": "Cancel·la",
+    "edit": "Edita",
+    "archive": "Arxiva",
+    "unarchive": "Restaura",
+    "delete": "Elimina"
+  },
+  "badges": {
+    "required": "obligatori",
+    "archived": "arxivat"
+  },
+  "toast": {
+    "created": "Camp creat",
+    "updated": "Camp actualitzat",
+    "deleted": "Camp eliminat",
+    "archived": "Camp arxivat",
+    "unarchived": "Camp restaurat",
+    "deleteFailed": "No es pot eliminar: encara hi ha valors. Arxiva'l en lloc d'això."
+  },
+  "errors": {
+    "invalidKey": "La clau ha de contenir només lletres minúscules, dígits i guions baixos",
+    "duplicateKey": "La clau ja existeix per a aquesta entitat",
+    "executionRequiresDefault": "Els camps obligatoris d'execucions necessiten un valor per defecte"
+  },
+  "empty": {
+    "title": "Encara no hi ha camps personalitzats",
+    "description": "Afegeix-ne un per capturar dades estructurades en bugs, casos o execucions."
+  },
+  "section": {
+    "heading": "Camps personalitzats",
+    "none": "No hi ha camps personalitzats definits per a aquesta entitat."
+  },
+  "filter": {
+    "label": "Camp personalitzat",
+    "fieldPlaceholder": "Tria camp",
+    "valuePlaceholder": "Valor",
+    "any": "Qualsevol valor",
+    "clear": "Neteja"
+  },
+  "columns": {
+    "title": "Columnes",
+    "subtitle": "Mostra camps personalitzats"
+  }
+}

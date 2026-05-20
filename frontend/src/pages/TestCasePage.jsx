@@ -19,11 +19,12 @@ import { AttachmentList } from "../components/case/AttachmentList"
 import { CaseDiscussion } from "../components/case/CaseDiscussion"
 import { PanelAttachments, PanelHistory } from "../components/case/CaseSidePanels"
 import { ContextPanel } from "../components/ui/context-panel"
+import { CustomFieldsEditableBody } from "../components/customField/CustomFieldInput"
 import { fmtDateTime } from "../lib/format"
 import { toast } from "sonner"
 
 export function TestCasePage() {
-  const { t } = useTranslation(["cases", "nav"])
+  const { t } = useTranslation(["cases", "nav", "customFields"])
   const { id } = useParams()
   const { data: tc, isLoading } = useCase(id)
   const { data: suite } = useSuite(tc?.suite_id)
@@ -118,6 +119,20 @@ export function TestCasePage() {
     {
       title: t("context.history"),
       body: <PanelHistory caseId={id} />,
+    },
+    {
+      title: t("customFields:section.heading"),
+      body: (
+        <CustomFieldsEditableBody
+          projectId={suite?.project_id}
+          entityType="test_case"
+          values={tc.custom_fields}
+          onSave={(values) =>
+            updateCase.mutateAsync({ custom_fields: values })
+          }
+          saving={updateCase.isPending}
+        />
+      ),
     },
     {
       title: t("context.counts"),
