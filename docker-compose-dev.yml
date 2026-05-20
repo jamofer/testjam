@@ -11,9 +11,9 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-testjam}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      interval: 2s
+      timeout: 3s
+      retries: 15
 
   redis:
     image: redis:8-alpine
@@ -50,10 +50,10 @@ services:
     command: ["sh", "/app/scripts/dev_server.sh"]
     healthcheck:
       test: ["CMD", "python", "/app/scripts/healthcheck.py"]
-      interval: 10s
+      interval: 3s
       timeout: 5s
-      retries: 6
-      start_period: 15s
+      retries: 20
+      start_period: 5s
 
   frontend:
     build: ./frontend
@@ -75,10 +75,10 @@ services:
       - api
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
-      interval: 5s
+      interval: 2s
       timeout: 3s
       retries: 30
-      start_period: 30s
+      start_period: 5s
 
   mailpit:
     image: axllent/mailpit:latest

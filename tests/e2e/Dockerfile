@@ -1,19 +1,15 @@
 # syntax=docker/dockerfile:1.7
-FROM python:3.12-slim
-
-RUN apt-get update \
- && apt-get install -y --no-install-recommends curl ca-certificates gnupg git \
- && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
- && apt-get install -y --no-install-recommends nodejs \
- && rm -rf /var/lib/apt/lists/*
+#
+# Thin per-PR layer on top of the pre-built e2e base image (chromium + node +
+# python deps + rfbrowser/playwright). Source is copied last and re-installed
+# with `--no-deps` so dependency resolution is skipped.
+ARG E2E_BASE=ghcr.io/jamofer/testjam-e2e-base:latest
+FROM ${E2E_BASE}
 
 COPY client /client
 COPY listener /listener
 COPY tests/e2e /tests/e2e
 
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install -e /client -e /listener -e /tests/e2e pytest
-RUN rfbrowser init chromium \
- && npx --yes playwright install-deps chromium
+RUN pip install --no-cache-dir --no-deps -e /client -e /listener -e /tests/e2e
 
 WORKDIR /tests/e2e

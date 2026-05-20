@@ -3,8 +3,18 @@ name: Backend
 on:
   push:
     branches: [master]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - "LICENSE"
+      - "frontend/**"
   pull_request:
     branches: [master]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - "LICENSE"
+      - "frontend/**"
 
 concurrency:
   group: backend-${{ github.ref }}
@@ -19,7 +29,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
           cache: pip
           cache-dependency-path: backend/pyproject.toml
 
