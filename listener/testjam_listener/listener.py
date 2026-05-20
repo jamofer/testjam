@@ -64,6 +64,7 @@ class TestjamListener:
             version_id=version_id,
         )
         self.execution_id = execution["id"]
+        self._execution_custom_fields: dict[str, Any] = {}
 
         self.streaming_enabled = True
         # Robot always wraps the command-line target in a synthetic root suite
@@ -109,6 +110,7 @@ class TestjamListener:
 
         description = (getattr(data, "doc", None) or "").strip() or None
         tags = [str(tag) for tag in getattr(data, "tags", [])]
+        self._execution_custom_fields.update(_parse_cf_tags(tags))
         external_id = f"{suite_path}.{data.name}"
         case = _find_or_create_case_by_external_id(
             self.client, suite_id, data.name,
@@ -223,12 +225,14 @@ class TestjamListener:
             step.log_buffer.append(format_log_line(level, text, timestamp))
 
     def close(self) -> None:
+        update_payload: dict[str, Any] = {
+            "status": "completed",
+            "finished_at": datetime.now(timezone.utc).isoformat(),
+        }
+        if self._execution_custom_fields:
+            update_payload["custom_fields"] = self._execution_custom_fields
         try:
-            self.client.executions.update(
-                self.execution_id,
-                status="completed",
-                finished_at=datetime.now(timezone.utc).isoformat(),
-            )
+            self.client.executions.update(self.execution_id, **update_payload)
         except TestjamError:
             log.warning("Failed to mark execution %s completed", self.execution_id)
         self._upload_artefacts()
@@ -388,6 +392,35 @@ def _sync_steps_from_rf_test(
 
     created = client.cases.replace_steps(case_id, payload)
     return list(zip(step_types, [row["id"] for row in created]))
+
+
+CF_TAG_PREFIX = "cf:"
+
+
+def _parse_cf_tags(tags: list[str]) -> dict[str, Any]:
+    """Convert ``cf:key=value`` Robot tags to a custom_fields dict.
+
+    Comma-separated values become lists for multi_select fields.
+    Tags missing the ``=`` or with empty key/value are ignored.
+    """
+    result: dict[str, Any] = {}
+    for tag in tags:
+        if not tag.startswith(CF_TAG_PREFIX):
+            continue
+        body = tag[len(CF_TAG_PREFIX):]
+        if "=" not in body:
+            continue
+        key, _, raw = body.partition("=")
+        key = key.strip()
+        raw = raw.strip()
+        if not key or not raw:
+            continue
+        if "," in raw:
+            items = [item.strip() for item in raw.split(",") if item.strip()]
+            result[key] = items
+        else:
+            result[key] = raw
+    return result
 
 
 def _locate_artefact(output_dir: str | None, filename: str) -> Path | None:
