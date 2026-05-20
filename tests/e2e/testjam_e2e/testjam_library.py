@@ -8,6 +8,7 @@ from testjam_e2e.keywords import (
     ProjectMixin,
     VersionMixin,
     EnvironmentsMixin,
+    CustomFieldsMixin,
     BugsMixin,
     SuiteMixin,
     CaseMixin,
@@ -59,6 +60,7 @@ class TestjamLibrary(
     ProjectMixin,
     VersionMixin,
     EnvironmentsMixin,
+    CustomFieldsMixin,
     BugsMixin,
     SuiteMixin,
     CaseMixin,
@@ -113,6 +115,7 @@ class TestjamLibrary(
         self.current_project_id: int | None = None
         self.current_version_id: int | None = None
         self.current_environment_id: int | None = None
+        self.current_custom_field_id: int | None = None
         self.current_bug_id: int | None = None
         self.current_bug_number: int | None = None
         self.current_suite_id: int | None = None

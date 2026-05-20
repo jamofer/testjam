@@ -19,6 +19,7 @@ import httpx
 from testjam_client.errors import raise_for_status
 from testjam_client.resources.bugs import BugsResource
 from testjam_client.resources.cases import CasesResource
+from testjam_client.resources.custom_fields import CustomFieldsResource
 from testjam_client.resources.environments import EnvironmentsResource
 from testjam_client.resources.executions import ExecutionsResource
 from testjam_client.resources.integrations import IntegrationsResource
@@ -71,6 +72,7 @@ class TestjamClient:
         self.cases = CasesResource(self)
         self.versions = VersionsResource(self)
         self.environments = EnvironmentsResource(self)
+        self.custom_fields = CustomFieldsResource(self)
         self.executions = ExecutionsResource(self)
         self.results = ResultsResource(self)
         self.step_results = StepResultsResource(self)

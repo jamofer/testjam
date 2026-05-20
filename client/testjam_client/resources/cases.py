@@ -48,6 +48,7 @@ class CasesResource(Resource):
         description: str | None = None,
         tags: list[str] | None = None,
         external_id: str | None = None,
+        custom_fields: dict[str, Any] | None = None,
     ) -> dict:
         body: dict[str, Any] = {"name": name, "suite_id": suite_id}
         if description is not None:
@@ -56,6 +57,8 @@ class CasesResource(Resource):
             body["tags"] = tags
         if external_id is not None:
             body["external_id"] = external_id
+        if custom_fields is not None:
+            body["custom_fields"] = custom_fields
         return self._request("POST", f"/suites/{suite_id}/cases", json=body).json()
 
     def update(self, case_id: int, **payload: Any) -> dict:

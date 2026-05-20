@@ -23,6 +23,8 @@ class BugsResource(Resource):
         assigned_to_id: int | None = None,
         tag: str | None = None,
         search: str | None = None,
+        cf_key: str | None = None,
+        cf_value: str | None = None,
         skip: int = 0,
         limit: int = 50,
     ) -> list[dict]:
@@ -41,6 +43,10 @@ class BugsResource(Resource):
             params["tag"] = tag
         if search is not None:
             params["search"] = search
+        if cf_key is not None:
+            params["cf_key"] = cf_key
+        if cf_value is not None:
+            params["cf_value"] = cf_value
         return self._request(
             "GET", f"/projects/{project_id}/bugs", params=params,
         ).json()
@@ -67,6 +73,7 @@ class BugsResource(Resource):
         fixed_in_version_id: int | None = None,
         environment: str | None = None,
         assigned_to_id: int | None = None,
+        custom_fields: dict[str, Any] | None = None,
     ) -> dict:
         body: dict[str, Any] = {"title": title, "severity": severity}
         if description is not None:
@@ -85,6 +92,8 @@ class BugsResource(Resource):
             body["environment"] = environment
         if assigned_to_id is not None:
             body["assigned_to_id"] = assigned_to_id
+        if custom_fields is not None:
+            body["custom_fields"] = custom_fields
         return self._request(
             "POST", f"/projects/{project_id}/bugs", json=body,
         ).json()

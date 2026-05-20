@@ -46,6 +46,7 @@ class ExecutionsResource(Resource):
         description: str | None = None,
         assigned_to_id: int | None = None,
         triggered_by: str | None = None,
+        custom_fields: dict[str, Any] | None = None,
     ) -> dict:
         body: dict[str, Any] = {"title": title, "type": type}
         if test_case_ids is not None:
@@ -60,6 +61,8 @@ class ExecutionsResource(Resource):
             body["assigned_to_id"] = assigned_to_id
         if triggered_by is not None:
             body["triggered_by"] = triggered_by
+        if custom_fields is not None:
+            body["custom_fields"] = custom_fields
         return self._request(
             "POST", f"/projects/{project_id}/executions", json=body,
         ).json()
