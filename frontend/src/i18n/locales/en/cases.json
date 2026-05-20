@@ -11,6 +11,7 @@
   "tabs": {
     "stepsCount": "Steps ({{count}})",
     "attachmentsCount": "Attachments ({{count}})",
+    "discussion": "Discussion",
     "history": "History"
   },
   "newStep": "New step",

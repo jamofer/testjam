@@ -11,6 +11,7 @@
   "tabs": {
     "stepsCount": "Urratsak ({{count}})",
     "attachmentsCount": "Eranskinak ({{count}})",
+    "discussion": "Eztabaida",
     "history": "Historia"
   },
   "newStep": "Urrats berria",

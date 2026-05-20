@@ -11,6 +11,7 @@
   "tabs": {
     "stepsCount": "Pasos ({{count}})",
     "attachmentsCount": "Adjuntos ({{count}})",
+    "discussion": "Discusión",
     "history": "Historial"
   },
   "newStep": "Nuevo paso",
