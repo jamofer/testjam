@@ -24,4 +24,6 @@ export const projectsApi = {
   listMembers: (id) => api.get(`/projects/${id}/members`).then(r => r.data),
   addMember: (id, data) => api.post(`/projects/${id}/members`, data).then(r => r.data),
   removeMember: (id, userId) => api.delete(`/projects/${id}/members/${userId}`),
+  transferOwnership: (id, newOwnerId) =>
+    api.post(`/projects/${id}/transfer-ownership`, { new_owner_id: newOwnerId }).then(r => r.data),
 }

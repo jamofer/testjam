@@ -3,6 +3,10 @@
   "closeMenu": "Itxi menua",
   "openMenu": "Ireki menua",
   "allProjects": "Proiektu guztiak",
+  "sections": {
+    "work": "Lana",
+    "config": "Konfigurazioa"
+  },
   "project": {
     "overview": "Laburpena",
     "cases": "Proba-kasuak",
@@ -12,7 +16,8 @@
     "environments": "Inguruneak",
     "customFields": "Eremu pertsonalizatuak",
     "bugs": "Akatsak",
-    "members": "Kideak"
+    "members": "Kideak",
+    "settings": "Ezarpenak"
   },
   "global": {
     "projects": "Proiektuak",

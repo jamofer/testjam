@@ -1,16 +1,14 @@
 import { useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { Download, FolderOpen, PlayCircle } from "lucide-react"
+import { FolderOpen, PlayCircle } from "lucide-react"
 
 import { useProject } from "../hooks/useProjects"
-import { projectsApi } from "../api/projects"
 import { Button } from "../components/ui/button"
 import { PageBody, PageHeader } from "../components/ui/page-header"
 import { Skeleton } from "../components/ui/skeleton"
 import { ProjectDashboard } from "../components/dashboard/ProjectDashboard"
 import { ImportExecutionDialog } from "../components/execution/ImportExecutionDialog"
-import { toast } from "sonner"
 
 export function ProjectDetailPage() {
   const { t } = useTranslation(["projects", "nav"])
@@ -56,19 +54,6 @@ export function ProjectDetailPage() {
 
 function ProjectActions({ projectId }) {
   const { t } = useTranslation("projects")
-  const [downloading, setDownloading] = useState(false)
-
-  const exportZip = async () => {
-    setDownloading(true)
-    try {
-      await projectsApi.exportZip(projectId)
-      toast.success(t("detail.exported"))
-    } catch {
-      toast.error(t("detail.exportFailed"))
-    } finally {
-      setDownloading(false)
-    }
-  }
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -83,9 +68,6 @@ function ProjectActions({ projectId }) {
         </Link>
       </Button>
       <ImportExecutionDialog projectId={projectId} />
-      <Button size="sm" variant="ghost" onClick={exportZip} loading={downloading} title={t("detail.exportTitle")}>
-        <Download size={14} /> {t("detail.export")}
-      </Button>
     </div>
   )
 }

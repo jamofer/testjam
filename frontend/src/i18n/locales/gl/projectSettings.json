@@ -1,0 +1,75 @@
+{
+  "title": "Axustes",
+  "tabs": {
+    "general": "Xeral",
+    "integrations": "Integracións",
+    "webhooks": "Webhooks",
+    "danger": "Zona de perigo"
+  },
+  "general": {
+    "title": "Xeral",
+    "description": "Nome do proxecto, descrición, exportación e tokens de API.",
+    "form": {
+      "title": "Información do proxecto",
+      "name": "Nome",
+      "descriptionLabel": "Descrición",
+      "descriptionPlaceholder": "De que vai este proxecto?",
+      "save": "Gardar cambios",
+      "saved": "Proxecto actualizado",
+      "saveFailed": "Fallou o gardado"
+    },
+    "export": {
+      "title": "Exportar proxecto",
+      "description": "Descarga un ZIP con todas as suites, casos, execucións, bugs e anexos.",
+      "button": "Descargar ZIP"
+    },
+    "tokens": {
+      "title": "Tokens de API",
+      "description": "Tokens de ámbito proxecto usados polo listener e clientes externos."
+    }
+  },
+  "integrations": {
+    "title": "Trackers externos",
+    "description": "Conecta Jira, OpenProject, GitLab ou Azure DevOps para sincronizar bugs."
+  },
+  "webhooks": {
+    "title": "Webhooks",
+    "description": "Notificacións HTTP saíntes cando ocorren eventos do proxecto."
+  },
+  "danger": {
+    "title": "Zona de perigo",
+    "intro": "Estas accións afectan a todo o proxecto. Procede con coidado.",
+    "archive": {
+      "title": "Arquivar proxecto",
+      "description": "Agocha o proxecto das listas activas. Reversible — podes desarquivalo en calquera momento.",
+      "archive": "Arquivar proxecto",
+      "unarchive": "Desarquivar proxecto",
+      "archived": "Proxecto arquivado",
+      "unarchived": "Proxecto desarquivado",
+      "failed": "Acción fallida"
+    },
+    "transfer": {
+      "title": "Transferir propiedade",
+      "description": "Pasa a propiedade a outro usuario activo. Perderás os privilexios de owner neste proxecto.",
+      "newOwner": "Novo propietario",
+      "selectPlaceholder": "Selecciona un usuario…",
+      "submit": "Transferir propiedade",
+      "success": "Propiedade transferida",
+      "failed": "Transferencia fallida"
+    },
+    "delete": {
+      "title": "Eliminar proxecto",
+      "description": "Elimina este proxecto e todos os seus datos permanentemente. Non se pode desfacer.",
+      "button": "Eliminar este proxecto",
+      "dialogTitle": "Eliminar «{{name}}»?",
+      "intro": "Eliminaranse todas as suites, casos, execucións, bugs, comentarios e anexos. Para confirmar, escribe o nome do proxecto abaixo.",
+      "namePlaceholder": "Escribe o nome do proxecto",
+      "confirm": "Enténdoo, eliminar",
+      "success": "Proxecto eliminado",
+      "failed": "Fallou a eliminación"
+    }
+  },
+  "common": {
+    "cancel": "Cancelar"
+  }
+}

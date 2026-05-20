@@ -6,7 +6,8 @@ NEW_PROJECT_TRIGGER = 'button:has-text("New project")'
 NEW_PROJECT_INPUT = 'input[placeholder="Project name…"]'
 SEARCH_INPUT = 'input[placeholder="Search projects…"]'
 PROJECTS_HEADING = 'h1:has-text("Projects")'
-DELETE_BUTTON = 'button[title="Delete project"]'
+DELETE_TRIGGER = 'button:has-text("Delete this project")'
+DELETE_CONFIRM = 'button:has-text("I understand, delete")'
 LIST_LOADING = '[role="status"][aria-busy="true"]'
 
 
@@ -69,8 +70,28 @@ class ProjectsUIMixin:
 
     @keyword("I delete the project ${name} via the UI")
     def delete_project_ui(self, name: str) -> None:
-        selector = f'{_project_item(name)} >> {DELETE_BUTTON}'
-        BuiltIn().run_keyword("Click", selector)
+        self.authenticate_as_admin()
+        listing = self.client.get(
+            "/projects", params={"include_archived": "true"},
+        ).json()
+        match = next((project for project in listing if project["name"] == name), None)
+        assert match is not None, f"Project '{name}' not found via API for UI deletion"
+        BuiltIn().run_keyword(
+            "Go To", f"{self.frontend_url}/projects/{match['id']}/settings/danger",
+        )
+        BuiltIn().run_keyword(
+            "Wait For Elements State", DELETE_TRIGGER, "visible", "timeout=10s",
+        )
+        BuiltIn().run_keyword("Click", DELETE_TRIGGER)
+        confirm_input = f'input[placeholder="{name}"]'
+        BuiltIn().run_keyword(
+            "Wait For Elements State", confirm_input, "visible", "timeout=10s",
+        )
+        BuiltIn().run_keyword("Fill Text", confirm_input, name)
+        BuiltIn().run_keyword("Click", DELETE_CONFIRM)
+        BuiltIn().run_keyword(
+            "Wait For Elements State", PROJECTS_HEADING, "visible", "timeout=10s",
+        )
         BuiltIn().run_keyword(
             "Wait For Elements State", _project_link(name), "hidden", "timeout=10s",
         )

@@ -3,6 +3,10 @@
   "closeMenu": "Tanca el menú",
   "openMenu": "Obre el menú",
   "allProjects": "Tots els projectes",
+  "sections": {
+    "work": "Treball",
+    "config": "Configuració"
+  },
   "project": {
     "overview": "Resum",
     "cases": "Casos de prova",
@@ -12,7 +16,8 @@
     "environments": "Entorns",
     "customFields": "Camps personalitzats",
     "bugs": "Bugs",
-    "members": "Membres"
+    "members": "Membres",
+    "settings": "Configuració"
   },
   "global": {
     "projects": "Projectes",

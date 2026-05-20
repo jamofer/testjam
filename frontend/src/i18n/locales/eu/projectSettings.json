@@ -1,0 +1,75 @@
+{
+  "title": "Ezarpenak",
+  "tabs": {
+    "general": "Orokorra",
+    "integrations": "Integrazioak",
+    "webhooks": "Webhook-ak",
+    "danger": "Arrisku-eremua"
+  },
+  "general": {
+    "title": "Orokorra",
+    "description": "Proiektuaren izena, deskribapena, esportazioa eta API tokenak.",
+    "form": {
+      "title": "Proiektuaren informazioa",
+      "name": "Izena",
+      "descriptionLabel": "Deskribapena",
+      "descriptionPlaceholder": "Zertaz da proiektu hau?",
+      "save": "Gorde aldaketak",
+      "saved": "Proiektua eguneratuta",
+      "saveFailed": "Gordetzeak huts egin du"
+    },
+    "export": {
+      "title": "Esportatu proiektua",
+      "description": "Deskargatu ZIP bat suite, kasu, exekuzio, akats eta eranskinen guztiekin.",
+      "button": "Deskargatu ZIPa"
+    },
+    "tokens": {
+      "title": "API tokenak",
+      "description": "Proiektu-eremuko tokenak, listener-ak eta kanpoko bezeroek erabiltzen dituztenak."
+    }
+  },
+  "integrations": {
+    "title": "Kanpoko trackerrak",
+    "description": "Konektatu Jira, OpenProject, GitLab edo Azure DevOps akatsak sinkronizatzeko."
+  },
+  "webhooks": {
+    "title": "Webhook-ak",
+    "description": "Irteerako HTTP jakinarazpenak proiektuaren gertaerak gertatzen direnean."
+  },
+  "danger": {
+    "title": "Arrisku-eremua",
+    "intro": "Ekintza hauek proiektu osoari eragiten diote. Aurrera kontuz.",
+    "archive": {
+      "title": "Artxibatu proiektua",
+      "description": "Proiektua zerrenda aktiboetatik ezkutatzen du. Itzulgarria — edozein unetan desartxiba dezakezu.",
+      "archive": "Artxibatu proiektua",
+      "unarchive": "Desartxibatu proiektua",
+      "archived": "Proiektua artxibatuta",
+      "unarchived": "Proiektua desartxibatuta",
+      "failed": "Ekintzak huts egin du"
+    },
+    "transfer": {
+      "title": "Transferitu jabetza",
+      "description": "Eraman jabetza beste erabiltzaile aktibo bati. Proiektu honetan jabe-pribilegioak galduko dituzu.",
+      "newOwner": "Jabe berria",
+      "selectPlaceholder": "Hautatu erabiltzaile bat…",
+      "submit": "Transferitu jabetza",
+      "success": "Jabetza transferituta",
+      "failed": "Transferentziak huts egin du"
+    },
+    "delete": {
+      "title": "Ezabatu proiektua",
+      "description": "Ezabatu proiektu hau eta bere datu guztiak betiko. Hau ezin da desegin.",
+      "button": "Ezabatu proiektu hau",
+      "dialogTitle": "Ezabatu «{{name}}»?",
+      "intro": "Suite, kasu, exekuzio, akats, iruzkin eta eranskin guztiak ezabatuko dira. Berresteko, idatzi proiektuaren izena behean.",
+      "namePlaceholder": "Idatzi proiektuaren izena",
+      "confirm": "Ulertu dut, ezabatu",
+      "success": "Proiektua ezabatuta",
+      "failed": "Ezabatzeak huts egin du"
+    }
+  },
+  "common": {
+    "cancel": "Utzi"
+  }
+}
