@@ -35,6 +35,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Compute content-hash tag
+        id: base
+        run: |
+          digest=$(sha256sum \
+            tests/e2e/Dockerfile.base \
+            client/pyproject.toml \
+            listener/pyproject.toml \
+            tests/e2e/pyproject.toml \
+            | sha256sum | cut -c1-12)
+          echo "digest=$digest" >> $GITHUB_OUTPUT
+          echo "tagging base image as base-$digest"
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -43,6 +55,6 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/testjam-e2e-base:latest
-            ghcr.io/${{ github.repository_owner }}/testjam-e2e-base:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/testjam-e2e-base:base-${{ steps.base.outputs.digest }}
           cache-from: type=gha,scope=e2e-base
           cache-to: type=gha,scope=e2e-base,mode=max

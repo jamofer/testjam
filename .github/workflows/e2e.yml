@@ -38,15 +38,31 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Compute e2e base image tag
+        id: base
+        run: |
+          # Tag = sha256 of the files that define the base layer. Same inputs
+          # → same tag, immutable. Avoids races with parallel
+          # `e2e-base-image` rebuilds mutating `:latest`, and lets PRs reuse
+          # the base that master already published when inputs haven't changed.
+          digest=$(sha256sum \
+            tests/e2e/Dockerfile.base \
+            client/pyproject.toml \
+            listener/pyproject.toml \
+            tests/e2e/pyproject.toml \
+            | sha256sum | cut -c1-12)
+          tag="ghcr.io/${{ github.repository_owner }}/testjam-e2e-base:base-$digest"
+          echo "E2E_BASE=$tag" >> $GITHUB_ENV
+          echo "e2e base image tag: $tag"
+
       - name: Ensure e2e base image is published to GHCR
         run: |
-          base=ghcr.io/${{ github.repository_owner }}/testjam-e2e-base:latest
-          if ! docker buildx imagetools inspect "$base" >/dev/null 2>&1; then
-            echo "base not in GHCR yet, building + pushing"
+          if ! docker buildx imagetools inspect "$E2E_BASE" >/dev/null 2>&1; then
+            echo "base image $E2E_BASE not in GHCR yet, building + pushing"
             docker buildx build \
               -f tests/e2e/Dockerfile.base \
               --push \
-              -t "$base" .
+              -t "$E2E_BASE" .
           fi
 
       - name: Build images
