@@ -1,0 +1,75 @@
+{
+  "title": "Configuració",
+  "tabs": {
+    "general": "General",
+    "integrations": "Integracions",
+    "webhooks": "Webhooks",
+    "danger": "Zona de perill"
+  },
+  "general": {
+    "title": "General",
+    "description": "Nom del projecte, descripció, exportació i tokens d'API.",
+    "form": {
+      "title": "Informació del projecte",
+      "name": "Nom",
+      "descriptionLabel": "Descripció",
+      "descriptionPlaceholder": "De què tracta aquest projecte?",
+      "save": "Desa els canvis",
+      "saved": "Projecte actualitzat",
+      "saveFailed": "Ha fallat el desament"
+    },
+    "export": {
+      "title": "Exporta el projecte",
+      "description": "Baixa un ZIP amb totes les suites, casos, execucions, bugs i adjunts.",
+      "button": "Baixa el ZIP"
+    },
+    "tokens": {
+      "title": "Tokens d'API",
+      "description": "Tokens d'àmbit projecte que usen el listener i clients externs."
+    }
+  },
+  "integrations": {
+    "title": "Trackers externs",
+    "description": "Connecta Jira, OpenProject, GitLab o Azure DevOps per sincronitzar bugs."
+  },
+  "webhooks": {
+    "title": "Webhooks",
+    "description": "Notificacions HTTP sortints quan passen esdeveniments del projecte."
+  },
+  "danger": {
+    "title": "Zona de perill",
+    "intro": "Aquestes accions afecten tot el projecte. Procedeix amb cura.",
+    "archive": {
+      "title": "Arxiva el projecte",
+      "description": "Amaga el projecte de les llistes actives. Reversible — pots desarxivar-lo en qualsevol moment.",
+      "archive": "Arxiva el projecte",
+      "unarchive": "Desarxiva el projecte",
+      "archived": "Projecte arxivat",
+      "unarchived": "Projecte desarxivat",
+      "failed": "Acció fallida"
+    },
+    "transfer": {
+      "title": "Transfereix la propietat",
+      "description": "Passa la propietat a un altre usuari actiu. Perdràs els privilegis d'owner en aquest projecte.",
+      "newOwner": "Nou propietari",
+      "selectPlaceholder": "Selecciona un usuari…",
+      "submit": "Transfereix la propietat",
+      "success": "Propietat transferida",
+      "failed": "Transferència fallida"
+    },
+    "delete": {
+      "title": "Elimina el projecte",
+      "description": "Elimina aquest projecte i totes les seves dades permanentment. No es pot desfer.",
+      "button": "Elimina aquest projecte",
+      "dialogTitle": "Voleu eliminar «{{name}}»?",
+      "intro": "S'eliminaran totes les suites, casos, execucions, bugs, comentaris i adjunts. Per confirmar, escriu el nom del projecte a sota.",
+      "namePlaceholder": "Escriu el nom del projecte",
+      "confirm": "Ho entenc, elimina",
+      "success": "Projecte eliminat",
+      "failed": "Eliminació fallida"
+    }
+  },
+  "common": {
+    "cancel": "Cancel·la"
+  }
+}

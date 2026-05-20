@@ -43,3 +43,26 @@ export function useUnarchiveProject() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['projects'] }),
   })
 }
+
+export function useUpdateProject() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }) => projectsApi.update(id, data),
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ['projects'] })
+      qc.invalidateQueries({ queryKey: ['projects', id] })
+    },
+  })
+}
+
+export function useTransferProjectOwnership() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, newOwnerId }) => projectsApi.transferOwnership(id, newOwnerId),
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ['projects'] })
+      qc.invalidateQueries({ queryKey: ['projects', id] })
+      qc.invalidateQueries({ queryKey: ['members', id] })
+    },
+  })
+}

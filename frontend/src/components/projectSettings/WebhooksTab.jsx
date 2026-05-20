@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react"
-import { useParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { Copy, PlayCircle, Plus, RefreshCw, Trash2 } from "lucide-react"
 import { toast } from "sonner"
@@ -11,98 +10,62 @@ import {
   useUpdateWebhook,
   useWebhookDeliveries,
   useWebhooks,
-} from "../hooks/useWebhooks"
-import { useProject } from "../hooks/useProjects"
-import { ExternalTrackersSection } from "../components/integration/ExternalTrackersSection"
-import { WEBHOOK_EVENTS } from "../api/webhooks"
-import { PageBody, PageHeader } from "../components/ui/page-header"
-import { Button } from "../components/ui/button"
-import { Input } from "../components/ui/input"
-import { Label } from "../components/ui/label"
-import { Badge } from "../components/ui/badge"
-import { DateLabel } from "../components/ui/date-label"
-import { EmptyState } from "../components/ui/empty-state"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog"
+} from "../../hooks/useWebhooks"
+import { WEBHOOK_EVENTS } from "../../api/webhooks"
+import { Button } from "../ui/button"
+import { Input } from "../ui/input"
+import { Label } from "../ui/label"
+import { Badge } from "../ui/badge"
+import { DateLabel } from "../ui/date-label"
+import { EmptyState } from "../ui/empty-state"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog"
 
-
-export function IntegrationsPage() {
-  const { t } = useTranslation(["integrations", "nav"])
-  const { id: projectId } = useParams()
-  const { data: project } = useProject(projectId)
+export function WebhooksTab({ projectId }) {
+  const { t } = useTranslation(["projectSettings", "integrations"])
   const { data: webhooks = [] } = useWebhooks(projectId)
-
   const [editing, setEditing] = useState(null)
   const [creating, setCreating] = useState(false)
   const [logFor, setLogFor] = useState(null)
   const [pendingDelete, setPendingDelete] = useState(null)
 
   return (
-    <>
-      <PageHeader
-        crumbs={[
-          { label: t("nav:global.projects"), to: "/projects" },
-          { label: project?.name ?? "…", to: `/projects/${projectId}` },
-          { label: t("title") },
-        ]}
-      >
-        <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t("title")}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t("subtitle")}</p>
-          </div>
-          <Button size="sm" onClick={() => setCreating(true)}>
-            <Plus size={14} /> {t("new")}
-          </Button>
+    <div className="space-y-4">
+      <header className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t("projectSettings:webhooks.title")}</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t("projectSettings:webhooks.description")}</p>
         </div>
-      </PageHeader>
+        <Button size="sm" onClick={() => setCreating(true)}>
+          <Plus size={14} /> {t("integrations:new")}
+        </Button>
+      </header>
 
-      <PageBody>
-        <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-6">
-          <ExternalTrackersSection projectId={projectId} />
-
-          <section className="space-y-3">
-            <header>
-              <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
-                {t("webhooks.title")}
-              </h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{t("webhooks.subtitle")}</p>
-            </header>
-          {webhooks.length === 0 ? (
-            <EmptyState
-              icon={PlayCircle}
-              title={t("empty.title")}
-              description={t("empty.description")}
-              compact
+      {webhooks.length === 0 ? (
+        <EmptyState
+          icon={PlayCircle}
+          title={t("integrations:empty.title")}
+          description={t("integrations:empty.description")}
+          compact
+        />
+      ) : (
+        <ul className="space-y-2">
+          {webhooks.map(webhook => (
+            <WebhookRow
+              key={webhook.id}
+              webhook={webhook}
+              onEdit={() => setEditing(webhook)}
+              onViewLog={() => setLogFor(webhook)}
+              onDelete={() => setPendingDelete(webhook)}
             />
-          ) : (
-            <ul className="space-y-2">
-              {webhooks.map(webhook => (
-                <WebhookRow
-                  key={webhook.id}
-                  webhook={webhook}
-                  onEdit={() => setEditing(webhook)}
-                  onViewLog={() => setLogFor(webhook)}
-                  onDelete={() => setPendingDelete(webhook)}
-                />
-              ))}
-            </ul>
-          )}
-          </section>
-        </div>
-      </PageBody>
+          ))}
+        </ul>
+      )}
 
       {creating && (
-        <WebhookDialog
-          projectId={projectId}
-          onClose={() => setCreating(false)}
-        />
+        <WebhookDialog projectId={projectId} onClose={() => setCreating(false)} />
       )}
       {editing && (
-        <WebhookDialog
-          projectId={projectId}
-          webhook={editing}
-          onClose={() => setEditing(null)}
-        />
+        <WebhookDialog projectId={projectId} webhook={editing} onClose={() => setEditing(null)} />
       )}
       {logFor && (
         <DeliveryLogDialog webhook={logFor} onClose={() => setLogFor(null)} />
@@ -114,10 +77,9 @@ export function IntegrationsPage() {
           onClose={() => setPendingDelete(null)}
         />
       )}
-    </>
+    </div>
   )
 }
-
 
 function WebhookRow({ webhook, onEdit, onViewLog, onDelete }) {
   const { t } = useTranslation("integrations")
@@ -170,7 +132,6 @@ function WebhookRow({ webhook, onEdit, onViewLog, onDelete }) {
     </li>
   )
 }
-
 
 function WebhookDialog({ projectId, webhook, onClose }) {
   const { t } = useTranslation("integrations")
@@ -279,7 +240,6 @@ function WebhookDialog({ projectId, webhook, onClose }) {
   )
 }
 
-
 function SecretReveal({ secret, onClose }) {
   const { t } = useTranslation("integrations")
   const copy = async () => {
@@ -309,11 +269,9 @@ function SecretReveal({ secret, onClose }) {
   )
 }
 
-
 function DeliveryLogDialog({ webhook, onClose }) {
   const { t } = useTranslation("integrations")
   const { data: deliveries = [] } = useWebhookDeliveries(webhook.id)
-
   const rows = useMemo(() => deliveries.slice(0, 25), [deliveries])
 
   return (
@@ -341,9 +299,7 @@ function DeliveryLogDialog({ webhook, onClose }) {
                   <tr key={delivery.id} className="border-t border-gray-100 dark:border-gray-800">
                     <td className="py-1 pr-2"><DateLabel iso={delivery.completed_at ?? delivery.created_at} mode="relative" /></td>
                     <td className="py-1 pr-2 font-mono">{delivery.event_type}</td>
-                    <td className="py-1 pr-2">
-                      <DeliveryStatusBadge delivery={delivery} />
-                    </td>
+                    <td className="py-1 pr-2"><DeliveryStatusBadge delivery={delivery} /></td>
                     <td className="py-1 pr-2 text-center">{delivery.attempt_count}</td>
                     <td className="py-1 pr-2 text-red-500 truncate max-w-[260px]" title={delivery.last_error ?? ""}>
                       {delivery.last_error ?? ""}
@@ -359,7 +315,6 @@ function DeliveryLogDialog({ webhook, onClose }) {
   )
 }
 
-
 function DeliveryStatusBadge({ delivery }) {
   const { t } = useTranslation("integrations")
   if (delivery.succeeded) {
@@ -371,7 +326,6 @@ function DeliveryStatusBadge({ delivery }) {
   }
   return <Badge variant="secondary">{t("log.pending")}</Badge>
 }
-
 
 function DeleteDialog({ projectId, webhook, onClose }) {
   const { t } = useTranslation("integrations")

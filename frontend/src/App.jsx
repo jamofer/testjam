@@ -30,7 +30,7 @@ const BugsPage = lazy(() => import("./pages/BugsPage").then(m => ({ default: m.B
 const BugDetailPage = lazy(() => import("./pages/BugDetailPage").then(m => ({ default: m.BugDetailPage })))
 const CoverageMatrixPage = lazy(() => import("./pages/CoverageMatrixPage").then(m => ({ default: m.CoverageMatrixPage })))
 const SettingsPage = lazy(() => import("./pages/SettingsPage").then(m => ({ default: m.SettingsPage })))
-const IntegrationsPage = lazy(() => import("./pages/IntegrationsPage").then(m => ({ default: m.IntegrationsPage })))
+const ProjectSettingsPage = lazy(() => import("./pages/ProjectSettingsPage").then(m => ({ default: m.ProjectSettingsPage })))
 
 let DevTools = () => null
 if (import.meta.env.DEV) {
@@ -74,7 +74,8 @@ export default function App() {
               <Route path="/projects/:id/versions" element={<VersionsPage />} />
               <Route path="/projects/:id/environments" element={<EnvironmentsPage />} />
               <Route path="/projects/:id/custom-fields" element={<CustomFieldsPage />} />
-              <Route path="/projects/:id/integrations" element={<IntegrationsPage />} />
+              <Route path="/projects/:id/settings/*" element={<ProjectSettingsPage />} />
+              <Route path="/projects/:id/integrations" element={<Navigate to="../settings/integrations" replace />} />
               <Route path="/projects/:id/bugs" element={<BugsPage />} />
               <Route path="/projects/:projectId/bugs/:number" element={<BugDetailPage />} />
               <Route path="/bugs/:bugId" element={<BugDetailPage />} />

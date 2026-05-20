@@ -1,0 +1,75 @@
+{
+  "title": "Settings",
+  "tabs": {
+    "general": "General",
+    "integrations": "Integrations",
+    "webhooks": "Webhooks",
+    "danger": "Danger zone"
+  },
+  "general": {
+    "title": "General",
+    "description": "Project name, description, export, and API tokens.",
+    "form": {
+      "title": "Project info",
+      "name": "Name",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "What is this project about?",
+      "save": "Save changes",
+      "saved": "Project updated",
+      "saveFailed": "Save failed"
+    },
+    "export": {
+      "title": "Export project",
+      "description": "Download a ZIP with all suites, cases, executions, bugs and attachments.",
+      "button": "Download ZIP"
+    },
+    "tokens": {
+      "title": "API tokens",
+      "description": "Project-scoped tokens used by the listener and external clients."
+    }
+  },
+  "integrations": {
+    "title": "External trackers",
+    "description": "Connect Jira, OpenProject, GitLab, or Azure DevOps to sync bugs."
+  },
+  "webhooks": {
+    "title": "Webhooks",
+    "description": "Outbound HTTP notifications when project events happen."
+  },
+  "danger": {
+    "title": "Danger zone",
+    "intro": "These actions affect the whole project. Proceed with care.",
+    "archive": {
+      "title": "Archive project",
+      "description": "Hides the project from active lists. Reversible — you can unarchive at any time.",
+      "archive": "Archive project",
+      "unarchive": "Unarchive project",
+      "archived": "Project archived",
+      "unarchived": "Project unarchived",
+      "failed": "Action failed"
+    },
+    "transfer": {
+      "title": "Transfer ownership",
+      "description": "Move ownership to another active user. You will lose owner privileges on this project.",
+      "newOwner": "New owner",
+      "selectPlaceholder": "Select a user…",
+      "submit": "Transfer ownership",
+      "success": "Ownership transferred",
+      "failed": "Transfer failed"
+    },
+    "delete": {
+      "title": "Delete project",
+      "description": "Permanently delete this project and all of its data. This cannot be undone.",
+      "button": "Delete this project",
+      "dialogTitle": "Delete {{name}}?",
+      "intro": "All suites, cases, executions, bugs, comments, and attachments will be deleted. To confirm, type the project name below.",
+      "namePlaceholder": "Type the project name",
+      "confirm": "I understand, delete",
+      "success": "Project deleted",
+      "failed": "Delete failed"
+    }
+  },
+  "common": {
+    "cancel": "Cancel"
+  }
+}

@@ -3,6 +3,10 @@
   "closeMenu": "Pechar menú",
   "openMenu": "Abrir menú",
   "allProjects": "Todos os proxectos",
+  "sections": {
+    "work": "Traballo",
+    "config": "Configuración"
+  },
   "project": {
     "overview": "Resumo",
     "cases": "Casos de proba",
@@ -12,7 +16,8 @@
     "environments": "Contornos",
     "customFields": "Campos personalizados",
     "bugs": "Bugs",
-    "members": "Membros"
+    "members": "Membros",
+    "settings": "Axustes"
   },
   "global": {
     "projects": "Proxectos",

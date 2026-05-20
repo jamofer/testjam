@@ -1,12 +1,11 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Plus, Trash2, FolderOpen, Search, Archive, ArchiveRestore } from 'lucide-react'
+import { Plus, FolderOpen, Search, Archive, ArchiveRestore } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   useProjects,
   useCreateProject,
-  useDeleteProject,
   useArchiveProject,
   useUnarchiveProject,
 } from '../hooks/useProjects'
@@ -25,7 +24,6 @@ export function ProjectsPage() {
   const { t } = useTranslation('projects')
   const [includeArchived, setIncludeArchived] = useState(false)
   const { data: projects = [], isLoading } = useProjects({ includeArchived })
-  const deleteProject = useDeleteProject()
   const archiveProject = useArchiveProject()
   const unarchiveProject = useUnarchiveProject()
   const [search, setSearch] = useState('')
@@ -98,13 +96,6 @@ export function ProjectsPage() {
                     <Archive size={15} />
                   </button>
                 )}
-                <button
-                  onClick={() => deleteProject.mutate(project.id)}
-                  className="text-gray-300 dark:text-gray-600 hover:text-red-500 transition-colors"
-                  title={t('delete')}
-                >
-                  <Trash2 size={15} />
-                </button>
               </div>
             </div>
             <DashboardPanel project={project} compact />

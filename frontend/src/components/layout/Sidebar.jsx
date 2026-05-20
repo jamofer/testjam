@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { NavLink, Link, useMatch } from "react-router-dom"
-import { Bug, FolderKanban, Users, LogOut, UserCircle, FolderOpen, LayoutDashboard, PlayCircle, ClipboardList, ChevronLeft, Server, Settings2, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon, Webhook as WebhookIcon, X } from "lucide-react"
+import { Bug, FolderKanban, Users, LogOut, UserCircle, FolderOpen, LayoutDashboard, PlayCircle, ClipboardList, ChevronLeft, Server, ListChecks, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon, Sliders, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useLogout } from "../../hooks/useAuth"
 import { useProject } from "../../hooks/useProjects"
@@ -14,18 +14,26 @@ import { NotificationsBell } from "./NotificationsBell"
 
 // ── Project-scoped nav items ───────────────────────────────────────────────────
 
-const PROJECT_NAV = [
+const PROJECT_WORK_NAV = [
   { to: (id) => `/projects/${id}`,            icon: LayoutDashboard, labelKey: "project.overview",   end: true },
   { to: (id) => `/projects/${id}/cases`,       icon: FolderOpen,      labelKey: "project.cases"               },
   { to: (id) => `/projects/${id}/plans`,       icon: ClipboardList,   labelKey: "project.plans"               },
   { to: (id) => `/projects/${id}/executions`,  icon: PlayCircle,      labelKey: "project.executions"          },
-  { to: (id) => `/projects/${id}/versions`,    icon: Tag,             labelKey: "project.versions"            },
-  { to: (id) => `/projects/${id}/environments`, icon: Server,         labelKey: "project.environments"        },
-  { to: (id) => `/projects/${id}/custom-fields`, icon: Settings2,     labelKey: "project.customFields"        },
   { to: (id) => `/projects/${id}/bugs`,        icon: Bug,             labelKey: "project.bugs"                },
-  { to: (id) => `/projects/${id}/members`,     icon: Shield,          labelKey: "project.members"             },
-  { to: (id) => `/projects/${id}/integrations`, icon: WebhookIcon,    labelKey: "project.integrations"        },
 ]
+
+const PROJECT_CONFIG_NAV = [
+  { to: (id) => `/projects/${id}/members`,       icon: Shield,        labelKey: "project.members"             },
+  { to: (id) => `/projects/${id}/versions`,      icon: Tag,           labelKey: "project.versions"            },
+  { to: (id) => `/projects/${id}/environments`,  icon: Server,        labelKey: "project.environments"        },
+  { to: (id) => `/projects/${id}/custom-fields`, icon: Sliders,       labelKey: "project.customFields"        },
+]
+
+const PROJECT_SETTINGS_NAV = {
+  to: (id) => `/projects/${id}/settings`,
+  icon: SettingsIcon,
+  labelKey: "project.settings",
+}
 
 const GLOBAL_NAV = [
   { to: "/projects", icon: FolderKanban, labelKey: "global.projects" },
@@ -76,6 +84,39 @@ function UserAvatar({ user }) {
   return (
     <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-bold shrink-0">
       {initials}
+    </div>
+  )
+}
+
+// ── Section helpers ───────────────────────────────────────────────────────────
+
+function SectionLabel({ children, className = "" }) {
+  return (
+    <p className={`px-3 pt-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 ${className}`}>
+      {children}
+    </p>
+  )
+}
+
+function NavGroup({ items, projectId, t }) {
+  return (
+    <div className="space-y-0.5">
+      {items.map(({ to, icon: Icon, labelKey, end }) => (
+        <NavLink
+          key={labelKey}
+          to={to(projectId)}
+          end={end}
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              isActive
+                ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300"
+                : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+            }`
+          }
+        >
+          <Icon size={15} />{t(labelKey)}
+        </NavLink>
+      ))}
     </div>
   )
 }
@@ -142,18 +183,24 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
                 {project?.name ?? "…"}
               </p>
             </div>
-            <div className="space-y-0.5">
-              {PROJECT_NAV.map(({ to, icon: Icon, labelKey, end }) => (
-                <NavLink key={labelKey} to={to(activeProjectId)} end={end}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive
-                        ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300"
-                        : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
-                    }`}>
-                  <Icon size={15} />{t(labelKey)}
-                </NavLink>
-              ))}
+            <SectionLabel>{t("sections.work")}</SectionLabel>
+            <NavGroup items={PROJECT_WORK_NAV} projectId={activeProjectId} t={t} />
+
+            <SectionLabel className="mt-3">{t("sections.config")}</SectionLabel>
+            <NavGroup items={PROJECT_CONFIG_NAV} projectId={activeProjectId} t={t} />
+
+            <div className="mt-2">
+              <NavLink
+                to={PROJECT_SETTINGS_NAV.to(activeProjectId)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300"
+                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                  }`}
+              >
+                <PROJECT_SETTINGS_NAV.icon size={15} />{t(PROJECT_SETTINGS_NAV.labelKey)}
+              </NavLink>
             </div>
             <div className="border-t border-gray-100 dark:border-gray-800 my-3" />
           </div>

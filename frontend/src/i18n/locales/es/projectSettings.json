@@ -1,0 +1,75 @@
+{
+  "title": "Ajustes",
+  "tabs": {
+    "general": "General",
+    "integrations": "Integraciones",
+    "webhooks": "Webhooks",
+    "danger": "Zona de peligro"
+  },
+  "general": {
+    "title": "General",
+    "description": "Nombre del proyecto, descripción, exportación y tokens de API.",
+    "form": {
+      "title": "Información del proyecto",
+      "name": "Nombre",
+      "descriptionLabel": "Descripción",
+      "descriptionPlaceholder": "¿De qué trata este proyecto?",
+      "save": "Guardar cambios",
+      "saved": "Proyecto actualizado",
+      "saveFailed": "Fallo al guardar"
+    },
+    "export": {
+      "title": "Exportar proyecto",
+      "description": "Descarga un ZIP con todas las suites, casos, ejecuciones, bugs y adjuntos.",
+      "button": "Descargar ZIP"
+    },
+    "tokens": {
+      "title": "Tokens de API",
+      "description": "Tokens de proyecto usados por el listener y clientes externos."
+    }
+  },
+  "integrations": {
+    "title": "Trackers externos",
+    "description": "Conecta Jira, OpenProject, GitLab o Azure DevOps para sincronizar bugs."
+  },
+  "webhooks": {
+    "title": "Webhooks",
+    "description": "Notificaciones HTTP salientes cuando ocurren eventos del proyecto."
+  },
+  "danger": {
+    "title": "Zona de peligro",
+    "intro": "Estas acciones afectan a todo el proyecto. Procede con cuidado.",
+    "archive": {
+      "title": "Archivar proyecto",
+      "description": "Oculta el proyecto de las listas activas. Reversible — puedes desarchivarlo en cualquier momento.",
+      "archive": "Archivar proyecto",
+      "unarchive": "Desarchivar proyecto",
+      "archived": "Proyecto archivado",
+      "unarchived": "Proyecto desarchivado",
+      "failed": "Acción fallida"
+    },
+    "transfer": {
+      "title": "Transferir propiedad",
+      "description": "Pasa la propiedad a otro usuario activo. Perderás los privilegios de owner en este proyecto.",
+      "newOwner": "Nuevo propietario",
+      "selectPlaceholder": "Selecciona un usuario…",
+      "submit": "Transferir propiedad",
+      "success": "Propiedad transferida",
+      "failed": "Transferencia fallida"
+    },
+    "delete": {
+      "title": "Eliminar proyecto",
+      "description": "Elimina este proyecto y todos sus datos permanentemente. No se puede deshacer.",
+      "button": "Eliminar este proyecto",
+      "dialogTitle": "¿Eliminar «{{name}}»?",
+      "intro": "Se eliminarán todas las suites, casos, ejecuciones, bugs, comentarios y adjuntos. Para confirmar, escribe el nombre del proyecto abajo.",
+      "namePlaceholder": "Escribe el nombre del proyecto",
+      "confirm": "Lo entiendo, eliminar",
+      "success": "Proyecto eliminado",
+      "failed": "Fallo al eliminar"
+    }
+  },
+  "common": {
+    "cancel": "Cancelar"
+  }
+}
