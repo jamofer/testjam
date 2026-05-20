@@ -21,15 +21,18 @@ Plan suites, drive manual runs with keyboard shortcuts, stream CI results live, 
 
 ## Highlights
 
-|                |                                                                             |
-|----------------|-----------------------------------------------------------------------------|
-| 📚 **Library** | Projects → nested suites → cases with steps, preconditions, tags, attachments |
-| 🎯 **Plans**   | Curate cases from many suites into versioned plans                           |
-| ▶️ **Run**      | Manual runs with `j/k` nav + `p/f/b/n` to set status — under a second per case |
-| 📡 **Live**    | WebSocket stream of step status + logs from CI via `testjam-listener`        |
-| 📥 **Import**  | JUnit and Robot Framework XML, matched by `external_id` or name              |
-| 📄 **Reports** | Self-contained HTML, attachments inlined as data URLs                         |
-| 🔐 **Access**  | JWT + per-project members with roles + scoped API tokens (`X-API-Key`)       |
+|                     |                                                                                                       |
+|---------------------|-------------------------------------------------------------------------------------------------------|
+| 📚 **Library**      | Projects → nested suites → cases with steps, preconditions, tags, attachments                         |
+| 🎯 **Plans**        | Curate cases from many suites into versioned plans                                                    |
+| ▶️ **Run**           | Manual runs with `j/k` nav + `p/f/b/n` to set status — under a second per case                        |
+| 📡 **Live**         | WebSocket stream of step status + logs from CI via `testjam-listener`                                 |
+| 📥 **Import**       | JUnit and Robot Framework XML, matched by `external_id` or name                                       |
+| 📄 **Reports**      | Self-contained HTML, attachments inlined as data URLs                                                 |
+| 🐞 **Bug tracker**  | Native bugs with severity, status workflow, comments, watchers, audit timeline, release notes         |
+| 🔌 **Integrations** | Push bugs to GitHub, Jira, GitLab, Azure DevOps, OpenProject + outbound event webhooks                |
+| 💬 **Mentions**     | Cross-entity references between users, bugs, runs and cases with email + in-app notifications         |
+| 🐍 **Python SDK**   | `pip install testjam-client` — full API coverage for custom CI integration, dashboards and scripting  |
 
 
 <details>
@@ -164,6 +167,8 @@ robot --listener testjam_listener.TestjamListener tests/
 ```
 
 Auth: `TESTJAM_USER` + `TESTJAM_PASS` (admin login) or `TESTJAM_API_KEY`. See `listener/README.md` for details.
+
+Robot tags of the form `cf:key=value` (or `cf:key=a,b,c` for multi-select) are parsed at runtime and persisted as `execution.custom_fields` — useful for tagging a run with the build phase, environment matrix, target browser, etc.
 
 ## API tokens
 
