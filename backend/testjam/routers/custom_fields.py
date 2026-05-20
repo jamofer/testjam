@@ -23,6 +23,7 @@ from testjam.schemas.custom_field import (
     CustomFieldDefinitionOut,
     CustomFieldDefinitionUpdate,
     CustomFieldReorder,
+    REQUIRES_DEFAULT_ENTITY_TYPES,
     SELECT_TYPES,
 )
 from testjam.services import custom_fields as custom_field_service
@@ -162,12 +163,12 @@ def update_custom_field(
     update_data = body.model_dump(exclude_unset=True)
     if "options" in update_data:
         _enforce_options_payload_rule(definition.type, update_data["options"])
-    if update_data.get("required") and definition.entity_type == "execution":
+    if update_data.get("required") and definition.entity_type in REQUIRES_DEFAULT_ENTITY_TYPES:
         new_default = update_data.get("default_value", definition.default_value)
         if new_default is None:
             raise HTTPException(
                 status_code=422,
-                detail="required custom fields on executions must have a default_value",
+                detail="required custom fields on executions or test cases must have a default_value",
             )
     for field, value in update_data.items():
         setattr(definition, field, value)

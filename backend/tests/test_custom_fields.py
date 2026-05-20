@@ -118,6 +118,69 @@ def test_execution_required_with_default_accepted(auth_client, project_id):
     assert response.status_code == 201
 
 
+def test_test_case_required_field_demands_default(auth_client, project_id):
+    response = _create_field(
+        auth_client,
+        project_id,
+        entity_type="test_case",
+        key="component",
+        type="single_select",
+        options=[
+            {"value": "ui", "label": "UI"},
+            {"value": "api", "label": "API"},
+        ],
+        required=True,
+    )
+
+    assert response.status_code == 422
+
+
+def test_test_case_required_with_default_accepted(auth_client, project_id):
+    response = _create_field(
+        auth_client,
+        project_id,
+        entity_type="test_case",
+        key="component",
+        type="single_select",
+        options=[
+            {"value": "ui", "label": "UI"},
+            {"value": "api", "label": "API"},
+        ],
+        required=True,
+        default_value="ui",
+    )
+
+    assert response.status_code == 201
+
+
+def test_test_case_required_default_autofills_on_inline_create(auth_client, project_id):
+    _create_field(
+        auth_client,
+        project_id,
+        entity_type="test_case",
+        key="component",
+        type="single_select",
+        options=[
+            {"value": "ui", "label": "UI"},
+            {"value": "api", "label": "API"},
+        ],
+        required=True,
+        default_value="ui",
+    )
+
+    suite = auth_client.post(
+        f"/api/v1/projects/{project_id}/suites",
+        json={"name": "Suite"},
+    ).json()
+    response = auth_client.post(
+        f"/api/v1/suites/{suite['id']}/cases",
+        json={"name": "Case", "suite_id": suite["id"]},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["custom_fields"] == {"component": "ui"}
+
+
 def test_default_value_must_match_options(auth_client, project_id):
     response = _create_field(
         auth_client,

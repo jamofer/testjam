@@ -65,7 +65,7 @@ class CustomFieldDefinitionCreate(BaseModel):
     def _check_consistency(self):
         _enforce_options_rule(self.type, self.options)
         _enforce_default_value(self.type, self.options, self.default_value)
-        _enforce_execution_required(self.entity_type, self.required, self.default_value)
+        _enforce_required_default_rule(self.entity_type, self.required, self.default_value)
         return self
 
 
@@ -125,12 +125,15 @@ def _enforce_default_value(
     )
 
 
-def _enforce_execution_required(
+REQUIRES_DEFAULT_ENTITY_TYPES = {"execution", "test_case"}
+
+
+def _enforce_required_default_rule(
     entity_type: str, required: bool, default_value: Any | None
 ) -> None:
-    if entity_type == "execution" and required and default_value is None:
+    if entity_type in REQUIRES_DEFAULT_ENTITY_TYPES and required and default_value is None:
         raise ValueError(
-            "required custom fields on executions must have a default_value"
+            "required custom fields on executions or test cases must have a default_value"
         )
 
 
