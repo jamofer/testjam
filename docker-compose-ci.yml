@@ -25,6 +25,8 @@ services:
 
   e2e:
     build:
+      args:
+        E2E_BASE: ${E2E_BASE:-ghcr.io/jamofer/testjam-e2e-base:latest}
       cache_from:
         - type=gha,scope=e2e
       cache_to:
