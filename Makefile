@@ -91,6 +91,7 @@ GIT_VERSION := $(if $(GIT_SHA),$(GIT_BRANCH)-$(GIT_SHA))
 test-e2e: export API_WORKERS = $(WORKERS)
 test-e2e: export TESTJAM_VERSION = $(GIT_VERSION)
 test-e2e: $(BUILD_STAMP)
+	$(COMPOSE) --profile e2e build web
 	$(COMPOSE) up -d --wait api
 	$(COMPOSE) --profile e2e run --rm -e FORCE_COLOR=1 -e ORCHESTRATOR_WORKERS=$(POOL) e2e python -m orchestrator $(ARGS)
 
