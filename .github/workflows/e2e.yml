@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
 
@@ -38,14 +38,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Ensure e2e base image is available
+      - name: Ensure e2e base image is published to GHCR
         run: |
           base=ghcr.io/${{ github.repository_owner }}/testjam-e2e-base:latest
-          if ! docker pull "$base" 2>/dev/null; then
-            echo "base not in GHCR yet, building locally"
+          if ! docker buildx imagetools inspect "$base" >/dev/null 2>&1; then
+            echo "base not in GHCR yet, building + pushing"
             docker buildx build \
               -f tests/e2e/Dockerfile.base \
-              --load \
+              --push \
               -t "$base" .
           fi
 
