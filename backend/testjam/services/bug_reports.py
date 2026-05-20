@@ -16,6 +16,7 @@ from openpyxl.styles import Font
 from sqlalchemy.orm import Session, selectinload
 
 from testjam.models.bug import Bug, BugComment
+from testjam.models.custom_field import CustomFieldDefinition
 from testjam.models.project import Project
 from testjam.models.user import User
 from testjam.models.version import ProjectVersion
@@ -23,6 +24,51 @@ from testjam.services.timezones import format_in_user_zone, user_zone_label
 
 
 SEVERITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+
+
+def _active_bug_custom_field_definitions(
+    db: Session, project_id: int
+) -> list[CustomFieldDefinition]:
+    return (
+        db.query(CustomFieldDefinition)
+        .filter(
+            CustomFieldDefinition.project_id == project_id,
+            CustomFieldDefinition.entity_type == "bug",
+            CustomFieldDefinition.archived_at.is_(None),
+        )
+        .order_by(
+            CustomFieldDefinition.position.asc(),
+            CustomFieldDefinition.id.asc(),
+        )
+        .all()
+    )
+
+
+def _format_custom_field_plain(definition: CustomFieldDefinition, value) -> str:
+    if value is None or value == "":
+        return ""
+    if definition.type == "bool":
+        return "Yes" if value else "No"
+    if definition.type == "single_select":
+        option = _option_for_value(definition, value)
+        return (option.get("label") if option else None) or str(value)
+    if definition.type == "multi_select":
+        if not isinstance(value, list):
+            return str(value)
+        return ", ".join(_option_label(definition, item) for item in value)
+    return str(value)
+
+
+def _option_for_value(definition: CustomFieldDefinition, value) -> dict | None:
+    for option in definition.options or []:
+        if option.get("value") == value:
+            return option
+    return None
+
+
+def _option_label(definition: CustomFieldDefinition, value) -> str:
+    option = _option_for_value(definition, value)
+    return (option.get("label") if option else None) or str(value)
 
 
 def _query_bugs(
@@ -56,6 +102,7 @@ def render_html(
 ) -> str:
     bugs = _query_bugs(db, project.id, version_id, environment)
     bugs.sort(key=lambda bug: (SEVERITY_ORDER.get(bug.severity, 99), bug.number))
+    custom_field_definitions = _active_bug_custom_field_definitions(db, project.id)
 
     timezone_label = user_zone_label(user)
     generated_at = format_in_user_zone(
@@ -71,7 +118,10 @@ def render_html(
     title = " · ".join(title_parts)
 
     actor_label = user.username if user is not None else (viewer_label or "shared link")
-    return _build_html(title, bugs, generated_at, timezone_label, user, actor_label)
+    return _build_html(
+        title, bugs, generated_at, timezone_label, user, actor_label,
+        custom_field_definitions,
+    )
 
 
 def render_xlsx(
@@ -83,6 +133,7 @@ def render_xlsx(
 ) -> bytes:
     bugs = _query_bugs(db, project.id, version_id, environment)
     bugs.sort(key=lambda bug: (SEVERITY_ORDER.get(bug.severity, 99), bug.number))
+    custom_field_definitions = _active_bug_custom_field_definitions(db, project.id)
 
     workbook = openpyxl.Workbook()
     sheet = workbook.active
@@ -94,12 +145,13 @@ def render_xlsx(
         "Environment", "Assigned to", "Created by",
         f"Created ({timezone_label})", f"Resolved ({timezone_label})",
     ]
+    header.extend(definition.label for definition in custom_field_definitions)
     sheet.append(header)
     for cell in sheet[1]:
         cell.font = Font(bold=True)
 
     for bug in bugs:
-        sheet.append([
+        row = [
             f"#{bug.number}",
             bug.title,
             bug.severity,
@@ -111,7 +163,12 @@ def render_xlsx(
             bug.created_by.username if bug.created_by else "",
             format_in_user_zone(bug.created_at, user, "%Y-%m-%d %H:%M"),
             format_in_user_zone(bug.resolved_at, user, "%Y-%m-%d %H:%M"),
-        ])
+        ]
+        row.extend(
+            _format_custom_field_plain(definition, (bug.custom_fields or {}).get(definition.key))
+            for definition in custom_field_definitions
+        )
+        sheet.append(row)
 
     sheet.append([])
     sheet.append([
@@ -151,6 +208,7 @@ def _build_html(
     timezone_label: str,
     user: User | None,
     actor_label: str,
+    custom_field_definitions: list[CustomFieldDefinition],
 ) -> str:
     e = html_lib.escape
     groups: dict[str, list[Bug]] = {}
@@ -162,7 +220,7 @@ def _build_html(
         rows = groups.get(severity, [])
         if not rows:
             continue
-        rendered = "\n".join(_render_row(bug, user) for bug in rows)
+        rendered = "\n".join(_render_row(bug, user, custom_field_definitions) for bug in rows)
         sections.append(
             f"<section class='severity severity-{severity}'>"
             f"<h2>{severity.title()} ({len(rows)})</h2>"
@@ -203,6 +261,10 @@ def _build_html(
         ".discussion li:last-child { border-bottom: none; }\n"
         ".comment-meta { font-size: 11px; color: #6b7280; margin-bottom: 2px; }\n"
         ".comment-body { font-size: 13px; color: #1f2937; white-space: pre-wrap; }\n"
+        ".cf-row { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }\n"
+        ".cf-chip { font-size: 11px; padding: 2px 8px; border-radius: 10px; "
+        "background: #f3f4f6; color: #374151; }\n"
+        ".cf-chip-label { color: #6b7280; margin-right: 4px; }\n"
         ".empty { color: #9ca3af; font-style: italic; }\n"
         "</style>\n"
         "</head>\n<body>\n"
@@ -213,7 +275,11 @@ def _build_html(
     )
 
 
-def _render_row(bug: Bug, user: User | None) -> str:
+def _render_row(
+    bug: Bug,
+    user: User | None,
+    custom_field_definitions: list[CustomFieldDefinition],
+) -> str:
     e = html_lib.escape
     assignee = bug.assigned_to.username if bug.assigned_to else "unassigned"
     parts = [
@@ -234,9 +300,65 @@ def _render_row(bug: Bug, user: User | None) -> str:
         + " ".join(parts)
         + f"<div class='bug-meta'>{meta_line}</div>"
         + description_block
+        + _render_custom_fields_html(bug, custom_field_definitions)
         + _render_discussion(bug, user)
         + "</li>"
     )
+
+
+def _render_custom_fields_html(
+    bug: Bug, definitions: list[CustomFieldDefinition]
+) -> str:
+    if not definitions:
+        return ""
+    e = html_lib.escape
+    values = bug.custom_fields or {}
+    chips: list[str] = []
+    for definition in definitions:
+        if definition.key not in values:
+            continue
+        raw = values[definition.key]
+        if raw is None or raw == "":
+            continue
+        chips.extend(_render_custom_field_chip(definition, raw))
+    if not chips:
+        return ""
+    return f"<div class='cf-row'>{''.join(chips)}</div>"
+
+
+def _render_custom_field_chip(
+    definition: CustomFieldDefinition, value
+) -> list[str]:
+    e = html_lib.escape
+    label_html = f"<span class='cf-chip-label'>{e(definition.label)}:</span>"
+    if definition.type == "single_select":
+        option = _option_for_value(definition, value)
+        chip_label = (option.get("label") if option else None) or str(value)
+        color = option.get("color") if option else None
+        style = _chip_color_style(color)
+        return [
+            f"<span class='cf-chip'{style}>{label_html} {e(chip_label)}</span>"
+        ]
+    if definition.type == "multi_select":
+        if not isinstance(value, list) or not value:
+            return []
+        chips = [f"<span class='cf-chip'>{label_html}</span>"]
+        for item in value:
+            option = _option_for_value(definition, item)
+            chip_label = (option.get("label") if option else None) or str(item)
+            color = option.get("color") if option else None
+            style = _chip_color_style(color)
+            chips.append(f"<span class='cf-chip'{style}>{e(chip_label)}</span>")
+        return chips
+    plain = _format_custom_field_plain(definition, value)
+    return [f"<span class='cf-chip'>{label_html} {e(plain)}</span>"]
+
+
+def _chip_color_style(color: str | None) -> str:
+    if not color:
+        return ""
+    safe = html_lib.escape(color, quote=True)
+    return f" style=\"background:{safe};color:#fff;\""
 
 
 def _render_discussion(bug: Bug, user: User | None) -> str:

@@ -1,3 +1,6 @@
+import io
+
+import openpyxl
 import pytest
 
 
@@ -393,6 +396,52 @@ def test_reorder_rejects_mixed_entity_types(auth_client, project_id, priority_fi
     )
 
     assert response.status_code == 400
+
+
+def test_xlsx_report_appends_custom_field_columns(auth_client, project_id, priority_field):
+    _create_field(
+        auth_client,
+        project_id,
+        key="env_type",
+        label="Env type",
+        type="multi_select",
+        options=[
+            {"value": "browser", "label": "Browser"},
+            {"value": "mobile", "label": "Mobile"},
+        ],
+    )
+    _bug_with_field(
+        auth_client,
+        project_id,
+        custom_fields={"priority": "p0", "env_type": ["browser", "mobile"]},
+    )
+
+    response = auth_client.get(
+        f"/api/v1/projects/{project_id}/bugs/report?format=xlsx"
+    )
+
+    workbook = openpyxl.load_workbook(io.BytesIO(response.content))
+    rows = list(workbook["Bugs"].iter_rows(values_only=True))
+    header = rows[0]
+    assert header[-2:] == ("Priority", "Env type")
+    body = rows[1]
+    assert body[-2:] == ("P0", "Browser, Mobile")
+
+
+def test_html_report_renders_custom_field_chips(auth_client, project_id, priority_field):
+    _bug_with_field(
+        auth_client, project_id, custom_fields={"priority": "p0"},
+    )
+
+    response = auth_client.get(
+        f"/api/v1/projects/{project_id}/bugs/report?format=html"
+    )
+
+    body = response.text
+    assert "cf-chip" in body
+    assert "Priority:" in body
+    assert "P0</span>" in body
+    assert "background:#ef4444" in body
 
 
 def test_test_case_accepts_custom_fields(auth_client, project_id, suite_id):
