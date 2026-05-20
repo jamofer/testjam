@@ -67,6 +67,11 @@ jobs:
       - name: Run e2e via orchestrator
         run: make test-e2e POOL=4
 
+      - name: Dump container logs on failure
+        if: failure()
+        run: |
+          docker compose -f docker-compose-dev.yml --profile e2e logs --no-color --tail=400 api db redis frontend mailpit web || true
+
       - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
