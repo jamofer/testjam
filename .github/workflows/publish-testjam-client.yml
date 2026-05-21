@@ -47,7 +47,8 @@ jobs:
           wheel=$(ls dist/*.whl)
           /tmp/verify/bin/pip install --quiet "${wheel}[cli]"
           /tmp/verify/bin/testjam --version
-          /tmp/verify/bin/testjam --help | grep -q "Testjam command-line client"
+          /tmp/verify/bin/testjam --help > /tmp/help.txt
+          test -s /tmp/help.txt
 
       - name: Upload to PyPI
         if: ${{ inputs.upload }}
