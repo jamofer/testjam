@@ -8,6 +8,7 @@
 Plan suites, drive manual runs with keyboard shortcuts, stream CI results live, and export self-contained HTML reports.
 
 [![Backend](https://github.com/Jamofer/testjam/actions/workflows/backend.yml/badge.svg?branch=master)](https://github.com/Jamofer/testjam/actions/workflows/backend.yml)
+[![testjam-client](https://github.com/Jamofer/testjam/actions/workflows/testjam-client.yml/badge.svg?branch=master)](https://github.com/Jamofer/testjam/actions/workflows/testjam-client.yml)
 [![Frontend](https://github.com/Jamofer/testjam/actions/workflows/frontend.yml/badge.svg?branch=master)](https://github.com/Jamofer/testjam/actions/workflows/frontend.yml)
 [![E2E](https://github.com/Jamofer/testjam/actions/workflows/e2e.yml/badge.svg?branch=master)](https://github.com/Jamofer/testjam/actions/workflows/e2e.yml)
 
