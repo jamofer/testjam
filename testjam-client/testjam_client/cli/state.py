@@ -18,6 +18,8 @@ class CliState:
     config: ConfigStore
     profile_name: str
     api_key_override: str | None = None
+    project_override: str | None = None
+    json_output: bool = False
 
     @property
     def profile(self) -> dict[str, Any]:

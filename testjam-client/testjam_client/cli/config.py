@@ -23,7 +23,9 @@ DEFAULT_PROFILE_NAME = "default"
 CONFIG_FILE_NAME = "config.toml"
 CONFIG_ENV_OVERRIDE = "TESTJAM_CONFIG"
 SECRET_FIELDS: frozenset[str] = frozenset({"token", "api_key"})
-EDITABLE_FIELDS: frozenset[str] = frozenset({"url", "token", "api_key", "username"})
+EDITABLE_FIELDS: frozenset[str] = frozenset(
+    {"url", "token", "api_key", "username", "default_project"}
+)
 FILE_PERMISSIONS = 0o600
 
 
