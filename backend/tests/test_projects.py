@@ -9,6 +9,27 @@ def test_create_and_list_project(auth_client):
     assert project_id in ids
 
 
+def test_create_project_with_duplicate_name_returns_409(auth_client):
+    auth_client.post("/api/v1/projects", json={"name": "Duplicate"})
+
+    resp = auth_client.post("/api/v1/projects", json={"name": "Duplicate"})
+
+    assert resp.status_code == 409
+    assert "already exists" in resp.json()["detail"].lower()
+
+
+def test_create_project_race_translates_integrity_error_to_409(auth_client, monkeypatch):
+    from testjam.routers import projects as projects_router
+
+    auth_client.post("/api/v1/projects", json={"name": "Racer"})
+    monkeypatch.setattr(projects_router, "_find_project_by_name", lambda db, name: None)
+
+    resp = auth_client.post("/api/v1/projects", json={"name": "Racer"})
+
+    assert resp.status_code == 409
+    assert "already exists" in resp.json()["detail"].lower()
+
+
 def test_create_suite_and_case(auth_client):
     project_id = auth_client.post("/api/v1/projects", json={"name": "P"}).json()["id"]
 
