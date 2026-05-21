@@ -8,18 +8,16 @@ name: testjam-client
 on:
   push:
     branches: [master]
-    paths-ignore:
-      - "**/*.md"
-      - "docs/**"
-      - "LICENSE"
-      - "frontend/**"
+    paths:
+      - "testjam-client/**"
+      - "backend/**"
+      - ".github/workflows/testjam-client.yml"
   pull_request:
     branches: [master]
-    paths-ignore:
-      - "**/*.md"
-      - "docs/**"
-      - "LICENSE"
-      - "frontend/**"
+    paths:
+      - "testjam-client/**"
+      - "backend/**"
+      - ".github/workflows/testjam-client.yml"
 
 concurrency:
   group: testjam-client-${{ github.ref }}

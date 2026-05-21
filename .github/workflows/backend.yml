@@ -3,22 +3,14 @@ name: Backend
 on:
   push:
     branches: [master]
-    paths-ignore:
-      - "**/*.md"
-      - "docs/**"
-      - "LICENSE"
-      - "frontend/**"
-      - "testjam-client/**"
-      - "tests/**"
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
   pull_request:
     branches: [master]
-    paths-ignore:
-      - "**/*.md"
-      - "docs/**"
-      - "LICENSE"
-      - "frontend/**"
-      - "testjam-client/**"
-      - "tests/**"
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
 
 concurrency:
   group: backend-${{ github.ref }}

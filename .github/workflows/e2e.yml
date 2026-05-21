@@ -3,16 +3,26 @@ name: E2E
 on:
   push:
     branches: [master]
-    paths-ignore:
-      - "**/*.md"
-      - "docs/**"
-      - "LICENSE"
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "testjam-client/**"
+      - "tests/**"
+      - "docker-compose-dev.yml"
+      - "docker-compose-ci.yml"
+      - "Makefile"
+      - ".github/workflows/e2e.yml"
   pull_request:
     branches: [master]
-    paths-ignore:
-      - "**/*.md"
-      - "docs/**"
-      - "LICENSE"
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "testjam-client/**"
+      - "tests/**"
+      - "docker-compose-dev.yml"
+      - "docker-compose-ci.yml"
+      - "Makefile"
+      - ".github/workflows/e2e.yml"
 
 concurrency:
   group: e2e-${{ github.ref }}
