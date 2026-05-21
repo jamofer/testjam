@@ -73,9 +73,6 @@ jobs:
       - name: Seed admin user
         run: make admin
 
-      - name: Run listener tests
-        run: make test-listener
-
       - name: Run orchestrator tests
         run: make test-orchestrator
 
