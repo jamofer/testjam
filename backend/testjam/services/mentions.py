@@ -20,10 +20,15 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Literal
+from html import escape as _html_escape
+from html.parser import HTMLParser
+from typing import Callable, Literal
 
 
 MentionKind = Literal["user", "bug", "execution", "result", "step_result", "case"]
+MentionLabelFor = Callable[["Mention"], str]
+
+_MENTION_SKIP_TAGS: frozenset[str] = frozenset({"code", "pre"})
 
 
 @dataclass(frozen=True)
@@ -61,6 +66,29 @@ def parse(text: str) -> list[Mention]:
 
 def usernames(text: str) -> list[str]:
     return [m.slug for m in parse(text) if m.kind == "user" and m.slug]
+
+
+def enrich_html_with_mentions(
+    html_text: str, *, label_for: MentionLabelFor | None = None,
+) -> str:
+    """Wrap every mention token in plain text nodes with a styled span.
+
+    Walks the HTML with stdlib ``HTMLParser``, leaves tags untouched and
+    skips ``<code>`` / ``<pre>`` subtrees so code samples stay literal —
+    mirroring the frontend's ``rehypeMentions`` plugin.
+
+    The span text comes from ``label_for(mention)`` when supplied. Callers
+    typically pass a closure that goes through ``mention_resolver`` so the
+    chip carries the resolved entity title (``#42 Login broken``,
+    ``~91 Login flow``, …), just like the frontend ``MentionChip``. When no
+    resolver is provided the raw token text (``#42``, ``@alice``…) is used.
+    """
+    if not html_text:
+        return ""
+    enricher = _MentionEnricher(label_for or (lambda mention: mention.raw))
+    enricher.feed(html_text)
+    enricher.close()
+    return "".join(enricher.out)
 
 
 def _match_users(text: str) -> list[Mention]:
@@ -132,6 +160,68 @@ def _match_cases(text: str) -> list[Mention]:
 def _mask_code(text: str) -> str:
     masked = _FENCED_CODE.sub(lambda m: " " * len(m.group(0)), text)
     return _INLINE_CODE.sub(lambda m: " " * len(m.group(0)), masked)
+
+
+class _MentionEnricher(HTMLParser):
+    def __init__(self, label_for: MentionLabelFor) -> None:
+        super().__init__(convert_charrefs=False)
+        self.label_for = label_for
+        self.out: list[str] = []
+        self._skip_depth = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag in _MENTION_SKIP_TAGS:
+            self._skip_depth += 1
+        self.out.append(self._format_open_tag(tag, attrs))
+
+    def handle_endtag(self, tag):
+        if tag in _MENTION_SKIP_TAGS and self._skip_depth > 0:
+            self._skip_depth -= 1
+        self.out.append(f"</{tag}>")
+
+    def handle_startendtag(self, tag, attrs):
+        self.out.append(self._format_open_tag(tag, attrs, self_closing=True))
+
+    def handle_data(self, data):
+        if self._skip_depth > 0:
+            self.out.append(_html_escape(data, quote=False))
+            return
+        self.out.append(_wrap_mentions(data, self.label_for))
+
+    def handle_entityref(self, name):
+        self.out.append(f"&{name};")
+
+    def handle_charref(self, name):
+        self.out.append(f"&#{name};")
+
+    def _format_open_tag(self, tag, attrs, *, self_closing: bool = False) -> str:
+        rendered = "".join(
+            f' {key}="{_html_escape(value, quote=True)}"' if value is not None else f" {key}"
+            for key, value in attrs
+        )
+        slash = " /" if self_closing else ""
+        return f"<{tag}{rendered}{slash}>"
+
+
+def _wrap_mentions(text: str, label_for: MentionLabelFor) -> str:
+    mentions = parse(text)
+    if not mentions:
+        return _html_escape(text, quote=False)
+    parts: list[str] = []
+    cursor = 0
+    for mention in mentions:
+        if mention.start > cursor:
+            parts.append(_html_escape(text[cursor:mention.start], quote=False))
+        parts.append(_mention_span(mention, label_for(mention)))
+        cursor = mention.end
+    if cursor < len(text):
+        parts.append(_html_escape(text[cursor:], quote=False))
+    return "".join(parts)
+
+
+def _mention_span(mention: Mention, label: str) -> str:
+    class_names = f"mention mention-{mention.kind}"
+    return f'<span class="{class_names}">{_html_escape(label, quote=False)}</span>'
 
 
 def _dedupe(mentions: list[Mention]) -> list[Mention]:

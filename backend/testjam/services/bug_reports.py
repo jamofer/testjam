@@ -20,7 +20,28 @@ from testjam.models.custom_field import CustomFieldDefinition
 from testjam.models.project import Project
 from testjam.models.user import User
 from testjam.models.version import ProjectVersion
+from testjam.schemas.mention import MentionTokenIn
+from testjam.services.integrations.markdown_to_html import to_html as markdown_to_html
+from testjam.services.mention_resolver import resolve as resolve_mentions
+from testjam.services.mentions import Mention, enrich_html_with_mentions
 from testjam.services.timezones import format_in_user_zone, user_zone_label
+
+
+def _make_rich_renderer(db: Session, project_id: int):
+    def label_for(mention: Mention) -> str:
+        token = MentionTokenIn(
+            kind=mention.kind, slug=mention.slug,
+            id=mention.id, sub_ids=list(mention.sub_ids),
+        )
+        [resolved] = resolve_mentions(db, project_id, [token])
+        if resolved.accessible and resolved.label:
+            return resolved.label
+        return mention.raw
+
+    def render_rich(text: str) -> str:
+        return enrich_html_with_mentions(markdown_to_html(text), label_for=label_for)
+
+    return render_rich
 
 
 SEVERITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3}
@@ -118,9 +139,10 @@ def render_html(
     title = " · ".join(title_parts)
 
     actor_label = user.username if user is not None else (viewer_label or "shared link")
+    render_rich = _make_rich_renderer(db, project.id)
     return _build_html(
         title, bugs, generated_at, timezone_label, user, actor_label,
-        custom_field_definitions,
+        custom_field_definitions, render_rich,
     )
 
 
@@ -209,6 +231,7 @@ def _build_html(
     user: User | None,
     actor_label: str,
     custom_field_definitions: list[CustomFieldDefinition],
+    render_rich,
 ) -> str:
     e = html_lib.escape
     groups: dict[str, list[Bug]] = {}
@@ -220,7 +243,9 @@ def _build_html(
         rows = groups.get(severity, [])
         if not rows:
             continue
-        rendered = "\n".join(_render_row(bug, user, custom_field_definitions) for bug in rows)
+        rendered = "\n".join(
+            _render_row(bug, user, custom_field_definitions, render_rich) for bug in rows
+        )
         sections.append(
             f"<section class='severity severity-{severity}'>"
             f"<h2>{severity.title()} ({len(rows)})</h2>"
@@ -260,7 +285,21 @@ def _build_html(
         ".discussion li { padding: 6px 0; border-bottom: 1px dashed #e5e7eb; }\n"
         ".discussion li:last-child { border-bottom: none; }\n"
         ".comment-meta { font-size: 11px; color: #6b7280; margin-bottom: 2px; }\n"
-        ".comment-body { font-size: 13px; color: #1f2937; white-space: pre-wrap; }\n"
+        ".comment-body { font-size: 13px; color: #1f2937; }\n"
+        ".comment-body p { margin: 0 0 6px; }\n"
+        ".comment-body p:last-child { margin-bottom: 0; }\n"
+        ".comment-body pre { background: #f3f4f6; padding: 8px; border-radius: 4px; overflow-x: auto; }\n"
+        ".comment-body code { background: #f3f4f6; padding: 1px 4px; border-radius: 3px; }\n"
+        ".bug-description p { margin: 4px 0; }\n"
+        ".bug-description pre { background: #f3f4f6; padding: 8px; border-radius: 4px; overflow-x: auto; }\n"
+        ".bug-description code { background: #f3f4f6; padding: 1px 4px; border-radius: 3px; }\n"
+        ".mention { display: inline-block; padding: 0 4px; margin: 0 1px; border-radius: 3px; "
+        "font-size: 12px; font-weight: 500; border: 1px solid; line-height: 1.4; }\n"
+        ".mention-user { background: #fff1f2; color: #be123c; border-color: #fecdd3; }\n"
+        ".mention-bug { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }\n"
+        ".mention-execution { background: #f0f9ff; color: #0369a1; border-color: #bae6fd; }\n"
+        ".mention-result, .mention-case { background: #fffbeb; color: #b45309; border-color: #fde68a; }\n"
+        ".mention-step_result { background: #f3f4f6; color: #374151; border-color: #e5e7eb; }\n"
         ".cf-row { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }\n"
         ".cf-chip { font-size: 11px; padding: 2px 8px; border-radius: 10px; "
         "background: #f3f4f6; color: #374151; }\n"
@@ -279,6 +318,7 @@ def _render_row(
     bug: Bug,
     user: User | None,
     custom_field_definitions: list[CustomFieldDefinition],
+    render_rich,
 ) -> str:
     e = html_lib.escape
     assignee = bug.assigned_to.username if bug.assigned_to else "unassigned"
@@ -293,7 +333,11 @@ def _render_row(
     ]
     meta_line = " · ".join(part for part in meta_bits if part)
     description = (bug.description or "").strip()
-    description_block = f"<p>{e(description)}</p>" if description else ""
+    description_block = (
+        f"<div class='bug-description'>{render_rich(description)}</div>"
+        if description
+        else ""
+    )
     return (
         "<li>"
         f"<span class='bug-number'>#{bug.number}</span>"
@@ -301,7 +345,7 @@ def _render_row(
         + f"<div class='bug-meta'>{meta_line}</div>"
         + description_block
         + _render_custom_fields_html(bug, custom_field_definitions)
-        + _render_discussion(bug, user)
+        + _render_discussion(bug, user, render_rich)
         + "</li>"
     )
 
@@ -361,7 +405,7 @@ def _chip_color_style(color: str | None) -> str:
     return f" style=\"background:{safe};color:#fff;\""
 
 
-def _render_discussion(bug: Bug, user: User | None) -> str:
+def _render_discussion(bug: Bug, user: User | None, render_rich) -> str:
     if not bug.comments:
         return ""
     e = html_lib.escape
@@ -372,7 +416,7 @@ def _render_discussion(bug: Bug, user: User | None) -> str:
         items.append(
             "<li>"
             f"<div class='comment-meta'>{e(author)} · {e(when)}</div>"
-            f"<div class='comment-body'>{e(comment.body)}</div>"
+            f"<div class='comment-body'>{render_rich(comment.body or '')}</div>"
             "</li>"
         )
     return (
