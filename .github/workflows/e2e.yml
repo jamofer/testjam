@@ -47,8 +47,7 @@ jobs:
           # the base that master already published when inputs haven't changed.
           digest=$(sha256sum \
             tests/e2e/Dockerfile.base \
-            client/pyproject.toml \
-            listener/pyproject.toml \
+            testjam-client/pyproject.toml \
             tests/e2e/pyproject.toml \
             | sha256sum | cut -c1-12)
           tag="ghcr.io/${{ github.repository_owner }}/testjam-e2e-base:base-$digest"

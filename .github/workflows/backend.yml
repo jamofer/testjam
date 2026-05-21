@@ -37,8 +37,8 @@ jobs:
         working-directory: backend
         run: pip install -e ".[dev]"
 
-      - name: Install client SDK
-        working-directory: client
+      - name: Install testjam-client
+        working-directory: testjam-client
         run: pip install -e ".[dev]"
 
       - name: Run backend tests
@@ -48,8 +48,8 @@ jobs:
           INTEGRATION_ENCRYPTION_KEY: eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg=
         run: pytest -q
 
-      - name: Run client SDK tests
-        working-directory: client
+      - name: Run testjam-client tests (SDK + listener)
+        working-directory: testjam-client
         env:
           PYTHONPATH: ${{ github.workspace }}/backend
           UPLOAD_DIR: ${{ runner.temp }}/testjam-uploads

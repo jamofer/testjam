@@ -8,8 +8,7 @@ on:
       - "docs/**"
       - "LICENSE"
       - "backend/**"
-      - "client/**"
-      - "listener/**"
+      - "testjam-client/**"
       - "tests/**"
   pull_request:
     branches: [master]
@@ -18,8 +17,7 @@ on:
       - "docs/**"
       - "LICENSE"
       - "backend/**"
-      - "client/**"
-      - "listener/**"
+      - "testjam-client/**"
       - "tests/**"
 
 concurrency:

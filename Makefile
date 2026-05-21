@@ -6,7 +6,7 @@ BUILD_STAMP = .docker-build-stamp
 BUILD_DEPS  = backend/Dockerfile backend/pyproject.toml \
               frontend/Dockerfile frontend/package.json frontend/package-lock.json
 
-.PHONY: help up down reset rebuild admin backup test test-api test-client test-listener test-orchestrator test-front test-e2e _up-api _up-front
+.PHONY: help up down reset rebuild admin backup test test-api test-client test-orchestrator test-front test-e2e _up-api _up-front
 
 help:
 	@echo "Targets:"
@@ -18,8 +18,7 @@ help:
 	@echo "  make backup       Dump DB + uploads to ./backups (BACKUP_DIR, RETENTION_DAYS env)"
 	@echo "  make test         Run backend + frontend + e2e (boots what it needs)"
 	@echo "  make test-api     pytest        ARGS=path/to/test"
-	@echo "  make test-client  pytest /client/tests — SDK tests run in api container"
-	@echo "  make test-listener pytest /listener/tests — listener tests run in e2e container"
+	@echo "  make test-client  pytest /testjam-client/tests — SDK + listener + CLI tests run in api container"
 	@echo "  make test-orchestrator pytest tests/e2e/orchestrator/tests"
 	@echo "  make test-front   vitest        ARGS=__tests__/Foo"
 	@echo "  make test-e2e     orchestrator launches 1 robot subprocess per leaf suite (parallel)"
@@ -69,10 +68,7 @@ test-api: _up-api
 	$(COMPOSE) exec -T api pytest $(ARGS)
 
 test-client: _up-api
-	$(COMPOSE) exec -T -w /client api pytest $(ARGS)
-
-test-listener:
-	$(COMPOSE) --profile e2e run --rm --entrypoint "" -w /listener e2e pytest $(ARGS)
+	$(COMPOSE) exec -T -w /testjam-client api pytest $(ARGS)
 
 test-orchestrator:
 	$(COMPOSE) --profile e2e run --rm --entrypoint "" -w /tests/e2e e2e pytest orchestrator/tests $(ARGS)
@@ -91,7 +87,7 @@ GIT_VERSION := $(if $(GIT_SHA),$(GIT_BRANCH)-$(GIT_SHA))
 test-e2e: export API_WORKERS = $(WORKERS)
 test-e2e: export TESTJAM_VERSION = $(GIT_VERSION)
 test-e2e: $(BUILD_STAMP)
-	$(COMPOSE) --profile e2e build web
+	$(COMPOSE) --profile e2e build web e2e
 	$(COMPOSE) up -d --wait api
 	$(COMPOSE) --profile e2e run --rm -e FORCE_COLOR=1 -e ORCHESTRATOR_WORKERS=$(POOL) e2e python -m orchestrator $(ARGS)
 

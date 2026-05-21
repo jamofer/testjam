@@ -104,7 +104,7 @@ except Conflict:
 
 ## Tests
 
-Tests live in `client/tests` and run against the real FastAPI app via
+Tests live in `testjam-client/tests` and run against the real FastAPI app via
 `fastapi.testclient.TestClient` with SQLite in-memory:
 
 ```bash

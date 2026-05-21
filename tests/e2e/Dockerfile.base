@@ -8,8 +8,7 @@
 #
 # Rebuilt by `.github/workflows/e2e-base-image.yml` when any of:
 #   - this Dockerfile
-#   - client/pyproject.toml
-#   - listener/pyproject.toml
+#   - testjam-client/pyproject.toml
 #   - tests/e2e/pyproject.toml
 # changes on master.
 
@@ -25,16 +24,15 @@ RUN apt-get update \
 # `pip install -e` only needs the package directory to exist; later in
 # `tests/e2e/Dockerfile` the real source is copied on top of these stubs and
 # re-installed with `--no-deps` so dependency resolution is skipped.
-COPY client/pyproject.toml /client/
-COPY listener/pyproject.toml /listener/
+COPY testjam-client/pyproject.toml /testjam-client/
 COPY tests/e2e/pyproject.toml /tests/e2e/
-RUN mkdir -p /client/testjam_client /listener/testjam_listener /tests/e2e/testjam_e2e \
- && touch /client/testjam_client/__init__.py \
-          /listener/testjam_listener/__init__.py \
+RUN mkdir -p /testjam-client/testjam_client /testjam-client/testjam_listener /tests/e2e/testjam_e2e \
+ && touch /testjam-client/testjam_client/__init__.py \
+          /testjam-client/testjam_listener/__init__.py \
           /tests/e2e/testjam_e2e/__init__.py
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install -e /client -e /listener -e /tests/e2e pytest
+    pip install -e "/testjam-client[robot-listener]" -e /tests/e2e pytest
 
 RUN rfbrowser init chromium \
  && npx --yes playwright install-deps chromium
