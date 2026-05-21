@@ -17,6 +17,7 @@ cli = [
     "rich>=13.7",
     "click-repl>=0.3",
     "platformdirs>=4.2",
+    "tomli-w>=1.0",
 ]
 robot-listener = [
     "robotframework>=7.0",
@@ -26,6 +27,7 @@ all = [
     "rich>=13.7",
     "click-repl>=0.3",
     "platformdirs>=4.2",
+    "tomli-w>=1.0",
     "robotframework>=7.0",
 ]
 dev = [
@@ -35,6 +37,7 @@ dev = [
     "rich>=13.7",
     "click-repl>=0.3",
     "platformdirs>=4.2",
+    "tomli-w>=1.0",
 ]
 
 [project.scripts]
