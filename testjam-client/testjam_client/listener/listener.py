@@ -15,8 +15,8 @@ from typing import Any
 
 from testjam_client import TestjamClient
 from testjam_client.errors import TestjamError, ValidationError
-from testjam_listener.log import format_log_line, isoformat_timestamp
-from testjam_listener.status import map_rf_status
+from testjam_client.listener.log import format_log_line, isoformat_timestamp
+from testjam_client.listener.status import map_rf_status
 
 log = logging.getLogger("testjam.listener")
 

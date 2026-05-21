@@ -8,6 +8,7 @@
 Plan suites, drive manual runs with keyboard shortcuts, stream CI results live, and export self-contained HTML reports.
 
 [![Backend](https://github.com/Jamofer/testjam/actions/workflows/backend.yml/badge.svg?branch=master)](https://github.com/Jamofer/testjam/actions/workflows/backend.yml)
+[![testjam-client](https://github.com/Jamofer/testjam/actions/workflows/testjam-client.yml/badge.svg?branch=master)](https://github.com/Jamofer/testjam/actions/workflows/testjam-client.yml)
 [![Frontend](https://github.com/Jamofer/testjam/actions/workflows/frontend.yml/badge.svg?branch=master)](https://github.com/Jamofer/testjam/actions/workflows/frontend.yml)
 [![E2E](https://github.com/Jamofer/testjam/actions/workflows/e2e.yml/badge.svg?branch=master)](https://github.com/Jamofer/testjam/actions/workflows/e2e.yml)
 
@@ -33,6 +34,7 @@ Plan suites, drive manual runs with keyboard shortcuts, stream CI results live, 
 | 🔌 **Integrations** | Push bugs to GitHub, Jira, GitLab, Azure DevOps, OpenProject + outbound event webhooks                |
 | 💬 **Mentions**     | Cross-entity references between users, bugs, runs and cases with email + in-app notifications         |
 | 🐍 **Python SDK**   | `pip install testjam-client` — full API coverage for custom CI integration, dashboards and scripting  |
+| 💻 **CLI**          | `pip install "testjam-client[cli]"` — `testjam` binary with profiles, REPL, JSON output, `run tail`   |
 
 
 <details>
@@ -156,17 +158,17 @@ make test-e2e          ARGS="-t 'Successful*'"                # test-name glob
 
 ## Robot Framework listener (external CI)
 
-`listener/` is a standalone `testjam-listener` package. It creates a fresh execution per run, discovers and syncs suites/cases/steps from the Robot tree, and streams pass/fail + per-step duration + per-line logs live.
+The Robot listener ships inside the `testjam-client` package as the optional `robot-listener` extra. It creates a fresh execution per run, discovers and syncs suites/cases/steps from the Robot tree, and streams pass/fail + per-step duration + per-line logs live.
 
 ```bash
-pip install ./listener
+pip install "./testjam-client[robot-listener]"
 TESTJAM_API_URL=http://your-host:8080/api/v1 \
 TESTJAM_USER=admin TESTJAM_PASS=secret \
 TESTJAM_PROJECT="My Project" \
-robot --listener testjam_listener.TestjamListener tests/
+robot --listener testjam_client.listener.TestjamListener tests/
 ```
 
-Auth: `TESTJAM_USER` + `TESTJAM_PASS` (admin login) or `TESTJAM_API_KEY`. See `listener/README.md` for details.
+Auth: `TESTJAM_USER` + `TESTJAM_PASS` (admin login) or `TESTJAM_API_KEY`. See `testjam-client/README.md` for details. The legacy `testjam_listener.TestjamListener` import path still works as a compatibility shim.
 
 Robot tags of the form `cf:key=value` (or `cf:key=a,b,c` for multi-select) are parsed at runtime and persisted as `execution.custom_fields` — useful for tagging a run with the build phase, environment matrix, target browser, etc.
 

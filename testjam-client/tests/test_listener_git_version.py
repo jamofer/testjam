@@ -3,7 +3,7 @@ import subprocess
 
 import pytest
 
-from testjam_listener import git_version
+from testjam_client.listener import git_version
 
 
 CI_ENV_VARS = (

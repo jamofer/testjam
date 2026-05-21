@@ -1,0 +1,55 @@
+name: testjam-client
+
+# Unit tests for the testjam-client package — SDK + Robot listener + `testjam`
+# CLI. Runs against the in-process FastAPI app via `fastapi.testclient`, no
+# docker. Live-api smoke (`tests/test_cli_e2e_smoke.py`) is env-gated and
+# stays skipped here; the e2e workflow runs it against the full stack.
+
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - "LICENSE"
+      - "frontend/**"
+  pull_request:
+    branches: [master]
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - "LICENSE"
+      - "frontend/**"
+
+concurrency:
+  group: testjam-client-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pytest:
+    name: pytest (testjam-client)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: testjam-client/pyproject.toml
+
+      - name: Install backend (in-process FastAPI app for SDK tests)
+        working-directory: backend
+        run: pip install -e ".[dev]"
+
+      - name: Install testjam-client
+        working-directory: testjam-client
+        run: pip install -e ".[dev]"
+
+      - name: Run testjam-client tests
+        working-directory: testjam-client
+        env:
+          PYTHONPATH: ${{ github.workspace }}/backend
+          UPLOAD_DIR: ${{ runner.temp }}/testjam-uploads
+          INTEGRATION_ENCRYPTION_KEY: eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg=
+        run: pytest -q

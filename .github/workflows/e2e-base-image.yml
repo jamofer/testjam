@@ -5,8 +5,7 @@ on:
     branches: [master]
     paths:
       - "tests/e2e/Dockerfile.base"
-      - "client/pyproject.toml"
-      - "listener/pyproject.toml"
+      - "testjam-client/pyproject.toml"
       - "tests/e2e/pyproject.toml"
       - ".github/workflows/e2e-base-image.yml"
   workflow_dispatch:
@@ -40,8 +39,7 @@ jobs:
         run: |
           digest=$(sha256sum \
             tests/e2e/Dockerfile.base \
-            client/pyproject.toml \
-            listener/pyproject.toml \
+            testjam-client/pyproject.toml \
             tests/e2e/pyproject.toml \
             | sha256sum | cut -c1-12)
           echo "digest=$digest" >> $GITHUB_OUTPUT

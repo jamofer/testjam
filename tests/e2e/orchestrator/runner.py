@@ -171,7 +171,7 @@ def _run_one(
     test_filters: list[str],
     suite_admin: dict[str, str] | None,
 ) -> SuiteResult:
-    from testjam_listener import TestjamListener
+    from testjam_client.listener import TestjamListener
 
     for key, value in base_env.items():
         os.environ[key] = value

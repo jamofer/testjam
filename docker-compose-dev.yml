@@ -40,7 +40,7 @@ services:
       INTEGRATION_ENCRYPTION_KEY: ${INTEGRATION_ENCRYPTION_KEY:-dGVzdGphbS1kZXYta2V5LWZvci1pbnRlZ3JhdGlvbnM=}
     volumes:
       - ./backend:/app
-      - ./client:/client
+      - ./testjam-client:/testjam-client
       - uploads:/app/uploads
     depends_on:
       db:
@@ -114,11 +114,10 @@ services:
       TESTJAM_VERSION: ${TESTJAM_VERSION:-}
     volumes:
       - ./tests/e2e:/tests/e2e
-      - ./listener:/listener
-      - ./client:/client
+      - ./testjam-client:/testjam-client
     working_dir: /tests/e2e
     command: >
-      robot --listener testjam_listener.TestjamListener suites/
+      robot --listener testjam_client.listener.TestjamListener suites/
 
 volumes:
   postgres_data:

@@ -1,5 +1,5 @@
 """Tests for the ``cf:`` Robot tag parser."""
-from testjam_listener.listener import _parse_cf_tags
+from testjam_client.listener.listener import _parse_cf_tags
 
 
 def test_single_value_tag_becomes_string():

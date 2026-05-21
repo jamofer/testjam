@@ -1,18 +1,27 @@
 # testjam-client
 
-Python SDK for the Testjam REST API. Used by the Robot Framework listener,
-the e2e orchestrator, and any consumer that talks to a Testjam server.
+Python SDK + Robot Framework listener + `testjam` command-line client for the Testjam REST API. One package, opt-in extras for the listener and the CLI.
 
 ## Install
 
 ```bash
+# SDK only (Python integration)
 pip install -e .
+
+# SDK + CLI (the `testjam` binary)
+pip install -e ".[cli]"
+
+# SDK + Robot Framework listener
+pip install -e ".[robot-listener]"
+
+# Everything
+pip install -e ".[all]"
 ```
 
 Or pin from a local checkout:
 
 ```toml
-dependencies = ["testjam-client @ file:///path/to/client"]
+dependencies = ["testjam-client @ file:///path/to/testjam-client"]
 ```
 
 ## Quick start
@@ -55,6 +64,37 @@ TestjamClient(url, api_key="tjk_...")
 client = TestjamClient(url)
 client.login("user", "pass")
 ```
+
+## CLI quick start
+
+The `[cli]` extra installs a `testjam` binary backed by Typer + Rich.
+
+```bash
+pip install "testjam-client[cli]"
+
+testjam config set url https://testjam.example.com/api/v1
+testjam login --username alice            # password prompt (hidden)
+testjam config set default_project "Web"  # avoid repeating --project
+
+testjam project list
+testjam case create "Login" --suite 17 --steps -
+testjam run start "Nightly" --plan 5 --type automatic --yes
+testjam run tail 91                       # exit 0/1/2 = passed/failed/aborted
+
+# Pipeline-friendly output:
+testjam --json bug list --status open | jq '.[].title'
+```
+
+Drop the args to enter the REPL:
+
+```
+$ testjam
+testjam> project list
+testjam> --json bug list --severity high
+testjam> :exit
+```
+
+Full reference: [`docs/manual/cli.md`](../docs/manual/cli.md).
 
 ## Resource modules
 
@@ -104,7 +144,7 @@ except Conflict:
 
 ## Tests
 
-Tests live in `client/tests` and run against the real FastAPI app via
+Tests live in `testjam-client/tests` and run against the real FastAPI app via
 `fastapi.testclient.TestClient` with SQLite in-memory:
 
 ```bash
