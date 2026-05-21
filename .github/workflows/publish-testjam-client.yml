@@ -1,0 +1,56 @@
+name: Publish testjam-client
+
+# Manual gate. Never fires on push or tag — release is always a deliberate
+# `workflow_dispatch`. The default is dry-run (build + smoke install) so a
+# maintainer can sanity-check the artifacts before flipping `upload` to true.
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: "Upload the built artifacts to PyPI (default: dry-run)."
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    defaults:
+      run:
+        working-directory: testjam-client
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install build frontend
+        run: pip install build
+
+      - name: Build sdist + wheel
+        run: python -m build
+
+      - name: List artifacts
+        run: ls -lh dist/
+
+      - name: Smoke-install the wheel with the [cli] extra
+        run: |
+          set -euo pipefail
+          python -m venv /tmp/verify
+          wheel=$(ls dist/*.whl)
+          /tmp/verify/bin/pip install --quiet "${wheel}[cli]"
+          /tmp/verify/bin/testjam --version
+          /tmp/verify/bin/testjam --help | grep -q "Testjam command-line client"
+
+      - name: Upload to PyPI
+        if: ${{ inputs.upload }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: testjam-client/dist

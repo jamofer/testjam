@@ -6,7 +6,7 @@ BUILD_STAMP = .docker-build-stamp
 BUILD_DEPS  = backend/Dockerfile backend/pyproject.toml \
               frontend/Dockerfile frontend/package.json frontend/package-lock.json
 
-.PHONY: help up down reset rebuild admin backup test test-api test-client test-cli-e2e test-orchestrator test-front test-e2e _up-api _up-front
+.PHONY: help up down reset rebuild admin backup build-client test test-api test-client test-cli-e2e test-orchestrator test-front test-e2e _up-api _up-front
 
 help:
 	@echo "Targets:"
@@ -16,6 +16,7 @@ help:
 	@echo "  make reset        Reset DB and restart"
 	@echo "  make admin        Create admin user (admin / admin@example.com / admin123)"
 	@echo "  make backup       Dump DB + uploads to ./backups (BACKUP_DIR, RETENTION_DAYS env)"
+	@echo "  make build-client Build testjam-client sdist + wheel under testjam-client/dist/"
 	@echo "  make test         Run backend + frontend + e2e (boots what it needs)"
 	@echo "  make test-api     pytest        ARGS=path/to/test"
 	@echo "  make test-client  pytest /testjam-client/tests — SDK + listener + CLI tests run in api container"
@@ -56,6 +57,10 @@ admin:
 
 backup:
 	COMPOSE_FILE=docker-compose-dev.yml scripts/backup.sh
+
+build-client: _up-api
+	$(COMPOSE) exec -T -w /testjam-client api sh -c \
+	  "rm -rf dist build && pip install --quiet build && python -m build"
 
 test: test-api test-front test-e2e
 
