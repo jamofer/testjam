@@ -10,6 +10,7 @@ from testjam_client.cli.commands import config as config_commands
 from testjam_client.cli.commands import executions as execution_commands
 from testjam_client.cli.commands import plans as plan_commands
 from testjam_client.cli.commands import projects as project_commands
+from testjam_client.cli.commands import run as run_commands
 from testjam_client.cli.commands import suites as suite_commands
 from testjam_client.cli.config import ConfigStore, default_config_path
 from testjam_client.cli.state import CliState
@@ -76,6 +77,12 @@ def root(
         "--json",
         help="Emit machine-readable JSON instead of a Rich table.",
     ),
+    yes_to_all: bool = typer.Option(
+        False,
+        "--yes",
+        "-y",
+        help="Skip confirmation prompts (assume 'yes').",
+    ),
 ) -> None:
     """Testjam command-line client."""
     store = ConfigStore(default_config_path())
@@ -85,6 +92,7 @@ def root(
         api_key_override=api_key,
         project_override=project,
         json_output=json_output,
+        yes_to_all=yes_to_all,
     )
 
 
@@ -95,4 +103,5 @@ app.add_typer(suite_commands.build_app())
 app.add_typer(case_commands.build_app())
 app.add_typer(plan_commands.build_app())
 app.add_typer(execution_commands.build_app())
+app.add_typer(run_commands.build_app())
 app.add_typer(bug_commands.build_app())

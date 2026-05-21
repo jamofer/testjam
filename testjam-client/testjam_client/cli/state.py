@@ -20,6 +20,7 @@ class CliState:
     api_key_override: str | None = None
     project_override: str | None = None
     json_output: bool = False
+    yes_to_all: bool = False
 
     @property
     def profile(self) -> dict[str, Any]:

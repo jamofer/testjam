@@ -20,6 +20,13 @@ def build_client(state: CliState) -> TestjamClient:
     return TestjamClient(url, token=token, api_key=api_key)
 
 
+def confirm_or_abort(message: str, state: CliState) -> None:
+    if state.yes_to_all:
+        return
+    if not typer.confirm(message, default=False):
+        raise typer.Abort()
+
+
 def resolve_project_id(
     client: TestjamClient,
     state: CliState,

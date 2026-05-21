@@ -20,6 +20,7 @@ def build_app() -> typer.Typer:
     )
     app.command("list", help="List projects visible to the current user.")(list_projects)
     app.command("show", help="Show one project by name or id.")(show_project)
+    app.command("create", help="Create a new project.")(create_project)
     return app
 
 
@@ -38,4 +39,15 @@ def show_project(
     with runtime.build_client(state) as client:
         project_id = runtime.resolve_project_id(client, state, name_or_id)
         payload = client.projects.get(project_id)
+    render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
+
+
+def create_project(
+    context: typer.Context,
+    name: str = typer.Argument(..., help="Project name."),
+    description: str | None = typer.Option(None, "--description"),
+) -> None:
+    state: CliState = context.obj
+    with runtime.build_client(state) as client:
+        payload = client.projects.create(name, description=description)
     render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
