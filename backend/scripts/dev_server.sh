@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-if [ -d /testjam-client ] && ! python -c "import testjam_client" 2>/dev/null; then
-  pip install --quiet -e /testjam-client
+if [ -d /testjam-client ] && ! python -c "import testjam_client, click_repl, platformdirs" 2>/dev/null; then
+  pip install --quiet -e "/testjam-client[cli]"
 fi
 
 alembic upgrade head

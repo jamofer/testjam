@@ -12,16 +12,33 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+cli = [
+    "typer>=0.12",
+    "rich>=13.7",
+    "click-repl>=0.3",
+    "platformdirs>=4.2",
+]
 robot-listener = [
     "robotframework>=7.0",
 ]
 all = [
+    "typer>=0.12",
+    "rich>=13.7",
+    "click-repl>=0.3",
+    "platformdirs>=4.2",
     "robotframework>=7.0",
 ]
 dev = [
     "pytest>=8.0",
     "fastapi[standard]>=0.115",
+    "typer>=0.12",
+    "rich>=13.7",
+    "click-repl>=0.3",
+    "platformdirs>=4.2",
 ]
+
+[project.scripts]
+testjam = "testjam_client.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["testjam_client", "testjam_listener"]
