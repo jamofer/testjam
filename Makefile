@@ -6,7 +6,7 @@ BUILD_STAMP = .docker-build-stamp
 BUILD_DEPS  = backend/Dockerfile backend/pyproject.toml \
               frontend/Dockerfile frontend/package.json frontend/package-lock.json
 
-.PHONY: help up down reset rebuild admin backup test test-api test-client test-orchestrator test-front test-e2e _up-api _up-front
+.PHONY: help up down reset rebuild admin backup test test-api test-client test-cli-e2e test-orchestrator test-front test-e2e _up-api _up-front
 
 help:
 	@echo "Targets:"
@@ -19,6 +19,7 @@ help:
 	@echo "  make test         Run backend + frontend + e2e (boots what it needs)"
 	@echo "  make test-api     pytest        ARGS=path/to/test"
 	@echo "  make test-client  pytest /testjam-client/tests — SDK + listener + CLI tests run in api container"
+	@echo "  make test-cli-e2e CLI smoke against the running api (creates admin if needed)"
 	@echo "  make test-orchestrator pytest tests/e2e/orchestrator/tests"
 	@echo "  make test-front   vitest        ARGS=__tests__/Foo"
 	@echo "  make test-e2e     orchestrator launches 1 robot subprocess per leaf suite (parallel)"
@@ -69,6 +70,12 @@ test-api: _up-api
 
 test-client: _up-api
 	$(COMPOSE) exec -T -w /testjam-client api pytest $(ARGS)
+
+test-cli-e2e: _up-api
+	-$(COMPOSE) exec -T api python scripts/create_admin.py \
+	  --username admin --email admin@example.com --password admin123
+	$(COMPOSE) exec -T -w /testjam-client -e TESTJAM_E2E_LIVE=1 api \
+	  pytest -q tests/test_cli_e2e_smoke.py $(ARGS)
 
 test-orchestrator:
 	$(COMPOSE) --profile e2e run --rm --entrypoint "" -w /tests/e2e e2e pytest orchestrator/tests $(ARGS)
