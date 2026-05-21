@@ -20,10 +20,3 @@ def test_help_lists_command_name():
 
     assert result.exit_code == 0
     assert "testjam" in result.output.lower()
-
-
-def test_no_arguments_shows_help_and_exits_nonzero():
-    result = runner.invoke(app, [])
-
-    assert result.exit_code != 0
-    assert "Usage" in result.output

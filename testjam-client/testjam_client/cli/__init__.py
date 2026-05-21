@@ -13,6 +13,7 @@ from testjam_client.cli.commands import projects as project_commands
 from testjam_client.cli.commands import run as run_commands
 from testjam_client.cli.commands import suites as suite_commands
 from testjam_client.cli.config import ConfigStore, default_config_path
+from testjam_client.cli.repl import enter_repl
 from testjam_client.cli.state import CliState
 
 
@@ -23,7 +24,6 @@ API_KEY_ENV_VAR = "TESTJAM_API_KEY"
 app = typer.Typer(
     name="testjam",
     help="Testjam command-line client.",
-    no_args_is_help=True,
 )
 
 
@@ -45,7 +45,7 @@ def _version_callback(value: bool) -> None:
     raise typer.Exit()
 
 
-@app.callback()
+@app.callback(invoke_without_command=True)
 def root(
     context: typer.Context,
     show_version: bool = typer.Option(
@@ -94,6 +94,13 @@ def root(
         json_output=json_output,
         yes_to_all=yes_to_all,
     )
+    if context.invoked_subcommand is None:
+        enter_repl(context)
+
+
+@app.command("repl", help="Enter the interactive shell (same as running `testjam` with no args).")
+def repl_command(context: typer.Context) -> None:
+    enter_repl(context)
 
 
 auth_commands.register(app)
