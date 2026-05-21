@@ -7,8 +7,7 @@ from pathlib import Path
 
 import typer
 
-from testjam_client.cli import runtime
-from testjam_client.cli.output import render
+from testjam_client.cli import output, runtime
 from testjam_client.cli.state import CliState
 
 
@@ -35,9 +34,10 @@ def list_cases(
     include_archived: bool = typer.Option(False, "--archived", help="Include archived cases."),
 ) -> None:
     state: CliState = context.obj
-    with runtime.build_client(state) as client:
-        rows = client.cases.list(suite_id, include_archived=include_archived)
-    render(rows, columns=LIST_COLUMNS, json_mode=state.json_output)
+    with output.progress("Loading cases…", enabled=not state.json_output):
+        with runtime.build_client(state) as client:
+            rows = client.cases.list(suite_id, include_archived=include_archived)
+    output.render(rows, columns=LIST_COLUMNS, json_mode=state.json_output)
 
 
 def show_case(
@@ -47,7 +47,7 @@ def show_case(
     state: CliState = context.obj
     with runtime.build_client(state) as client:
         payload = client.cases.get(case_id)
-    render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
+    output.render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
 
 
 def create_case(
@@ -72,7 +72,7 @@ def create_case(
         if steps:
             client.cases.replace_steps(payload["id"], steps)
             payload = client.cases.get(payload["id"])
-    render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
+    output.render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
 
 
 def _load_steps(source: str | None) -> list[dict]:

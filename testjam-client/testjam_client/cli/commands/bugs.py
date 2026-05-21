@@ -6,8 +6,7 @@ from pathlib import Path
 
 import typer
 
-from testjam_client.cli import runtime
-from testjam_client.cli.output import render
+from testjam_client.cli import output, runtime
 from testjam_client.cli.state import CliState
 
 
@@ -48,13 +47,14 @@ def list_bugs(
     limit: int = typer.Option(50, "--limit", help="Maximum rows to fetch."),
 ) -> None:
     state: CliState = context.obj
-    with runtime.build_client(state) as client:
-        project_id = runtime.resolve_project_id(client, state, project)
-        rows = client.bugs.list(
-            project_id,
-            status=status, severity=severity, tag=tag, search=search, limit=limit,
-        )
-    render(rows, columns=LIST_COLUMNS, json_mode=state.json_output)
+    with output.progress("Loading bugs…", enabled=not state.json_output):
+        with runtime.build_client(state) as client:
+            project_id = runtime.resolve_project_id(client, state, project)
+            rows = client.bugs.list(
+                project_id,
+                status=status, severity=severity, tag=tag, search=search, limit=limit,
+            )
+    output.render(rows, columns=LIST_COLUMNS, json_mode=state.json_output)
 
 
 def show_bug(
@@ -65,7 +65,7 @@ def show_bug(
     state: CliState = context.obj
     with runtime.build_client(state) as client:
         payload = _fetch_bug(client, state, reference, project)
-    render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
+    output.render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
 
 
 def create_bug(
@@ -92,7 +92,7 @@ def create_bug(
             fixed_in_version_id=fixed_in_version_id,
             assigned_to_id=assigned_to_id,
         )
-    render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
+    output.render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
 
 
 def update_bug(
@@ -122,7 +122,7 @@ def update_bug(
 
     with runtime.build_client(state) as client:
         result = client.bugs.update(bug_id, **payload)
-    render(result, columns=SHOW_COLUMNS, json_mode=state.json_output)
+    output.render(result, columns=SHOW_COLUMNS, json_mode=state.json_output)
 
 
 def watch_bug(
@@ -161,7 +161,7 @@ def add_comment(
     text = _resolve_comment_body(body, file)
     with runtime.build_client(state) as client:
         payload = client.bugs.add_comment(bug_id, text)
-    render(payload, columns=COMMENT_COLUMNS, json_mode=state.json_output)
+    output.render(payload, columns=COMMENT_COLUMNS, json_mode=state.json_output)
 
 
 def _build_status_app() -> typer.Typer:
@@ -182,7 +182,7 @@ def change_status(
     )
     with runtime.build_client(state) as client:
         payload = client.bugs.change_status(bug_id, new_status, note=note)
-    render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
+    output.render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
 
 
 def _fetch_bug(client, state: CliState, reference: str, project: str | None) -> dict:

@@ -1,6 +1,8 @@
 """Testjam command-line client entry point."""
+import sys
 from importlib.metadata import PackageNotFoundError, version
 
+import httpx
 import typer
 
 from testjam_client.cli.commands import auth as auth_commands
@@ -12,14 +14,17 @@ from testjam_client.cli.commands import plans as plan_commands
 from testjam_client.cli.commands import projects as project_commands
 from testjam_client.cli.commands import run as run_commands
 from testjam_client.cli.commands import suites as suite_commands
+from testjam_client.cli import output
 from testjam_client.cli.config import ConfigStore, default_config_path
 from testjam_client.cli.repl import enter_repl
 from testjam_client.cli.state import CliState
+from testjam_client.errors import TestjamError
 
 
 PACKAGE_NAME = "testjam-client"
 FALLBACK_VERSION = "0.0.0"
 API_KEY_ENV_VAR = "TESTJAM_API_KEY"
+EXIT_INTERRUPTED = 130
 
 app = typer.Typer(
     name="testjam",
@@ -28,7 +33,21 @@ app = typer.Typer(
 
 
 def main() -> None:
-    app()
+    run_with_pretty_errors(app)
+
+
+def run_with_pretty_errors(callable_app) -> None:
+    try:
+        callable_app()
+    except TestjamError as exc:
+        output.console.print(f"[bold red]Error[/bold red]: {exc}")
+        sys.exit(1)
+    except httpx.HTTPError as exc:
+        output.console.print(f"[bold red]Network error[/bold red]: {exc}")
+        sys.exit(1)
+    except KeyboardInterrupt:
+        output.console.print("[yellow]Interrupted.[/yellow]")
+        sys.exit(EXIT_INTERRUPTED)
 
 
 def _resolve_version() -> str:

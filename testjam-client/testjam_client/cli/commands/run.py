@@ -9,8 +9,7 @@ import typer
 from rich.live import Live
 from rich.table import Table
 
-from testjam_client.cli import runtime
-from testjam_client.cli.output import console, render
+from testjam_client.cli import output, runtime
 from testjam_client.cli.state import CliState
 
 
@@ -73,7 +72,7 @@ def start_run(
             environment=environment,
             assigned_to_id=assigned_to_id,
         )
-    render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
+    output.render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
 
 
 def tail_run(
@@ -108,7 +107,7 @@ def _poll_silent(client, execution_id: int, interval: float) -> dict[str, Any]:
 
 
 def _poll_live(client, execution_id: int, interval: float) -> dict[str, Any]:
-    with Live(console=console, refresh_per_second=4, transient=False) as live:
+    with Live(console=output.console, refresh_per_second=4, transient=False) as live:
         while True:
             snapshot = _take_snapshot(client, execution_id)
             live.update(_render_table(snapshot))

@@ -3,8 +3,7 @@ from __future__ import annotations
 
 import typer
 
-from testjam_client.cli import runtime
-from testjam_client.cli.output import render
+from testjam_client.cli import output, runtime
 from testjam_client.cli.state import CliState
 
 
@@ -34,12 +33,13 @@ def list_executions(
     limit: int = typer.Option(50, "--limit", help="Maximum rows to fetch."),
 ) -> None:
     state: CliState = context.obj
-    with runtime.build_client(state) as client:
-        project_id = runtime.resolve_project_id(client, state, project)
-        rows = client.executions.list(
-            project_id, type=execution_type, status=status, limit=limit,
-        )
-    render(rows, columns=LIST_COLUMNS, json_mode=state.json_output)
+    with output.progress("Loading executions…", enabled=not state.json_output):
+        with runtime.build_client(state) as client:
+            project_id = runtime.resolve_project_id(client, state, project)
+            rows = client.executions.list(
+                project_id, type=execution_type, status=status, limit=limit,
+            )
+    output.render(rows, columns=LIST_COLUMNS, json_mode=state.json_output)
 
 
 def show_execution(
@@ -49,4 +49,4 @@ def show_execution(
     state: CliState = context.obj
     with runtime.build_client(state) as client:
         payload = client.executions.get(execution_id)
-    render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
+    output.render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
