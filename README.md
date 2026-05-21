@@ -33,6 +33,7 @@ Plan suites, drive manual runs with keyboard shortcuts, stream CI results live, 
 | 🔌 **Integrations** | Push bugs to GitHub, Jira, GitLab, Azure DevOps, OpenProject + outbound event webhooks                |
 | 💬 **Mentions**     | Cross-entity references between users, bugs, runs and cases with email + in-app notifications         |
 | 🐍 **Python SDK**   | `pip install testjam-client` — full API coverage for custom CI integration, dashboards and scripting  |
+| 💻 **CLI**          | `pip install "testjam-client[cli]"` — `testjam` binary with profiles, REPL, JSON output, `run tail`   |
 
 
 <details>
