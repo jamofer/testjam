@@ -259,7 +259,72 @@ def test_html_report_includes_comments_discussion(auth_client, project_id):
     body = response.text
     assert "Discussion (2)" in body
     assert "Cannot reproduce on staging" in body
-    assert "Repro steps in #42" in body
+    assert "Repro steps in " in body
+    assert 'mention-bug">#42</span>' in body
+
+
+def test_html_report_renders_description_markdown(auth_client, project_id):
+    description = (
+        "## Repro steps\n"
+        "\n"
+        "- open the **login** page\n"
+        "- type `admin/admin`\n"
+        "\n"
+        "```\nstacktrace line\n```\n"
+    )
+    _create_bug(auth_client, project_id, title="MD bug", description=description)
+
+    response = auth_client.get(f"/api/v1/projects/{project_id}/bugs/report?format=html")
+    body = response.text
+
+    assert "<h2>Repro steps</h2>" in body
+    assert "<strong>login</strong>" in body
+    assert "<code>admin/admin</code>" in body
+    assert "<pre><code>stacktrace line</code></pre>" in body
+    assert "## Repro steps" not in body
+
+
+def test_html_report_renders_comment_markdown(auth_client, project_id):
+    bug = _create_bug(auth_client, project_id, title="MD comment").json()
+    auth_client.post(
+        f"/api/v1/bugs/{bug['id']}/comments",
+        json={"body": "Found it: see **commit abc1234** in `auth.py`."},
+    )
+
+    response = auth_client.get(f"/api/v1/projects/{project_id}/bugs/report?format=html")
+    body = response.text
+
+    assert "<strong>commit abc1234</strong>" in body
+    assert "<code>auth.py</code>" in body
+
+
+def test_html_report_renders_mentions(auth_client, project_id):
+    _create_bug(
+        auth_client, project_id, title="Mentions",
+        description="ping @alice about #5 — fix lands in !17/91/3, see case ~91",
+    )
+
+    response = auth_client.get(f"/api/v1/projects/{project_id}/bugs/report?format=html")
+    body = response.text
+
+    assert 'mention-user">@alice' in body
+    assert 'mention-bug">#5' in body
+    assert 'mention-step_result">!17/91/3' in body
+    assert 'mention-case">~91' in body
+
+
+def test_html_report_resolves_mention_labels(auth_client, project_id):
+    target = _create_bug(auth_client, project_id, title="Original repro").json()
+    _create_bug(
+        auth_client, project_id, title="Cross-ref",
+        description=f"duplicate of #{target['number']}",
+    )
+
+    response = auth_client.get(f"/api/v1/projects/{project_id}/bugs/report?format=html")
+    body = response.text
+
+    expected_label = f"#{target['number']} Original repro"
+    assert f'mention-bug">{expected_label}</span>' in body
 
 
 def test_xlsx_report_has_comments_sheet(auth_client, project_id):

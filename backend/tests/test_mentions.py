@@ -1,5 +1,5 @@
 """Tests for the shared mention parser."""
-from testjam.services.mentions import parse, usernames
+from testjam.services.mentions import enrich_html_with_mentions, parse, usernames
 
 
 def test_user_mention_basic():
@@ -69,3 +69,50 @@ def test_heading_hash_does_not_match():
 
 def test_usernames_helper():
     assert usernames("ping @alice and @bob_92") == ["alice", "bob_92"]
+
+
+def test_enrich_wraps_user_mention():
+    enriched = enrich_html_with_mentions("<p>ping @alice please</p>")
+
+    assert '<span class="mention mention-user">@alice</span>' in enriched
+    assert "<p>ping " in enriched
+
+
+def test_enrich_wraps_every_mention_kind():
+    enriched = enrich_html_with_mentions(
+        "<p>see #42, run !17, step !17/91/3 and case ~91 cc @alice</p>"
+    )
+
+    assert 'mention-bug">#42' in enriched
+    assert 'mention-execution">!17' in enriched
+    assert 'mention-step_result">!17/91/3' in enriched
+    assert 'mention-case">~91' in enriched
+    assert 'mention-user">@alice' in enriched
+
+
+def test_enrich_skips_inside_code_block():
+    enriched = enrich_html_with_mentions(
+        "<pre><code>do not @alice me</code></pre>"
+    )
+
+    assert "mention-user" not in enriched
+    assert "@alice" in enriched
+
+
+def test_enrich_skips_inline_code():
+    enriched = enrich_html_with_mentions("<p>see <code>@alice</code> tag</p>")
+
+    assert enriched.count("mention-user") == 0
+    assert "<code>@alice</code>" in enriched
+
+
+def test_enrich_escapes_surrounding_html_special_chars():
+    enriched = enrich_html_with_mentions("<p>a < b @alice c > d</p>")
+
+    assert 'mention-user">@alice' in enriched
+    assert "a &lt; b" in enriched
+    assert "c &gt; d" in enriched
+
+
+def test_enrich_empty_input():
+    assert enrich_html_with_mentions("") == ""

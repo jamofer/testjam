@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.responses import FileResponse
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import get_current_user, require_project_access
@@ -91,15 +92,25 @@ def list_projects(
     return [_project_out(p, db) for p in query.all()]
 
 
+def _find_project_by_name(db: Session, name: str) -> Project | None:
+    return db.query(Project).filter(Project.name == name).first()
+
+
 @router.post("", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)
 def create_project(body: ProjectCreate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
-    if db.query(Project).filter(Project.name == body.name).first():
+    if _find_project_by_name(db, body.name):
         raise HTTPException(status_code=409, detail=f"Project '{body.name}' already exists")
     project = Project(**body.model_dump())
     db.add(project)
-    db.flush()
-    db.add(ProjectMember(project_id=project.id, user_id=current.id, role="owner"))
-    db.commit()
+    try:
+        db.flush()
+        db.add(ProjectMember(project_id=project.id, user_id=current.id, role="owner"))
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409, detail=f"Project '{body.name}' already exists",
+        )
     db.refresh(project)
     return _project_out(project, db)
 
