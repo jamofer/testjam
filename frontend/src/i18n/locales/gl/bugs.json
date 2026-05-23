@@ -118,7 +118,10 @@
     "commentUpdated": "editou un comentario",
     "descriptionEdited": "editou a descrición",
     "descriptionSet": "estableceu a descrición",
-    "descriptionCleared": "quitou a descrición"
+    "descriptionCleared": "quitou a descrición",
+    "customFieldSet": "estableceu {{key}} en {{to}}",
+    "customFieldChanged": "cambiou {{key}} de {{from}} a {{to}}",
+    "customFieldCleared": "quitou {{key}}"
   },
   "delete": {
     "bugTitle": "Eliminar o bug #{{number}}?",

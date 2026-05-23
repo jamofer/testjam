@@ -118,7 +118,10 @@
     "commentUpdated": "ha editat un comentari",
     "descriptionEdited": "ha editat la descripció",
     "descriptionSet": "ha establert la descripció",
-    "descriptionCleared": "ha tret la descripció"
+    "descriptionCleared": "ha tret la descripció",
+    "customFieldSet": "ha establert {{key}} a {{to}}",
+    "customFieldChanged": "ha canviat {{key}} de {{from}} a {{to}}",
+    "customFieldCleared": "ha tret {{key}}"
   },
   "delete": {
     "bugTitle": "Eliminar el bug #{{number}}?",

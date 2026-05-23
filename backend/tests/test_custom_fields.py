@@ -374,6 +374,40 @@ def test_filter_bugs_by_bool_custom_field(auth_client, project_id):
     assert false_matches[0]["custom_fields"]["regression"] is False
 
 
+def test_updating_custom_field_records_activity(auth_client, project_id, priority_field):
+    bug = _bug_with_field(auth_client, project_id, custom_fields={"priority": "p0"})
+
+    auth_client.put(
+        f"/api/v1/bugs/{bug['id']}", json={"custom_fields": {"priority": "p1"}},
+    )
+
+    rows = [
+        row for row in auth_client.get(f"/api/v1/bugs/{bug['id']}/activity").json()
+        if row["field"] == "custom_field"
+    ]
+    assert len(rows) == 1
+    assert rows[0]["note"] == "priority"
+    assert rows[0]["from_value"] == "p0"
+    assert rows[0]["to_value"] == "p1"
+
+
+def test_clearing_custom_field_records_activity(auth_client, project_id, priority_field):
+    bug = _bug_with_field(auth_client, project_id, custom_fields={"priority": "p0"})
+
+    auth_client.put(
+        f"/api/v1/bugs/{bug['id']}", json={"custom_fields": {"priority": None}},
+    )
+
+    rows = [
+        row for row in auth_client.get(f"/api/v1/bugs/{bug['id']}/activity").json()
+        if row["field"] == "custom_field"
+    ]
+    assert len(rows) == 1
+    assert rows[0]["note"] == "priority"
+    assert rows[0]["from_value"] == "p0"
+    assert rows[0]["to_value"] is None
+
+
 def test_delete_blocked_when_values_exist(auth_client, project_id, priority_field):
     _bug_with_field(auth_client, project_id, custom_fields={"priority": "p0"})
 

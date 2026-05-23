@@ -118,7 +118,10 @@
     "commentUpdated": "iruzkin bat editatu du",
     "descriptionEdited": "deskribapena editatu du",
     "descriptionSet": "deskribapena ezarri du",
-    "descriptionCleared": "deskribapena kendu du"
+    "descriptionCleared": "deskribapena kendu du",
+    "customFieldSet": "{{key}} → {{to}} ezarri du",
+    "customFieldChanged": "{{key}}: {{from}} → {{to}} aldatu du",
+    "customFieldCleared": "{{key}} kendu du"
   },
   "delete": {
     "bugTitle": "#{{number}} akatsa ezabatu?",

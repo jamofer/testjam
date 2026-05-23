@@ -49,7 +49,9 @@ _FIELD_RENAMES: dict[str, str] = {
 
 
 def snapshot(bug: Bug) -> dict[str, Any]:
-    return {field: getattr(bug, field) for field in TRACKED_FIELDS}
+    base = {field: getattr(bug, field) for field in TRACKED_FIELDS}
+    base["custom_fields"] = dict(bug.custom_fields or {})
+    return base
 
 
 def record_field_changes(
@@ -71,9 +73,42 @@ def record_field_changes(
             to_value=_serialize(field, after),
             actor_id=actor_id,
         ))
+    rows.extend(_custom_field_rows(bug, previous, actor_id))
     for row in rows:
         db.add(row)
     return rows
+
+
+def _custom_field_rows(
+    bug: Bug,
+    previous: dict[str, Any],
+    actor_id: int | None,
+) -> list[BugActivity]:
+    before = previous.get("custom_fields") or {}
+    after = bug.custom_fields or {}
+    rows: list[BugActivity] = []
+    for key in sorted(set(before) | set(after)):
+        if _values_equal(before.get(key), after.get(key)):
+            continue
+        rows.append(_build_row(
+            bug_id=bug.id,
+            field="custom_field",
+            from_value=_serialize_custom_value(before.get(key)),
+            to_value=_serialize_custom_value(after.get(key)),
+            note=key,
+            actor_id=actor_id,
+        ))
+    return rows
+
+
+def _serialize_custom_value(value: Any) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, list):
+        return json.dumps(list(value))
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
 
 
 def record_status_change(
