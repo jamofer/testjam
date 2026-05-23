@@ -216,7 +216,13 @@
     "deleted": "Bug eliminado",
     "statusChanged": "Estado actualizado",
     "commentAdded": "Comentario añadido",
-    "reportFailed": "No se pudo descargar el informe"
+    "reportFailed": "No se pudo descargar el informe",
+    "statusFailed": "No se pudo cambiar el estado",
+    "deleteFailed": "No se pudo eliminar el bug",
+    "updateFailed": "No se pudieron guardar los cambios",
+    "commentFailed": "No se pudo añadir el comentario",
+    "commentEditFailed": "No se pudo guardar el comentario",
+    "commentDeleteFailed": "No se pudo eliminar el comentario"
   },
   "report": {
     "dialogTitle": "Reportar bug",

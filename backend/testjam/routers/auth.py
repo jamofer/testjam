@@ -5,6 +5,12 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session
 
+from testjam.auth.ip_throttle import (
+    clear_ip,
+    is_ip_locked,
+    register_ip_failure,
+    seconds_until_ip_unlock,
+)
 from testjam.auth.lockout import (
     clear_lockout,
     is_locked,
@@ -17,7 +23,11 @@ from testjam.core.rate_limit import LOGIN_RATE_LIMIT, limiter
 from testjam.database import get_db
 from testjam.models.user import User
 from testjam.schemas.user import TokenResponse
-from testjam.services.password_reset import confirm_password_reset, request_password_reset
+from testjam.services.password_reset import (
+    PasswordResetMisconfigured,
+    confirm_password_reset,
+    request_password_reset,
+)
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -36,6 +46,13 @@ class PasswordResetConfirm(BaseModel):
 @router.post("/login", response_model=TokenResponse)
 @limiter.limit(LOGIN_RATE_LIMIT)
 def login(request: Request, form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    client_ip = _client_ip(request)
+    if is_ip_locked(db, client_ip):
+        raise HTTPException(
+            status_code=status.HTTP_423_LOCKED,
+            detail="Account locked due to too many failed login attempts",
+            headers={"Retry-After": str(seconds_until_ip_unlock(db, client_ip))},
+        )
     user = db.query(User).filter(
         User.username == form.username, User.deleted_at.is_(None),
     ).first()
@@ -48,12 +65,14 @@ def login(request: Request, form: OAuth2PasswordRequestForm = Depends(), db: Ses
     if not user or not verify_password(form.password, user.hashed_password):
         if user:
             register_failed_attempt(db, user)
+        register_ip_failure(db, client_ip)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user")
     clear_lockout(db, user)
+    clear_ip(client_ip)
     user.last_login_at = datetime.now(timezone.utc)
-    user.last_login_ip = _client_ip(request)
+    user.last_login_ip = client_ip
     db.commit()
     token = create_access_token(subject=user.username)
     return TokenResponse(
@@ -77,7 +96,13 @@ def password_reset_request(
     background: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
-    request_password_reset(db, body.email, background=background)
+    try:
+        request_password_reset(db, body.email, background=background)
+    except PasswordResetMisconfigured as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        )
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

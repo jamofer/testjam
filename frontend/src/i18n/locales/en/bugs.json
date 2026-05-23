@@ -216,7 +216,13 @@
     "updated": "Bug updated",
     "statusChanged": "Status updated",
     "commentAdded": "Comment added",
-    "reportFailed": "Could not download report"
+    "reportFailed": "Could not download report",
+    "statusFailed": "Could not change status",
+    "deleteFailed": "Could not delete bug",
+    "updateFailed": "Could not save changes",
+    "commentFailed": "Could not add comment",
+    "commentEditFailed": "Could not save comment",
+    "commentDeleteFailed": "Could not delete comment"
   },
   "report": {
     "dialogTitle": "Report bug",

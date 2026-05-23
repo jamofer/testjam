@@ -168,7 +168,9 @@
         "siteUrlPlaceholder": "https://qa.example.com",
         "appName": "Nom de l'app",
         "allowRegistration": "Permet l'auto-registre de nous usuaris",
-        "allowSelfDelete": "Permet que els usuaris eliminin el seu propi compte"
+        "allowSelfDelete": "Permet que els usuaris eliminin el seu propi compte",
+        "ipThrottle": "Bloqueja IPs després de diversos intents fallits",
+        "ipThrottleHelp": "Reflecteix el bloqueig per usuari sobre la IP d'origen. Desactiva-ho si tens runners de test compartits o proxies que agrupen molts usuaris darrere d'una mateixa IP."
       },
       "executionDefaults": {
         "title": "Valors per defecte d'execució",

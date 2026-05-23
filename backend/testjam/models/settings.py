@@ -46,6 +46,10 @@ class AppSettings(Base):
 
     ws_log_flush_ms: Mapped[int] = mapped_column(Integer, nullable=False, server_default="100")
 
+    ip_throttle_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default="true",
+    )
+
     export_inline_attachment_mb: Mapped[int] = mapped_column(
         Integer, nullable=False, server_default="10",
     )

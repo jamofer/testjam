@@ -104,4 +104,12 @@ def _dispatch_reset_email(
 
 def _build_reset_url(site_url: str | None, raw_token: str) -> str:
     base = (site_url or "").rstrip("/")
+    if not base:
+        raise PasswordResetMisconfigured(
+            "AppSettings.site_url must be set before issuing password reset emails",
+        )
     return f"{base}/reset-password?token={raw_token}"
+
+
+class PasswordResetMisconfigured(RuntimeError):
+    """Raised when the application is not configured to send working reset links."""

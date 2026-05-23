@@ -197,7 +197,13 @@
     "deleted": "Akatsa ezabatua",
     "statusChanged": "Egoera eguneratua",
     "commentAdded": "Iruzkina gehitu da",
-    "reportFailed": "Ezin izan da txostena deskargatu"
+    "reportFailed": "Ezin izan da txostena deskargatu",
+    "statusFailed": "Ezin izan da egoera aldatu",
+    "deleteFailed": "Ezin izan da akatsa ezabatu",
+    "updateFailed": "Ezin izan dira aldaketak gorde",
+    "commentFailed": "Ezin izan da iruzkina gehitu",
+    "commentEditFailed": "Ezin izan da iruzkina gorde",
+    "commentDeleteFailed": "Ezin izan da iruzkina ezabatu"
   },
   "report": {
     "dialogTitle": "Eman akatsaren berri",

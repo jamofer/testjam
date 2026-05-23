@@ -35,11 +35,21 @@ function Field({ label, hint, children }) {
   )
 }
 
-function Toggle({ checked, onChange, label }) {
+function Toggle({ checked, onChange, label, description }) {
   return (
-    <label className="flex items-center gap-2 text-sm cursor-pointer">
-      <input type="checkbox" checked={!!checked} onChange={event => onChange(event.target.checked)} />
-      <span>{label}</span>
+    <label className="flex items-start gap-2 text-sm cursor-pointer">
+      <input
+        type="checkbox"
+        checked={!!checked}
+        onChange={event => onChange(event.target.checked)}
+        className="mt-0.5"
+      />
+      <span className="flex flex-col">
+        <span>{label}</span>
+        {description && (
+          <span className="text-xs text-gray-500 dark:text-gray-400">{description}</span>
+        )}
+      </span>
     </label>
   )
 }
@@ -70,6 +80,7 @@ export function SettingsPage() {
         smtp_from: settings.smtp_from ?? "",
         smtp_use_tls: settings.smtp_use_tls,
         ws_log_flush_ms: settings.ws_log_flush_ms ?? 100,
+        ip_throttle_enabled: settings.ip_throttle_enabled ?? true,
       })
     }
   }, [settings])
@@ -114,6 +125,7 @@ export function SettingsPage() {
       smtp_from: form.smtp_from || null,
       smtp_use_tls: form.smtp_use_tls,
       ws_log_flush_ms: Number(form.ws_log_flush_ms),
+      ip_throttle_enabled: form.ip_throttle_enabled,
     }
     if (form.clear_smtp_password) payload.smtp_password = ""
     else if (form.smtp_password) payload.smtp_password = form.smtp_password
@@ -157,6 +169,10 @@ export function SettingsPage() {
             <Toggle checked={form.allow_user_self_delete}
               onChange={set("allow_user_self_delete")}
               label={t("settings.sections.general.allowSelfDelete")} />
+            <Toggle checked={form.ip_throttle_enabled}
+              onChange={set("ip_throttle_enabled")}
+              label={t("settings.sections.general.ipThrottle")}
+              description={t("settings.sections.general.ipThrottleHelp")} />
           </Section>
 
           <Section title={t("settings.sections.executionDefaults.title")}>

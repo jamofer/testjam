@@ -168,7 +168,9 @@
         "siteUrlPlaceholder": "https://qa.example.com",
         "appName": "Aplikazioaren izena",
         "allowRegistration": "Onartu erabiltzaile berrien auto-erregistroa",
-        "allowSelfDelete": "Onartu erabiltzaileek beren kontua ezabatzea"
+        "allowSelfDelete": "Onartu erabiltzaileek beren kontua ezabatzea",
+        "ipThrottle": "Blokeatu IPak saiakera huts gehiegirengatik",
+        "ipThrottleHelp": "Erabiltzaileka egiten den blokeoa IP iturburuan ere aplikatzen du. Desaktibatu test-runner partekatuak edo proxy bidez erabiltzaile asko IP berberetik konektatzen badira."
       },
       "executionDefaults": {
         "title": "Exekuzioaren balio lehenetsiak",

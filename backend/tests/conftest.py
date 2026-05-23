@@ -23,10 +23,12 @@ from sqlalchemy.pool import StaticPool
 
 from testjam import database as testjam_database
 from testjam import main as testjam_main
+from testjam.auth import ip_throttle
 from testjam.auth.security import hash_password
 from testjam.core.rate_limit import limiter
 from testjam.database import Base, get_db
 from testjam.main import app
+from testjam.models.settings import AppSettings
 from testjam.models.user import User
 
 # Disable rate limiting globally; tests that exercise it re-enable in scope.
@@ -57,6 +59,15 @@ def _setup_schema():
 
 @pytest.fixture(autouse=True)
 def setup_db(_setup_schema):
+    ip_throttle._reset_for_tests()
+    with engine.begin() as conn:
+        conn.execute(
+            AppSettings.__table__.insert().values(
+                id=1,
+                site_url="https://testjam.example",
+                ip_throttle_enabled=False,
+            ),
+        )
     yield
     with engine.begin() as conn:
         for table in reversed(Base.metadata.sorted_tables):

@@ -168,7 +168,9 @@
         "siteUrlPlaceholder": "https://qa.example.com",
         "appName": "App name",
         "allowRegistration": "Allow new user self-registration",
-        "allowSelfDelete": "Allow users to delete their own account"
+        "allowSelfDelete": "Allow users to delete their own account",
+        "ipThrottle": "Lock out client IPs after repeated failed logins",
+        "ipThrottleHelp": "Mirrors the per-user lockout against the calling IP. Disable for shared-test runners or proxies that aggregate many users behind one address."
       },
       "executionDefaults": {
         "title": "Execution defaults",
