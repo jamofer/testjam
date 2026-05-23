@@ -69,5 +69,9 @@
     "fieldExternalId": "ID externo",
     "fieldTags": "Etiquetas",
     "fieldSteps": "Pasos"
+  },
+  "discussion": {
+    "deleteTitle": "Eliminar este comentario?",
+    "deleteDescription": "O comentario eliminarase de xeito permanente."
   }
 }

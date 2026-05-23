@@ -4,6 +4,7 @@ import { toast } from "sonner"
 
 import { MdEditor, MdViewer } from "../MdEditor"
 import { Button } from "../ui/button"
+import { ConfirmDialog } from "../ui/confirm-dialog"
 import { DateLabel } from "../ui/date-label"
 import { useMe } from "../../hooks/useAuth"
 import {
@@ -27,6 +28,7 @@ export function CaseDiscussion({ caseId, projectId }) {
   const [draft, setDraft] = useState("")
   const [editingId, setEditingId] = useState(null)
   const [editingBody, setEditingBody] = useState("")
+  const [commentPendingDelete, setCommentPendingDelete] = useState(null)
 
   const submit = async (event) => {
     event.preventDefault()
@@ -52,12 +54,14 @@ export function CaseDiscussion({ caseId, projectId }) {
     }
   }
 
-  const remove = async (comment) => {
-    if (!confirm(t("discussion.deleteConfirm"))) return
+  const confirmRemove = async () => {
+    if (!commentPendingDelete) return
     try {
-      await removeComment.mutateAsync({ caseId, commentId: comment.id })
+      await removeComment.mutateAsync({ caseId, commentId: commentPendingDelete.id })
     } catch (error) {
       toast.error(error?.response?.data?.detail ?? "Failed")
+    } finally {
+      setCommentPendingDelete(null)
     }
   }
 
@@ -81,7 +85,7 @@ export function CaseDiscussion({ caseId, projectId }) {
                   <button onClick={() => { setEditingId(comment.id); setEditingBody(comment.body) }} className="hover:underline">
                     {t("discussion.edit")}
                   </button>
-                  <button onClick={() => remove(comment)} className="hover:underline text-red-500">
+                  <button onClick={() => setCommentPendingDelete(comment)} className="hover:underline text-red-500">
                     {t("discussion.delete")}
                   </button>
                 </span>
@@ -107,6 +111,17 @@ export function CaseDiscussion({ caseId, projectId }) {
           {t("discussion.add")}
         </Button>
       </form>
+
+      <ConfirmDialog
+        open={commentPendingDelete !== null}
+        onOpenChange={(open) => { if (!open) setCommentPendingDelete(null) }}
+        title={t("discussion.deleteTitle")}
+        description={t("discussion.deleteDescription")}
+        confirmLabel={t("common:actions.delete")}
+        destructive
+        busy={removeComment.isPending}
+        onConfirm={confirmRemove}
+      />
     </section>
   )
 }

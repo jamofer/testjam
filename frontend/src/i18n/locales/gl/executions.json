@@ -17,7 +17,10 @@
   "deleteTitle": "Eliminar execución",
   "deleted": "Execución eliminada",
   "deleteFailed": "Non se puido eliminar a execución",
-  "deleteConfirm": "Eliminar a execución «{{title}}»? Esta acción non se pode desfacer.",
+  "delete": {
+    "title": "Eliminar a execución «{{title}}»?",
+    "description": "Eliminarase de xeito permanente a execución e todos os seus resultados."
+  },
   "loadMore": "Cargar máis",
   "loadingMore": "Cargando…",
   "via": "vía {{token}}",

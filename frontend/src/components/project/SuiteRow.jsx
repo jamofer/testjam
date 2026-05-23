@@ -14,6 +14,7 @@ import {
 import { suitesApi } from "../../api/testcases"
 import { plansApi } from "../../api/testplans"
 import { Button } from "../ui/button"
+import { ConfirmDialog } from "../ui/confirm-dialog"
 import { Input } from "../ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
@@ -149,15 +150,17 @@ function CaseList({ suiteId }) {
   const toggleAll = () => setSelected(allSelected ? new Set() : new Set(allIds))
   const clear = () => setSelected(new Set())
 
-  const handleBulkDelete = async () => {
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+  const confirmBulkDelete = async () => {
     const ids = [...selected]
-    if (!confirm(t("row.bulkDeleteConfirm", { count: ids.length }))) return
     try {
       await bulkDelete.mutateAsync(ids)
       toast.success(t("row.bulkDeleted", { count: ids.length }))
       clear()
     } catch {
       toast.error(t("row.bulkDeleteFailed"))
+    } finally {
+      setBulkDeleteOpen(false)
     }
   }
 
@@ -215,7 +218,7 @@ function CaseList({ suiteId }) {
           <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
             {t("row.selectedCount", { count: selected.size })}
           </span>
-          <Button size="sm" variant="outline" onClick={handleBulkDelete}
+          <Button size="sm" variant="outline" onClick={() => setBulkDeleteOpen(true)}
             disabled={bulkDelete.isPending}>
             <Trash2 size={12} /> {t("row.deleteButton")}
           </Button>
@@ -241,6 +244,17 @@ function CaseList({ suiteId }) {
           </Button>
         </div>
       )}
+
+      <ConfirmDialog
+        open={bulkDeleteOpen}
+        onOpenChange={setBulkDeleteOpen}
+        title={t("row.bulkDeleteTitle", { count: selected.size })}
+        description={t("row.bulkDeleteDescription")}
+        confirmLabel={t("common:actions.delete")}
+        destructive
+        busy={bulkDelete.isPending}
+        onConfirm={confirmBulkDelete}
+      />
     </div>
   )
 }

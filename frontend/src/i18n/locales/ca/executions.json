@@ -17,7 +17,10 @@
   "deleteTitle": "Elimina l'execució",
   "deleted": "Execució eliminada",
   "deleteFailed": "No s'ha pogut eliminar l'execució",
-  "deleteConfirm": "Eliminar l'execució «{{title}}»? Aquesta acció no es pot desfer.",
+  "delete": {
+    "title": "Eliminar l'execució «{{title}}»?",
+    "description": "S'eliminarà de manera permanent l'execució i tots els seus resultats."
+  },
   "loadMore": "Carrega'n més",
   "loadingMore": "Carregant…",
   "via": "via {{token}}",
