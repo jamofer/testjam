@@ -350,6 +350,30 @@ def test_filter_bugs_by_custom_field(auth_client, project_id, priority_field):
     assert matches[0]["custom_fields"]["priority"] == "p0"
 
 
+def test_filter_bugs_by_bool_custom_field(auth_client, project_id):
+    _create_field(
+        auth_client, project_id, key="regression", type="bool", options=None,
+    )
+    _bug_with_field(auth_client, project_id, custom_fields={"regression": True})
+    _bug_with_field(auth_client, project_id, custom_fields={"regression": False})
+
+    true_response = auth_client.get(
+        f"/api/v1/projects/{project_id}/bugs?cf_key=regression&cf_value=true"
+    )
+    false_response = auth_client.get(
+        f"/api/v1/projects/{project_id}/bugs?cf_key=regression&cf_value=false"
+    )
+
+    assert true_response.status_code == 200
+    assert false_response.status_code == 200
+    true_matches = true_response.json()
+    false_matches = false_response.json()
+    assert len(true_matches) == 1
+    assert true_matches[0]["custom_fields"]["regression"] is True
+    assert len(false_matches) == 1
+    assert false_matches[0]["custom_fields"]["regression"] is False
+
+
 def test_delete_blocked_when_values_exist(auth_client, project_id, priority_field):
     _bug_with_field(auth_client, project_id, custom_fields={"priority": "p0"})
 

@@ -73,7 +73,7 @@ def upgrade() -> None:
             "custom_fields",
             sa.JSON(),
             nullable=False,
-            server_default=sa.text("'{}'::json"),
+            server_default=sa.text("'{}'"),
         ),
     )
     op.add_column(
@@ -82,7 +82,7 @@ def upgrade() -> None:
             "custom_fields",
             sa.JSON(),
             nullable=False,
-            server_default=sa.text("'{}'::json"),
+            server_default=sa.text("'{}'"),
         ),
     )
     op.add_column(
@@ -91,7 +91,7 @@ def upgrade() -> None:
             "custom_fields",
             sa.JSON(),
             nullable=False,
-            server_default=sa.text("'{}'::json"),
+            server_default=sa.text("'{}'"),
         ),
     )
 
