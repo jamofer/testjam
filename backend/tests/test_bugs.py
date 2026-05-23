@@ -758,6 +758,36 @@ def test_delete_attachment_removes_row_and_records_activity(auth_client, project
     assert rows[1]["to_value"] is None
 
 
+def test_updating_a_comment_records_activity(auth_client, project_id):
+    bug = _create_bug(auth_client, project_id).json()
+    comment = auth_client.post(
+        f"/api/v1/bugs/{bug['id']}/comments", json={"body": "initial"},
+    ).json()
+
+    auth_client.put(
+        f"/api/v1/bugs/{bug['id']}/comments/{comment['id']}",
+        json={"body": "revised"},
+    )
+
+    rows = _activity_by_field(auth_client, bug["id"], "comment")
+    assert len(rows) == 1
+    assert rows[0]["to_value"] == str(comment["id"])
+
+
+def test_updating_a_comment_with_same_body_skips_activity(auth_client, project_id):
+    bug = _create_bug(auth_client, project_id).json()
+    comment = auth_client.post(
+        f"/api/v1/bugs/{bug['id']}/comments", json={"body": "unchanged"},
+    ).json()
+
+    auth_client.put(
+        f"/api/v1/bugs/{bug['id']}/comments/{comment['id']}",
+        json={"body": "unchanged"},
+    )
+
+    assert _activity_by_field(auth_client, bug["id"], "comment") == []
+
+
 def test_upload_attachment_requires_writer_role(viewer_client, auth_client, project_id):
     bug = _create_bug(auth_client, project_id).json()
     files = {"file": ("note.txt", b"hi", "text/plain")}

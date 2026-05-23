@@ -235,14 +235,6 @@ def on_bug_deleted(project_id: int, bug_id: int) -> None:
     notify_project(project_id, {"event": "bug.deleted", "data": {"id": bug_id}})
 
 
-def on_bug_attachment_changed(
-    db: Session, bug_id: int, activity_row: BugActivity,
-) -> None:
-    loaded = bug_activity.load_with_actor(db, activity_row.id) or activity_row
-    _broadcast_bug(
-        "bug.activity.added", bug_id,
-        bug_activity.activity_out(loaded).model_dump(mode="json"),
-    )
 
 
 def on_bug_comment_added(

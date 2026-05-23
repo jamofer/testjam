@@ -109,7 +109,11 @@
   },
   "activity": {
     "attachmentAdded": "anexou {{filename}}",
-    "attachmentRemoved": "quitou o anexo {{filename}}"
+    "attachmentRemoved": "quitou o anexo {{filename}}",
+    "commentUpdated": "editou un comentario",
+    "descriptionEdited": "editou a descrición",
+    "descriptionSet": "estableceu a descrición",
+    "descriptionCleared": "quitou a descrición"
   },
   "context": {
     "about": "Sobre",

@@ -142,6 +142,7 @@ BugActivityField = Literal[
     "external_ticket_url",
     "link",
     "attachment",
+    "comment",
 ]
 
 

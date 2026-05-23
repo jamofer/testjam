@@ -137,6 +137,10 @@
     "linkRemoved": "quitó un vínculo",
     "attachmentAdded": "adjuntó {{filename}}",
     "attachmentRemoved": "quitó el adjunto {{filename}}",
+    "commentUpdated": "editó un comentario",
+    "descriptionEdited": "editó la descripción",
+    "descriptionSet": "estableció la descripción",
+    "descriptionCleared": "quitó la descripción",
     "commented": "comentó",
     "fields": {
       "title": "título",

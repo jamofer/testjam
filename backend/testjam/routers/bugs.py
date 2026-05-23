@@ -455,10 +455,17 @@ def update_comment(
     if comment.created_by_id != current.id and not current.is_admin:
         raise HTTPException(status_code=403, detail="Only the author or admin can edit")
     previous_body = comment.body
+    if previous_body == body.body:
+        return comment
     comment.body = body.body
+    activity_row = bug_activity.record_comment_updated(
+        db, comment.bug_id, comment.id, current.id,
+    )
     db.commit()
     db.refresh(comment)
+    db.refresh(activity_row)
     bug_events.on_bug_comment_updated(comment)
+    bug_events.on_bug_activity_recorded(db, activity_row)
     _fan_out_mentions(db, comment.bug, comment.body, previous_body, current, background)
     return comment
 
@@ -714,7 +721,7 @@ def upload_attachment(
     db.commit()
     db.refresh(attachment)
     db.refresh(activity_row)
-    bug_events.on_bug_attachment_changed(db, bug.id, activity_row)
+    bug_events.on_bug_activity_recorded(db, activity_row)
     return attachment
 
 
@@ -770,7 +777,7 @@ def delete_attachment(
     _touch_updated_by(bug, current)
     db.commit()
     db.refresh(activity_row)
-    bug_events.on_bug_attachment_changed(db, bug.id, activity_row)
+    bug_events.on_bug_activity_recorded(db, activity_row)
 
 
 @projects_router.get("/{id}/bugs/report")

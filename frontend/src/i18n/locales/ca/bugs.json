@@ -109,7 +109,11 @@
   },
   "activity": {
     "attachmentAdded": "ha adjuntat {{filename}}",
-    "attachmentRemoved": "ha tret l'adjunt {{filename}}"
+    "attachmentRemoved": "ha tret l'adjunt {{filename}}",
+    "commentUpdated": "ha editat un comentari",
+    "descriptionEdited": "ha editat la descripció",
+    "descriptionSet": "ha establert la descripció",
+    "descriptionCleared": "ha tret la descripció"
   },
   "context": {
     "about": "Sobre",

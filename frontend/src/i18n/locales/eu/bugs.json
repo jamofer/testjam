@@ -109,7 +109,11 @@
   },
   "activity": {
     "attachmentAdded": "{{filename}} erantsi du",
-    "attachmentRemoved": "{{filename}} eranskina kendu du"
+    "attachmentRemoved": "{{filename}} eranskina kendu du",
+    "commentUpdated": "iruzkin bat editatu du",
+    "descriptionEdited": "deskribapena editatu du",
+    "descriptionSet": "deskribapena ezarri du",
+    "descriptionCleared": "deskribapena kendu du"
   },
   "context": {
     "about": "Buruz",
