@@ -1,0 +1,193 @@
+{
+  "title": "Integrazioak",
+  "subtitle": "Proiektuaren gertaerak jazotzean sinatutako payloadak bidaltzen dituzten irteerako webhookak.",
+  "new": "Webhook berria",
+  "empty": {
+    "title": "Oraindik ez dago webhookik",
+    "description": "Sortu bat Slack, Jenkins edo zure zerbitzuari jakinarazteko."
+  },
+  "table": {
+    "name": "Izena",
+    "url": "URL",
+    "events": "Gertaerak",
+    "status": "Egoera",
+    "lastDelivery": "Azken bidalketa",
+    "actions": "Ekintzak"
+  },
+  "status": {
+    "active": "Aktiboa",
+    "paused": "Etenda"
+  },
+  "actions": {
+    "edit": "Editatu",
+    "delete": "Ezabatu",
+    "test": "Bidali proba",
+    "viewLog": "Bidalketen erregistroa",
+    "cancel": "Utzi",
+    "save": "Gorde",
+    "create": "Sortu",
+    "back": "Atzera",
+    "next": "Hurrengoa"
+  },
+  "form": {
+    "name": "Izena",
+    "url": "Endpoint-aren URLa",
+    "urlPlaceholder": "https://hooks.example.com/...",
+    "events": "Harpidetutako gertaerak",
+    "active": "Aktiboa",
+    "eventsHelp": "Hautatu gutxienez gertaera bat harpidetzeko.",
+    "secretRevealed": "Webhook-a sortu da. Kopiatu sinaduraren sekretua — ez da berriz erakutsiko.",
+    "secretLabel": "Sinaduraren sekretua",
+    "secretCopy": "Kopiatu",
+    "copied": "Kopiatuta"
+  },
+  "dialog": {
+    "createTitle": "Webhook berria",
+    "editTitle": "Editatu webhook-a",
+    "deleteTitle": "Webhook-a ezabatu?",
+    "deleteBody": "{{name}}-rako bidalketak gelditu egingo dira. Lehendik dauden erregistroak gordeko dira."
+  },
+  "log": {
+    "title": "Bidalketen erregistroa",
+    "empty": "Oraindik ez dago bidalketarik.",
+    "event": "Gertaera",
+    "status": "Egoera",
+    "attempts": "Saiakerak",
+    "error": "Errorea",
+    "when": "Noiz",
+    "succeeded": "OK",
+    "failed": "Huts egin du",
+    "pending": "Zain"
+  },
+  "toast": {
+    "created": "Webhook-a sortu da",
+    "updated": "Webhook-a eguneratu da",
+    "deleted": "Webhook-a ezabatu da",
+    "testSent": "Proba-bidalketa programatuta",
+    "failed": "Huts egin du",
+    "copyFailed": "Ezin izan da kopiatu"
+  },
+  "webhooks": {
+    "title": "Irteerako webhookak",
+    "subtitle": "Zure endpoint-era sinatutako POSTak proiektuaren gertaerak abiarazten direnean."
+  },
+  "trackers": {
+    "title": "Kanpoko tracker-ak",
+    "subtitle": "Bidali akatsak GitHub, Jira eta gehiagora. Tokenak zifratuta gordetzen dira.",
+    "new": "Konektatu tracker-a",
+    "test": "Probatu",
+    "testOk": "Kredentzialak egiaztatuta",
+    "testFailed": "Probak huts egin du",
+    "rotate": "Token-a errotatu",
+    "rotated": "Token-a errotatuta",
+    "rotateFailed": "Errotazioak huts egin du",
+    "rotateTitle": "Errotatu token-a · {{name}}",
+    "delete": "Ezabatu",
+    "deleted": "Integrazioa ezabatu da",
+    "deleteFailed": "Ezin izan da ezabatu",
+    "deleteTitle": "Integrazioa ezabatu?",
+    "deleteBody": "Lehendik dauden tiketen estekak akatsen ikuspegian agertuko dira irakurtzeko soilik. Idatzi «{{name}}» berresteko.",
+    "deleteConfirmLabel": "Integrazioaren izena",
+    "created": "Integrazioa konektatuta",
+    "createFailed": "Ezin izan da konektatu",
+    "lastUsed": "Azken erabilera {{date}}",
+    "neverUsed": "Token-a oraindik ez da erabili",
+    "empty": {
+      "title": "Oraindik ez dago tracker-ik",
+      "description": "Konektatu GitHub repo bat (provider gehiago laster) akatsak Testjam-etik atera gabe bidaltzeko."
+    },
+    "dialog": {
+      "title": "Konektatu kanpoko tracker-a",
+      "pickProvider": "Aukeratu provider bat",
+      "name": "Ikusgai dagoen izena",
+      "namePlaceholder": "adib. acme/awesome",
+      "secret": "API token-a",
+      "secretPlaceholder": "ghp_...",
+      "secretHelp": "Zerbitzariaren gakoarekin zifratuta gorde da.",
+      "create": "Konektatu"
+    },
+    "fields": {
+      "github": {
+        "owner": "Jabea",
+        "repo": "Errepositorioa",
+        "api_base": "APIaren oinarri-URLa (Enterprise soilik)"
+      },
+      "jira": {
+        "base_url": "Oinarri-URLa",
+        "project_key": "Proiektuaren gakoa",
+        "issue_type": "Issue mota",
+        "email": "Atlassian e-posta"
+      },
+      "gitlab": {
+        "project": "Proiektua",
+        "base_url": "Oinarri-URLa (self-hosted soilik)"
+      },
+      "azure_devops": {
+        "organization_url": "Erakundearen URLa",
+        "project": "Proiektua",
+        "work_item_type": "Work item mota"
+      },
+      "openproject": {
+        "base_url": "Oinarri-URLa",
+        "project": "Proiektua",
+        "type_id": "Work-package motaren Id"
+      }
+    },
+    "help": {
+      "github": {
+        "owner": "Errepositorioaren jabea den GitHub erabiltzailea edo erakundea.",
+        "api_base": "Hutsik utzi github.com erabiltzeko."
+      },
+      "jira": {
+        "base_url": "Gunearen erroa, amaierako barrarik gabe.",
+        "issue_type": "Lehenetsia: Bug. Zure workflow-ak onartzen duen edozein mota.",
+        "email": "Beharrezkoa Atlassian Cloud-erako (Basic auth). Hutsik Server/DC PAT-erako."
+      },
+      "gitlab": {
+        "project": "Bide osoa (group/subgroup/project) edo zenbakizko id.",
+        "base_url": "Hutsik utzi gitlab.com erabiltzeko."
+      },
+      "azure_devops": {
+        "organization_url": "Gunearen erroa, amaierako barrarik gabe.",
+        "work_item_type": "Lehenetsia: Bug. Zure process template-ak onartzen duena."
+      },
+      "openproject": {
+        "base_url": "Gunearen erroa, amaierako barrarik gabe.",
+        "project": "Proiektuaren identifikatzailea (slug) edo zenbakizko id.",
+        "type_id": "Motaren zenbakizko Id (Bug, Task…). Hutsik proiektuaren lehenetsia erabiltzen du."
+      }
+    }
+  },
+  "statusMapping": {
+    "button": "Editatu egoera mapping-a",
+    "title": "Egoera mapping-a · {{name}}",
+    "help": "Mapeatu urruneko egoerak (adib. Done, In Review) Testjam-en open/closed-era.",
+    "empty": "Mapping-ik ez. Lehenetsiak aplikatzen dira.",
+    "source": "Urruneko egoera",
+    "sourcePlaceholder": "Eginda",
+    "target": "Mapeatu hona",
+    "add": "Gehitu mapping-a",
+    "save": "Gorde mapping-a",
+    "saved": "Mapping-a gordeta",
+    "saveFailed": "Ezin izan da gorde"
+  },
+  "bugLinks": {
+    "empty": "Kanpoko tiketik gabe lotuta.",
+    "push": "Bidali",
+    "pushed": "Tracker-era bidalita",
+    "pushFailed": "Bidalketak huts egin du",
+    "sync": "Sinkronizatu",
+    "synced": "Egoera sinkronizatuta",
+    "syncFailed": "Sinkronizazioak huts egin du",
+    "remove": "Desbideratu",
+    "removed": "Esteka ezabatuta",
+    "removeFailed": "Ezin izan da ezabatu",
+    "pickIntegration": "Hautatu tracker-a…",
+    "noIntegrations": "Ez dago integrazio aktiborik konfiguratuta.",
+    "status": {
+      "open": "Irekia",
+      "closed": "Itxia",
+      "unknown": "Ezezaguna"
+    }
+  }
+}

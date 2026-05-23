@@ -19,6 +19,7 @@ from testjam.routers.executions import (
 )
 from testjam.schemas.execution import ExecutionAttachmentOut
 from testjam.schemas.testcase import AttachmentOut
+from testjam.services import uploads
 
 
 def _require_project_membership(db: Session, project_id: int, user: User) -> None:
@@ -53,12 +54,13 @@ def upload_execution_attachment(
         raise HTTPException(status_code=404, detail="Not found")
     dest_dir = os.path.join(EXECUTION_UPLOAD_DIR, str(id))
     os.makedirs(dest_dir, exist_ok=True)
-    dest_path = os.path.join(dest_dir, file.filename)
+    stored_filename = uploads.safe_filename(file.filename)
+    dest_path = uploads.safe_join(dest_dir, file.filename)
     with open(dest_path, "wb") as f:
         shutil.copyfileobj(file.file, f)
     att = ExecutionAttachment(
         execution_id=id,
-        filename=file.filename,
+        filename=stored_filename,
         content_type=file.content_type,
         size_bytes=os.path.getsize(dest_path),
         file_path=dest_path,
@@ -126,12 +128,13 @@ def upload_result_attachment(
         raise HTTPException(status_code=404, detail="Not found")
     dest_dir = os.path.join(UPLOAD_DIR, str(id))
     os.makedirs(dest_dir, exist_ok=True)
-    dest_path = os.path.join(dest_dir, file.filename)
+    stored_filename = uploads.safe_filename(file.filename)
+    dest_path = uploads.safe_join(dest_dir, file.filename)
     with open(dest_path, "wb") as f:
         shutil.copyfileobj(file.file, f)
     att = ResultAttachment(
         result_id=id,
-        filename=file.filename,
+        filename=stored_filename,
         content_type=file.content_type,
         size_bytes=os.path.getsize(dest_path),
         file_path=dest_path,

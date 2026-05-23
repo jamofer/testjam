@@ -20,7 +20,7 @@ from testjam.schemas.testcase import (
     TestCaseCreate, TestCaseOut, TestCaseUpdate,
     TestStepCreate, TestStepOut, TestStepUpdate,
 )
-from testjam.services import case_events, mention_notify
+from testjam.services import case_events, mention_notify, uploads
 from testjam.services import custom_fields as custom_field_service
 from testjam.services.case_revisions import write_revision
 from testjam.services.permissions import effective_role
@@ -121,6 +121,7 @@ def update_case(id: int, body: TestCaseUpdate, db: Session = Depends(get_db), cu
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
+    _require_case_writer(db, current, _project_id_for_case(case, db))
     update_data = body.model_dump(exclude_unset=True)
     incoming_custom_fields = update_data.pop("custom_fields", None)
     update_data = {key: value for key, value in update_data.items() if value is not None}
@@ -177,10 +178,11 @@ def get_case_revision(
 
 
 @cases_router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_case(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def delete_case(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
+    _require_case_writer(db, current, _project_id_for_case(case, db))
     db.delete(case)
     db.commit()
 
@@ -192,6 +194,7 @@ def archive_case(id: int, db: Session = Depends(get_db), current: User = Depends
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
+    _require_case_writer(db, current, _project_id_for_case(case, db))
     if case.archived_at is None:
         case.archived_at = datetime.now(timezone.utc)
         case.updated_by_id = current.id
@@ -205,6 +208,7 @@ def unarchive_case(id: int, db: Session = Depends(get_db), current: User = Depen
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
+    _require_case_writer(db, current, _project_id_for_case(case, db))
     if case.archived_at is not None:
         case.archived_at = None
         case.updated_by_id = current.id
@@ -222,9 +226,19 @@ class BulkAddToPlan(BaseModel):
 
 
 @cases_router.post("/bulk-delete", status_code=status.HTTP_200_OK)
-def bulk_delete_cases(body: BulkIds, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def bulk_delete_cases(body: BulkIds, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
     if not body.ids:
         return {"deleted": 0}
+    project_ids = {
+        row[0]
+        for row in db.query(TestSuite.project_id)
+        .join(TestCase, TestCase.suite_id == TestSuite.id)
+        .filter(TestCase.id.in_(body.ids))
+        .distinct()
+        .all()
+    }
+    for project_id in project_ids:
+        _require_case_writer(db, current, project_id)
     deleted = db.query(TestCase).filter(TestCase.id.in_(body.ids)).delete(synchronize_session=False)
     db.commit()
     return {"deleted": deleted}
@@ -239,7 +253,11 @@ class CaseReorder(BaseModel):
 
 
 @suites_router.post("/{id}/cases/reorder", response_model=list[TestCaseOut])
-def reorder_suite_cases(id: int, body: CaseReorder, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def reorder_suite_cases(id: int, body: CaseReorder, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    suite = db.get(TestSuite, id)
+    if not suite:
+        raise HTTPException(status_code=404, detail="Not found")
+    _require_case_writer(db, current, suite.project_id)
     rows = db.query(TestCase).filter(TestCase.suite_id == id).all()
     by_id = {c.id: c for c in rows}
     if set(body.case_ids) != set(by_id.keys()):
@@ -255,6 +273,7 @@ def reorder_case_steps(id: int, body: StepReorder, db: Session = Depends(get_db)
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
+    _require_case_writer(db, current, _project_id_for_case(case, db))
     steps = {s.id: s for s in db.query(TestStep).filter(TestStep.test_case_id == id).all()}
     for new_order, step_id in enumerate(body.step_ids, start=1):
         step = steps.get(step_id)
@@ -288,6 +307,8 @@ def _touch_case_revision(db: Session, case_id: int, actor: User) -> None:
 
 @cases_router.delete("/{id}/steps", status_code=status.HTTP_204_NO_CONTENT)
 def delete_all_steps(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    case = _get_case(db, id)
+    _require_case_writer(db, current, _project_id_for_case(case, db))
     db.query(TestStep).filter(TestStep.test_case_id == id).delete()
     _touch_case_revision(db, id, current)
     db.commit()
@@ -307,6 +328,7 @@ def replace_case_steps(
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
+    _require_case_writer(db, current, _project_id_for_case(case, db))
     db.query(TestStep).filter(TestStep.test_case_id == id).delete()
     db.flush()
     for index, step in enumerate(body.steps, start=1):
@@ -328,6 +350,8 @@ def replace_case_steps(
 
 @cases_router.post("/{id}/steps", response_model=TestStepOut, status_code=status.HTTP_201_CREATED)
 def create_step(id: int, body: TestStepCreate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    case = _get_case(db, id)
+    _require_case_writer(db, current, _project_id_for_case(case, db))
     order = body.order
     if order is None:
         max_order = db.query(TestStep).filter(TestStep.test_case_id == id).count()
@@ -346,6 +370,8 @@ def update_step(id: int, step_id: int, body: TestStepUpdate, db: Session = Depen
     step = db.query(TestStep).filter(TestStep.id == step_id, TestStep.test_case_id == id).first()
     if not step:
         raise HTTPException(status_code=404, detail="Not found")
+    case = _get_case(db, id)
+    _require_case_writer(db, current, _project_id_for_case(case, db))
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(step, field, value)
     db.flush()
@@ -360,6 +386,8 @@ def delete_step(id: int, step_id: int, db: Session = Depends(get_db), current: U
     step = db.query(TestStep).filter(TestStep.id == step_id, TestStep.test_case_id == id).first()
     if not step:
         raise HTTPException(status_code=404, detail="Not found")
+    case = _get_case(db, id)
+    _require_case_writer(db, current, _project_id_for_case(case, db))
     db.delete(step)
     db.flush()
     _touch_case_revision(db, id, current)
@@ -383,15 +411,17 @@ def upload_attachment(
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
+    _require_case_writer(db, current, _project_id_for_case(case, db))
     dest_dir = os.path.join(UPLOAD_DIR, str(id))
     os.makedirs(dest_dir, exist_ok=True)
-    dest_path = os.path.join(dest_dir, file.filename)
+    stored_filename = uploads.safe_filename(file.filename)
+    dest_path = uploads.safe_join(dest_dir, file.filename)
     with open(dest_path, "wb") as f:
         shutil.copyfileobj(file.file, f)
     size = os.path.getsize(dest_path)
     attachment = Attachment(
         test_case_id=id,
-        filename=file.filename,
+        filename=stored_filename,
         content_type=file.content_type,
         size_bytes=size,
         file_path=dest_path,
@@ -431,10 +461,12 @@ def download_case_attachment(
 
 
 @cases_router.delete("/{id}/attachments/{attachment_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_attachment(id: int, attachment_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def delete_attachment(id: int, attachment_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
     att = db.query(Attachment).filter(Attachment.id == attachment_id, Attachment.test_case_id == id).first()
     if not att:
         raise HTTPException(status_code=404, detail="Not found")
+    case = _get_case(db, id)
+    _require_case_writer(db, current, _project_id_for_case(case, db))
     if os.path.exists(att.file_path):
         os.remove(att.file_path)
     db.delete(att)

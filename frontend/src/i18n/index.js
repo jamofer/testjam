@@ -60,6 +60,7 @@ import caAdmin from "./locales/ca/admin.json"
 import caUi from "./locales/ca/ui.json"
 import caEnvironments from "./locales/ca/environments.json"
 import caBugs from "./locales/ca/bugs.json"
+import caIntegrations from "./locales/ca/integrations.json"
 import caPublicReports from "./locales/ca/publicReports.json"
 import caCustomFields from "./locales/ca/customFields.json"
 import glCommon from "./locales/gl/common.json"
@@ -78,6 +79,7 @@ import glAdmin from "./locales/gl/admin.json"
 import glUi from "./locales/gl/ui.json"
 import glEnvironments from "./locales/gl/environments.json"
 import glBugs from "./locales/gl/bugs.json"
+import glIntegrations from "./locales/gl/integrations.json"
 import glPublicReports from "./locales/gl/publicReports.json"
 import glCustomFields from "./locales/gl/customFields.json"
 import euCommon from "./locales/eu/common.json"
@@ -96,6 +98,7 @@ import euAdmin from "./locales/eu/admin.json"
 import euUi from "./locales/eu/ui.json"
 import euEnvironments from "./locales/eu/environments.json"
 import euBugs from "./locales/eu/bugs.json"
+import euIntegrations from "./locales/eu/integrations.json"
 import euPublicReports from "./locales/eu/publicReports.json"
 import euCustomFields from "./locales/eu/customFields.json"
 
@@ -117,9 +120,9 @@ i18n.use(initReactI18next).init({
   resources: {
     en: { common: enCommon, profile: enProfile, auth: enAuth, nav: enNav, projects: enProjects, dashboard: enDashboard, suites: enSuites, cases: enCases, plans: enPlans, versions: enVersions, members: enMembers, executions: enExecutions, admin: enAdmin, ui: enUi, environments: enEnvironments, bugs: enBugs, integrations: enIntegrations, publicReports: enPublicReports, customFields: enCustomFields, projectSettings: enProjectSettings },
     es: { common: esCommon, profile: esProfile, auth: esAuth, nav: esNav, projects: esProjects, dashboard: esDashboard, suites: esSuites, cases: esCases, plans: esPlans, versions: esVersions, members: esMembers, executions: esExecutions, admin: esAdmin, ui: esUi, environments: esEnvironments, bugs: esBugs, integrations: esIntegrations, publicReports: esPublicReports, customFields: esCustomFields, projectSettings: esProjectSettings },
-    ca: { common: caCommon, profile: caProfile, auth: caAuth, nav: caNav, projects: caProjects, dashboard: caDashboard, suites: caSuites, cases: caCases, plans: caPlans, versions: caVersions, members: caMembers, executions: caExecutions, admin: caAdmin, ui: caUi, environments: caEnvironments, bugs: caBugs, integrations: enIntegrations, publicReports: caPublicReports, customFields: caCustomFields, projectSettings: caProjectSettings },
-    gl: { common: glCommon, profile: glProfile, auth: glAuth, nav: glNav, projects: glProjects, dashboard: glDashboard, suites: glSuites, cases: glCases, plans: glPlans, versions: glVersions, members: glMembers, executions: glExecutions, admin: glAdmin, ui: glUi, environments: glEnvironments, bugs: glBugs, integrations: enIntegrations, publicReports: glPublicReports, customFields: glCustomFields, projectSettings: glProjectSettings },
-    eu: { common: euCommon, profile: euProfile, auth: euAuth, nav: euNav, projects: euProjects, dashboard: euDashboard, suites: euSuites, cases: euCases, plans: euPlans, versions: euVersions, members: euMembers, executions: euExecutions, admin: euAdmin, ui: euUi, environments: euEnvironments, bugs: euBugs, integrations: enIntegrations, publicReports: euPublicReports, customFields: euCustomFields, projectSettings: euProjectSettings },
+    ca: { common: caCommon, profile: caProfile, auth: caAuth, nav: caNav, projects: caProjects, dashboard: caDashboard, suites: caSuites, cases: caCases, plans: caPlans, versions: caVersions, members: caMembers, executions: caExecutions, admin: caAdmin, ui: caUi, environments: caEnvironments, bugs: caBugs, integrations: caIntegrations, publicReports: caPublicReports, customFields: caCustomFields, projectSettings: caProjectSettings },
+    gl: { common: glCommon, profile: glProfile, auth: glAuth, nav: glNav, projects: glProjects, dashboard: glDashboard, suites: glSuites, cases: glCases, plans: glPlans, versions: glVersions, members: glMembers, executions: glExecutions, admin: glAdmin, ui: glUi, environments: glEnvironments, bugs: glBugs, integrations: glIntegrations, publicReports: glPublicReports, customFields: glCustomFields, projectSettings: glProjectSettings },
+    eu: { common: euCommon, profile: euProfile, auth: euAuth, nav: euNav, projects: euProjects, dashboard: euDashboard, suites: euSuites, cases: euCases, plans: euPlans, versions: euVersions, members: euMembers, executions: euExecutions, admin: euAdmin, ui: euUi, environments: euEnvironments, bugs: euBugs, integrations: euIntegrations, publicReports: euPublicReports, customFields: euCustomFields, projectSettings: euProjectSettings },
   },
   lng: detectLocale(),
   fallbackLng: DEFAULT_LOCALE,

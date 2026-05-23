@@ -12,6 +12,7 @@ from testjam.auth.dependencies import (
     get_auth_context,
     get_current_user,
     require_project_access,
+    require_project_writer,
     require_writable_project_access,
 )
 from testjam.database import get_db
@@ -243,6 +244,7 @@ def _require_writable(
         raise HTTPException(
             status_code=403, detail="API token is not authorized for this project"
         )
+    require_project_writer(db, ctx.user, definition.project_id)
     project = db.get(Project, definition.project_id)
     if project is not None and project.archived_at is not None:
         raise HTTPException(status_code=409, detail="Project is archived")

@@ -166,6 +166,19 @@ def test_public_execution_render_returns_html(client, auth_client, project_id, e
     assert "shared" in response.text.lower() or "Run share" in response.text
 
 
+def test_public_render_sets_referrer_policy_no_referrer(client, auth_client, project_id):
+    _create_bug(auth_client, project_id, title="Linked")
+    token = auth_client.post(
+        PROJECT_PUBLIC_PATH.format(project_id=project_id),
+        json={"kind": "bug_report"},
+    ).json()["token"]
+
+    response = client.get(f"{PUBLIC_PATH}/{token}")
+
+    assert response.status_code == 200
+    assert response.headers.get("referrer-policy") == "no-referrer"
+
+
 def test_public_render_does_not_require_auth(client, auth_client, project_id):
     _create_bug(auth_client, project_id)
     token = auth_client.post(

@@ -1,0 +1,193 @@
+{
+  "title": "Integracions",
+  "subtitle": "Webhooks sortints que envien càrregues signades quan ocorren esdeveniments del projecte.",
+  "new": "Nou webhook",
+  "empty": {
+    "title": "Encara no hi ha webhooks",
+    "description": "Crea'n un per notificar Slack, Jenkins o el teu propi servei."
+  },
+  "table": {
+    "name": "Nom",
+    "url": "URL",
+    "events": "Esdeveniments",
+    "status": "Estat",
+    "lastDelivery": "Darrer enviament",
+    "actions": "Accions"
+  },
+  "status": {
+    "active": "Actiu",
+    "paused": "Pausat"
+  },
+  "actions": {
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "test": "Enviar prova",
+    "viewLog": "Registre d'enviaments",
+    "cancel": "Cancel·lar",
+    "save": "Desar",
+    "create": "Crear",
+    "back": "Enrere",
+    "next": "Següent"
+  },
+  "form": {
+    "name": "Nom",
+    "url": "URL de l'endpoint",
+    "urlPlaceholder": "https://hooks.example.com/...",
+    "events": "Esdeveniments subscrits",
+    "active": "Actiu",
+    "eventsHelp": "Selecciona almenys un esdeveniment al qual subscriure't.",
+    "secretRevealed": "Webhook creat. Copia el secret de signatura — no es tornarà a mostrar.",
+    "secretLabel": "Secret de signatura",
+    "secretCopy": "Copiar",
+    "copied": "Copiat"
+  },
+  "dialog": {
+    "createTitle": "Nou webhook",
+    "editTitle": "Editar webhook",
+    "deleteTitle": "Eliminar webhook?",
+    "deleteBody": "Es deturaran els enviaments a {{name}}. Els registres existents es conserven."
+  },
+  "log": {
+    "title": "Registre d'enviaments",
+    "empty": "Encara no hi ha enviaments.",
+    "event": "Esdeveniment",
+    "status": "Estat",
+    "attempts": "Intents",
+    "error": "Error",
+    "when": "Quan",
+    "succeeded": "OK",
+    "failed": "Fallit",
+    "pending": "Pendent"
+  },
+  "toast": {
+    "created": "Webhook creat",
+    "updated": "Webhook actualitzat",
+    "deleted": "Webhook eliminat",
+    "testSent": "Enviament de prova programat",
+    "failed": "Ha fallat",
+    "copyFailed": "No s'ha pogut copiar"
+  },
+  "webhooks": {
+    "title": "Webhooks sortints",
+    "subtitle": "POSTs signats al teu endpoint quan es disparen esdeveniments del projecte."
+  },
+  "trackers": {
+    "title": "Trackers externs",
+    "subtitle": "Envia bugs a GitHub, Jira i altres. Els tokens es guarden xifrats.",
+    "new": "Connectar tracker",
+    "test": "Provar",
+    "testOk": "Credencials verificades",
+    "testFailed": "La prova ha fallat",
+    "rotate": "Rotar token",
+    "rotated": "Token rotat",
+    "rotateFailed": "Ha fallat la rotació",
+    "rotateTitle": "Rotar token · {{name}}",
+    "delete": "Eliminar",
+    "deleted": "Integració eliminada",
+    "deleteFailed": "No s'ha pogut eliminar",
+    "deleteTitle": "Eliminar la integració?",
+    "deleteBody": "Els enllaços existents a tiquets seguiran visibles als bugs com a referències de només lectura. Escriu «{{name}}» per confirmar.",
+    "deleteConfirmLabel": "Nom de la integració",
+    "created": "Integració connectada",
+    "createFailed": "No s'ha pogut connectar",
+    "lastUsed": "Últim ús {{date}}",
+    "neverUsed": "Token encara no utilitzat",
+    "empty": {
+      "title": "Encara no hi ha trackers",
+      "description": "Connecta un repositori GitHub (més providers properament) per enviar bugs sense sortir de Testjam."
+    },
+    "dialog": {
+      "title": "Connectar tracker extern",
+      "pickProvider": "Tria un provider",
+      "name": "Nom visible",
+      "namePlaceholder": "ex. acme/awesome",
+      "secret": "Token d'API",
+      "secretPlaceholder": "ghp_...",
+      "secretHelp": "Es guarda xifrat amb la clau del servidor.",
+      "create": "Connectar"
+    },
+    "fields": {
+      "github": {
+        "owner": "Propietari",
+        "repo": "Repositori",
+        "api_base": "URL base de l'API (només Enterprise)"
+      },
+      "jira": {
+        "base_url": "URL base",
+        "project_key": "Clau del projecte",
+        "issue_type": "Tipus d'issue",
+        "email": "Email d'Atlassian"
+      },
+      "gitlab": {
+        "project": "Projecte",
+        "base_url": "URL base (només self-hosted)"
+      },
+      "azure_devops": {
+        "organization_url": "URL de l'organització",
+        "project": "Projecte",
+        "work_item_type": "Tipus de work item"
+      },
+      "openproject": {
+        "base_url": "URL base",
+        "project": "Projecte",
+        "type_id": "Id del tipus de work-package"
+      }
+    },
+    "help": {
+      "github": {
+        "owner": "Usuari o organització GitHub propietària del repo.",
+        "api_base": "Deixa-ho buit per a github.com."
+      },
+      "jira": {
+        "base_url": "Arrel del lloc, sense barra final.",
+        "issue_type": "Per defecte Bug. Qualsevol tipus que accepti el teu workflow.",
+        "email": "Necessari per a Atlassian Cloud (Basic auth). Buit per a PAT Server/DC."
+      },
+      "gitlab": {
+        "project": "Ruta completa (group/subgroup/project) o id numèric.",
+        "base_url": "Deixa-ho buit per a gitlab.com."
+      },
+      "azure_devops": {
+        "organization_url": "Arrel del lloc, sense barra final.",
+        "work_item_type": "Per defecte Bug. Tipus acceptat pel teu process template."
+      },
+      "openproject": {
+        "base_url": "Arrel del lloc, sense barra final.",
+        "project": "Identificador (slug) o id numèric del projecte.",
+        "type_id": "Id numèric del tipus (Bug, Task…). Buit fa servir el default del projecte."
+      }
+    }
+  },
+  "statusMapping": {
+    "button": "Editar mapping d'estats",
+    "title": "Mapping d'estats · {{name}}",
+    "help": "Mapeja estats remots (p.ex. Done, In Review) a open/closed de Testjam.",
+    "empty": "Sense mappings. S'apliquen els defaults.",
+    "source": "Estat remot",
+    "sourcePlaceholder": "Fet",
+    "target": "Mapeja a",
+    "add": "Afegir mapping",
+    "save": "Desar mapping",
+    "saved": "Mapping desat",
+    "saveFailed": "No s'ha pogut desar"
+  },
+  "bugLinks": {
+    "empty": "Sense tiquets externs vinculats.",
+    "push": "Enviar",
+    "pushed": "Enviat al tracker",
+    "pushFailed": "Ha fallat l'enviament",
+    "sync": "Sincronitzar",
+    "synced": "Estat sincronitzat",
+    "syncFailed": "Ha fallat la sincronització",
+    "remove": "Desvincular",
+    "removed": "Vincle eliminat",
+    "removeFailed": "No s'ha pogut eliminar",
+    "pickIntegration": "Selecciona tracker…",
+    "noIntegrations": "No hi ha integracions actives configurades.",
+    "status": {
+      "open": "Obert",
+      "closed": "Tancat",
+      "unknown": "Desconegut"
+    }
+  }
+}

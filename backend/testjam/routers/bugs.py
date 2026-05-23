@@ -56,7 +56,7 @@ from testjam.schemas.bug import (
 )
 from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 
-from testjam.services import bug_activity, bug_context, bug_events, bug_reports, bug_watchers, mention_notify
+from testjam.services import bug_activity, bug_context, bug_events, bug_reports, bug_watchers, mention_notify, uploads
 from testjam.services import custom_fields as custom_field_service
 from testjam.services.bug_numbering import next_bug_number
 from testjam.services.environments import upsert_from_execution
@@ -689,12 +689,13 @@ def upload_attachment(
     _ensure_project_writable(db, bug.project_id)
     destination_directory = os.path.join(BUG_UPLOAD_DIR, str(id))
     os.makedirs(destination_directory, exist_ok=True)
-    destination_path = os.path.join(destination_directory, file.filename)
+    stored_filename = uploads.safe_filename(file.filename)
+    destination_path = uploads.safe_join(destination_directory, file.filename)
     with open(destination_path, "wb") as handle:
         shutil.copyfileobj(file.file, handle)
     attachment = BugAttachment(
         bug_id=id,
-        filename=file.filename,
+        filename=stored_filename,
         content_type=file.content_type,
         size_bytes=os.path.getsize(destination_path),
         file_path=destination_path,
@@ -702,7 +703,7 @@ def upload_attachment(
     )
     db.add(attachment)
     activity_row = bug_activity.record_attachment_added(
-        db, bug.id, file.filename, current.id,
+        db, bug.id, stored_filename, current.id,
     )
     _touch_updated_by(bug, current)
     db.commit()

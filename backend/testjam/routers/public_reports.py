@@ -128,7 +128,17 @@ def view_public_report(
         raise HTTPException(status_code=410, detail=str(exc)) from exc
 
     public_reports.record_view(db, row)
-    return HTMLResponse(content=html)
+    return HTMLResponse(content=html, headers=_public_report_headers())
+
+
+def _public_report_headers() -> dict[str, str]:
+    """Headers applied to anonymous public report HTML responses.
+
+    `Referrer-Policy: no-referrer` prevents the token in the URL path from
+    leaking to third-party origins when the report links out to external
+    pages or loads cross-origin assets.
+    """
+    return {"Referrer-Policy": "no-referrer"}
 
 
 def _public_base_url(request: Request, configured_site_url: str | None) -> str:
