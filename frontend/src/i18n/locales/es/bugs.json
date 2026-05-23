@@ -127,6 +127,12 @@
     "downloadFailed": "Error al descargar",
     "deleteFailed": "Error al eliminar"
   },
+  "delete": {
+    "bugTitle": "¿Eliminar bug #{{number}}?",
+    "bugDescription": "Se eliminará el bug junto con sus comentarios, adjuntos e historial.",
+    "commentTitle": "¿Eliminar comentario?",
+    "commentDescription": "El comentario se eliminará de forma permanente."
+  },
   "mentions": {
     "searching": "Buscando…",
     "noMatches": "Sin coincidencias"

@@ -43,6 +43,7 @@ import { useBugLive } from "../hooks/useBugLive"
 import { PageBody, PageHeader } from "../components/ui/page-header"
 import { Button } from "../components/ui/button"
 import { Badge } from "../components/ui/badge"
+import { ConfirmDialog } from "../components/ui/confirm-dialog"
 import { Skeleton } from "../components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
@@ -121,6 +122,8 @@ export function BugDetailPage() {
   const [editingBody, setEditingBody] = useState("")
   const [editingDescription, setEditingDescription] = useState(false)
   const [descriptionDraft, setDescriptionDraft] = useState("")
+  const [deleteBugOpen, setDeleteBugOpen] = useState(false)
+  const [commentPendingDelete, setCommentPendingDelete] = useState(null)
   const statusLabels = useMemo(
     () => Object.fromEntries(STATUSES.map(status => [status, t(`statuses.${status}`)])),
     [t],
@@ -202,13 +205,14 @@ export function BugDetailPage() {
   }
 
   const handleDelete = async () => {
-    if (!confirm(t("toast.deleted") + "?")) return
     try {
       await deleteBug.mutateAsync(bug.id)
       toast.success(t("toast.deleted"))
       navigate(`/projects/${bug.project_id}/bugs`)
     } catch (error) {
       toast.error(error?.response?.data?.detail ?? "Could not delete")
+    } finally {
+      setDeleteBugOpen(false)
     }
   }
 
@@ -258,12 +262,14 @@ export function BugDetailPage() {
     }
   }
 
-  const deleteCommentRow = async (comment) => {
-    if (!confirm(t("actions.delete") + "?")) return
+  const confirmDeleteComment = async () => {
+    if (!commentPendingDelete) return
     try {
-      await removeComment.mutateAsync({ bugId: bug.id, commentId: comment.id })
+      await removeComment.mutateAsync({ bugId: bug.id, commentId: commentPendingDelete.id })
     } catch (error) {
       toast.error(error?.response?.data?.detail ?? "Failed")
+    } finally {
+      setCommentPendingDelete(null)
     }
   }
 
@@ -351,7 +357,7 @@ export function BugDetailPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleDelete}
+              onClick={() => setDeleteBugOpen(true)}
               className="text-gray-400 dark:text-gray-500 hover:text-red-500"
               title={t("actions.delete")}
             >
@@ -444,7 +450,7 @@ export function BugDetailPage() {
                                 {t("actions.edit")}
                               </button>
                               <button
-                                onClick={() => deleteCommentRow(comment)}
+                                onClick={() => setCommentPendingDelete(comment)}
                                 className="hover:underline text-red-500"
                               >
                                 {t("actions.delete")}
@@ -495,6 +501,28 @@ export function BugDetailPage() {
           <ContextPanel sections={contextSections} />
         </div>
       </PageBody>
+
+      <ConfirmDialog
+        open={deleteBugOpen}
+        onOpenChange={setDeleteBugOpen}
+        title={t("delete.bugTitle", { number: bug.number })}
+        description={t("delete.bugDescription")}
+        confirmLabel={t("actions.delete")}
+        destructive
+        busy={deleteBug.isPending}
+        onConfirm={handleDelete}
+      />
+
+      <ConfirmDialog
+        open={commentPendingDelete !== null}
+        onOpenChange={(open) => { if (!open) setCommentPendingDelete(null) }}
+        title={t("delete.commentTitle")}
+        description={t("delete.commentDescription")}
+        confirmLabel={t("actions.delete")}
+        destructive
+        busy={removeComment.isPending}
+        onConfirm={confirmDeleteComment}
+      />
     </>
   )
 }
