@@ -103,6 +103,9 @@
     "empty": "Oraindik ez dago eranskinik",
     "loading": "Kargatzen…",
     "delete": "Kendu",
+    "copyMarkdown": "Markdown esteka kopiatu",
+    "markdownCopied": "Markdown esteka kopiatuta",
+    "copyFailed": "Errorea kopiatzean",
     "uploadFailed": "Errorea igotzean",
     "downloadFailed": "Errorea jaistean",
     "deleteFailed": "Errorea ezabatzean"

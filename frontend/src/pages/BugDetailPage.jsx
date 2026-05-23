@@ -51,6 +51,7 @@ import { LiveIndicator } from "../components/ui/live-indicator"
 import { ContextPanel } from "../components/ui/context-panel"
 import { EnvironmentBadge } from "../components/environment/EnvironmentBadge"
 import { AddBugLinkDialog } from "../components/bug/AddBugLinkDialog"
+import { BugAttachmentsContextPanel } from "../components/bug/BugAttachmentsContextPanel"
 import { BugAttachmentsPanel } from "../components/bug/BugAttachmentsPanel"
 import { BugTimeline } from "../components/bug/BugTimeline"
 import { BugExternalLinksPanel } from "../components/integration/BugExternalLinksPanel"
@@ -597,6 +598,11 @@ function buildContextSections({ bug, links, linkContext, onDeleteLink, addLinkDi
       ),
     })
   }
+
+  sections.push({
+    title: t("tabs.attachments"),
+    body: <BugAttachmentsContextPanel bugId={bug.id} />,
+  })
 
   sections.push({
     title: t("linkedOccurrence.externalTrackers"),

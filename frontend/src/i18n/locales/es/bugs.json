@@ -118,6 +118,9 @@
     "empty": "Aún no hay adjuntos",
     "loading": "Cargando…",
     "delete": "Quitar",
+    "copyMarkdown": "Copiar enlace Markdown",
+    "markdownCopied": "Enlace Markdown copiado",
+    "copyFailed": "Error al copiar",
     "uploadFailed": "Error al subir",
     "downloadFailed": "Error al descargar",
     "deleteFailed": "Error al eliminar"

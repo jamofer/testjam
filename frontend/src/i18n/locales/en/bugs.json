@@ -118,6 +118,9 @@
     "empty": "No attachments yet",
     "loading": "Loading…",
     "delete": "Remove",
+    "copyMarkdown": "Copy markdown link",
+    "markdownCopied": "Markdown link copied",
+    "copyFailed": "Copy failed",
     "uploadFailed": "Upload failed",
     "downloadFailed": "Download failed",
     "deleteFailed": "Delete failed"

@@ -103,6 +103,9 @@
     "empty": "Encara no hi ha adjunts",
     "loading": "Carregant…",
     "delete": "Treure",
+    "copyMarkdown": "Copiar enllaç Markdown",
+    "markdownCopied": "Enllaç Markdown copiat",
+    "copyFailed": "Error en copiar",
     "uploadFailed": "Error en pujar",
     "downloadFailed": "Error en baixar",
     "deleteFailed": "Error en eliminar"

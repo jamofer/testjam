@@ -711,6 +711,7 @@ def test_upload_attachment_persists_metadata_and_activity(auth_client, project_i
     assert body["content_type"] == "text/plain"
     assert body["size_bytes"] == len(b"trace contents")
     assert body["uploaded_by"]["username"] == "u"
+    assert body["url"] == f"/api/v1/bugs/{bug['id']}/attachments/{body['id']}/download"
 
     listed = auth_client.get(f"/api/v1/bugs/{bug['id']}/attachments").json()
     assert [row["filename"] for row in listed] == ["crash.log"]

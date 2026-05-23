@@ -103,6 +103,9 @@
     "empty": "Aínda non hai anexos",
     "loading": "Cargando…",
     "delete": "Quitar",
+    "copyMarkdown": "Copiar ligazón Markdown",
+    "markdownCopied": "Ligazón Markdown copiada",
+    "copyFailed": "Erro ao copiar",
     "uploadFailed": "Erro ao subir",
     "downloadFailed": "Erro ao baixar",
     "deleteFailed": "Erro ao eliminar"
