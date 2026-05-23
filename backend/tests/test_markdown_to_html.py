@@ -39,3 +39,44 @@ def test_inline_marks():
 
 def test_plain_text_is_html_escaped():
     assert to_html("a <b> c & d") == "<p>a &lt;b&gt; c &amp; d</p>"
+
+
+def test_javascript_scheme_link_falls_back_to_plain_text():
+    out = to_html("[xss](javascript:void)")
+
+    assert "javascript:" not in out
+    assert "<a " not in out
+    assert "xss" in out
+
+
+def test_data_scheme_link_falls_back_to_plain_text():
+    out = to_html("[steal](data:text/html,abc)")
+
+    assert "data:" not in out
+    assert "<a " not in out
+
+
+def test_vbscript_scheme_link_falls_back_to_plain_text():
+    out = to_html("[old](vbscript:msgbox)")
+
+    assert "vbscript:" not in out
+    assert "<a " not in out
+
+
+def test_relative_link_is_kept():
+    out = to_html("see [docs](/help)")
+
+    assert out == '<p>see <a href="/help">docs</a></p>'
+
+
+def test_mailto_link_is_kept():
+    out = to_html("ping [team](mailto:qa@example.com)")
+
+    assert out == '<p>ping <a href="mailto:qa@example.com">team</a></p>'
+
+
+def test_link_scheme_check_is_case_insensitive():
+    out = to_html("[xss](JaVaScRiPt:run)")
+
+    assert "javascript" not in out.lower()
+    assert "<a " not in out
