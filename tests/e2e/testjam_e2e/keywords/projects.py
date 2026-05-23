@@ -76,6 +76,7 @@ class ProjectMixin:
     def cleanup_current_project(self) -> None:
         if self.current_project_id is None:
             return
+        self.authenticate_as_admin()
         self.client.delete(f"/projects/{self.current_project_id}")
         self.current_project_id = None
 

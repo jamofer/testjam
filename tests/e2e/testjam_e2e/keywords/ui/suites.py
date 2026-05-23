@@ -1,3 +1,5 @@
+import os
+
 from robot.api.deco import keyword
 from robot.libraries.BuiltIn import BuiltIn
 
@@ -40,7 +42,9 @@ class SuitesUIMixin:
 
     @keyword("I have a fresh project named ${name}")
     def have_fresh_project(self, name: str) -> None:
-        self.authenticate_as_admin()
+        admin_user = os.getenv("TESTJAM_USER", "admin")
+        admin_pass = os.getenv("TESTJAM_PASS", "admin123")
+        self.switch_ui_session(admin_user, admin_pass)
         scoped = _scoped_project_name(name)
         for project in self.client.get("/projects").json():
             if project["name"] == scoped:
