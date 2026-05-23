@@ -8,6 +8,19 @@ from testjam.models.user import GroupMember
 
 ROLE_PRIORITY: dict[str, int] = {"owner": 3, "tester": 2, "viewer": 1}
 VALID_ROLES: set[str] = set(ROLE_PRIORITY.keys())
+WRITER_ROLES: set[str] = {"owner", "tester"}
+
+
+def has_project_access(db: Session, user, project_id: int) -> bool:
+    if user.is_admin:
+        return True
+    return effective_role(db, user.id, project_id) is not None
+
+
+def is_project_writer(db: Session, user, project_id: int) -> bool:
+    if user.is_admin:
+        return True
+    return effective_role(db, user.id, project_id) in WRITER_ROLES
 
 
 def effective_role(db: Session, user_id: int, project_id: int) -> str | None:

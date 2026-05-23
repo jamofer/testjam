@@ -1,0 +1,193 @@
+{
+  "title": "Integracións",
+  "subtitle": "Webhooks saíntes que envían payloads asinados ao ocorrer eventos do proxecto.",
+  "new": "Novo webhook",
+  "empty": {
+    "title": "Aínda non hai webhooks",
+    "description": "Crea un para notificar a Slack, Jenkins ou o teu propio servizo."
+  },
+  "table": {
+    "name": "Nome",
+    "url": "URL",
+    "events": "Eventos",
+    "status": "Estado",
+    "lastDelivery": "Último envío",
+    "actions": "Accións"
+  },
+  "status": {
+    "active": "Activo",
+    "paused": "Pausado"
+  },
+  "actions": {
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "test": "Enviar proba",
+    "viewLog": "Rexistro de envíos",
+    "cancel": "Cancelar",
+    "save": "Gardar",
+    "create": "Crear",
+    "back": "Atrás",
+    "next": "Seguinte"
+  },
+  "form": {
+    "name": "Nome",
+    "url": "URL do endpoint",
+    "urlPlaceholder": "https://hooks.example.com/...",
+    "events": "Eventos subscritos",
+    "active": "Activo",
+    "eventsHelp": "Selecciona polo menos un evento ao que subscribirte.",
+    "secretRevealed": "Webhook creado. Copia o segredo de sinatura — non se volverá mostrar.",
+    "secretLabel": "Segredo de sinatura",
+    "secretCopy": "Copiar",
+    "copied": "Copiado"
+  },
+  "dialog": {
+    "createTitle": "Novo webhook",
+    "editTitle": "Editar webhook",
+    "deleteTitle": "Eliminar webhook?",
+    "deleteBody": "Detéranse os envíos a {{name}}. Os rexistros existentes consérvanse."
+  },
+  "log": {
+    "title": "Rexistro de envíos",
+    "empty": "Aínda non hai envíos.",
+    "event": "Evento",
+    "status": "Estado",
+    "attempts": "Intentos",
+    "error": "Erro",
+    "when": "Cando",
+    "succeeded": "OK",
+    "failed": "Fallou",
+    "pending": "Pendente"
+  },
+  "toast": {
+    "created": "Webhook creado",
+    "updated": "Webhook actualizado",
+    "deleted": "Webhook eliminado",
+    "testSent": "Envío de proba programado",
+    "failed": "Fallou",
+    "copyFailed": "Non se puido copiar"
+  },
+  "webhooks": {
+    "title": "Webhooks saíntes",
+    "subtitle": "POSTs asinados ao teu endpoint cando se disparan eventos do proxecto."
+  },
+  "trackers": {
+    "title": "Trackers externos",
+    "subtitle": "Empuxa bugs a GitHub, Jira e outros. Os tokens gárdanse cifrados.",
+    "new": "Conectar tracker",
+    "test": "Probar",
+    "testOk": "Credenciais verificadas",
+    "testFailed": "A proba fallou",
+    "rotate": "Rotar token",
+    "rotated": "Token rotado",
+    "rotateFailed": "Fallou a rotación",
+    "rotateTitle": "Rotar token · {{name}}",
+    "delete": "Eliminar",
+    "deleted": "Integración eliminada",
+    "deleteFailed": "Non se puido eliminar",
+    "deleteTitle": "Eliminar a integración?",
+    "deleteBody": "As ligazóns existentes a tícketes seguirán visibles nos bugs como referencias de só lectura. Escribe «{{name}}» para confirmar.",
+    "deleteConfirmLabel": "Nome da integración",
+    "created": "Integración conectada",
+    "createFailed": "Non se puido conectar",
+    "lastUsed": "Último uso {{date}}",
+    "neverUsed": "Token aínda non usado",
+    "empty": {
+      "title": "Aínda non hai trackers",
+      "description": "Conecta un repo de GitHub (máis providers en breve) para empuxar bugs sen saír de Testjam."
+    },
+    "dialog": {
+      "title": "Conectar tracker externo",
+      "pickProvider": "Escolle un provider",
+      "name": "Nome visible",
+      "namePlaceholder": "ex. acme/awesome",
+      "secret": "Token de API",
+      "secretPlaceholder": "ghp_...",
+      "secretHelp": "Gárdase cifrado coa chave do servidor.",
+      "create": "Conectar"
+    },
+    "fields": {
+      "github": {
+        "owner": "Owner",
+        "repo": "Repositorio",
+        "api_base": "URL base API (só Enterprise)"
+      },
+      "jira": {
+        "base_url": "URL base",
+        "project_key": "Project key",
+        "issue_type": "Tipo de issue",
+        "email": "Email de Atlassian"
+      },
+      "gitlab": {
+        "project": "Proxecto",
+        "base_url": "URL base (só self-hosted)"
+      },
+      "azure_devops": {
+        "organization_url": "URL da organización",
+        "project": "Proxecto",
+        "work_item_type": "Tipo de work item"
+      },
+      "openproject": {
+        "base_url": "URL base",
+        "project": "Proxecto",
+        "type_id": "Id do tipo de work-package"
+      }
+    },
+    "help": {
+      "github": {
+        "owner": "Usuario ou organización GitHub que ten o repo.",
+        "api_base": "Déixao baleiro para github.com."
+      },
+      "jira": {
+        "base_url": "Raíz do sitio, sen barra final.",
+        "issue_type": "Por defecto Bug. Calquera tipo que acepte o teu workflow.",
+        "email": "Necesario para Atlassian Cloud (Basic auth). Baleiro para PAT Server/DC."
+      },
+      "gitlab": {
+        "project": "Ruta completa (group/subgroup/project) ou id numérico.",
+        "base_url": "Déixao baleiro para gitlab.com."
+      },
+      "azure_devops": {
+        "organization_url": "Raíz do sitio, sen barra final.",
+        "work_item_type": "Por defecto Bug. Tipo aceptado polo teu process template."
+      },
+      "openproject": {
+        "base_url": "Raíz do sitio, sen barra final.",
+        "project": "Identificador (slug) ou id numérico do proxecto.",
+        "type_id": "Id numérico do tipo (Bug, Task…). Baleiro usa o default do proxecto."
+      }
+    }
+  },
+  "statusMapping": {
+    "button": "Editar mapping de estados",
+    "title": "Mapping de estados · {{name}}",
+    "help": "Mapea estados remotos (ex. Done, In Review) a open/closed de Testjam.",
+    "empty": "Sen mappings. Aplícanse os defaults.",
+    "source": "Estado remoto",
+    "sourcePlaceholder": "Feito",
+    "target": "Mapea a",
+    "add": "Engadir mapping",
+    "save": "Gardar mapping",
+    "saved": "Mapping gardado",
+    "saveFailed": "Non se puido gardar"
+  },
+  "bugLinks": {
+    "empty": "Sen tícketes externos ligados.",
+    "push": "Push",
+    "pushed": "Enviado ao tracker",
+    "pushFailed": "Fallou o push",
+    "sync": "Sincronizar",
+    "synced": "Estado sincronizado",
+    "syncFailed": "Fallou a sincronización",
+    "remove": "Desligar",
+    "removed": "Ligazón eliminada",
+    "removeFailed": "Non se puido eliminar",
+    "pickIntegration": "Selecciona tracker…",
+    "noIntegrations": "Non hai integracións activas configuradas.",
+    "status": {
+      "open": "Aberto",
+      "closed": "Pechado",
+      "unknown": "Descoñecido"
+    }
+  }
+}

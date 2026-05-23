@@ -10,6 +10,7 @@ from testjam.auth.dependencies import (
     get_current_user,
     require_project_access,
     require_project_access_ctx,
+    require_project_writer,
 )
 from testjam.database import get_db
 from testjam.models.execution import TestExecution, TestResult
@@ -226,10 +227,11 @@ def reopen_execution(
 
 
 @executions_router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_execution(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def delete_execution(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
     ex = db.get(TestExecution, id)
     if not ex:
         raise HTTPException(status_code=404, detail="Not found")
+    require_project_writer(db, current, ex.project_id)
     execution_id = ex.id
     project_id = ex.project_id
     db.delete(ex)

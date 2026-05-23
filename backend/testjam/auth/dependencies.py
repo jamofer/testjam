@@ -11,6 +11,7 @@ from testjam.database import get_db
 from testjam.models.project import Project
 from testjam.models.token import ApiToken
 from testjam.models.user import User
+from testjam.services.permissions import has_project_access, is_project_writer
 
 bearer_scheme = HTTPBearer(auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
@@ -75,12 +76,21 @@ def get_current_user(ctx: AuthContext = Depends(get_auth_context)) -> User:
     return ctx.user
 
 
-def require_project_access_ctx(id: int, ctx: AuthContext = Depends(get_auth_context)) -> AuthContext:
+def require_project_access_ctx(
+    id: int,
+    db: Session = Depends(get_db),
+    ctx: AuthContext = Depends(get_auth_context),
+) -> AuthContext:
     """Like require_project_access but returns the full AuthContext."""
     if ctx.project_scope is not None and ctx.project_scope != id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="API token is not authorized for this project",
+        )
+    if not has_project_access(db, ctx.user, id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not a project member",
         )
     return ctx
 
@@ -94,14 +104,24 @@ def require_admin(current: User = Depends(get_current_user)) -> User:
     return current
 
 
-def require_project_access(id: int, ctx: AuthContext = Depends(get_auth_context)) -> User:
+def require_project_access(
+    id: int,
+    db: Session = Depends(get_db),
+    ctx: AuthContext = Depends(get_auth_context),
+) -> User:
     """Returns the user only if the active credential can access the given project.
-    Project-scoped API tokens may only access their own project. The path parameter
+    Project-scoped API tokens may only access their own project. Non-admin users
+    must be members of the project (directly or via a group). The path parameter
     must be named `id` (consistent with how project routes declare it)."""
     if ctx.project_scope is not None and ctx.project_scope != id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="API token is not authorized for this project",
+        )
+    if not has_project_access(db, ctx.user, id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not a project member",
         )
     return ctx.user
 
@@ -112,11 +132,22 @@ def require_writable_project_access(
     ctx: AuthContext = Depends(get_auth_context),
 ) -> User:
     """Like require_project_access but also rejects mutations on archived projects."""
-    user = require_project_access(id, ctx)
+    user = require_project_access(id, db, ctx)
     project = db.get(Project, id)
     if project is not None and project.archived_at is not None:
         raise HTTPException(status_code=409, detail="Project is archived")
     return user
+
+
+def require_project_writer(
+    db: Session, user: User, project_id: int,
+) -> None:
+    """Raise 403 unless the user is admin, owner, or tester on the project."""
+    if not is_project_writer(db, user, project_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tester role or higher required",
+        )
 
 
 def _build_context(
