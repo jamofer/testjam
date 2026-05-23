@@ -390,8 +390,32 @@ def _sync_steps_from_rf_test(
     if teardown and getattr(teardown, "name", None):
         append(teardown.name, "teardown")
 
+    existing = client.cases.list_steps(case_id)
+    if _steps_match(existing, payload):
+        return list(zip(step_types, [row["id"] for row in existing]))
+
     created = client.cases.replace_steps(case_id, payload)
     return list(zip(step_types, [row["id"] for row in created]))
+
+
+def _steps_match(existing: list[dict[str, Any]], payload: list[dict[str, Any]]) -> bool:
+    """Return True when the backend already has the exact same step sequence.
+
+    Compares action / step_type / order so a no-op listener replay does not
+    rewrite the steps and create a redundant CaseRevision.
+    """
+    if len(existing) != len(payload):
+        return False
+    for current, incoming in zip(
+        sorted(existing, key=lambda row: row.get("order", 0)), payload,
+    ):
+        if current.get("action") != incoming["action"]:
+            return False
+        if current.get("step_type", "action") != incoming.get("step_type", "action"):
+            return False
+        if current.get("order") != incoming["order"]:
+            return False
+    return True
 
 
 CF_TAG_PREFIX = "cf:"
