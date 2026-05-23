@@ -18,6 +18,11 @@ _INLINE_PATTERN = re.compile(
     r"|\[(?P<link_text>[^\]]+)\]\((?P<link_url>[^)]+)\))"
 )
 
+# Only these URL schemes survive markdown link rendering. Anything else
+# (javascript:, data:, vbscript:, file:, …) gets dropped to plain text to
+# avoid XSS via crafted descriptions reaching the HTML reports.
+_SAFE_LINK_SCHEMES = ("http://", "https://", "mailto:")
+
 
 def to_html(markdown: str) -> str:
     if not markdown:
@@ -103,6 +108,13 @@ def _consume_paragraph(lines: list[str], start: int) -> tuple[str, int]:
     return f"<p>{_inline(text)}</p>", cursor
 
 
+def _is_safe_url(url: str) -> bool:
+    lowered = url.lower()
+    if lowered.startswith("/") or lowered.startswith("#"):
+        return True
+    return any(lowered.startswith(scheme) for scheme in _SAFE_LINK_SCHEMES)
+
+
 def _inline(text: str) -> str:
     if not text:
         return ""
@@ -118,9 +130,13 @@ def _inline(text: str) -> str:
         elif match.group("code") is not None:
             pieces.append(f"<code>{html.escape(match.group('code'))}</code>")
         elif match.group("link_text") is not None:
-            url = html.escape(match.group("link_url"), quote=True)
+            raw_url = match.group("link_url").strip()
             text_part = html.escape(match.group("link_text"))
-            pieces.append(f'<a href="{url}">{text_part}</a>')
+            if _is_safe_url(raw_url):
+                url = html.escape(raw_url, quote=True)
+                pieces.append(f'<a href="{url}">{text_part}</a>')
+            else:
+                pieces.append(text_part)
         cursor = match.end()
     if cursor < len(text):
         pieces.append(html.escape(text[cursor:]))
