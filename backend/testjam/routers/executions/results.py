@@ -107,6 +107,7 @@ def create_result(
     background: BackgroundTasks,
     db: Session = Depends(get_db), _: User = Depends(get_current_user),
 ):
+    _reject_if_terminal(db.get(TestExecution, id))
     existing = db.query(TestResult).filter_by(execution_id=id, test_case_id=body.test_case_id).first()
     previous_status = existing.status if existing else None
     if existing:
@@ -146,6 +147,7 @@ def bulk_results(
     background: BackgroundTasks,
     db: Session = Depends(get_db), _: User = Depends(get_current_user),
 ):
+    _reject_if_terminal(db.get(TestExecution, id))
     created = updated = 0
     errors = []
     newly_failed_ids: list[int] = []

@@ -25,6 +25,7 @@ dependencies = [
     "redis>=5.2.0",
     "cryptography>=43.0.0",
     "httpx>=0.28.0",
+    "defusedxml>=0.7.1",
 ]
 
 [project.optional-dependencies]
