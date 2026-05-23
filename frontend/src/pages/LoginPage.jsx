@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useLogin } from '../hooks/useAuth'
 import { Logo } from '../components/ui/logo'
+import { LocaleSwitcher } from '../components/ui/locale-switcher'
 import { loginErrorMessage } from '../lib/auth-errors'
 
 export function LoginPage() {
@@ -65,6 +66,9 @@ export function LoginPage() {
             {t('login.forgotPassword')}
           </Link>
         </p>
+        <div className="flex justify-center pt-1">
+          <LocaleSwitcher compact />
+        </div>
       </form>
     </div>
   )

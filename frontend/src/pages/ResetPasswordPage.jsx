@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useMutation } from '@tanstack/react-query'
 import { authApi } from '../api/auth'
 import { Logo } from '../components/ui/logo'
+import { LocaleSwitcher } from '../components/ui/locale-switcher'
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -94,6 +95,9 @@ function CenteredCard({ children }) {
       <div className="bg-white dark:bg-gray-900 shadow-md rounded-xl p-8 w-80 space-y-4">
         <div className="flex justify-center pb-2"><Logo size={32} /></div>
         {children}
+        <div className="flex justify-center pt-1">
+          <LocaleSwitcher compact />
+        </div>
       </div>
     </div>
   )

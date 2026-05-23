@@ -15,7 +15,9 @@ export function useLocale() {
   const setLocale = useCallback((next) => {
     if (!SUPPORTED_LOCALES.includes(next)) return
     applyLocale(next)
-    updateMe.mutate({ locale: next })
+    if (typeof window !== "undefined" && window.localStorage.getItem("token")) {
+      updateMe.mutate({ locale: next })
+    }
   }, [updateMe])
 
   return { locale, setLocale, supported: SUPPORTED_LOCALES }
