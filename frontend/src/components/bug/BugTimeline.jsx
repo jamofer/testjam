@@ -6,6 +6,7 @@ import {
   Link2,
   Link2Off,
   MessageSquare,
+  Paperclip,
   User as UserIcon,
 } from "lucide-react"
 
@@ -14,6 +15,7 @@ import { MdViewer } from "../MdEditor"
 
 const STATUS_FIELD = "status"
 const LINK_FIELD = "link"
+const ATTACHMENT_FIELD = "attachment"
 
 export function BugTimeline({ activity = [], comments = [], statuses, projectId }) {
   const { t } = useTranslation("bugs")
@@ -70,6 +72,9 @@ function EntryIcon({ entry }) {
     const Icon = entry.toValue ? Link2 : Link2Off
     return <Icon size={12} className="text-gray-400 dark:text-gray-500" />
   }
+  if (entry.field === ATTACHMENT_FIELD) {
+    return <Paperclip size={12} className="text-gray-400 dark:text-gray-500" />
+  }
   return <FilePen size={12} className="text-gray-400 dark:text-gray-500" />
 }
 
@@ -115,6 +120,11 @@ function renderMessage(entry, t, statuses) {
     return entry.toValue
       ? t("activity.linkAdded")
       : t("activity.linkRemoved")
+  }
+  if (entry.field === ATTACHMENT_FIELD) {
+    return entry.toValue
+      ? t("activity.attachmentAdded", { filename: entry.toValue })
+      : t("activity.attachmentRemoved", { filename: entry.fromValue })
   }
   const field = t(`activity.fields.${entry.field}`, entry.field)
   if (entry.toValue == null) {

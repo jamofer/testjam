@@ -185,6 +185,30 @@ class BugsResource(Resource):
     def list_attachments(self, bug_id: int) -> list[dict]:
         return self._request("GET", f"/bugs/{bug_id}/attachments").json()
 
+    def upload_attachment(
+        self,
+        bug_id: int,
+        *,
+        filename: str,
+        content,
+        mime: str,
+    ) -> dict:
+        files = {"file": (filename, content, mime)}
+        return self._request(
+            "POST", f"/bugs/{bug_id}/attachments", files=files,
+        ).json()
+
+    def download_attachment(self, bug_id: int, attachment_id: int) -> bytes:
+        response = self._request(
+            "GET", f"/bugs/{bug_id}/attachments/{attachment_id}/download",
+        )
+        return response.content
+
+    def delete_attachment(self, bug_id: int, attachment_id: int) -> None:
+        self._request(
+            "DELETE", f"/bugs/{bug_id}/attachments/{attachment_id}",
+        )
+
     def download_report(
         self,
         project_id: int,

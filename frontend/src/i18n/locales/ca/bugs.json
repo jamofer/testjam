@@ -98,6 +98,19 @@
     "by": "per {{user}}",
     "empty": "Sense canvis d'estat"
   },
+  "attachments": {
+    "upload": "Pujar fitxer",
+    "empty": "Encara no hi ha adjunts",
+    "loading": "Carregant…",
+    "delete": "Treure",
+    "uploadFailed": "Error en pujar",
+    "downloadFailed": "Error en baixar",
+    "deleteFailed": "Error en eliminar"
+  },
+  "activity": {
+    "attachmentAdded": "ha adjuntat {{filename}}",
+    "attachmentRemoved": "ha tret l'adjunt {{filename}}"
+  },
   "context": {
     "about": "Sobre",
     "severity": "Severitat",

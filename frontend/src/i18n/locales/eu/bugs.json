@@ -98,6 +98,19 @@
     "by": "{{user}}-(e)k",
     "empty": "Egoera-aldaketarik gabe"
   },
+  "attachments": {
+    "upload": "Fitxategia igo",
+    "empty": "Oraindik ez dago eranskinik",
+    "loading": "Kargatzen…",
+    "delete": "Kendu",
+    "uploadFailed": "Errorea igotzean",
+    "downloadFailed": "Errorea jaistean",
+    "deleteFailed": "Errorea ezabatzean"
+  },
+  "activity": {
+    "attachmentAdded": "{{filename}} erantsi du",
+    "attachmentRemoved": "{{filename}} eranskina kendu du"
+  },
   "context": {
     "about": "Buruz",
     "severity": "Larritasuna",

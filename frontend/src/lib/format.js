@@ -53,6 +53,17 @@ export function fmtRelative(iso, now = new Date(), locale) {
   return formatter.format(Math.round(seconds / 31536000), "year")
 }
 
+const BYTE_UNITS = ["B", "KB", "MB", "GB", "TB"]
+
+export function fmtBytes(bytes) {
+  if (bytes == null) return null
+  if (bytes === 0) return "0 B"
+  const index = Math.min(Math.floor(Math.log10(bytes) / 3), BYTE_UNITS.length - 1)
+  const value = bytes / 1000 ** index
+  const precision = value >= 100 || index === 0 ? 0 : 1
+  return `${value.toFixed(precision)} ${BYTE_UNITS[index]}`
+}
+
 export function browserTimezone() {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone || null

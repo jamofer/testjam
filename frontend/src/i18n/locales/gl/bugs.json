@@ -98,6 +98,19 @@
     "by": "por {{user}}",
     "empty": "Sen cambios de estado"
   },
+  "attachments": {
+    "upload": "Subir ficheiro",
+    "empty": "Aínda non hai anexos",
+    "loading": "Cargando…",
+    "delete": "Quitar",
+    "uploadFailed": "Erro ao subir",
+    "downloadFailed": "Erro ao baixar",
+    "deleteFailed": "Erro ao eliminar"
+  },
+  "activity": {
+    "attachmentAdded": "anexou {{filename}}",
+    "attachmentRemoved": "quitou o anexo {{filename}}"
+  },
   "context": {
     "about": "Sobre",
     "severity": "Severidade",

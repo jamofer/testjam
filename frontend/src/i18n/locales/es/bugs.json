@@ -113,6 +113,15 @@
     "by": "por {{user}}",
     "empty": "Aún no ha ocurrido nada"
   },
+  "attachments": {
+    "upload": "Subir archivo",
+    "empty": "Aún no hay adjuntos",
+    "loading": "Cargando…",
+    "delete": "Quitar",
+    "uploadFailed": "Error al subir",
+    "downloadFailed": "Error al descargar",
+    "deleteFailed": "Error al eliminar"
+  },
   "mentions": {
     "searching": "Buscando…",
     "noMatches": "Sin coincidencias"
@@ -126,6 +135,8 @@
     "cleared": "quitó {{field}}",
     "linkAdded": "añadió un vínculo",
     "linkRemoved": "quitó un vínculo",
+    "attachmentAdded": "adjuntó {{filename}}",
+    "attachmentRemoved": "quitó el adjunto {{filename}}",
     "commented": "comentó",
     "fields": {
       "title": "título",

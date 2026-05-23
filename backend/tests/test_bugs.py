@@ -697,3 +697,73 @@ def test_environment_change_records_assigned_field(auth_client, project_id):
     assert len(env_rows) == 1
     assert env_rows[0]["from_value"] is None
     assert env_rows[0]["to_value"] == "staging"
+
+
+def test_upload_attachment_persists_metadata_and_activity(auth_client, project_id):
+    bug = _create_bug(auth_client, project_id).json()
+    files = {"file": ("crash.log", b"trace contents", "text/plain")}
+
+    response = auth_client.post(f"/api/v1/bugs/{bug['id']}/attachments", files=files)
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["filename"] == "crash.log"
+    assert body["content_type"] == "text/plain"
+    assert body["size_bytes"] == len(b"trace contents")
+    assert body["uploaded_by"]["username"] == "u"
+
+    listed = auth_client.get(f"/api/v1/bugs/{bug['id']}/attachments").json()
+    assert [row["filename"] for row in listed] == ["crash.log"]
+
+    rows = _activity_by_field(auth_client, bug["id"], "attachment")
+    assert len(rows) == 1
+    assert rows[0]["from_value"] is None
+    assert rows[0]["to_value"] == "crash.log"
+
+
+def test_download_attachment_returns_file_bytes(auth_client, project_id):
+    bug = _create_bug(auth_client, project_id).json()
+    payload = b"binary-blob"
+    files = {"file": ("evidence.bin", payload, "application/octet-stream")}
+    attachment_id = auth_client.post(
+        f"/api/v1/bugs/{bug['id']}/attachments", files=files,
+    ).json()["id"]
+
+    response = auth_client.get(
+        f"/api/v1/bugs/{bug['id']}/attachments/{attachment_id}/download",
+    )
+
+    assert response.status_code == 200
+    assert response.content == payload
+
+
+def test_delete_attachment_removes_row_and_records_activity(auth_client, project_id):
+    bug = _create_bug(auth_client, project_id).json()
+    files = {"file": ("trace.txt", b"x", "text/plain")}
+    attachment_id = auth_client.post(
+        f"/api/v1/bugs/{bug['id']}/attachments", files=files,
+    ).json()["id"]
+
+    response = auth_client.delete(
+        f"/api/v1/bugs/{bug['id']}/attachments/{attachment_id}",
+    )
+
+    assert response.status_code == 204
+    remaining = auth_client.get(f"/api/v1/bugs/{bug['id']}/attachments").json()
+    assert remaining == []
+
+    rows = _activity_by_field(auth_client, bug["id"], "attachment")
+    assert len(rows) == 2
+    assert rows[1]["from_value"] == "trace.txt"
+    assert rows[1]["to_value"] is None
+
+
+def test_upload_attachment_requires_writer_role(viewer_client, auth_client, project_id):
+    bug = _create_bug(auth_client, project_id).json()
+    files = {"file": ("note.txt", b"hi", "text/plain")}
+
+    response = viewer_client.post(
+        f"/api/v1/bugs/{bug['id']}/attachments", files=files,
+    )
+
+    assert response.status_code == 403

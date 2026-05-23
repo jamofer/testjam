@@ -14,9 +14,11 @@ Permissions:
 """
 from __future__ import annotations
 
+import os
+import shutil
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
@@ -28,6 +30,7 @@ from testjam.auth.dependencies import (
     require_project_access,
     require_writable_project_access,
 )
+from testjam.core.config import settings
 from testjam.database import get_db
 from testjam.models.bug import Bug, BugActivity, BugAttachment, BugComment, BugLink
 from testjam.models.execution import TestExecution
@@ -51,7 +54,7 @@ from testjam.schemas.bug import (
     RECIPROCAL_LINK_KIND,
     TERMINAL_BUG_STATUSES,
 )
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 
 from testjam.services import bug_activity, bug_context, bug_events, bug_reports, bug_watchers, mention_notify
 from testjam.services import custom_fields as custom_field_service
@@ -92,6 +95,9 @@ def _fan_out_mentions(
 
 
 WRITER_ROLES = {"tester", "owner"}
+BUG_UPLOAD_DIR = os.path.join(settings.UPLOAD_DIR, "bugs")
+
+
 projects_router = APIRouter(prefix="/projects", tags=["Bugs"])
 bugs_router = APIRouter(prefix="/bugs", tags=["Bugs"])
 
@@ -671,6 +677,100 @@ def list_attachments(
     bug = _get_bug(db, id)
     _authorize_bug_access(ctx, bug)
     return list(bug.attachments)
+
+
+@bugs_router.post(
+    "/{id}/attachments",
+    response_model=BugAttachmentOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def upload_attachment(
+    id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    bug = _get_bug(db, id)
+    _require_writer(db, current, bug.project_id)
+    _ensure_project_writable(db, bug.project_id)
+    destination_directory = os.path.join(BUG_UPLOAD_DIR, str(id))
+    os.makedirs(destination_directory, exist_ok=True)
+    destination_path = os.path.join(destination_directory, file.filename)
+    with open(destination_path, "wb") as handle:
+        shutil.copyfileobj(file.file, handle)
+    attachment = BugAttachment(
+        bug_id=id,
+        filename=file.filename,
+        content_type=file.content_type,
+        size_bytes=os.path.getsize(destination_path),
+        file_path=destination_path,
+        uploaded_by_id=current.id,
+    )
+    db.add(attachment)
+    activity_row = bug_activity.record_attachment_added(
+        db, bug.id, file.filename, current.id,
+    )
+    _touch_updated_by(bug, current)
+    db.commit()
+    db.refresh(attachment)
+    db.refresh(activity_row)
+    bug_events.on_bug_attachment_changed(db, bug.id, activity_row)
+    return attachment
+
+
+@bugs_router.get("/{id}/attachments/{attachment_id}/download")
+def download_attachment(
+    id: int,
+    attachment_id: int,
+    db: Session = Depends(get_db),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    bug = _get_bug(db, id)
+    _authorize_bug_access(ctx, bug)
+    attachment = (
+        db.query(BugAttachment)
+        .filter(BugAttachment.id == attachment_id, BugAttachment.bug_id == id)
+        .first()
+    )
+    if attachment is None or not os.path.exists(attachment.file_path):
+        raise HTTPException(status_code=404, detail="Not found")
+    return FileResponse(
+        attachment.file_path,
+        filename=attachment.filename,
+        media_type=attachment.content_type,
+    )
+
+
+@bugs_router.delete(
+    "/{id}/attachments/{attachment_id}", status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_attachment(
+    id: int,
+    attachment_id: int,
+    db: Session = Depends(get_db),
+    current: User = Depends(get_current_user),
+):
+    bug = _get_bug(db, id)
+    _require_writer(db, current, bug.project_id)
+    _ensure_project_writable(db, bug.project_id)
+    attachment = (
+        db.query(BugAttachment)
+        .filter(BugAttachment.id == attachment_id, BugAttachment.bug_id == id)
+        .first()
+    )
+    if attachment is None:
+        raise HTTPException(status_code=404, detail="Not found")
+    filename = attachment.filename
+    if os.path.exists(attachment.file_path):
+        os.remove(attachment.file_path)
+    db.delete(attachment)
+    activity_row = bug_activity.record_attachment_removed(
+        db, bug.id, filename, current.id,
+    )
+    _touch_updated_by(bug, current)
+    db.commit()
+    db.refresh(activity_row)
+    bug_events.on_bug_attachment_changed(db, bug.id, activity_row)
 
 
 @projects_router.get("/{id}/bugs/report")
