@@ -9,6 +9,7 @@ import { useCase, useSuite } from "../../hooks/useSuites"
 import { useQuery } from "@tanstack/react-query"
 import { plansApi } from "../../api/testplans"
 import { Logo } from "../ui/logo"
+import { LocaleSwitcher } from "../ui/locale-switcher"
 import { ThemeToggle } from "../ui/theme-toggle"
 import { NotificationsBell } from "./NotificationsBell"
 
@@ -290,6 +291,13 @@ function UserMenu({ user, logout, isAdmin }) {
           </Link>
           <div className="my-1 border-t border-gray-100 dark:border-gray-800" />
           <ThemeToggle />
+          <div className="my-1 border-t border-gray-100 dark:border-gray-800" />
+          <div className="px-3 py-2">
+            <p className="text-[11px] uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-1.5">
+              {t("user.language")}
+            </p>
+            <LocaleSwitcher compact className="w-full" />
+          </div>
           <div className="my-1 border-t border-gray-100 dark:border-gray-800" />
           <button type="button" role="menuitem"
             onClick={() => { setOpen(false); logout() }}

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useMutation } from '@tanstack/react-query'
 import { authApi } from '../api/auth'
 import { Logo } from '../components/ui/logo'
+import { LocaleSwitcher } from '../components/ui/locale-switcher'
 
 export function ForgotPasswordPage() {
   const { t } = useTranslation('auth')
@@ -52,6 +53,9 @@ export function ForgotPasswordPage() {
         <p className="text-center text-sm">
           <Link to="/login" className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100">{t('forgot.back')}</Link>
         </p>
+        <div className="flex justify-center pt-1">
+          <LocaleSwitcher compact />
+        </div>
       </form>
     </div>
   )
