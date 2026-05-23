@@ -8,6 +8,7 @@ import {
   MessageSquare,
   MessageSquareDot,
   Paperclip,
+  Sliders,
   User as UserIcon,
 } from "lucide-react"
 
@@ -20,6 +21,7 @@ const LINK_FIELD = "link"
 const ATTACHMENT_FIELD = "attachment"
 const COMMENT_FIELD = "comment"
 const DESCRIPTION_FIELD = "description"
+const CUSTOM_FIELD = "custom_field"
 
 export function BugTimeline({ activity = [], comments = [], statuses, projectId }) {
   const { t } = useTranslation("bugs")
@@ -59,7 +61,7 @@ export function BugTimeline({ activity = [], comments = [], statuses, projectId 
           {entry.kind === "activity" && entry.field === DESCRIPTION_FIELD && (
             <DescriptionDiff before={entry.fromValue} after={entry.toValue} />
           )}
-          {entry.kind === "activity" && entry.note && (
+          {entry.kind === "activity" && entry.note && entry.field !== CUSTOM_FIELD && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{entry.note}</p>
           )}
         </li>
@@ -84,6 +86,9 @@ function EntryIcon({ entry }) {
   }
   if (entry.field === COMMENT_FIELD) {
     return <MessageSquareDot size={12} className="text-gray-400 dark:text-gray-500" />
+  }
+  if (entry.field === CUSTOM_FIELD) {
+    return <Sliders size={12} className="text-gray-400 dark:text-gray-500" />
   }
   return <FilePen size={12} className="text-gray-400 dark:text-gray-500" />
 }
@@ -140,6 +145,17 @@ function diffPrefix(type) {
   return "  "
 }
 
+function formatCustomFieldValue(raw) {
+  if (raw == null) return null
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) return parsed.join(", ")
+    return String(parsed)
+  } catch {
+    return raw
+  }
+}
+
 
 function renderMessage(entry, t, statuses) {
   if (entry.kind === "comment") {
@@ -170,6 +186,14 @@ function renderMessage(entry, t, statuses) {
     if (entry.toValue == null) return t("activity.descriptionCleared")
     if (entry.fromValue == null) return t("activity.descriptionSet")
     return t("activity.descriptionEdited")
+  }
+  if (entry.field === CUSTOM_FIELD) {
+    const key = entry.note ?? ""
+    const from = formatCustomFieldValue(entry.fromValue)
+    const to = formatCustomFieldValue(entry.toValue)
+    if (to == null) return t("activity.customFieldCleared", { key })
+    if (from == null) return t("activity.customFieldSet", { key, to })
+    return t("activity.customFieldChanged", { key, from, to })
   }
   const field = t(`activity.fields.${entry.field}`, entry.field)
   if (entry.toValue == null) {

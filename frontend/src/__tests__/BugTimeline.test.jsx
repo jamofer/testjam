@@ -76,4 +76,34 @@ describe("BugTimeline", () => {
 
     expect(screen.getByText(/attached crash\.log/i)).toBeInTheDocument()
   })
+
+  it("renders a custom_field change with key and values", () => {
+    renderTimeline({
+      activity: [
+        {
+          id: 4, field: "custom_field", note: "priority",
+          from_value: "p0", to_value: "p1",
+          changed_at: "2026-05-22T10:00:00Z",
+          changed_by: { username: "alice" },
+        },
+      ],
+    })
+
+    expect(screen.getByText(/changed priority from p0 to p1/i)).toBeInTheDocument()
+  })
+
+  it("formats multi_select custom_field arrays", () => {
+    renderTimeline({
+      activity: [
+        {
+          id: 5, field: "custom_field", note: "platforms",
+          from_value: null, to_value: JSON.stringify(["web", "mobile"]),
+          changed_at: "2026-05-22T10:00:00Z",
+          changed_by: { username: "alice" },
+        },
+      ],
+    })
+
+    expect(screen.getByText(/set platforms to web, mobile/i)).toBeInTheDocument()
+  })
 })

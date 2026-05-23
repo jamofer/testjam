@@ -149,6 +149,7 @@ BugActivityField = Literal[
     "link",
     "attachment",
     "comment",
+    "custom_field",
 ]
 
 

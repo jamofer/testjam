@@ -152,6 +152,9 @@
     "descriptionEdited": "edited the description",
     "descriptionSet": "set the description",
     "descriptionCleared": "cleared the description",
+    "customFieldSet": "set {{key}} to {{to}}",
+    "customFieldChanged": "changed {{key}} from {{from}} to {{to}}",
+    "customFieldCleared": "cleared {{key}}",
     "commented": "commented",
     "fields": {
       "title": "title",
