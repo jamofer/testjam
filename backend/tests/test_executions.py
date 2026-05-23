@@ -141,3 +141,33 @@ def test_bulk_results(auth_client, project_with_cases):
     data = resp.json()
     assert data["created"] + data["updated"] == 3
     assert data["errors"] == []
+
+
+def test_create_result_rejected_on_terminal_execution(auth_client, project_with_cases):
+    project_id, case_ids = project_with_cases
+    exec_id = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
+        "title": "Closed", "type": "manual", "test_case_ids": case_ids,
+    }).json()["id"]
+    auth_client.put(f"/api/v1/executions/{exec_id}", json={"status": "completed"})
+
+    resp = auth_client.post(
+        f"/api/v1/executions/{exec_id}/results",
+        json={"test_case_id": case_ids[0], "status": "passed"},
+    )
+
+    assert resp.status_code == 409
+
+
+def test_bulk_results_rejected_on_terminal_execution(auth_client, project_with_cases):
+    project_id, case_ids = project_with_cases
+    exec_id = auth_client.post(f"/api/v1/projects/{project_id}/executions", json={
+        "title": "Closed bulk", "type": "manual", "test_case_ids": case_ids,
+    }).json()["id"]
+    auth_client.put(f"/api/v1/executions/{exec_id}", json={"status": "completed"})
+
+    resp = auth_client.post(
+        f"/api/v1/executions/{exec_id}/results/bulk",
+        json={"results": [{"test_case_id": case_ids[0], "status": "passed"}]},
+    )
+
+    assert resp.status_code == 409

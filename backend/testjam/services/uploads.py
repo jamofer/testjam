@@ -1,16 +1,17 @@
-"""Shared helpers for attachment uploads.
+"""Shared helpers for attachment and import uploads.
 
-Sanitizes user-supplied filenames to prevent path traversal: a malicious
-client sending ``../../etc/secret`` as the file name would otherwise be
-joined into ``os.path.join(upload_dir, file.filename)`` and escape the
-intended destination.
+Sanitizes user-supplied filenames to prevent path traversal and enforces
+an upper bound on the byte count read from incoming UploadFile streams.
 """
 from __future__ import annotations
 
 import os
 from pathlib import PurePosixPath
 
+from fastapi import HTTPException, UploadFile
+
 FALLBACK_FILENAME = "attachment"
+DEFAULT_CHUNK = 64 * 1024
 
 
 def safe_filename(raw: str | None) -> str:
@@ -36,3 +37,25 @@ def safe_join(directory: str, raw_filename: str | None) -> str:
     if not destination.startswith(root + os.sep) and destination != root:
         return os.path.join(root, FALLBACK_FILENAME)
     return destination
+
+
+def read_bounded(file: UploadFile, max_bytes: int) -> bytes:
+    """Read the upload fully into memory, refusing when it exceeds ``max_bytes``.
+
+    Streams in chunks so an oversized request is rejected without slurping the
+    full payload into RAM first.
+    """
+    chunks: list[bytes] = []
+    total = 0
+    while True:
+        chunk = file.file.read(DEFAULT_CHUNK)
+        if not chunk:
+            break
+        total += len(chunk)
+        if total > max_bytes:
+            raise HTTPException(
+                status_code=413,
+                detail=f"File exceeds {max_bytes} byte limit",
+            )
+        chunks.append(chunk)
+    return b"".join(chunks)

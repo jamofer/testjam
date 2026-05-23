@@ -1,8 +1,11 @@
 """Import endpoints: JUnit XML and Robot Framework output.xml."""
+import io
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from unicodedata import normalize
 
+import defusedxml.ElementTree as DefusedET
+from defusedxml.common import DefusedXmlException
 from fastapi import BackgroundTasks, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
@@ -12,10 +15,16 @@ from testjam.models.execution import TestExecution, TestResult, TestStepResult
 from testjam.models.user import User
 from testjam.routers.executions import executions_router
 from testjam.schemas.execution import BulkResultResponse
-from testjam.services import execution_events
+from testjam.services import execution_events, uploads
+from testjam.services.settings import get_settings as get_app_settings
 
 
 # ─── Import helpers ───────────────────────────────────────────────────────────
+
+def _max_import_bytes(db: Session) -> int:
+    settings = get_app_settings(db)
+    return settings.max_upload_mb * 1024 * 1024
+
 
 def _normalize(s: str) -> str:
     return normalize("NFC", s).strip().lower()
@@ -87,10 +96,13 @@ def import_junit(
     ex = db.get(TestExecution, id)
     if not ex:
         raise HTTPException(status_code=404, detail="Execution not found")
+    if ex.status in {"completed", "aborted"}:
+        raise HTTPException(status_code=409, detail="Execution is closed")
 
+    payload = uploads.read_bounded(file, _max_import_bytes(db))
     try:
-        tree = ET.parse(file.file)
-    except ET.ParseError as e:
+        tree = DefusedET.parse(io.BytesIO(payload))
+    except (ET.ParseError, DefusedXmlException) as e:
         raise HTTPException(status_code=400, detail=f"Invalid XML: {e}")
 
     root = tree.getroot()
@@ -171,10 +183,13 @@ def import_robotframework(
     ex = db.get(TestExecution, id)
     if not ex:
         raise HTTPException(status_code=404, detail="Execution not found")
+    if ex.status in {"completed", "aborted"}:
+        raise HTTPException(status_code=409, detail="Execution is closed")
 
+    payload = uploads.read_bounded(file, _max_import_bytes(db))
     try:
-        tree = ET.parse(file.file)
-    except ET.ParseError as e:
+        tree = DefusedET.parse(io.BytesIO(payload))
+    except (ET.ParseError, DefusedXmlException) as e:
         raise HTTPException(status_code=400, detail=f"Invalid XML: {e}")
 
     root = tree.getroot()

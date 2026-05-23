@@ -167,6 +167,60 @@ def test_rf_import_populates_step_log_output(auth_client, project_id, suite_id):
     assert "Opening Chrome" in (sr["log_output"] or "")
 
 
+XML_BILLION_LAUGHS = b"""<?xml version="1.0"?>
+<!DOCTYPE lolz [
+  <!ENTITY lol "lol">
+  <!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">
+  <!ENTITY lol3 "&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;">
+]>
+<testsuite>
+  <testcase name="&lol3;"/>
+</testsuite>"""
+
+
+def test_junit_import_rejects_entity_expansion(auth_client, project_id, case_ids):
+    exec_id = _create_execution(auth_client, project_id, case_ids)
+
+    resp = auth_client.post(
+        f"/api/v1/executions/{exec_id}/results/import/junit",
+        files={"file": ("xxe.xml", io.BytesIO(XML_BILLION_LAUGHS), "application/xml")},
+    )
+
+    assert resp.status_code == 400, resp.text
+
+
+def test_junit_import_rejects_oversize_upload(auth_client, project_id, case_ids):
+    from testjam.models.settings import AppSettings
+    from tests.conftest import TestingSession
+
+    with TestingSession() as db:
+        settings = db.get(AppSettings, 1) or AppSettings(id=1)
+        settings.max_upload_mb = 1
+        db.add(settings)
+        db.commit()
+    exec_id = _create_execution(auth_client, project_id, case_ids)
+    payload = b"<testsuite>" + b"<testcase name='x'/>" * 200_000 + b"</testsuite>"
+
+    resp = auth_client.post(
+        f"/api/v1/executions/{exec_id}/results/import/junit",
+        files={"file": ("huge.xml", io.BytesIO(payload), "application/xml")},
+    )
+
+    assert resp.status_code == 413, resp.text
+
+
+def test_import_into_terminal_execution_rejected(auth_client, project_id, case_ids):
+    exec_id = _create_execution(auth_client, project_id, case_ids)
+    auth_client.put(f"/api/v1/executions/{exec_id}", json={"status": "completed"})
+
+    resp = auth_client.post(
+        f"/api/v1/executions/{exec_id}/results/import/junit",
+        files={"file": ("ok.xml", io.BytesIO(JUNIT_SIMPLE), "application/xml")},
+    )
+
+    assert resp.status_code == 409, resp.text
+
+
 def test_rf_import_invalid_xml_returns_400(auth_client, project_id, case_ids):
     exec_id = _create_execution(auth_client, project_id, case_ids)
 
