@@ -113,6 +113,14 @@
     "deleteFailed": "Errorea ezabatzean"
   },
   "activity": {
+    "created": "akats hau sortu du",
+    "statusFrom": "egoera {{from}}-tik {{to}}-ra aldatu du",
+    "statusInitial": "egoera {{to}}-ra ezarri du",
+    "set": "{{field}} → {{to}} ezarri du",
+    "changed": "{{field}}: {{from}} → {{to}} aldatu du",
+    "cleared": "{{field}} kendu du",
+    "linkAdded": "esteka bat gehitu du",
+    "linkRemoved": "esteka bat kendu du",
     "attachmentAdded": "{{filename}} erantsi du",
     "attachmentRemoved": "{{filename}} eranskina kendu du",
     "commentUpdated": "iruzkin bat editatu du",
@@ -121,7 +129,19 @@
     "descriptionCleared": "deskribapena kendu du",
     "customFieldSet": "{{key}} → {{to}} ezarri du",
     "customFieldChanged": "{{key}}: {{from}} → {{to}} aldatu du",
-    "customFieldCleared": "{{key}} kendu du"
+    "customFieldCleared": "{{key}} kendu du",
+    "commented": "iruzkin bat egin du",
+    "fields": {
+      "title": "izenburua",
+      "description": "deskribapena",
+      "severity": "larritasuna",
+      "tags": "etiketak",
+      "assigned_to": "esleitua",
+      "version": "atzemandako bertsioa",
+      "fixed_in_version": "konpondu den bertsioa",
+      "environment": "ingurunea",
+      "external_ticket_url": "kanpoko txartelaren URLa"
+    }
   },
   "delete": {
     "bugTitle": "#{{number}} akatsa ezabatu?",

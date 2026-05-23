@@ -113,6 +113,14 @@
     "deleteFailed": "Erro ao eliminar"
   },
   "activity": {
+    "created": "creou este bug",
+    "statusFrom": "cambiou o estado de {{from}} a {{to}}",
+    "statusInitial": "estableceu o estado en {{to}}",
+    "set": "estableceu {{field}} en {{to}}",
+    "changed": "cambiou {{field}} de {{from}} a {{to}}",
+    "cleared": "quitou {{field}}",
+    "linkAdded": "engadiu un vínculo",
+    "linkRemoved": "quitou un vínculo",
     "attachmentAdded": "anexou {{filename}}",
     "attachmentRemoved": "quitou o anexo {{filename}}",
     "commentUpdated": "editou un comentario",
@@ -121,7 +129,19 @@
     "descriptionCleared": "quitou a descrición",
     "customFieldSet": "estableceu {{key}} en {{to}}",
     "customFieldChanged": "cambiou {{key}} de {{from}} a {{to}}",
-    "customFieldCleared": "quitou {{key}}"
+    "customFieldCleared": "quitou {{key}}",
+    "commented": "comentou",
+    "fields": {
+      "title": "título",
+      "description": "descrición",
+      "severity": "severidade",
+      "tags": "etiquetas",
+      "assigned_to": "asignado",
+      "version": "versión detectada",
+      "fixed_in_version": "versión arranxada",
+      "environment": "contorno",
+      "external_ticket_url": "URL do tícket externo"
+    }
   },
   "delete": {
     "bugTitle": "Eliminar o bug #{{number}}?",
