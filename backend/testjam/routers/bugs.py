@@ -163,19 +163,6 @@ def _resolve_environment_from_execution(
     return execution.environment if execution else None
 
 
-def _matches_custom_field(
-    custom_fields: dict | None, key: str, value: str | None
-) -> bool:
-    if not custom_fields or key not in custom_fields:
-        return False
-    if value is None:
-        return True
-    actual = custom_fields[key]
-    if isinstance(actual, list):
-        return value in actual
-    return str(actual) == value
-
-
 def _latest_active_version_id(db: Session, project_id: int) -> int | None:
     row = (
         db.query(ProjectVersion.id)
@@ -232,7 +219,7 @@ def list_bugs(
     if tag:
         rows = [bug for bug in rows if bug.tags and tag in bug.tags]
     if cf_key:
-        rows = [bug for bug in rows if _matches_custom_field(bug.custom_fields, cf_key, cf_value)]
+        rows = [bug for bug in rows if custom_field_service.matches_value(bug.custom_fields, cf_key, cf_value)]
     return [_bug_out(bug) for bug in rows]
 
 

@@ -36,6 +36,21 @@ def validate_payload(
     return result
 
 
+def matches_value(
+    custom_fields: dict[str, Any] | None, key: str, value: str | None,
+) -> bool:
+    if not custom_fields or key not in custom_fields:
+        return False
+    if value is None:
+        return True
+    actual = custom_fields[key]
+    if isinstance(actual, list):
+        return value in (str(item) for item in actual)
+    if isinstance(actual, bool):
+        return value.lower() == str(actual).lower()
+    return str(actual) == value
+
+
 def next_position(db: Session, project_id: int, entity_type: str) -> int:
     last = (
         db.query(CustomFieldDefinition.position)
