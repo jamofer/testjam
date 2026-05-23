@@ -120,6 +120,12 @@
     "descriptionSet": "deskribapena ezarri du",
     "descriptionCleared": "deskribapena kendu du"
   },
+  "delete": {
+    "bugTitle": "#{{number}} akatsa ezabatu?",
+    "bugDescription": "Akatsa eta haren iruzkin, eranskin eta historia behin betiko ezabatuko dira.",
+    "commentTitle": "Iruzkina ezabatu?",
+    "commentDescription": "Iruzkina behin betiko ezabatuko da."
+  },
   "context": {
     "about": "Buruz",
     "severity": "Larritasuna",

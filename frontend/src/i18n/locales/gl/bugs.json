@@ -120,6 +120,12 @@
     "descriptionSet": "estableceu a descrición",
     "descriptionCleared": "quitou a descrición"
   },
+  "delete": {
+    "bugTitle": "Eliminar o bug #{{number}}?",
+    "bugDescription": "Eliminarase o bug xunto cos seus comentarios, anexos e historial.",
+    "commentTitle": "Eliminar o comentario?",
+    "commentDescription": "O comentario eliminarase de xeito permanente."
+  },
   "context": {
     "about": "Sobre",
     "severity": "Severidade",

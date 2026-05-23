@@ -14,6 +14,7 @@ import { useProjectBugsLive } from "../hooks/useProjectBugsLive"
 import { useDebounced } from "../hooks/useDebounced"
 import { Button } from "../components/ui/button"
 import { Badge } from "../components/ui/badge"
+import { ConfirmDialog } from "../components/ui/confirm-dialog"
 import { SearchInput } from "../components/ui/search-input"
 import { PageHeader, PageBody } from "../components/ui/page-header"
 import { EmptyState } from "../components/ui/empty-state"
@@ -76,13 +77,17 @@ export function BugsPage() {
     return bugs.filter(bug => bug.title.toLowerCase().includes(query))
   }, [bugs, debouncedSearch])
 
-  const handleDelete = async (bug) => {
-    if (!confirm(t("toast.deleted") + "?")) return
+  const [bugPendingDelete, setBugPendingDelete] = useState(null)
+
+  const confirmDelete = async () => {
+    if (!bugPendingDelete) return
     try {
-      await deleteBug.mutateAsync(bug.id)
+      await deleteBug.mutateAsync(bugPendingDelete.id)
       toast.success(t("toast.deleted"))
     } catch (error) {
       toast.error(error?.response?.data?.detail ?? t("toast.reportFailed"))
+    } finally {
+      setBugPendingDelete(null)
     }
   }
 
@@ -278,7 +283,7 @@ export function BugsPage() {
                     {t(`statuses.${bug.status}`)}
                   </Badge>
                   <button
-                    onClick={() => handleDelete(bug)}
+                    onClick={() => setBugPendingDelete(bug)}
                     className="text-gray-300 dark:text-gray-600 hover:text-red-500"
                     title={t("actions.delete")}
                   >
@@ -290,6 +295,17 @@ export function BugsPage() {
           )}
         </div>
       </PageBody>
+
+      <ConfirmDialog
+        open={bugPendingDelete !== null}
+        onOpenChange={(open) => { if (!open) setBugPendingDelete(null) }}
+        title={t("delete.bugTitle", { number: bugPendingDelete?.number ?? "" })}
+        description={t("delete.bugDescription")}
+        confirmLabel={t("actions.delete")}
+        destructive
+        busy={deleteBug.isPending}
+        onConfirm={confirmDelete}
+      />
     </>
   )
 }

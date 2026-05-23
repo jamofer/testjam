@@ -127,6 +127,12 @@
     "downloadFailed": "Download failed",
     "deleteFailed": "Delete failed"
   },
+  "delete": {
+    "bugTitle": "Delete bug #{{number}}?",
+    "bugDescription": "This will permanently remove the bug, its comments, attachments and history.",
+    "commentTitle": "Delete comment?",
+    "commentDescription": "This will permanently remove the comment."
+  },
   "mentions": {
     "searching": "Searching…",
     "noMatches": "No matches"
