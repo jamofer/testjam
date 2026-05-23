@@ -12,6 +12,7 @@ import { useProjectExecutionsLive } from "../hooks/useProjectExecutionsLive"
 import { executionsApi } from "../api/executions"
 import { Button } from "../components/ui/button"
 import { Badge } from "../components/ui/badge"
+import { ConfirmDialog } from "../components/ui/confirm-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import { SearchInput } from "../components/ui/search-input"
 import { PageHeader, PageBody } from "../components/ui/page-header"
@@ -71,13 +72,17 @@ export function ExecutionsPage() {
   const [mineOnly, setMineOnly] = useState(false)
   const debouncedSearch = useDebounced(search, 150)
 
-  const handleDelete = async (execution) => {
-    if (!confirm(t("deleteConfirm", { title: execution.title }))) return
+  const [executionPendingDelete, setExecutionPendingDelete] = useState(null)
+
+  const confirmDelete = async () => {
+    if (!executionPendingDelete) return
     try {
-      await deleteExecution.mutateAsync(execution.id)
+      await deleteExecution.mutateAsync(executionPendingDelete.id)
       toast.success(t("deleted"))
     } catch {
       toast.error(t("deleteFailed"))
+    } finally {
+      setExecutionPendingDelete(null)
     }
   }
 
@@ -185,7 +190,7 @@ export function ExecutionsPage() {
                   <Download size={13} />
                 </button>
                 <button
-                  onClick={() => handleDelete(execution)}
+                  onClick={() => setExecutionPendingDelete(execution)}
                   className="text-gray-400 dark:text-gray-500 hover:text-red-600 p-1 rounded hover:bg-red-50"
                   title={t("deleteTitle")}
                   disabled={deleteExecution.isPending}
@@ -257,6 +262,17 @@ export function ExecutionsPage() {
       )}
       </div>
       </PageBody>
+
+      <ConfirmDialog
+        open={executionPendingDelete !== null}
+        onOpenChange={(open) => { if (!open) setExecutionPendingDelete(null) }}
+        title={t("delete.title", { title: executionPendingDelete?.title ?? "" })}
+        description={t("delete.description")}
+        confirmLabel={t("common:actions.delete")}
+        destructive
+        busy={deleteExecution.isPending}
+        onConfirm={confirmDelete}
+      />
     </>
   )
 }

@@ -10,6 +10,7 @@ import {
   useRevokePublicReport,
 } from "../../hooks/usePublicReports"
 import { Button } from "../ui/button"
+import { ConfirmDialog } from "../ui/confirm-dialog"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
@@ -29,6 +30,7 @@ export function PublicReportDialog({
   const [label, setLabel] = useState("")
   const [expiresAt, setExpiresAt] = useState("")
   const [createdToken, setCreatedToken] = useState(null)
+  const [sharePendingRevoke, setSharePendingRevoke] = useState(null)
 
   const filterByExecution = defaultKind === "execution"
   const { data: shares = [], isLoading } = usePublicReports(projectId, { enabled: open })
@@ -66,13 +68,15 @@ export function PublicReportDialog({
     }
   }
 
-  const handleRevoke = async (share) => {
-    if (!confirm(t("revokeConfirm"))) return
+  const confirmRevoke = async () => {
+    if (!sharePendingRevoke) return
     try {
-      await revokeShare.mutateAsync(share.id)
+      await revokeShare.mutateAsync(sharePendingRevoke.id)
       toast.success(t("revoked"))
     } catch (error) {
       toast.error(error?.response?.data?.detail ?? t("revokeFailed"))
+    } finally {
+      setSharePendingRevoke(null)
     }
   }
 
@@ -177,7 +181,7 @@ export function PublicReportDialog({
                           type="button"
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleRevoke(share)}
+                          onClick={() => setSharePendingRevoke(share)}
                           title={t("revoke")}
                         >
                           <Trash2 size={13} />
@@ -191,6 +195,17 @@ export function PublicReportDialog({
           </div>
         </div>
       </DialogContent>
+
+      <ConfirmDialog
+        open={sharePendingRevoke !== null}
+        onOpenChange={(next) => { if (!next) setSharePendingRevoke(null) }}
+        title={t("revokeTitle")}
+        description={t("revokeDescription")}
+        confirmLabel={t("revoke")}
+        destructive
+        busy={revokeShare.isPending}
+        onConfirm={confirmRevoke}
+      />
     </Dialog>
   )
 }

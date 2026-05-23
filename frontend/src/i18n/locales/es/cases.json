@@ -77,6 +77,7 @@
     "delete": "Eliminar",
     "save": "Guardar",
     "cancel": "Cancelar",
-    "deleteConfirm": "¿Eliminar este comentario?"
+    "deleteTitle": "¿Eliminar este comentario?",
+    "deleteDescription": "El comentario se eliminará de forma permanente."
   }
 }

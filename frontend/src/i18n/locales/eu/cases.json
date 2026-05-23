@@ -69,5 +69,9 @@
     "fieldExternalId": "Kanpoko IDa",
     "fieldTags": "Etiketak",
     "fieldSteps": "Urratsak"
+  },
+  "discussion": {
+    "deleteTitle": "Iruzkin hau ezabatu?",
+    "deleteDescription": "Iruzkina behin betiko ezabatuko da."
   }
 }

@@ -17,7 +17,10 @@
   "deleteTitle": "Delete execution",
   "deleted": "Execution deleted",
   "deleteFailed": "Failed to delete execution",
-  "deleteConfirm": "Delete execution \"{{title}}\"? This cannot be undone.",
+  "delete": {
+    "title": "Delete execution \"{{title}}\"?",
+    "description": "This will permanently remove the execution and all of its results."
+  },
   "loadMore": "Load more",
   "loadingMore": "Loading…",
   "via": "via {{token}}",

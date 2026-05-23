@@ -17,7 +17,10 @@
   "deleteTitle": "Ezabatu exekuzioa",
   "deleted": "Exekuzioa ezabatuta",
   "deleteFailed": "Ezin izan da exekuzioa ezabatu",
-  "deleteConfirm": "«{{title}}» exekuzioa ezabatu? Ekintza hau ezin da desegin.",
+  "delete": {
+    "title": "«{{title}}» exekuzioa ezabatu?",
+    "description": "Exekuzioa eta haren emaitza guztiak behin betiko ezabatuko dira."
+  },
   "loadMore": "Kargatu gehiago",
   "loadingMore": "Kargatzen…",
   "via": "{{token}} bidez",
