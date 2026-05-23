@@ -113,6 +113,14 @@
     "deleteFailed": "Error en eliminar"
   },
   "activity": {
+    "created": "ha creat aquest bug",
+    "statusFrom": "ha canviat l'estat de {{from}} a {{to}}",
+    "statusInitial": "ha establert l'estat a {{to}}",
+    "set": "ha establert {{field}} a {{to}}",
+    "changed": "ha canviat {{field}} de {{from}} a {{to}}",
+    "cleared": "ha tret {{field}}",
+    "linkAdded": "ha afegit un vincle",
+    "linkRemoved": "ha tret un vincle",
     "attachmentAdded": "ha adjuntat {{filename}}",
     "attachmentRemoved": "ha tret l'adjunt {{filename}}",
     "commentUpdated": "ha editat un comentari",
@@ -121,7 +129,19 @@
     "descriptionCleared": "ha tret la descripció",
     "customFieldSet": "ha establert {{key}} a {{to}}",
     "customFieldChanged": "ha canviat {{key}} de {{from}} a {{to}}",
-    "customFieldCleared": "ha tret {{key}}"
+    "customFieldCleared": "ha tret {{key}}",
+    "commented": "ha comentat",
+    "fields": {
+      "title": "títol",
+      "description": "descripció",
+      "severity": "severitat",
+      "tags": "etiquetes",
+      "assigned_to": "assignat",
+      "version": "versió detectada",
+      "fixed_in_version": "versió arreglada",
+      "environment": "entorn",
+      "external_ticket_url": "URL del tiquet extern"
+    }
   },
   "delete": {
     "bugTitle": "Eliminar el bug #{{number}}?",
