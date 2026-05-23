@@ -53,3 +53,44 @@ Download the HTML report for a project
     # Then
     The response status should be 200
     The downloaded bug report should be HTML
+
+Attach a file to a bug and list it back
+    # Given
+    I am authenticated as admin
+    I create a project named Attach Bug Project
+    I create a bug titled Repro pending
+
+    # When
+    I attach file fixtures/junit_results.xml to the bug
+
+    # Then
+    The bug should have 1 attachments
+    The bug attachments should contain junit_results.xml
+
+Delete a bug attachment removes it from the listing
+    # Given
+    I am authenticated as admin
+    I create a project named Detach Bug Project
+    I create a bug titled Cleanup
+    I attach file fixtures/junit_results.xml to the bug
+    I attach file fixtures/rf_output.xml to the bug
+
+    # When
+    I delete the bug attachment named junit_results.xml
+
+    # Then
+    The bug should have 1 attachments
+    The bug attachments should contain rf_output.xml
+
+Project members can download bug attachments
+    # Given
+    I am authenticated as admin
+    I create a project named Download Bug Project
+    I create a bug titled Attach me
+    I attach file fixtures/junit_results.xml to the bug
+
+    # When
+    I try to download the bug attachment named junit_results.xml
+
+    # Then
+    The response status should be 200

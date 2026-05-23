@@ -100,6 +100,36 @@ export function useDeleteBugComment() {
   })
 }
 
+export function useBugAttachments(id) {
+  return useQuery({
+    queryKey: ["bug-attachments", id],
+    queryFn: () => bugsApi.listAttachments(id),
+    enabled: !!id,
+  })
+}
+
+export function useUploadBugAttachment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, file }) => bugsApi.uploadAttachment(id, file),
+    onSuccess: (attachment) => {
+      queryClient.invalidateQueries({ queryKey: ["bug-attachments", attachment.bug_id] })
+      queryClient.invalidateQueries({ queryKey: ["bug-activity", attachment.bug_id] })
+    },
+  })
+}
+
+export function useDeleteBugAttachment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ bugId, attachmentId }) => bugsApi.deleteAttachment(bugId, attachmentId),
+    onSuccess: (_response, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["bug-attachments", variables.bugId] })
+      queryClient.invalidateQueries({ queryKey: ["bug-activity", variables.bugId] })
+    },
+  })
+}
+
 export function useBugContext(id) {
   return useQuery({
     queryKey: ["bug-context", id],

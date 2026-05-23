@@ -98,6 +98,28 @@
     "by": "{{user}}-(e)k",
     "empty": "Egoera-aldaketarik gabe"
   },
+  "attachments": {
+    "upload": "Fitxategia igo",
+    "empty": "Oraindik ez dago eranskinik",
+    "loading": "Kargatzen…",
+    "delete": "Kendu",
+    "copyUrl": "URL kopiatu",
+    "urlCopied": "URL kopiatuta",
+    "copyMarkdown": "Markdown esteka kopiatu",
+    "markdownCopied": "Markdown esteka kopiatuta",
+    "copyFailed": "Errorea kopiatzean",
+    "uploadFailed": "Errorea igotzean",
+    "downloadFailed": "Errorea jaistean",
+    "deleteFailed": "Errorea ezabatzean"
+  },
+  "activity": {
+    "attachmentAdded": "{{filename}} erantsi du",
+    "attachmentRemoved": "{{filename}} eranskina kendu du",
+    "commentUpdated": "iruzkin bat editatu du",
+    "descriptionEdited": "deskribapena editatu du",
+    "descriptionSet": "deskribapena ezarri du",
+    "descriptionCleared": "deskribapena kendu du"
+  },
   "context": {
     "about": "Buruz",
     "severity": "Larritasuna",

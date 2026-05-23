@@ -98,6 +98,28 @@
     "by": "per {{user}}",
     "empty": "Sense canvis d'estat"
   },
+  "attachments": {
+    "upload": "Pujar fitxer",
+    "empty": "Encara no hi ha adjunts",
+    "loading": "Carregant…",
+    "delete": "Treure",
+    "copyUrl": "Copiar URL",
+    "urlCopied": "URL copiada",
+    "copyMarkdown": "Copiar enllaç Markdown",
+    "markdownCopied": "Enllaç Markdown copiat",
+    "copyFailed": "Error en copiar",
+    "uploadFailed": "Error en pujar",
+    "downloadFailed": "Error en baixar",
+    "deleteFailed": "Error en eliminar"
+  },
+  "activity": {
+    "attachmentAdded": "ha adjuntat {{filename}}",
+    "attachmentRemoved": "ha tret l'adjunt {{filename}}",
+    "commentUpdated": "ha editat un comentari",
+    "descriptionEdited": "ha editat la descripció",
+    "descriptionSet": "ha establert la descripció",
+    "descriptionCleared": "ha tret la descripció"
+  },
   "context": {
     "about": "Sobre",
     "severity": "Severitat",

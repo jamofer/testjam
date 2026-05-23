@@ -235,6 +235,8 @@ def on_bug_deleted(project_id: int, bug_id: int) -> None:
     notify_project(project_id, {"event": "bug.deleted", "data": {"id": bug_id}})
 
 
+
+
 def on_bug_comment_added(
     db: Session,
     comment: BugComment,

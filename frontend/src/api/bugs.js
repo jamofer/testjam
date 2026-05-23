@@ -22,6 +22,24 @@ export const bugsApi = {
     api.delete(`/bugs/${id}/comments/${commentId}`),
   listActivity: (id) => api.get(`/bugs/${id}/activity`).then(r => r.data),
   listAttachments: (id) => api.get(`/bugs/${id}/attachments`).then(r => r.data),
+  uploadAttachment: (id, file) => {
+    const data = new FormData()
+    data.append("file", file)
+    return api
+      .post(`/bugs/${id}/attachments`, data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then(r => r.data)
+  },
+  deleteAttachment: (id, attachmentId) =>
+    api.delete(`/bugs/${id}/attachments/${attachmentId}`),
+  downloadAttachment: async (id, attachmentId, filename) => {
+    const response = await api.get(
+      `/bugs/${id}/attachments/${attachmentId}/download`,
+      { responseType: "blob" },
+    )
+    downloadBlob(response.data, filename)
+  },
   getContext: (id) => api.get(`/bugs/${id}/context`).then(r => r.data),
   listLinks: (id) => api.get(`/bugs/${id}/links`).then(r => r.data),
   addLink: (id, data) => api.post(`/bugs/${id}/links`, data).then(r => r.data),

@@ -130,6 +130,57 @@ def record_link_deleted(
     return row
 
 
+def record_comment_updated(
+    db: Session,
+    bug_id: int,
+    comment_id: int,
+    actor_id: int | None,
+) -> BugActivity:
+    row = _build_row(
+        bug_id=bug_id,
+        field="comment",
+        from_value=None,
+        to_value=str(comment_id),
+        actor_id=actor_id,
+    )
+    db.add(row)
+    return row
+
+
+def record_attachment_added(
+    db: Session,
+    bug_id: int,
+    filename: str,
+    actor_id: int | None,
+) -> BugActivity:
+    row = _build_row(
+        bug_id=bug_id,
+        field="attachment",
+        from_value=None,
+        to_value=filename,
+        actor_id=actor_id,
+    )
+    db.add(row)
+    return row
+
+
+def record_attachment_removed(
+    db: Session,
+    bug_id: int,
+    filename: str,
+    actor_id: int | None,
+) -> BugActivity:
+    row = _build_row(
+        bug_id=bug_id,
+        field="attachment",
+        from_value=filename,
+        to_value=None,
+        actor_id=actor_id,
+    )
+    db.add(row)
+    return row
+
+
 def load_with_actor(db: Session, activity_id: int) -> BugActivity | None:
     return (
         db.query(BugActivity)

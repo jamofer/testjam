@@ -6,14 +6,20 @@ import {
   Link2,
   Link2Off,
   MessageSquare,
+  MessageSquareDot,
+  Paperclip,
   User as UserIcon,
 } from "lucide-react"
 
 import { DateLabel } from "../ui/date-label"
 import { MdViewer } from "../MdEditor"
+import { lineDiff } from "../../lib/diff"
 
 const STATUS_FIELD = "status"
 const LINK_FIELD = "link"
+const ATTACHMENT_FIELD = "attachment"
+const COMMENT_FIELD = "comment"
+const DESCRIPTION_FIELD = "description"
 
 export function BugTimeline({ activity = [], comments = [], statuses, projectId }) {
   const { t } = useTranslation("bugs")
@@ -50,6 +56,9 @@ export function BugTimeline({ activity = [], comments = [], statuses, projectId 
               <MdViewer value={entry.body} projectId={projectId} />
             </div>
           )}
+          {entry.kind === "activity" && entry.field === DESCRIPTION_FIELD && (
+            <DescriptionDiff before={entry.fromValue} after={entry.toValue} />
+          )}
           {entry.kind === "activity" && entry.note && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{entry.note}</p>
           )}
@@ -69,6 +78,12 @@ function EntryIcon({ entry }) {
   if (entry.field === LINK_FIELD) {
     const Icon = entry.toValue ? Link2 : Link2Off
     return <Icon size={12} className="text-gray-400 dark:text-gray-500" />
+  }
+  if (entry.field === ATTACHMENT_FIELD) {
+    return <Paperclip size={12} className="text-gray-400 dark:text-gray-500" />
+  }
+  if (entry.field === COMMENT_FIELD) {
+    return <MessageSquareDot size={12} className="text-gray-400 dark:text-gray-500" />
   }
   return <FilePen size={12} className="text-gray-400 dark:text-gray-500" />
 }
@@ -99,6 +114,33 @@ function byTimestamp(left, right) {
   return left.at < right.at ? -1 : 1
 }
 
+function DescriptionDiff({ before, after }) {
+  const rows = useMemo(() => lineDiff(before, after), [before, after])
+  if (rows.length === 0) return null
+  return (
+    <pre className="mt-2 text-xs bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded p-2 whitespace-pre-wrap font-mono overflow-x-auto">
+      {rows.map((row, index) => (
+        <span key={index} className={diffLineClassName(row.type)}>
+          {diffPrefix(row.type)}{row.text}{"\n"}
+        </span>
+      ))}
+    </pre>
+  )
+}
+
+function diffLineClassName(type) {
+  if (type === "add") return "block text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/40"
+  if (type === "del") return "block text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/40"
+  return "block text-gray-500 dark:text-gray-500"
+}
+
+function diffPrefix(type) {
+  if (type === "add") return "+ "
+  if (type === "del") return "- "
+  return "  "
+}
+
+
 function renderMessage(entry, t, statuses) {
   if (entry.kind === "comment") {
     return t("activity.commented")
@@ -115,6 +157,19 @@ function renderMessage(entry, t, statuses) {
     return entry.toValue
       ? t("activity.linkAdded")
       : t("activity.linkRemoved")
+  }
+  if (entry.field === ATTACHMENT_FIELD) {
+    return entry.toValue
+      ? t("activity.attachmentAdded", { filename: entry.toValue })
+      : t("activity.attachmentRemoved", { filename: entry.fromValue })
+  }
+  if (entry.field === COMMENT_FIELD) {
+    return t("activity.commentUpdated")
+  }
+  if (entry.field === DESCRIPTION_FIELD) {
+    if (entry.toValue == null) return t("activity.descriptionCleared")
+    if (entry.fromValue == null) return t("activity.descriptionSet")
+    return t("activity.descriptionEdited")
   }
   const field = t(`activity.fields.${entry.field}`, entry.field)
   if (entry.toValue == null) {

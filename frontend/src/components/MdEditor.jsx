@@ -1,5 +1,9 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
+
 import { useTheme } from "../hooks/useTheme"
+import { api } from "../api/client"
+import { downloadBlob } from "../lib/download"
 import {
   MentionChip,
   chipPropsFromAttributes,
@@ -91,7 +95,70 @@ function buildViewerComponents(projectId) {
       }
       return <MentionChip projectId={projectId} {...chipPropsFromAttributes(props)} />
     },
+    a: ({ node, children, href, ...props }) => (
+      <AuthenticatedLink href={href} {...props}>{children}</AuthenticatedLink>
+    ),
+    img: ({ node, src, alt, ...props }) => (
+      <AuthenticatedImage src={src} alt={alt} {...props} />
+    ),
   }
+}
+
+const API_ATTACHMENT_PATTERN = /^\/api\/v1\/(?:bugs|cases|results|executions)\/\d+\/attachments\/\d+\/download(?:\?.*)?$/
+
+function isAuthedAttachmentHref(href) {
+  if (!href) return false
+  try {
+    const parsed = new URL(href, window.location.origin)
+    if (parsed.origin !== window.location.origin) return false
+    return API_ATTACHMENT_PATTERN.test(parsed.pathname + parsed.search)
+  } catch {
+    return false
+  }
+}
+
+function AuthenticatedLink({ href, children, ...props }) {
+  const handleClick = async (event) => {
+    if (!isAuthedAttachmentHref(href)) return
+    event.preventDefault()
+    try {
+      const parsed = new URL(href, window.location.origin)
+      const response = await api.get(parsed.pathname + parsed.search, { responseType: "blob" })
+      const fallback = parsed.pathname.split("/").pop() || "download"
+      downloadBlob(response.data, fallback)
+    } catch {
+      toast.error("Download failed")
+    }
+  }
+  return <a href={href} {...props} onClick={handleClick}>{children}</a>
+}
+
+function AuthenticatedImage({ src, alt, ...props }) {
+  const [objectUrl, setObjectUrl] = useState(null)
+  const needsAuth = isAuthedAttachmentHref(src)
+
+  useEffect(() => {
+    if (!needsAuth) return undefined
+    let cancelled = false
+    let createdUrl = null
+    const parsed = new URL(src, window.location.origin)
+    api
+      .get(parsed.pathname + parsed.search, { responseType: "blob" })
+      .then(response => {
+        if (cancelled) return
+        createdUrl = URL.createObjectURL(response.data)
+        setObjectUrl(createdUrl)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+      if (createdUrl) URL.revokeObjectURL(createdUrl)
+    }
+  }, [src, needsAuth])
+
+  if (!needsAuth) return <img src={src} alt={alt} {...props} />
+  if (!objectUrl) return <span className="text-xs text-gray-400">{alt ?? src}</span>
+  return <img src={objectUrl} alt={alt} {...props} />
 }
 
 function sanitizeSpanProps(props) {

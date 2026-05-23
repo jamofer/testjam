@@ -51,6 +51,8 @@ import { LiveIndicator } from "../components/ui/live-indicator"
 import { ContextPanel } from "../components/ui/context-panel"
 import { EnvironmentBadge } from "../components/environment/EnvironmentBadge"
 import { AddBugLinkDialog } from "../components/bug/AddBugLinkDialog"
+import { BugAttachmentsContextPanel } from "../components/bug/BugAttachmentsContextPanel"
+import { BugAttachmentsPanel } from "../components/bug/BugAttachmentsPanel"
 import { BugTimeline } from "../components/bug/BugTimeline"
 import { BugExternalLinksPanel } from "../components/integration/BugExternalLinksPanel"
 import { CustomFieldsEditableBody } from "../components/customField/CustomFieldInput"
@@ -365,6 +367,7 @@ export function BugDetailPage() {
             <Tabs defaultValue="discussion">
               <TabsList>
                 <TabsTrigger value="discussion">{t("tabs.discussion")}</TabsTrigger>
+                <TabsTrigger value="attachments">{t("tabs.attachments")}</TabsTrigger>
                 <TabsTrigger value="history">{t("tabs.history")} ({historyCount})</TabsTrigger>
               </TabsList>
 
@@ -480,6 +483,10 @@ export function BugDetailPage() {
                 </section>
               </TabsContent>
 
+              <TabsContent value="attachments">
+                <BugAttachmentsPanel bugId={bug.id} />
+              </TabsContent>
+
               <TabsContent value="history">
                 <BugTimeline activity={activity} comments={comments} statuses={statusLabels} projectId={bug.project_id} />
               </TabsContent>
@@ -591,6 +598,11 @@ function buildContextSections({ bug, links, linkContext, onDeleteLink, addLinkDi
       ),
     })
   }
+
+  sections.push({
+    title: t("tabs.attachments"),
+    body: <BugAttachmentsContextPanel bugId={bug.id} />,
+  })
 
   sections.push({
     title: t("linkedOccurrence.externalTrackers"),

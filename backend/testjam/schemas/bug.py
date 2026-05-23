@@ -3,8 +3,9 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, computed_field, model_validator
 
+from testjam.core.config import settings
 from testjam.schemas.user import UserOut
 
 
@@ -126,6 +127,11 @@ class BugAttachmentOut(BaseModel):
     uploaded_by: UserOut | None = None
     uploaded_at: datetime
 
+    @computed_field
+    @property
+    def url(self) -> str:
+        return f"{settings.API_V1_PREFIX}/bugs/{self.bug_id}/attachments/{self.id}/download"
+
     model_config = {"from_attributes": True}
 
 
@@ -142,6 +148,7 @@ BugActivityField = Literal[
     "external_ticket_url",
     "link",
     "attachment",
+    "comment",
 ]
 
 

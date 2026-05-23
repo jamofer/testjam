@@ -113,6 +113,20 @@
     "by": "por {{user}}",
     "empty": "Aún no ha ocurrido nada"
   },
+  "attachments": {
+    "upload": "Subir archivo",
+    "empty": "Aún no hay adjuntos",
+    "loading": "Cargando…",
+    "delete": "Quitar",
+    "copyUrl": "Copiar URL",
+    "urlCopied": "URL copiada",
+    "copyMarkdown": "Copiar enlace Markdown",
+    "markdownCopied": "Enlace Markdown copiado",
+    "copyFailed": "Error al copiar",
+    "uploadFailed": "Error al subir",
+    "downloadFailed": "Error al descargar",
+    "deleteFailed": "Error al eliminar"
+  },
   "mentions": {
     "searching": "Buscando…",
     "noMatches": "Sin coincidencias"
@@ -126,6 +140,12 @@
     "cleared": "quitó {{field}}",
     "linkAdded": "añadió un vínculo",
     "linkRemoved": "quitó un vínculo",
+    "attachmentAdded": "adjuntó {{filename}}",
+    "attachmentRemoved": "quitó el adjunto {{filename}}",
+    "commentUpdated": "editó un comentario",
+    "descriptionEdited": "editó la descripción",
+    "descriptionSet": "estableció la descripción",
+    "descriptionCleared": "quitó la descripción",
     "commented": "comentó",
     "fields": {
       "title": "título",

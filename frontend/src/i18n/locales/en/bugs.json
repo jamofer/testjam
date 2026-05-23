@@ -113,6 +113,20 @@
     "by": "by {{user}}",
     "empty": "Nothing has happened yet"
   },
+  "attachments": {
+    "upload": "Upload file",
+    "empty": "No attachments yet",
+    "loading": "Loading…",
+    "delete": "Remove",
+    "copyUrl": "Copy URL",
+    "urlCopied": "URL copied",
+    "copyMarkdown": "Copy markdown link",
+    "markdownCopied": "Markdown link copied",
+    "copyFailed": "Copy failed",
+    "uploadFailed": "Upload failed",
+    "downloadFailed": "Download failed",
+    "deleteFailed": "Delete failed"
+  },
   "mentions": {
     "searching": "Searching…",
     "noMatches": "No matches"
@@ -126,6 +140,12 @@
     "cleared": "cleared {{field}}",
     "linkAdded": "added a link",
     "linkRemoved": "removed a link",
+    "attachmentAdded": "attached {{filename}}",
+    "attachmentRemoved": "removed attachment {{filename}}",
+    "commentUpdated": "edited a comment",
+    "descriptionEdited": "edited the description",
+    "descriptionSet": "set the description",
+    "descriptionCleared": "cleared the description",
     "commented": "commented",
     "fields": {
       "title": "title",
