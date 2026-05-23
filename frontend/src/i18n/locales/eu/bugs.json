@@ -103,6 +103,8 @@
     "empty": "Oraindik ez dago eranskinik",
     "loading": "Kargatzen…",
     "delete": "Kendu",
+    "copyUrl": "URL kopiatu",
+    "urlCopied": "URL kopiatuta",
     "copyMarkdown": "Markdown esteka kopiatu",
     "markdownCopied": "Markdown esteka kopiatuta",
     "copyFailed": "Errorea kopiatzean",

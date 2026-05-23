@@ -1,6 +1,6 @@
 import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Paperclip, Trash2, Upload } from "lucide-react"
+import { Copy, Paperclip, Trash2, Upload } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -42,6 +42,29 @@ export function BugAttachmentsPanel({ bugId, canWrite = true }) {
       toast.error(t("attachments.downloadFailed"))
     } finally {
       setBusyAttachmentId(null)
+    }
+  }
+
+  const handleCopyUrl = async (attachment) => {
+    const absoluteUrl = `${window.location.origin}${attachment.url}`
+    try {
+      await navigator.clipboard.writeText(absoluteUrl)
+      toast.success(t("attachments.urlCopied"))
+    } catch {
+      toast.error(t("attachments.copyFailed"))
+    }
+  }
+
+  const handleCopyMarkdown = async (attachment) => {
+    const absoluteUrl = `${window.location.origin}${attachment.url}`
+    const markdown = attachment.content_type?.startsWith("image/")
+      ? `![${attachment.filename}](${absoluteUrl})`
+      : `[${attachment.filename}](${absoluteUrl})`
+    try {
+      await navigator.clipboard.writeText(markdown)
+      toast.success(t("attachments.markdownCopied"))
+    } catch {
+      toast.error(t("attachments.copyFailed"))
     }
   }
 
@@ -108,12 +131,28 @@ export function BugAttachmentsPanel({ bugId, canWrite = true }) {
                 {attachment.uploaded_by?.username ?? "?"} ·{" "}
                 <DateLabel iso={attachment.uploaded_at} mode="relative" />
               </span>
+              <button
+                type="button"
+                onClick={() => handleCopyUrl(attachment)}
+                title={t("attachments.copyUrl")}
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 shrink-0"
+              >
+                <Copy size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCopyMarkdown(attachment)}
+                title={t("attachments.copyMarkdown")}
+                className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 font-mono shrink-0"
+              >
+                MD
+              </button>
               {canWrite && (
                 <button
                   type="button"
                   onClick={() => handleDelete(attachment)}
                   disabled={remove.isPending}
-                  className="text-gray-400 dark:text-gray-500 hover:text-red-500"
+                  className="text-gray-400 dark:text-gray-500 hover:text-red-500 shrink-0"
                   title={t("attachments.delete")}
                 >
                   <Trash2 size={14} />

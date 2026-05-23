@@ -118,6 +118,8 @@
     "empty": "No attachments yet",
     "loading": "Loading…",
     "delete": "Remove",
+    "copyUrl": "Copy URL",
+    "urlCopied": "URL copied",
     "copyMarkdown": "Copy markdown link",
     "markdownCopied": "Markdown link copied",
     "copyFailed": "Copy failed",

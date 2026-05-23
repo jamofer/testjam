@@ -103,6 +103,8 @@
     "empty": "Encara no hi ha adjunts",
     "loading": "Carregant…",
     "delete": "Treure",
+    "copyUrl": "Copiar URL",
+    "urlCopied": "URL copiada",
     "copyMarkdown": "Copiar enllaç Markdown",
     "markdownCopied": "Enllaç Markdown copiat",
     "copyFailed": "Error en copiar",

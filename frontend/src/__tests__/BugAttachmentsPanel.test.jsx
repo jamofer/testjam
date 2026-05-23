@@ -59,6 +59,29 @@ describe("BugAttachmentsPanel", () => {
     expect(screen.getByText(/2.0 KB/)).toBeInTheDocument()
   })
 
+  it("copies markdown link from the attachments tab panel", async () => {
+    bugsApi.listAttachments.mockResolvedValue([
+      {
+        id: 12, bug_id: 7, filename: "spec.pdf", content_type: "application/pdf",
+        size_bytes: 512, uploaded_at: "2026-05-22T10:00:00Z",
+        url: "/api/v1/bugs/7/attachments/12/download",
+      },
+    ])
+    const writeText = vi.fn().mockResolvedValue()
+    Object.assign(navigator, { clipboard: { writeText } })
+
+    setup()
+
+    await screen.findByText("spec.pdf")
+    fireEvent.click(screen.getByTitle(/Copy markdown link/i))
+
+    await waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith(
+        `[spec.pdf](${window.location.origin}/api/v1/bugs/7/attachments/12/download)`,
+      ),
+    )
+  })
+
   it("calls upload api when a file is selected", async () => {
     bugsApi.listAttachments.mockResolvedValue([])
     bugsApi.uploadAttachment.mockResolvedValue({ id: 2, bug_id: 7, filename: "note.txt" })
@@ -132,6 +155,29 @@ describe("BugAttachmentsContextPanel", () => {
     await waitFor(() =>
       expect(writeText).toHaveBeenCalledWith(
         `![screenshot.png](${window.location.origin}/api/v1/bugs/7/attachments/9/download)`,
+      ),
+    )
+  })
+
+  it("copies the raw URL via the Copy button", async () => {
+    bugsApi.listAttachments.mockResolvedValue([
+      {
+        id: 11, bug_id: 7, filename: "spec.pdf", content_type: "application/pdf",
+        size_bytes: 512, uploaded_at: "2026-05-22T10:00:00Z",
+        url: "/api/v1/bugs/7/attachments/11/download",
+      },
+    ])
+    const writeText = vi.fn().mockResolvedValue()
+    Object.assign(navigator, { clipboard: { writeText } })
+
+    setupContext()
+
+    await screen.findByText("spec.pdf")
+    fireEvent.click(screen.getByTitle(/Copy URL/i))
+
+    await waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith(
+        `${window.location.origin}/api/v1/bugs/7/attachments/11/download`,
       ),
     )
   })

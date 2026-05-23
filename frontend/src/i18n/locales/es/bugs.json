@@ -118,6 +118,8 @@
     "empty": "Aún no hay adjuntos",
     "loading": "Cargando…",
     "delete": "Quitar",
+    "copyUrl": "Copiar URL",
+    "urlCopied": "URL copiada",
     "copyMarkdown": "Copiar enlace Markdown",
     "markdownCopied": "Enlace Markdown copiado",
     "copyFailed": "Error al copiar",

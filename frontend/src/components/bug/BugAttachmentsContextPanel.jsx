@@ -1,6 +1,7 @@
 import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Copy, Paperclip, Trash2, Upload } from "lucide-react"
+
 import { toast } from "sonner"
 
 import {
@@ -40,6 +41,16 @@ export function BugAttachmentsContextPanel({ bugId }) {
       toast.error(t("attachments.downloadFailed"))
     } finally {
       setBusyAttachmentId(null)
+    }
+  }
+
+  const handleCopyUrl = async (attachment) => {
+    const absoluteUrl = `${window.location.origin}${attachment.url}`
+    try {
+      await navigator.clipboard.writeText(absoluteUrl)
+      toast.success(t("attachments.urlCopied"))
+    } catch {
+      toast.error(t("attachments.copyFailed"))
     }
   }
 
@@ -89,6 +100,14 @@ export function BugAttachmentsContextPanel({ bugId }) {
               <span className="text-[10px] text-gray-400 dark:text-gray-500 shrink-0">
                 {fmtBytes(attachment.size_bytes)}
               </span>
+              <button
+                type="button"
+                onClick={() => handleCopyUrl(attachment)}
+                title={t("attachments.copyUrl")}
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 shrink-0"
+              >
+                <Copy size={11} />
+              </button>
               <button
                 type="button"
                 onClick={() => handleCopyMarkdown(attachment)}

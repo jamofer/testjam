@@ -103,6 +103,8 @@
     "empty": "Aínda non hai anexos",
     "loading": "Cargando…",
     "delete": "Quitar",
+    "copyUrl": "Copiar URL",
+    "urlCopied": "URL copiada",
     "copyMarkdown": "Copiar ligazón Markdown",
     "markdownCopied": "Ligazón Markdown copiada",
     "copyFailed": "Erro ao copiar",
