@@ -215,12 +215,16 @@ def list_bugs(
     if search:
         like = f"%{search.lower()}%"
         query = query.filter(func.lower(Bug.title).like(like))
-    rows = query.order_by(Bug.number.desc()).offset(skip).limit(limit).all()
+    rows = query.order_by(Bug.number.desc()).all()
     if tag:
         rows = [bug for bug in rows if bug.tags and tag in bug.tags]
     if cf_key:
-        rows = [bug for bug in rows if custom_field_service.matches_value(bug.custom_fields, cf_key, cf_value)]
-    return [_bug_out(bug) for bug in rows]
+        rows = [
+            bug for bug in rows
+            if custom_field_service.matches_value(bug.custom_fields, cf_key, cf_value)
+        ]
+    paginated = rows[skip:skip + limit]
+    return [_bug_out(bug) for bug in paginated]
 
 
 @projects_router.post(

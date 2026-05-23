@@ -110,6 +110,19 @@ def test_list_bugs_filters_by_tag(auth_client, project_id):
     assert "crash" in crashed[0]["tags"]
 
 
+def test_list_bugs_tag_filter_spans_pagination(auth_client, project_id):
+    for index in range(51):
+        tags = ["crash"] if index < 5 else None
+        _create_bug(auth_client, project_id, title=f"Bug {index}", tags=tags)
+
+    matches = auth_client.get(
+        f"/api/v1/projects/{project_id}/bugs?tag=crash"
+    ).json()
+
+    assert len(matches) == 5
+    assert all("crash" in bug["tags"] for bug in matches)
+
+
 def test_update_bug_assigns_user(auth_client, project_id):
     bug = _create_bug(auth_client, project_id).json()
     me = auth_client.get("/api/v1/users/me").json()
