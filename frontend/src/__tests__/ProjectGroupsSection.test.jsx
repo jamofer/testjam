@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
+import "../i18n"
 import { ProjectGroupsSection } from "../components/project/ProjectGroupsSection"
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
@@ -99,5 +100,32 @@ describe("ProjectGroupsSection", () => {
     fireEvent.click(screen.getByLabelText("Remove group"))
 
     await waitFor(() => expect(projectGroupsApi.remove).toHaveBeenCalledWith(42, 10))
+  })
+
+  it("hints to create a group when none exist", async () => {
+    projectGroupsApi.list.mockResolvedValue([])
+    api.get.mockResolvedValue({ data: [] })
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ProjectGroupsSection projectId={42} />
+      </QueryClientProvider>,
+    )
+
+    expect(await screen.findByText(/no groups exist yet/i)).toBeInTheDocument()
+  })
+
+  it("hints when every existing group is already assigned", async () => {
+    projectGroupsApi.list.mockResolvedValue(ASSIGNMENTS)
+    api.get.mockResolvedValue({ data: [{ id: 10, name: "QA Team" }] })
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ProjectGroupsSection projectId={42} />
+      </QueryClientProvider>,
+    )
+
+    await screen.findByText("QA Team")
+    expect(screen.getByText(/every existing group is already assigned/i)).toBeInTheDocument()
   })
 })

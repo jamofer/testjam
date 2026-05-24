@@ -36,7 +36,9 @@
     "empty": {
       "title": "No groups assigned",
       "description": "Assign a group to give every member of it the same role on this project."
-    }
+    },
+    "noCandidatesEmpty": "No groups exist yet. Create one in the Users admin (Groups tab) and it will appear here.",
+    "noCandidatesAllAssigned": "Every existing group is already assigned to this project."
   },
   "tokens": {
     "title": "Project API Tokens",

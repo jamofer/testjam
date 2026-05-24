@@ -36,7 +36,9 @@
     "empty": {
       "title": "Talderik esleitu gabe",
       "description": "Esleitu talde bat haren kide guztiei rol bera emateko proiektu honetan."
-    }
+    },
+    "noCandidatesEmpty": "Oraindik ez dago talderik. Sortu bat Erabiltzaileen administrazioan (Taldeak fitxa) eta hemen agertuko da.",
+    "noCandidatesAllAssigned": "Lehendik dauden talde guztiak proiektu honi esleituta daude."
   },
   "tokens": {
     "title": "Proiektuaren API tokenak",
