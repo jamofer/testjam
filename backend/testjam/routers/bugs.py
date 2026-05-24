@@ -199,6 +199,9 @@ def list_bugs(
         .options(
             selectinload(Bug.watchers),
             selectinload(Bug.links).selectinload(BugLink.target_bug),
+            selectinload(Bug.assigned_to),
+            selectinload(Bug.created_by),
+            selectinload(Bug.updated_by),
         )
         .filter(Bug.project_id == id)
     )
