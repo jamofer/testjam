@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query"
 import { api } from "../api/client"
 import { Button } from "../components/ui/button"
 import { EmptyState } from "../components/ui/empty-state"
+import { ErrorState } from "../components/ui/error-state"
 import { ProjectGroupsSection } from "../components/project/ProjectGroupsSection"
 import { toast } from "sonner"
 
@@ -23,16 +24,19 @@ const ROLE_BADGE = {
 export function MembersPage() {
   const { t } = useTranslation(["members", "nav"])
   const { id: projectId } = useParams()
-  const { data: members = [], isLoading } = useMembers(projectId)
+  const membersQuery = useMembers(projectId)
+  const members = membersQuery.data ?? []
+  const isLoading = membersQuery.isLoading
   const { data: project } = useProject(projectId)
   const addMember = useAddMember(projectId)
   const updateMember = useUpdateMember(projectId)
   const removeMember = useRemoveMember(projectId)
 
-  const { data: allUsers = [] } = useQuery({
+  const usersQuery = useQuery({
     queryKey: ['users'],
     queryFn: () => api.get('/users').then(response => response.data),
   })
+  const allUsers = usersQuery.data ?? []
 
   const [selectedUserId, setSelectedUserId] = useState("")
   const [selectedRole, setSelectedRole] = useState("tester")
@@ -69,6 +73,13 @@ export function MembersPage() {
     }
   }
 
+  if (membersQuery.isError) {
+    return (
+      <div className="pl-14 pr-4 py-4 md:p-8 max-w-2xl xl:max-w-4xl 2xl:max-w-5xl">
+        <ErrorState onRetry={() => membersQuery.refetch()} />
+      </div>
+    )
+  }
   if (isLoading) return <p className="text-gray-500 dark:text-gray-400">{t("loading")}</p>
 
   return (
@@ -124,7 +135,13 @@ export function MembersPage() {
           )}
         </div>
 
-        {addableUsers.length > 0 && (
+        {usersQuery.isError && (
+          <div className="px-5 py-4 border-t bg-gray-50 dark:bg-gray-900">
+            <ErrorState compact onRetry={() => usersQuery.refetch()} />
+          </div>
+        )}
+
+        {!usersQuery.isError && addableUsers.length > 0 && (
           <form onSubmit={handleAdd} className="px-5 py-4 border-t bg-gray-50 dark:bg-gray-900 flex gap-2">
             <select
               value={selectedUserId}

@@ -35,6 +35,9 @@
   "errors": {
     "boundaryTitle": "Something went wrong",
     "tryAgain": "Try again",
-    "goToProjects": "Go to projects"
+    "goToProjects": "Go to projects",
+    "queryTitle": "Couldn't load this section",
+    "queryDescription": "The request failed. Check your connection or try again.",
+    "retry": "Retry"
   }
 }
