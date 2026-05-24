@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -164,6 +165,8 @@ def update_custom_field(
     update_data = body.model_dump(exclude_unset=True)
     if "options" in update_data:
         _enforce_options_payload_rule(definition.type, update_data["options"])
+        if definition.type in SELECT_TYPES:
+            _guard_options_change(db, definition, update_data)
     if update_data.get("required") and definition.entity_type in REQUIRES_DEFAULT_ENTITY_TYPES:
         new_default = update_data.get("default_value", definition.default_value)
         if new_default is None:
@@ -271,6 +274,88 @@ ENTITY_TABLE: dict[str, str] = {
     "test_case": "test_cases",
     "execution": "test_executions",
 }
+
+
+def _guard_options_change(
+    db: Session,
+    definition: CustomFieldDefinition,
+    update_data: dict,
+) -> None:
+    """Refuse option edits that orphan existing values or invalidate the default.
+
+    Admins routinely curate option lists after the fact, but two failure
+    modes are silent today:
+
+    * Removing an option that is still referenced from rows leaves those
+      values as ghosts — the UI cannot re-select them and a PUT that
+      omits ``custom_fields`` drops them entirely.
+    * Replacing the option set without revisiting ``default_value`` makes
+      future create calls explode with a 422 the user can't act on.
+
+    We refuse both with a 409 / 422 that names the offending values so
+    the admin can archive the field, migrate rows, or update the default
+    before retrying.
+    """
+    new_options = update_data["options"] or []
+    new_values = {option["value"] for option in new_options}
+    old_values = {option["value"] for option in (definition.options or [])}
+    removed = old_values - new_values
+    if removed:
+        in_use = _option_values_in_use(db, definition)
+        blocking = sorted(removed & in_use)
+        if blocking:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    f"Cannot remove option(s) {blocking}: still referenced "
+                    f"by existing rows. Migrate the values or archive the "
+                    f"field instead."
+                ),
+            )
+
+    next_default = update_data.get("default_value", definition.default_value)
+    if next_default is None:
+        return
+    if definition.type == "single_select" and next_default not in new_values:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"default_value '{next_default}' is not one of the new "
+                f"options. Update or clear the default before changing options."
+            ),
+        )
+    if definition.type == "multi_select":
+        invalid = sorted(item for item in (next_default or []) if item not in new_values)
+        if invalid:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"default_value entries {invalid} are not in the new "
+                    f"options. Update or clear the default before changing options."
+                ),
+            )
+
+
+def _option_values_in_use(
+    db: Session, definition: CustomFieldDefinition
+) -> set[str]:
+    table = ENTITY_TABLE.get(definition.entity_type)
+    if table is None:
+        return set()
+    rows = db.execute(text(f"SELECT custom_fields FROM {table}")).fetchall()
+    seen: set[str] = set()
+    for (raw,) in rows:
+        if raw is None:
+            continue
+        data = raw if isinstance(raw, dict) else json.loads(raw)
+        value = data.get(definition.key)
+        if value is None:
+            continue
+        if isinstance(value, list):
+            seen.update(item for item in value if isinstance(item, str))
+        elif isinstance(value, str):
+            seen.add(value)
+    return seen
 
 
 def _is_definition_in_use(db: Session, definition: CustomFieldDefinition) -> bool:
