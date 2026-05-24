@@ -23,19 +23,45 @@ from testjam.models.version import ProjectVersion
 from testjam.schemas.mention import MentionTokenIn
 from testjam.services.integrations.markdown_to_html import to_html as markdown_to_html
 from testjam.services.mention_resolver import resolve as resolve_mentions
-from testjam.services.mentions import Mention, enrich_html_with_mentions
+from testjam.services.mentions import Mention, enrich_html_with_mentions, parse as parse_mentions
 from testjam.services.timezones import format_in_user_zone, user_zone_label
 
 
-def _make_rich_renderer(db: Session, project_id: int):
+def _mention_cache_key(mention_or_token) -> tuple:
+    return (
+        mention_or_token.kind,
+        getattr(mention_or_token, "slug", None),
+        getattr(mention_or_token, "id", None),
+        tuple(getattr(mention_or_token, "sub_ids", ()) or ()),
+    )
+
+
+def _collect_unique_tokens(bugs: list[Bug]) -> list[MentionTokenIn]:
+    seen: dict[tuple, MentionTokenIn] = {}
+    for bug in bugs:
+        texts = [bug.description or ""]
+        texts.extend((comment.body or "") for comment in bug.comments)
+        for text in texts:
+            for mention in parse_mentions(text):
+                key = _mention_cache_key(mention)
+                if key in seen:
+                    continue
+                seen[key] = MentionTokenIn(
+                    kind=mention.kind, slug=mention.slug,
+                    id=mention.id, sub_ids=list(mention.sub_ids),
+                )
+    return list(seen.values())
+
+
+def _make_rich_renderer(db: Session, project_id: int, bugs: list[Bug]):
+    tokens = _collect_unique_tokens(bugs)
+    resolved = resolve_mentions(db, project_id, tokens) if tokens else []
+    cache = {_mention_cache_key(token): result for token, result in zip(tokens, resolved)}
+
     def label_for(mention: Mention) -> str:
-        token = MentionTokenIn(
-            kind=mention.kind, slug=mention.slug,
-            id=mention.id, sub_ids=list(mention.sub_ids),
-        )
-        [resolved] = resolve_mentions(db, project_id, [token])
-        if resolved.accessible and resolved.label:
-            return resolved.label
+        cached = cache.get(_mention_cache_key(mention))
+        if cached is not None and cached.accessible and cached.label:
+            return cached.label
         return mention.raw
 
     def render_rich(text: str) -> str:
@@ -139,7 +165,7 @@ def render_html(
     title = " · ".join(title_parts)
 
     actor_label = user.username if user is not None else (viewer_label or "shared link")
-    render_rich = _make_rich_renderer(db, project.id)
+    render_rich = _make_rich_renderer(db, project.id, bugs)
     return _build_html(
         title, bugs, generated_at, timezone_label, user, actor_label,
         custom_field_definitions, render_rich,
