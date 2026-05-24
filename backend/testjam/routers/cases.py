@@ -413,18 +413,18 @@ def upload_attachment(
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
     _require_case_writer(db, current, _project_id_for_case(case, db))
+    payload = uploads.read_attachment(file)
     dest_dir = os.path.join(UPLOAD_DIR, str(id))
     os.makedirs(dest_dir, exist_ok=True)
     stored_filename = uploads.safe_filename(file.filename)
     dest_path = uploads.safe_join(dest_dir, file.filename)
     with open(dest_path, "wb") as f:
-        shutil.copyfileobj(file.file, f)
-    size = os.path.getsize(dest_path)
+        f.write(payload)
     attachment = Attachment(
         test_case_id=id,
         filename=stored_filename,
         content_type=file.content_type,
-        size_bytes=size,
+        size_bytes=len(payload),
         file_path=dest_path,
         uploaded_by=current.username,
     )

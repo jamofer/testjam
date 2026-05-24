@@ -694,17 +694,18 @@ def upload_attachment(
     bug = _get_bug(db, id)
     _require_writer(db, current, bug.project_id)
     _ensure_project_writable(db, bug.project_id)
+    payload = uploads.read_attachment(file)
     destination_directory = os.path.join(BUG_UPLOAD_DIR, str(id))
     os.makedirs(destination_directory, exist_ok=True)
     stored_filename = uploads.safe_filename(file.filename)
     destination_path = uploads.safe_join(destination_directory, file.filename)
     with open(destination_path, "wb") as handle:
-        shutil.copyfileobj(file.file, handle)
+        handle.write(payload)
     attachment = BugAttachment(
         bug_id=id,
         filename=stored_filename,
         content_type=file.content_type,
-        size_bytes=os.path.getsize(destination_path),
+        size_bytes=len(payload),
         file_path=destination_path,
         uploaded_by_id=current.id,
     )
