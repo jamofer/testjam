@@ -116,6 +116,7 @@ def create_execution(
     db: Session = Depends(get_db),
     ctx: AuthContext = Depends(require_project_access_ctx),
 ):
+    require_project_writer(db, ctx.user, id)
     project = db.get(Project, id)
     if project is not None and project.archived_at is not None:
         raise HTTPException(status_code=409, detail="Project is archived")

@@ -73,7 +73,8 @@ def list_suites(
 
 
 @projects_router.post("/{id}/suites", response_model=TestSuiteOut, status_code=status.HTTP_201_CREATED)
-def create_suite(id: int, body: TestSuiteCreate, db: Session = Depends(get_db), _: User = Depends(require_writable_project_access)):
+def create_suite(id: int, body: TestSuiteCreate, db: Session = Depends(get_db), current: User = Depends(require_writable_project_access)):
+    require_project_writer(db, current, id)
     duplicate = (
         db.query(TestSuite)
         .filter(

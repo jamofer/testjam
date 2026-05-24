@@ -28,6 +28,7 @@ from testjam.auth.security import hash_password
 from testjam.core.rate_limit import limiter
 from testjam.database import Base, get_db
 from testjam.main import app
+from testjam.models.project import ProjectMember
 from testjam.models.settings import AppSettings
 from testjam.models.user import User
 
@@ -138,6 +139,60 @@ def case_ids(auth_client, suite_id):
             ).json()["id"]
         )
     return ids
+
+
+@pytest.fixture
+def role_project(client):
+    """Project with one non-admin user per role + a non-member outsider.
+
+    Returns a dict with `project_id` and `clients` mapping role name to an
+    authenticated TestClient. Roles: ``owner``, ``tester``, ``viewer``,
+    ``outsider``. Use this to assert role-boundary enforcement on
+    project-scoped endpoints without admin bypass shadowing the checks.
+    """
+    def seed_user(username: str) -> int:
+        with TestingSession() as db:
+            user = User(
+                username=username,
+                email=f"{username}@x.com",
+                hashed_password=hash_password("pw"),
+                is_active=True,
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            return user.id
+
+    def login(username: str) -> TestClient:
+        token = client.post(
+            "/api/v1/auth/login", data={"username": username, "password": "pw"},
+        ).json()["access_token"]
+        fresh = TestClient(app)
+        fresh.headers["Authorization"] = f"Bearer {token}"
+        return fresh
+
+    seed_user("matrix_owner")
+    owner_client = login("matrix_owner")
+    project_id = owner_client.post("/api/v1/projects", json={"name": "RoleMatrix"}).json()["id"]
+
+    tester_id = seed_user("matrix_tester")
+    viewer_id = seed_user("matrix_viewer")
+    with TestingSession() as db:
+        db.add(ProjectMember(project_id=project_id, user_id=tester_id, role="tester"))
+        db.add(ProjectMember(project_id=project_id, user_id=viewer_id, role="viewer"))
+        db.commit()
+
+    seed_user("matrix_outsider")
+
+    return {
+        "project_id": project_id,
+        "clients": {
+            "owner": owner_client,
+            "tester": login("matrix_tester"),
+            "viewer": login("matrix_viewer"),
+            "outsider": login("matrix_outsider"),
+        },
+    }
 
 
 @pytest.fixture
