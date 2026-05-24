@@ -1,6 +1,7 @@
 """Export endpoints: HTML / XLSX for executions, XLSX for project cases."""
 import io
 from datetime import datetime, timezone
+from typing import Iterator
 from urllib.parse import urlparse
 
 import openpyxl
@@ -9,6 +10,7 @@ from openpyxl.utils import get_column_letter
 
 from fastapi import Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import get_current_user, require_project_access
@@ -23,6 +25,25 @@ from testjam.services.settings import get_settings as get_app_settings
 from testjam.services.timezones import format_in_user_zone, user_zone_label
 
 
+def _enforce_export_cap(row_count: int, *, kind: str) -> None:
+    cap = settings.MAX_EXPORT_RESULTS
+    if row_count > cap:
+        raise HTTPException(
+            status_code=413,
+            detail=(
+                f"Export refused: {row_count} {kind} exceeds the configured "
+                f"cap of {cap}. Narrow the scope (filter by version, "
+                f"environment, or suite) and retry."
+            ),
+        )
+
+
+def _stream_bytes(payload: bytes) -> Iterator[bytes]:
+    chunk = settings.EXPORT_STREAM_CHUNK_BYTES
+    for start in range(0, len(payload), chunk):
+        yield payload[start:start + chunk]
+
+
 @executions_router.get("/{id}/export/xlsx")
 def export_execution_xlsx(
     id: int,
@@ -32,6 +53,7 @@ def export_execution_xlsx(
     ex = load_execution_full(db, id)
     if not ex:
         raise HTTPException(status_code=404, detail="Not found")
+    _enforce_export_cap(len(ex.results), kind="results")
 
     wb = openpyxl.Workbook()
     tz_label = user_zone_label(current)
@@ -69,10 +91,9 @@ def export_execution_xlsx(
 
     buf = io.BytesIO()
     wb.save(buf)
-    buf.seek(0)
     filename = f"execution_{id}.xlsx"
     return StreamingResponse(
-        buf,
+        _stream_bytes(buf.getvalue()),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
@@ -89,6 +110,7 @@ def export_execution_html(
     execution = load_execution_for_report(db, id)
     if not execution:
         raise HTTPException(status_code=404, detail="Not found")
+    _enforce_export_cap(len(execution.results), kind="results")
 
     app_settings = get_app_settings(db)
     base_url = _resolve_base_url(request, app_settings.site_url)
@@ -102,7 +124,7 @@ def export_execution_html(
 
     filename = f"execution_{id}_{execution.title.replace(' ', '_')}.html"
     return StreamingResponse(
-        io.BytesIO(html.encode("utf-8")),
+        _stream_bytes(html.encode("utf-8")),
         media_type="text/html; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
@@ -131,6 +153,14 @@ def export_cases_xlsx(
     from testjam.models.project import Project
     project = db.get(Project, id)
     suites = db.query(TestSuite).filter(TestSuite.project_id == id, TestSuite.parent_suite_id == None).all()  # noqa: E711
+    case_count = (
+        db.query(func.count(TestCase.id))
+        .join(TestSuite, TestSuite.id == TestCase.suite_id)
+        .filter(TestSuite.project_id == id)
+        .scalar()
+        or 0
+    )
+    _enforce_export_cap(case_count, kind="test cases")
 
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -227,10 +257,9 @@ def export_cases_xlsx(
 
     buf = io.BytesIO()
     wb.save(buf)
-    buf.seek(0)
     filename = f"cases_{project.name.replace(' ', '_') if project else id}.xlsx"
     return StreamingResponse(
-        buf,
+        _stream_bytes(buf.getvalue()),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
