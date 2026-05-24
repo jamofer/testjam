@@ -33,7 +33,11 @@ def upgrade() -> None:
     op.add_column('test_cases', sa.Column('external_id', sa.String(length=512), nullable=True))
     op.create_index(op.f('ix_test_cases_external_id'), 'test_cases', ['external_id'], unique=False)
     op.add_column('test_executions', sa.Column('version_id', sa.Integer(), nullable=True))
-    op.create_foreign_key(None, 'test_executions', 'project_versions', ['version_id'], ['id'], ondelete='SET NULL')
+    op.create_foreign_key(
+        'fk_test_executions_version_id_project_versions',
+        'test_executions', 'project_versions',
+        ['version_id'], ['id'], ondelete='SET NULL',
+    )
     op.add_column('test_step_results', sa.Column('log_output', sa.Text(), nullable=True))
     op.add_column('test_steps', sa.Column('step_type', sa.String(length=16), nullable=True))
     op.execute("UPDATE test_steps SET step_type = 'action' WHERE step_type IS NULL")
@@ -49,7 +53,7 @@ def downgrade() -> None:
     op.drop_column('test_suites', 'setup')
     op.drop_column('test_steps', 'step_type')
     op.drop_column('test_step_results', 'log_output')
-    op.drop_constraint(None, 'test_executions', type_='foreignkey')
+    op.drop_constraint('fk_test_executions_version_id_project_versions', 'test_executions', type_='foreignkey')
     op.drop_column('test_executions', 'version_id')
     op.drop_index(op.f('ix_test_cases_external_id'), table_name='test_cases')
     op.drop_column('test_cases', 'external_id')
