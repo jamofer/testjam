@@ -24,6 +24,7 @@
     "save": "Desa",
     "cancel": "Cancel·la",
     "run": "Executa",
+    "runDisabledNoCases": "Afegeix almenys un cas de prova abans d'executar aquest pla",
     "updated": "Pla actualitzat",
     "caseRemoved": "Cas eliminat",
     "empty": {

@@ -229,9 +229,15 @@ export function PlanDetailPage() {
             onClick={startEditTitle}>
             {plan.title}
           </h1>
-          <Link to={`/projects/${plan.project_id}/executions/new?planId=${plan.id}`}>
-            <Button size="sm"><PlayCircle size={14} /> {t("detail.run")}</Button>
-          </Link>
+          {plan.test_case_ids.length > 0 ? (
+            <Link to={`/projects/${plan.project_id}/executions/new?planId=${plan.id}`}>
+              <Button size="sm"><PlayCircle size={14} /> {t("detail.run")}</Button>
+            </Link>
+          ) : (
+            <Button size="sm" disabled title={t("detail.runDisabledNoCases")}>
+              <PlayCircle size={14} /> {t("detail.run")}
+            </Button>
+          )}
         </div>
       )}
 

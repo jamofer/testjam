@@ -24,14 +24,14 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.error) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-center px-4">
-          <p className="text-lg font-semibold text-gray-800">{i18n.t('errors.boundaryTitle')}</p>
-          <p className="text-sm text-gray-500">{this.state.error?.message}</p>
+        <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-center px-4 bg-white dark:bg-gray-900">
+          <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{i18n.t('errors.boundaryTitle')}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{this.state.error?.message}</p>
           <div className="flex gap-3">
-            <a href="/projects" className="text-sm text-primary-600 underline">{i18n.t('errors.goToProjects')}</a>
+            <a href="/projects" className="text-sm text-primary-600 dark:text-primary-400 underline">{i18n.t('errors.goToProjects')}</a>
             <button
               onClick={() => this.setState({ error: null })}
-              className="text-sm text-gray-500 underline"
+              className="text-sm text-gray-500 dark:text-gray-400 underline"
             >
               {i18n.t('errors.tryAgain')}
             </button>

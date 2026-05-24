@@ -1,16 +1,21 @@
 import { useMemo } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notificationsApi } from '../api/notifications'
 import { authApi } from '../api/auth'
 import { useTopicSocket } from './useTopicSocket'
 
 const LIST_KEY = ['notifications']
 const COUNT_KEY = ['notifications', 'unread-count']
+const PAGE_SIZE = 50
 
 export function useNotifications() {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: LIST_KEY,
-    queryFn: () => notificationsApi.list({ limit: 50 }),
+    queryFn: ({ pageParam = 0 }) =>
+      notificationsApi.list({ skip: pageParam, limit: PAGE_SIZE }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length < PAGE_SIZE ? undefined : allPages.length * PAGE_SIZE,
   })
 }
 
@@ -58,7 +63,13 @@ export function useNotificationsSocket(enabled) {
   const handlers = useMemo(() => ({
     notification: (data) => {
       if (!data) return
-      qc.setQueryData(LIST_KEY, (prev = []) => [data, ...prev])
+      qc.setQueryData(LIST_KEY, (prev) => {
+        if (!prev?.pages?.length) {
+          return { pages: [[data]], pageParams: [0] }
+        }
+        const [firstPage, ...rest] = prev.pages
+        return { ...prev, pages: [[data, ...firstPage], ...rest] }
+      })
       qc.setQueryData(COUNT_KEY, (prev = { unread: 0 }) => ({ unread: (prev?.unread ?? 0) + 1 }))
     },
   }), [qc])

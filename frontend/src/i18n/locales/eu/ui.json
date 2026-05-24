@@ -45,6 +45,8 @@
     "markAllRead": "Markatu guztiak irakurritako gisa",
     "close": "Itxi jakinarazpenak",
     "empty": "Jakinarazpenik ez",
-    "markRead": "Markatu irakurritako gisa"
+    "markRead": "Markatu irakurritako gisa",
+    "loadMore": "Kargatu gehiago",
+    "loadingMore": "Kargatzen…"
   }
 }

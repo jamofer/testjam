@@ -45,6 +45,8 @@
     "markAllRead": "Marcar todas como leídas",
     "close": "Cerrar notificaciones",
     "empty": "Sin notificaciones",
-    "markRead": "Marcar como leída"
+    "markRead": "Marcar como leída",
+    "loadMore": "Cargar más",
+    "loadingMore": "Cargando…"
   }
 }

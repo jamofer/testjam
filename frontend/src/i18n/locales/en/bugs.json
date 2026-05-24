@@ -208,7 +208,9 @@
   },
   "empty": {
     "title": "No bugs yet",
-    "description": "Report one from a failed result or create a manual entry."
+    "description": "Report one from a failed result or create a manual entry.",
+    "titleNoMatches": "No bugs match your filters",
+    "descriptionNoMatches": "Adjust or clear the active filters to see more results."
   },
   "toast": {
     "created": "Bug created",

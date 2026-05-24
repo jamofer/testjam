@@ -24,6 +24,7 @@
     "save": "Gardar",
     "cancel": "Cancelar",
     "run": "Executar",
+    "runDisabledNoCases": "Engade polo menos un caso de proba antes de executar este plan",
     "updated": "Plan actualizado",
     "caseRemoved": "Caso eliminado",
     "empty": {

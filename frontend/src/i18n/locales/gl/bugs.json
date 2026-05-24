@@ -189,7 +189,9 @@
   },
   "empty": {
     "title": "Aínda non hai bugs",
-    "description": "Reporta un dende un resultado fallido ou crea un manualmente."
+    "description": "Reporta un dende un resultado fallido ou crea un manualmente.",
+    "titleNoMatches": "Ningún bug coincide cos filtros",
+    "descriptionNoMatches": "Axusta ou limpa os filtros activos para ver máis resultados."
   },
   "toast": {
     "created": "Bug creado",
