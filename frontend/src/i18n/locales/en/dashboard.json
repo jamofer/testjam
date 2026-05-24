@@ -22,5 +22,7 @@
   "noVersions": "No active versions.",
   "runs_one": "{{count}} run",
   "runs_other": "{{count}} runs",
-  "neverRun": "Never run"
+  "neverRun": "Never run",
+  "openBugs": "Open bugs",
+  "noOpenBugs": "No open bugs."
 }
