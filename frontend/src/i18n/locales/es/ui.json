@@ -6,6 +6,7 @@
     "esc": "esc",
     "noMatches": "Sin coincidencias",
     "groups": {
+      "recents": "Recientes",
       "projects": "Proyectos",
       "recentExecutions": "Ejecuciones recientes",
       "testCases": "Casos de prueba",
