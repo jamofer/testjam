@@ -85,6 +85,7 @@ def create_case(id: int, body: TestCaseCreate, db: Session = Depends(get_db), cu
     suite = db.get(TestSuite, id)
     if suite is None:
         raise HTTPException(status_code=404, detail="Suite not found")
+    _require_case_writer(db, current, suite.project_id)
     duplicate = db.query(TestCase).filter(TestCase.suite_id == id, TestCase.name == body.name).first()
     if duplicate:
         raise HTTPException(status_code=409, detail=f"Test case '{body.name}' already exists")

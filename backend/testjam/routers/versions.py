@@ -7,7 +7,12 @@ from fastapi.responses import FileResponse
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user, require_project_access, require_writable_project_access
+from testjam.auth.dependencies import (
+    get_current_user,
+    require_project_access,
+    require_project_writer,
+    require_writable_project_access,
+)
 from testjam.core.config import settings
 from testjam.database import get_db
 from testjam.models.user import User
@@ -52,7 +57,8 @@ def list_versions(id: int, db: Session = Depends(get_db), _: User = Depends(requ
 
 
 @projects_router.post("/{id}/versions", response_model=ProjectVersionOut, status_code=status.HTTP_201_CREATED)
-def create_version(id: int, body: ProjectVersionCreate, db: Session = Depends(get_db), _: User = Depends(require_writable_project_access)):
+def create_version(id: int, body: ProjectVersionCreate, db: Session = Depends(get_db), current: User = Depends(require_writable_project_access)):
+    require_project_writer(db, current, id)
     data = body.model_dump()
     version = ProjectVersion(project_id=id, **data)
     if version.status == "released":

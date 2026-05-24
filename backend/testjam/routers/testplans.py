@@ -41,7 +41,8 @@ def list_plans(id: int, db: Session = Depends(get_db), _: User = Depends(require
 
 
 @projects_router.post("/{id}/plans", response_model=TestPlanOut, status_code=status.HTTP_201_CREATED)
-def create_plan(id: int, body: TestPlanCreate, db: Session = Depends(get_db), _: User = Depends(require_writable_project_access)):
+def create_plan(id: int, body: TestPlanCreate, db: Session = Depends(get_db), current: User = Depends(require_writable_project_access)):
+    require_project_writer(db, current, id)
     plan = TestPlan(project_id=id, title=body.title, description=body.description)
     db.add(plan)
     db.flush()
