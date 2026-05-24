@@ -94,6 +94,7 @@ class CleanupMixin:
 
     @keyword("the stashed settings and current project are restored")
     def restore_stashed_settings_and_project(self) -> None:
+        self.authenticate_as_admin()
         self.restore_stashed_settings()
         if self.current_project_id is not None:
             self.client.delete(f"/projects/{self.current_project_id}")
