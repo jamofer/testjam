@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react"
-import { Link, useParams } from "react-router-dom"
+import { useEffect, useMemo, useState } from "react"
+import { Link, useParams, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { Bug as BugIcon, Download, Link2, Plus, Trash2 } from "lucide-react"
 import { toast } from "sonner"
@@ -33,6 +33,7 @@ import { SEVERITY_VARIANT, STATUS_VARIANT } from "../lib/bugConfig"
 
 const STATUS_OPTIONS = ["any", "open", "in_progress", "resolved", "closed", "wont_fix", "not_a_bug"]
 const SEVERITY_OPTIONS = ["any", "critical", "high", "medium", "low"]
+const ANY = "any"
 
 export function BugsPage() {
   const { t } = useTranslation(["bugs", "nav"])
@@ -40,13 +41,43 @@ export function BugsPage() {
   const { data: project } = useProject(projectId)
   const { data: me } = useMe()
   const { connected: live } = useProjectBugsLive(projectId, { enabled: !!me })
-  const [statusFilter, setStatusFilter] = useState("any")
-  const [severityFilter, setSeverityFilter] = useState("any")
-  const [versionFilter, setVersionFilter] = useState("any")
-  const [cfFieldKey, setCfFieldKey] = useState("any")
-  const [cfFieldValue, setCfFieldValue] = useState("any")
-  const [search, setSearch] = useState("")
+  const [searchParams, setSearchParams] = useSearchParams()
+  const statusFilter = searchParams.get("status") || ANY
+  const severityFilter = searchParams.get("severity") || ANY
+  const versionFilter = searchParams.get("version_id") || ANY
+  const cfFieldKey = searchParams.get("cf_key") || ANY
+  const cfFieldValue = searchParams.get("cf_value") || ANY
+  const urlSearch = searchParams.get("search") || ""
+  const [search, setSearch] = useState(urlSearch)
   const debouncedSearch = useDebounced(search, 200)
+
+  const replaceParam = (mutate) => {
+    const next = new URLSearchParams(searchParams)
+    mutate(next)
+    setSearchParams(next, { replace: true })
+  }
+  const setSingleParam = (key, value) => {
+    replaceParam(next => {
+      if (!value || value === ANY) next.delete(key)
+      else next.set(key, value)
+    })
+  }
+  const setStatusFilter = (value) => setSingleParam("status", value)
+  const setSeverityFilter = (value) => setSingleParam("severity", value)
+  const setVersionFilter = (value) => setSingleParam("version_id", value)
+  const setCfFieldKey = (value) => {
+    replaceParam(next => {
+      if (!value || value === ANY) { next.delete("cf_key"); next.delete("cf_value") }
+      else { next.set("cf_key", value); next.delete("cf_value") }
+    })
+  }
+  const setCfFieldValue = (value) => setSingleParam("cf_value", value)
+
+  useEffect(() => {
+    const trimmed = debouncedSearch.trim()
+    if (trimmed === (searchParams.get("search") || "")) return
+    setSingleParam("search", trimmed)
+  }, [debouncedSearch])  // eslint-disable-line react-hooks/exhaustive-deps
   const { data: versions = [] } = useVersions(projectId)
   const { data: customFieldDefs = [] } = useCustomFields(projectId, "bug")
   const selectedCfDef = customFieldDefs.find(definition => definition.key === cfFieldKey)
@@ -211,7 +242,7 @@ export function BugsPage() {
                 definitions={customFieldDefs}
                 fieldKey={cfFieldKey}
                 fieldValue={cfFieldValue}
-                onFieldKeyChange={(key) => { setCfFieldKey(key); setCfFieldValue("any") }}
+                onFieldKeyChange={setCfFieldKey}
                 onFieldValueChange={setCfFieldValue}
                 selectedDefinition={selectedCfDef}
               />
