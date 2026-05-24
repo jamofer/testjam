@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useMatch } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { Search, FolderOpen, FileText, PlayCircle, Plus, ClipboardList, Tag, Shield, Grid3x3 } from "lucide-react"
+import { Search, FolderOpen, FileText, PlayCircle, Plus, ClipboardList, Tag, Shield, Grid3x3, Clock } from "lucide-react"
 import { useProjects } from "../../hooks/useProjects"
 import { useExecutions } from "../../hooks/useExecutions"
 import { useSearchCases } from "../../hooks/useSuites"
 import { useDebounced } from "../../hooks/useDebounced"
+import { fuzzyFilter, fuzzyScore } from "../../lib/fuzzy"
+import { loadRecents, pushRecent } from "../../lib/commandPaletteRecents"
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "./dialog"
 
 function useActiveProjectIdFromUrl() {
@@ -54,16 +56,19 @@ export function CommandPalette({ open, onOpenChange, onAction }) {
   const { data: execPages } = useExecutions(activeProjectId)
   const recentExecutions = useMemo(() => (execPages?.pages?.[0] ?? []).slice(0, 5), [execPages])
 
-  const ql = q.trim().toLowerCase()
+  const ql = q.trim()
+  const [recents, setRecents] = useState(() => loadRecents())
+  useEffect(() => { if (open) setRecents(loadRecents()) }, [open])
+
   const filteredProjects = useMemo(() => {
     if (!ql) return projects.slice(0, 8)
-    return projects.filter(p => p.name.toLowerCase().includes(ql)).slice(0, 8)
+    return fuzzyFilter(ql, projects, project => project.name).slice(0, 8)
   }, [projects, ql])
 
   const filteredExecutions = useMemo(() => {
     if (!recentExecutions.length) return []
     if (!ql) return recentExecutions
-    return recentExecutions.filter(ex => ex.title.toLowerCase().includes(ql))
+    return fuzzyFilter(ql, recentExecutions, execution => execution.title)
   }, [recentExecutions, ql])
 
   const filteredCases = activeProjectId && ql ? searchResults.slice(0, 8) : []
@@ -109,33 +114,62 @@ export function CommandPalette({ open, onOpenChange, onAction }) {
       },
     ]
     if (!ql) return all
-    return all.filter(action => action.title.toLowerCase().includes(ql))
+    return fuzzyFilter(ql, all, action => action.title)
   }, [activeProjectId, navigate, onAction, ql, t])
+
+  const ICON_BY_KIND = { project: FolderOpen, exec: PlayCircle, case: FileText }
+
+  const recentItems = useMemo(() => {
+    if (ql) return []
+    return recents.map(entry => ({
+      kind: "recent",
+      id: `r-${entry.kind}-${entry.url}`,
+      title: entry.title,
+      icon: ICON_BY_KIND[entry.kind] ?? Clock,
+      url: entry.url,
+      recentKind: entry.kind,
+      run: () => navigate(entry.url),
+    }))
+  }, [recents, ql, navigate])
+
+  const isInRecents = (kind, url) => recents.some(r => r.kind === kind && r.url === url)
 
   // Flat list of selectable items in render order
   const items = useMemo(() => {
-    const flat = []
-    filteredProjects.forEach(p => flat.push({
-      kind: "project", id: `p-${p.id}`, title: p.name, icon: FolderOpen,
-      hint: t("commandPalette.hints.cases", { count: p.case_count ?? 0 }),
-      run: () => navigate(`/projects/${p.id}`),
-    }))
-    filteredExecutions.forEach(ex => flat.push({
-      kind: "exec", id: `e-${ex.id}`, title: ex.title, icon: PlayCircle,
-      hint: ex.status,
-      run: () => navigate(`/executions/${ex.id}/run`),
-    }))
-    filteredCases.forEach(tc => flat.push({
-      kind: "case", id: `c-${tc.id}`, title: tc.name, icon: FileText,
-      hint: tc.tags?.length ? tc.tags.slice(0, 2).join(", ") : null,
-      run: () => navigate(`/cases/${tc.id}`),
-    }))
+    const flat = [...recentItems]
+    filteredProjects.forEach(p => {
+      const url = `/projects/${p.id}`
+      if (isInRecents("project", url)) return
+      flat.push({
+        kind: "project", id: `p-${p.id}`, title: p.name, icon: FolderOpen,
+        hint: t("commandPalette.hints.cases", { count: p.case_count ?? 0 }),
+        url, run: () => navigate(url),
+      })
+    })
+    filteredExecutions.forEach(ex => {
+      const url = `/executions/${ex.id}/run`
+      if (isInRecents("exec", url)) return
+      flat.push({
+        kind: "exec", id: `e-${ex.id}`, title: ex.title, icon: PlayCircle,
+        hint: ex.status, url, run: () => navigate(url),
+      })
+    })
+    filteredCases.forEach(tc => {
+      const url = `/cases/${tc.id}`
+      if (isInRecents("case", url)) return
+      flat.push({
+        kind: "case", id: `c-${tc.id}`, title: tc.name, icon: FileText,
+        hint: tc.tags?.length ? tc.tags.slice(0, 2).join(", ") : null,
+        url, run: () => navigate(url),
+      })
+    })
     actions.forEach(a => flat.push({
       kind: "action", id: `a-${a.key}`, title: a.title, icon: a.icon,
       run: a.run,
     }))
     return flat
-  }, [filteredProjects, filteredExecutions, filteredCases, actions, navigate, t])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recentItems, filteredProjects, filteredExecutions, filteredCases, actions, recents, navigate, t])
 
   useEffect(() => { setCursor(0) }, [q, items.length])
 
@@ -148,6 +182,10 @@ export function CommandPalette({ open, onOpenChange, onAction }) {
   const choose = (idx) => {
     const it = items[idx]
     if (!it) return
+    if (it.url && it.kind !== "action") {
+      const persistKind = it.kind === "recent" ? it.recentKind : it.kind
+      pushRecent({ kind: persistKind, url: it.url, title: it.title })
+    }
     it.run()
     close()
   }
@@ -185,6 +223,7 @@ export function CommandPalette({ open, onOpenChange, onAction }) {
     )
   }
 
+  const recentSlice = items.filter(x => x.kind === "recent")
   const projectItems = items.filter(x => x.kind === "project")
   const execItems = items.filter(x => x.kind === "exec")
   const caseItems = items.filter(x => x.kind === "case")
@@ -212,6 +251,7 @@ export function CommandPalette({ open, onOpenChange, onAction }) {
             <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-8">{t("commandPalette.noMatches")}</p>
           ) : (
             <>
+              {renderGroup(t("commandPalette.groups.recents"), recentSlice)}
               {renderGroup(t("commandPalette.groups.projects"), projectItems)}
               {renderGroup(t("commandPalette.groups.recentExecutions"), execItems)}
               {renderGroup(t("commandPalette.groups.testCases"), caseItems)}
