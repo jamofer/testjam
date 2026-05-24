@@ -146,7 +146,7 @@ export function PublicReportDialog({
           <div className="border-t border-gray-200 dark:border-gray-800 pt-3">
             <div className="text-sm font-semibold mb-2">{t("existingHeading")}</div>
             {isLoading ? (
-              <div className="text-xs text-gray-500">{t("common:loading")}</div>
+              <div className="text-xs text-gray-500">{t("common:actions.loading")}</div>
             ) : relevantShares.length === 0 ? (
               <div className="text-xs text-gray-500">{t("noneYet")}</div>
             ) : (
