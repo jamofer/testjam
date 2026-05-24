@@ -98,7 +98,7 @@ make backup
 
 You can also generate or restore a backup from the running app (admin only):
 
-- **Download backup**: Settings → "Download backup" produces a ZIP with `manifest.json`, `dump.sql`, and the `uploads/` tree.
+- **Download backup**: Settings → "Download backup" produces a ZIP with `manifest.json`, `dump.sql`, and the `uploads/` tree. Same archive is reachable from any host via `testjam backup --out PATH` (admin token required).
 - **Restore from backup**: Settings → "Restore from backup". The form requires uploading the ZIP and typing `REPLACE ALL DATA` to confirm. Restore is destructive — it drops existing tables, replays the dump, and replaces the uploads tree. The backup's `manifest.json` `dialect` must match the running server.
 
 Per-project export ships from the project page (**Export** button) and downloads a `project-<slug>-<UTC>.zip` containing `project.json` plus binary case/result/execution attachments — useful for moving a single project between instances or archiving long-term.
@@ -175,6 +175,18 @@ Robot tags of the form `cf:key=value` (or `cf:key=a,b,c` for multi-select) are p
 ## API tokens
 
 **Project → Members → API Tokens** issues a project-scoped token. Send `X-API-Key: <token>` on every request. Cross-project access returns 403.
+
+---
+
+## History
+
+Testjam began in April 2019 as a sandbox — the first commit landed under the name `pyjam` and was renamed to `testjam` a week later. The intent was to scratch a personal itch: a clean, self-hosted test management tool that wasn't a 2010-era PHP install or a SaaS lock-in. Real life made shipping it alone unrealistic. The bug tracker, the realtime layer, the SDK, the i18n, the Robot Framework listener, the CI orchestrator — each one a side quest, all of them dragging the calendar out of reach. The repository sat dormant for years.
+
+What changed was the arrival of LLMs capable of pair-programming at design speed. The full feature surface visible here was iterated and shipped during one focused stretch with AI assistance, turning a six-year-old prototype into a v1.0 release.
+
+### On the name
+
+**Testjam** here refers strictly to this open-source repository — the self-hosted test management tool documented above. The name was chosen for this codebase in April 2019 and the project is unaffiliated with anything else that may happen to share it. If you arrived here looking for a different product that uses the same name, you're in the wrong place.
 
 ## Model overview
 
