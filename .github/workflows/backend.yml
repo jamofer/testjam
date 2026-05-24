@@ -39,3 +39,47 @@ jobs:
           UPLOAD_DIR: ${{ runner.temp }}/testjam-uploads
           INTEGRATION_ENCRYPTION_KEY: eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg=
         run: pytest -q
+
+  alembic-roundtrip:
+    name: alembic upgrade/downgrade (postgres)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: testjam
+          POSTGRES_PASSWORD: testjam
+          POSTGRES_DB: testjam
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U testjam"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://testjam:testjam@localhost:5432/testjam
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+
+      - name: Install backend
+        working-directory: backend
+        run: pip install -e ".[dev]"
+
+      - name: Upgrade head
+        working-directory: backend
+        run: alembic upgrade head
+
+      - name: Downgrade to base
+        working-directory: backend
+        run: alembic downgrade base
+
+      - name: Upgrade head again
+        working-directory: backend
+        run: alembic upgrade head
