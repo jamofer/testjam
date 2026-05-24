@@ -27,6 +27,16 @@ class Settings(BaseSettings):
     REDIS_URL: str | None = None
     REALTIME_CHANNEL_PREFIX: str = "testjam:rt"
 
+    # Hard cap on rows serialized into a single export (execution results,
+    # exported test cases). Requests above the cap return 413 with a hint
+    # to narrow the scope. Tune via the MAX_EXPORT_RESULTS env var.
+    MAX_EXPORT_RESULTS: int = 5000
+
+    # Chunk size for streaming exports back to the client. 64 KiB matches
+    # the default uvicorn write buffer, so the kernel send queue stays warm
+    # without holding the whole payload in a single Python bytes object.
+    EXPORT_STREAM_CHUNK_BYTES: int = 64 * 1024
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
