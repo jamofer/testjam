@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs"
+import { ErrorState } from "../components/ui/error-state"
 
 export function UsersPage() {
   const { t } = useTranslation("admin")
@@ -26,11 +27,13 @@ export function UsersPage() {
   const [activityTarget, setActivityTarget] = useState(null)
   const [groupTarget, setGroupTarget] = useState(null)
 
-  const { data: users = [] } = useQuery({
+  const usersQuery = useQuery({
     queryKey: ["users", { includeDeleted }],
     queryFn: () => usersApi.list({ includeDeleted }),
   })
-  const { data: groups = [] } = useQuery({ queryKey: ["groups"], queryFn: groupsApi.list })
+  const groupsQuery = useQuery({ queryKey: ["groups"], queryFn: groupsApi.list })
+  const users = usersQuery.data ?? []
+  const groups = groupsQuery.data ?? []
 
   const restoreUser = useMutation({
     mutationFn: usersApi.restore,
@@ -60,31 +63,41 @@ export function UsersPage() {
         </TabsList>
 
         <TabsContent value="users">
-          <div className="flex items-center justify-between mb-3">
-            <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-              <input type="checkbox" checked={includeDeleted} onChange={event => setIncludeDeleted(event.target.checked)} />
-              {t("users.showDeleted")}
-            </label>
-            <CreateUserDialog />
-          </div>
-          <ul className="space-y-2">
-            {users.map(user => (
-              <UserRow
-                key={user.id}
-                user={user}
-                onEdit={() => setEditTarget(user)}
-                onActivity={() => setActivityTarget(user)}
-                onDeleteRequest={() => setPendingDelete(user)}
-                onRestore={() => restoreUser.mutate(user.id)}
-              />
-            ))}
-          </ul>
+          {usersQuery.isError ? (
+            <ErrorState onRetry={() => usersQuery.refetch()} />
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-3">
+                <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                  <input type="checkbox" checked={includeDeleted} onChange={event => setIncludeDeleted(event.target.checked)} />
+                  {t("users.showDeleted")}
+                </label>
+                <CreateUserDialog />
+              </div>
+              <ul className="space-y-2">
+                {users.map(user => (
+                  <UserRow
+                    key={user.id}
+                    user={user}
+                    onEdit={() => setEditTarget(user)}
+                    onActivity={() => setActivityTarget(user)}
+                    onDeleteRequest={() => setPendingDelete(user)}
+                    onRestore={() => restoreUser.mutate(user.id)}
+                  />
+                ))}
+              </ul>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="groups">
-          <div className="flex justify-end mb-3"><CreateGroupDialog /></div>
-          <ul className="space-y-2">
-            {groups.map(group => (
+          {groupsQuery.isError ? (
+            <ErrorState onRetry={() => groupsQuery.refetch()} />
+          ) : (
+            <>
+              <div className="flex justify-end mb-3"><CreateGroupDialog /></div>
+              <ul className="space-y-2">
+                {groups.map(group => (
               <li key={group.id} className="flex items-center justify-between bg-white dark:bg-gray-900 border rounded-lg px-4 py-3 shadow-sm">
                 <div className="min-w-0">
                   <p className="font-medium text-gray-800 dark:text-gray-100">{group.name}</p>
@@ -101,8 +114,10 @@ export function UsersPage() {
                   </Button>
                 </div>
               </li>
-            ))}
-          </ul>
+                ))}
+              </ul>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="projects">

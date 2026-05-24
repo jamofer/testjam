@@ -35,6 +35,9 @@
   "errors": {
     "boundaryTitle": "Algo ha fallado",
     "tryAgain": "Reintentar",
-    "goToProjects": "Ir a proyectos"
+    "goToProjects": "Ir a proyectos",
+    "queryTitle": "No se pudo cargar esta sección",
+    "queryDescription": "La petición falló. Comprueba tu conexión o reintenta.",
+    "retry": "Reintentar"
   }
 }
