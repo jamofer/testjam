@@ -21,6 +21,7 @@ from testjam.schemas.version import (
     ProjectVersionCreate, ProjectVersionOut, ProjectVersionUpdate,
     VersionAttachmentOut,
 )
+from testjam.services import uploads
 from testjam.services.permissions import effective_role
 
 VERSION_UPLOAD_DIR = os.path.join(settings.UPLOAD_DIR, "versions")
@@ -151,12 +152,13 @@ def upload_version_attachment(
     _require_project_role(db, version.project_id, current, UPLOAD_ROLES)
     destination_directory = os.path.join(VERSION_UPLOAD_DIR, str(id))
     os.makedirs(destination_directory, exist_ok=True)
-    destination_path = os.path.join(destination_directory, file.filename)
+    stored_filename = uploads.safe_filename(file.filename)
+    destination_path = uploads.safe_join(destination_directory, file.filename)
     with open(destination_path, "wb") as handle:
         shutil.copyfileobj(file.file, handle)
     attachment = VersionAttachment(
         version_id=id,
-        filename=file.filename,
+        filename=stored_filename,
         content_type=file.content_type,
         size_bytes=os.path.getsize(destination_path),
         file_path=destination_path,
