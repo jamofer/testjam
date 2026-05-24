@@ -8,6 +8,12 @@ vi.mock("../api/bugs", () => ({
 vi.mock("../api/environments", () => ({
   environmentsApi: { list: vi.fn().mockResolvedValue([]) },
 }))
+vi.mock("../hooks/useVersions", () => ({
+  useVersions: () => ({ data: [
+    { id: 3, name: "v1.0" },
+    { id: 4, name: "v1.1" },
+  ] }),
+}))
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 import { bugsApi } from "../api/bugs"
@@ -27,6 +33,24 @@ function setup(prefill) {
 }
 
 describe("NewBugDialog", () => {
+  it("submits the affected version selected from the UI", async () => {
+    bugsApi.create.mockClear()
+    setup()
+
+    fireEvent.click(screen.getByText("Open"))
+    const inputs = await screen.findAllByRole("textbox")
+    fireEvent.change(inputs[0], { target: { value: "Crash on save" } })
+    fireEvent.click(screen.getByLabelText(/affected version/i))
+    fireEvent.click(screen.getByRole("option", { name: "v1.1" }))
+    fireEvent.submit(inputs[0].closest("form"))
+
+    await waitFor(() => expect(bugsApi.create).toHaveBeenCalledTimes(1))
+    expect(bugsApi.create).toHaveBeenCalledWith(9, expect.objectContaining({
+      title: "Crash on save",
+      version_id: 4,
+    }))
+  })
+
   it("submits the prefill payload from a failed result", async () => {
     setup({
       result_id: 12,

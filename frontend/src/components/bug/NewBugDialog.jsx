@@ -27,6 +27,7 @@ export function NewBugDialog({ projectId, trigger, prefill = {}, onCreated }) {
   const [severity, setSeverity] = useState(prefill.severity ?? "medium")
   const [tagsInput, setTagsInput] = useState((prefill.tags ?? []).join(", "))
   const [environment, setEnvironment] = useState(prefill.environment ?? null)
+  const [affectedVersionId, setAffectedVersionId] = useState(prefill.version_id ?? null)
   const [fixedInVersionId, setFixedInVersionId] = useState(prefill.fixed_in_version_id ?? null)
   const [customFields, setCustomFields] = useState({})
   const { data: versions = [] } = useVersions(projectId)
@@ -38,6 +39,7 @@ export function NewBugDialog({ projectId, trigger, prefill = {}, onCreated }) {
     setSeverity(prefill.severity ?? "medium")
     setTagsInput((prefill.tags ?? []).join(", "))
     setEnvironment(prefill.environment ?? null)
+    setAffectedVersionId(prefill.version_id ?? null)
     setFixedInVersionId(prefill.fixed_in_version_id ?? null)
     setCustomFields({})
   }
@@ -58,7 +60,7 @@ export function NewBugDialog({ projectId, trigger, prefill = {}, onCreated }) {
         environment: environment || null,
         result_id: prefill.result_id ?? null,
         execution_id: prefill.execution_id ?? null,
-        version_id: prefill.version_id ?? null,
+        version_id: affectedVersionId,
         fixed_in_version_id: fixedInVersionId,
         custom_fields: Object.keys(customFields).length ? customFields : null,
       })
@@ -110,20 +112,37 @@ export function NewBugDialog({ projectId, trigger, prefill = {}, onCreated }) {
               placeholder="crash, regression"
             />
           </div>
-          <div className="space-y-1">
-            <Label>{t("fields.fixedInVersion")}</Label>
-            <Select
-              value={fixedInVersionId ? String(fixedInVersionId) : VERSION_NONE}
-              onValueChange={(next) => setFixedInVersionId(next === VERSION_NONE ? null : Number(next))}
-            >
-              <SelectTrigger><SelectValue placeholder={t("fields.fixedInVersionPlaceholder")} /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value={VERSION_NONE}>{t("fields.fixedInVersionNone")}</SelectItem>
-                {versions.map(version => (
-                  <SelectItem key={version.id} value={String(version.id)}>{version.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label>{t("fields.affectedVersion")}</Label>
+              <Select
+                value={affectedVersionId ? String(affectedVersionId) : VERSION_NONE}
+                onValueChange={(next) => setAffectedVersionId(next === VERSION_NONE ? null : Number(next))}
+              >
+                <SelectTrigger aria-label={t("fields.affectedVersion")}><SelectValue placeholder={t("fields.affectedVersionPlaceholder")} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={VERSION_NONE}>{t("fields.affectedVersionNone")}</SelectItem>
+                  {versions.map(version => (
+                    <SelectItem key={version.id} value={String(version.id)}>{version.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label>{t("fields.fixedInVersion")}</Label>
+              <Select
+                value={fixedInVersionId ? String(fixedInVersionId) : VERSION_NONE}
+                onValueChange={(next) => setFixedInVersionId(next === VERSION_NONE ? null : Number(next))}
+              >
+                <SelectTrigger aria-label={t("fields.fixedInVersion")}><SelectValue placeholder={t("fields.fixedInVersionPlaceholder")} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={VERSION_NONE}>{t("fields.fixedInVersionNone")}</SelectItem>
+                  {versions.map(version => (
+                    <SelectItem key={version.id} value={String(version.id)}>{version.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           {customFieldDefs.length > 0 && (
             <div className="space-y-2 border-t pt-3">

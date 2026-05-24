@@ -63,7 +63,10 @@
     "externalUrl": "URL de ticket externo",
     "fixedInVersion": "Corregido en versión",
     "fixedInVersionPlaceholder": "Elige una versión…",
-    "fixedInVersionNone": "Sin establecer"
+    "fixedInVersionNone": "Sin establecer",
+    "affectedVersion": "Versión afectada",
+    "affectedVersionPlaceholder": "Elige una versión…",
+    "affectedVersionNone": "Sin establecer"
   },
   "actions": {
     "save": "Guardar",
