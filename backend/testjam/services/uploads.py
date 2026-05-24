@@ -10,6 +10,8 @@ from pathlib import PurePosixPath
 
 from fastapi import HTTPException, UploadFile
 
+from testjam.core.config import settings
+
 FALLBACK_FILENAME = "attachment"
 DEFAULT_CHUNK = 64 * 1024
 
@@ -59,3 +61,22 @@ def read_bounded(file: UploadFile, max_bytes: int) -> bytes:
             )
         chunks.append(chunk)
     return b"".join(chunks)
+
+
+def read_attachment(file: UploadFile) -> bytes:
+    """Validate and read an attachment upload.
+
+    Rejects MIME types in ``settings.blocked_attachment_mime_types`` with
+    415 — those are vectors the victim browser would render inline.
+    Reads bytes through :func:`read_bounded` so anything above
+    ``settings.MAX_ATTACHMENT_BYTES`` short-circuits with 413 before it
+    hits disk. Callers receive the bytes and are responsible for writing
+    them to the sanitized destination path.
+    """
+    content_type = (file.content_type or "").lower().strip()
+    if content_type in settings.blocked_attachment_mime_types:
+        raise HTTPException(
+            status_code=415,
+            detail=f"Attachment content type '{content_type}' is not allowed",
+        )
+    return read_bounded(file, settings.MAX_ATTACHMENT_BYTES)

@@ -150,17 +150,18 @@ def upload_version_attachment(
 ):
     version = _version_or_404(db, id)
     _require_project_role(db, version.project_id, current, UPLOAD_ROLES)
+    payload = uploads.read_attachment(file)
     destination_directory = os.path.join(VERSION_UPLOAD_DIR, str(id))
     os.makedirs(destination_directory, exist_ok=True)
     stored_filename = uploads.safe_filename(file.filename)
     destination_path = uploads.safe_join(destination_directory, file.filename)
     with open(destination_path, "wb") as handle:
-        shutil.copyfileobj(file.file, handle)
+        handle.write(payload)
     attachment = VersionAttachment(
         version_id=id,
         filename=stored_filename,
         content_type=file.content_type,
-        size_bytes=os.path.getsize(destination_path),
+        size_bytes=len(payload),
         file_path=destination_path,
         uploaded_by_id=current.id,
     )

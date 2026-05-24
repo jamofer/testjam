@@ -37,6 +37,29 @@ class Settings(BaseSettings):
     # without holding the whole payload in a single Python bytes object.
     EXPORT_STREAM_CHUNK_BYTES: int = 64 * 1024
 
+    # Per-file cap on attachments uploaded to bugs / cases / executions /
+    # results / versions. The upload helper rejects anything larger with a
+    # 413 before it ever hits disk. Default of 25 MiB is generous enough
+    # for screenshots, junit bundles, and short screen recordings without
+    # opening an obvious DOS by disk fill.
+    MAX_ATTACHMENT_BYTES: int = 25 * 1024 * 1024
+
+    # MIME types refused on attachment upload (415). Defaults block the
+    # vectors that turn a download endpoint into a stored-XSS or RCE
+    # primitive: anything the victim's browser will execute by itself
+    # (HTML / JS / SVG with script support) and the obvious native
+    # executable types. The list is a CSV so it can be overridden per
+    # deployment via the BLOCKED_ATTACHMENT_MIME_TYPES env var.
+    BLOCKED_ATTACHMENT_MIME_TYPES: str = (
+        "text/html,application/xhtml+xml,application/javascript,"
+        "text/javascript,image/svg+xml,application/x-msdownload,"
+        "application/x-httpd-php,text/x-php"
+    )
+
+    @property
+    def blocked_attachment_mime_types(self) -> set[str]:
+        return {item.strip().lower() for item in self.BLOCKED_ATTACHMENT_MIME_TYPES.split(",") if item.strip()}
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
