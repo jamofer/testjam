@@ -10,6 +10,7 @@ import { useProject } from "../hooks/useProjects"
 import { useVersions } from "../hooks/useVersions"
 import { useCustomFields } from "../hooks/useCustomFields"
 import { useMe } from "../hooks/useAuth"
+import { useProjectRole } from "../hooks/useProjectRole"
 import { useProjectBugsLive } from "../hooks/useProjectBugsLive"
 import { useDebounced } from "../hooks/useDebounced"
 import { Button } from "../components/ui/button"
@@ -40,6 +41,7 @@ export function BugsPage() {
   const { id: projectId } = useParams()
   const { data: project } = useProject(projectId)
   const { data: me } = useMe()
+  const { canDelete } = useProjectRole(projectId)
   const { connected: live } = useProjectBugsLive(projectId, { enabled: !!me })
   const [searchParams, setSearchParams] = useSearchParams()
   const statusFilter = searchParams.get("status") || ANY
@@ -316,13 +318,15 @@ export function BugsPage() {
                   <Badge variant={STATUS_VARIANT[bug.status] ?? "secondary"}>
                     {t(`statuses.${bug.status}`)}
                   </Badge>
-                  <button
-                    onClick={() => setBugPendingDelete(bug)}
-                    className="text-gray-300 dark:text-gray-600 hover:text-red-500"
-                    title={t("actions.delete")}
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  {canDelete && (
+                    <button
+                      onClick={() => setBugPendingDelete(bug)}
+                      className="text-gray-300 dark:text-gray-600 hover:text-red-500"
+                      title={t("actions.delete")}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>

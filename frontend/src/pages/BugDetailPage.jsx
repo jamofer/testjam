@@ -39,6 +39,7 @@ import {
 import { useProject } from "../hooks/useProjects"
 import { useVersions } from "../hooks/useVersions"
 import { useMe } from "../hooks/useAuth"
+import { useProjectRole } from "../hooks/useProjectRole"
 import { useBugLive } from "../hooks/useBugLive"
 import { PageBody, PageHeader } from "../components/ui/page-header"
 import { Button } from "../components/ui/button"
@@ -94,6 +95,7 @@ export function BugDetailPage() {
   const { data: linkContext } = useBugContext(bugId)
   const { data: links = [] } = useBugLinks(bugId)
   const bugProjectId = bug?.project_id
+  const { canWrite, canDelete } = useProjectRole(bugProjectId)
 
   const changeStatus = useChangeBugStatus(bugProjectId)
   const deleteBug = useDeleteBug(bugProjectId)
@@ -164,8 +166,10 @@ export function BugDetailPage() {
       linkContext,
       fixedInVersionPicker,
       customFieldsSection,
-      onDeleteLink: (linkId) => removeLink.mutateAsync({ bugId: bug.id, linkId }),
-      addLinkDialog: (
+      onDeleteLink: canWrite
+        ? (linkId) => removeLink.mutateAsync({ bugId: bug.id, linkId })
+        : null,
+      addLinkDialog: canWrite ? (
         <AddBugLinkDialog
           bugId={bug.id}
           projectId={bug.project_id}
@@ -178,10 +182,10 @@ export function BugDetailPage() {
             </button>
           )}
         />
-      ),
+      ) : null,
       t,
     })
-  }, [bug, links, linkContext, removeLink, fixedInVersionPicker, customFieldsSection, t])
+  }, [bug, links, linkContext, removeLink, fixedInVersionPicker, customFieldsSection, canWrite, t])
 
   if (isLoading || !bug) {
     return (
@@ -354,15 +358,17 @@ export function BugDetailPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setDeleteBugOpen(true)}
-              className="text-gray-400 dark:text-gray-500 hover:text-red-500"
-              title={t("actions.delete")}
-            >
-              <Trash2 size={14} />
-            </Button>
+            {canDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setDeleteBugOpen(true)}
+                className="text-gray-400 dark:text-gray-500 hover:text-red-500"
+                title={t("actions.delete")}
+              >
+                <Trash2 size={14} />
+              </Button>
+            )}
           </div>
         </div>
       </PageHeader>
@@ -607,7 +613,7 @@ function buildContextSections({ bug, links, linkContext, onDeleteLink, addLinkDi
         occurrence,
         bug,
         title: occurrenceTitle(t("linkedOccurrence.alsoIn"), occurrence),
-        onDelete: () => onDeleteLink(link.id),
+        onDelete: onDeleteLink ? () => onDeleteLink(link.id) : null,
         t,
       }))
     })
@@ -844,14 +850,16 @@ function OtherLinksBody({ bug, links, onDeleteLink, t }) {
           <div className="flex-1 min-w-0">
             <OtherLinkContent link={link} bug={bug} t={t} />
           </div>
-          <button
-            type="button"
-            onClick={() => onDeleteLink(link.id)}
-            className="text-gray-300 dark:text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 shrink-0"
-            title={t("actions.delete")}
-          >
-            <Trash2 size={11} />
-          </button>
+          {onDeleteLink && (
+            <button
+              type="button"
+              onClick={() => onDeleteLink(link.id)}
+              className="text-gray-300 dark:text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 shrink-0"
+              title={t("actions.delete")}
+            >
+              <Trash2 size={11} />
+            </button>
+          )}
         </li>
       ))}
     </ul>

@@ -42,6 +42,10 @@ vi.mock("../api/testplans", () => ({
   },
 }))
 
+vi.mock("../hooks/useProjectRole", () => ({
+  useProjectRole: () => ({ role: "admin", canWrite: true, canDelete: true, isLoading: false }),
+}))
+
 const SUITE = {
   id: 10,
   name: "My Suite",

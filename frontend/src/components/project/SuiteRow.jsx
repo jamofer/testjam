@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { Plus, Trash2, Pencil, ChevronRight, FolderOpen, ListPlus, X, GripVertical } from "lucide-react"
 import { useTreeItemNav } from "../../hooks/useTreeItemNav"
+import { useProjectRole } from "../../hooks/useProjectRole"
 
 export const SuiteCollapseContext = createContext({ version: 0, desiredOpen: true })
 import { TestCaseItem } from "../ui/test-case-item"
@@ -72,7 +73,7 @@ function AddSubSuiteInline({ parentSuiteId, projectId, onDone }) {
   )
 }
 
-function SortableCaseRow({ tc, suiteId, deleteCase, selected, toggle }) {
+function SortableCaseRow({ tc, suiteId, deleteCase, selected, toggle, canWrite }) {
   const { t } = useTranslation("suites")
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: tc.id, activationConstraint: { distance: 5 } })
@@ -113,11 +114,13 @@ function SortableCaseRow({ tc, suiteId, deleteCase, selected, toggle }) {
           <TestCaseItem tc={tc} />
         </Link>
       </div>
-      <button
-        onClick={() => deleteCase.mutate(tc.id, { onSuccess: () => toast.success(t("row.caseDeleted")) })}
-        className="opacity-0 group-hover:opacity-100 text-gray-400 dark:text-gray-500 hover:text-red-500 shrink-0">
-        <Trash2 size={13} />
-      </button>
+      {canWrite && (
+        <button
+          onClick={() => deleteCase.mutate(tc.id, { onSuccess: () => toast.success(t("row.caseDeleted")) })}
+          className="opacity-0 group-hover:opacity-100 text-gray-400 dark:text-gray-500 hover:text-red-500 shrink-0">
+          <Trash2 size={13} />
+        </button>
+      )}
     </li>
   )
 }
@@ -125,6 +128,7 @@ function SortableCaseRow({ tc, suiteId, deleteCase, selected, toggle }) {
 function CaseList({ suiteId }) {
   const { t } = useTranslation("suites")
   const { id: projectId } = useParams()
+  const { canWrite } = useProjectRole(projectId)
   const { data: cases = [] } = useCases(suiteId)
   const deleteCase = useDeleteCase(suiteId)
   const bulkDelete = useBulkDeleteCases(suiteId)
@@ -207,7 +211,7 @@ function CaseList({ suiteId }) {
           <ul className="pl-4 space-y-0.5">
             {cases.map(tc => (
               <SortableCaseRow key={tc.id} tc={tc} suiteId={suiteId} deleteCase={deleteCase}
-                selected={selected} toggle={toggle} />
+                selected={selected} toggle={toggle} canWrite={canWrite} />
             ))}
           </ul>
         </SortableContext>
@@ -218,10 +222,12 @@ function CaseList({ suiteId }) {
           <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
             {t("row.selectedCount", { count: selected.size })}
           </span>
-          <Button size="sm" variant="outline" onClick={() => setBulkDeleteOpen(true)}
-            disabled={bulkDelete.isPending}>
-            <Trash2 size={12} /> {t("row.deleteButton")}
-          </Button>
+          {canWrite && (
+            <Button size="sm" variant="outline" onClick={() => setBulkDeleteOpen(true)}
+              disabled={bulkDelete.isPending}>
+              <Trash2 size={12} /> {t("row.deleteButton")}
+            </Button>
+          )}
           {plans.length > 0 && (
             <div className="flex items-center gap-1">
               <Select value={planId} onValueChange={setPlanId}>
@@ -264,7 +270,7 @@ const SUITE_STEP_STYLE = {
   teardown: "bg-orange-50 text-orange-600 border-orange-200",
 }
 
-function SortableSuiteStep({ step, stepType, onDelete }) {
+function SortableSuiteStep({ step, stepType, onDelete, canWrite }) {
   const { t } = useTranslation("suites")
   const style = SUITE_STEP_STYLE[stepType]
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -285,15 +291,18 @@ function SortableSuiteStep({ step, stepType, onDelete }) {
         <GripVertical size={12} />
       </button>
       <span className="flex-1 text-sm">{step.action}</span>
-      <button onClick={onDelete} className="text-gray-300 dark:text-gray-600 hover:text-red-500 shrink-0 mt-0.5">
-        <Trash2 size={12} />
-      </button>
+      {canWrite && (
+        <button onClick={onDelete} className="text-gray-300 dark:text-gray-600 hover:text-red-500 shrink-0 mt-0.5">
+          <Trash2 size={12} />
+        </button>
+      )}
     </div>
   )
 }
 
 function SuiteStepList({ suiteId, projectId, steps, stepType, onRefresh }) {
   const { t } = useTranslation("suites")
+  const { canWrite } = useProjectRole(projectId)
   const [newAction, setNewAction] = useState("")
   const reorderSuiteSteps = useReorderSuiteSteps(projectId)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
@@ -331,7 +340,7 @@ function SuiteStepList({ suiteId, projectId, steps, stepType, onRefresh }) {
         <SortableContext items={typeSteps.map(step => step.id)} strategy={verticalListSortingStrategy}>
           {typeSteps.map(step => (
             <SortableSuiteStep key={step.id} step={step} stepType={stepType}
-              onDelete={() => deleteStep(step.id)} />
+              onDelete={() => deleteStep(step.id)} canWrite={canWrite} />
           ))}
         </SortableContext>
       </DndContext>
@@ -448,6 +457,7 @@ function ChildSuites({ projectId, parentSuiteId }) {
 
 export function SuiteRow({ suite, projectId, dragHandleProps }) {
   const { t } = useTranslation("suites")
+  const { canWrite } = useProjectRole(projectId)
   const { version, desiredOpen } = useContext(SuiteCollapseContext)
   const [open, setOpen] = useState(desiredOpen)
   useEffect(() => {
@@ -538,9 +548,11 @@ export function SuiteRow({ suite, projectId, dragHandleProps }) {
           <Button size="sm" variant="ghost" onClick={() => { setAddingCase(value => !value); setAddingSuite(false) }}>
             <Plus size={13} /> {t("row.addCase")}
           </Button>
-          <Button size="sm" variant="ghost" onClick={handleDeleteClick}>
-            <Trash2 size={13} />
-          </Button>
+          {canWrite && (
+            <Button size="sm" variant="ghost" onClick={handleDeleteClick}>
+              <Trash2 size={13} />
+            </Button>
+          )}
         </div>
       </div>
       {editing && (
