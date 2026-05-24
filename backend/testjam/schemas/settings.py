@@ -33,6 +33,7 @@ class AppSettingsOut(BaseModel):
     smtp_use_tls: bool
     ws_log_flush_ms: int
     export_inline_attachment_mb: int
+    ip_throttle_enabled: bool
     updated_at: datetime
 
 
@@ -59,3 +60,4 @@ class AppSettingsUpdate(BaseModel):
     smtp_use_tls: bool | None = None
     ws_log_flush_ms: int | None = None
     export_inline_attachment_mb: int | None = None
+    ip_throttle_enabled: bool | None = None

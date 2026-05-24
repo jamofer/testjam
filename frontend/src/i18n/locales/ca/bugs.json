@@ -199,7 +199,13 @@
     "deleted": "Bug eliminat",
     "statusChanged": "Estat actualitzat",
     "commentAdded": "Comentari afegit",
-    "reportFailed": "No s'ha pogut baixar l'informe"
+    "reportFailed": "No s'ha pogut baixar l'informe",
+    "statusFailed": "No s'ha pogut canviar l'estat",
+    "deleteFailed": "No s'ha pogut eliminar el bug",
+    "updateFailed": "No s'han pogut desar els canvis",
+    "commentFailed": "No s'ha pogut afegir el comentari",
+    "commentEditFailed": "No s'ha pogut desar el comentari",
+    "commentDeleteFailed": "No s'ha pogut eliminar el comentari"
   },
   "report": {
     "dialogTitle": "Reporta bug",

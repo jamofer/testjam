@@ -55,7 +55,7 @@ def test_reaching_threshold_locks_account(client, user_factory):
 
     refreshed = _read_user(user.id)
     assert refreshed.locked_until is not None
-    assert refreshed.failed_login_count == 0
+    assert refreshed.failed_login_count == MAX_FAILED_LOGINS
 
 
 def test_login_during_lockout_returns_423_with_retry_after(client, user_factory):

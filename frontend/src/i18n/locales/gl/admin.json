@@ -168,7 +168,9 @@
         "siteUrlPlaceholder": "https://qa.example.com",
         "appName": "Nome da app",
         "allowRegistration": "Permitir auto-rexistro de novos usuarios",
-        "allowSelfDelete": "Permitir que os usuarios eliminen a súa propia conta"
+        "allowSelfDelete": "Permitir que os usuarios eliminen a súa propia conta",
+        "ipThrottle": "Bloquear IPs tras varios intentos fallidos",
+        "ipThrottleHelp": "Reflicte o bloqueo por usuario sobre a IP de orixe. Desactíveo se tes runners de test compartidos ou proxies que agrupan moitos usuarios baixo unha mesma IP."
       },
       "executionDefaults": {
         "title": "Valores por defecto de execución",

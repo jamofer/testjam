@@ -23,6 +23,7 @@ class SettingsMixin:
             "export_inline_attachment_mb": 10,
             "app_name": "Testjam",
             "allow_registration": True,
+            "ip_throttle_enabled": False,
         })
 
     @keyword("settings are reset to defaults")

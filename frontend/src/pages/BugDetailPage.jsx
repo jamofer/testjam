@@ -200,7 +200,7 @@ export function BugDetailPage() {
       await changeStatus.mutateAsync({ id: bug.id, status })
       toast.success(t("toast.statusChanged"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? "Could not change status")
+      toast.error(error?.response?.data?.detail ?? t("toast.statusFailed"))
     }
   }
 
@@ -210,7 +210,7 @@ export function BugDetailPage() {
       toast.success(t("toast.deleted"))
       navigate(`/projects/${bug.project_id}/bugs`)
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? "Could not delete")
+      toast.error(error?.response?.data?.detail ?? t("toast.deleteFailed"))
     } finally {
       setDeleteBugOpen(false)
     }
@@ -230,7 +230,7 @@ export function BugDetailPage() {
       setEditingDescription(false)
       toast.success(t("toast.updated"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? "Failed")
+      toast.error(error?.response?.data?.detail ?? t("toast.updateFailed"))
     }
   }
 
@@ -243,7 +243,7 @@ export function BugDetailPage() {
       setCommentDraft("")
       toast.success(t("toast.commentAdded"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? "Failed")
+      toast.error(error?.response?.data?.detail ?? t("toast.commentFailed"))
     }
   }
 
@@ -258,7 +258,7 @@ export function BugDetailPage() {
       setEditingComment(null)
       setEditingBody("")
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? "Failed")
+      toast.error(error?.response?.data?.detail ?? t("toast.commentEditFailed"))
     }
   }
 
@@ -267,7 +267,7 @@ export function BugDetailPage() {
     try {
       await removeComment.mutateAsync({ bugId: bug.id, commentId: commentPendingDelete.id })
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? "Failed")
+      toast.error(error?.response?.data?.detail ?? t("toast.commentDeleteFailed"))
     } finally {
       setCommentPendingDelete(null)
     }

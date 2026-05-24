@@ -27,11 +27,13 @@ from orchestrator.discovery import Suite
 
 
 SUITE_ADMIN_PASSWORD = "e2e-admin-pass"
-SMTP_BASELINE = {
+SETTINGS_BASELINE = {
     "smtp_host": "mailpit",
     "smtp_port": 1025,
     "smtp_from": "noreply@testjam.test",
     "smtp_use_tls": False,
+    "ip_throttle_enabled": False,
+    "site_url": "http://web",
 }
 
 
@@ -104,7 +106,7 @@ def _provision_suite_admins(
         )
         login.raise_for_status()
         http.headers["Authorization"] = f"Bearer {login.json()['access_token']}"
-        _configure_smtp_baseline(http)
+        _configure_settings_baseline(http)
         for suite in suites:
             username = suite_admin_username(suite.longname)
             user_id = _ensure_suite_admin(http, username)
@@ -116,12 +118,15 @@ def _provision_suite_admins(
     return admins
 
 
-def _configure_smtp_baseline(http: httpx.Client) -> None:
-    """Establish a stable SMTP=mailpit baseline once so suites can send mail
-    without mutating the global settings row themselves. Avoids cross-suite
-    races on `smtp_host`/`smtp_port`.
+def _configure_settings_baseline(http: httpx.Client) -> None:
+    """Pin shared AppSettings once per batch so suites do not race on them.
+
+    SMTP routed to mailpit so any suite can send mail without rewriting the
+    row. IP throttle disabled because every suite hits the API from the same
+    docker network IP — a noisy auth failure in one suite would lock the
+    rest out.
     """
-    response = http.put("/settings", json=SMTP_BASELINE)
+    response = http.put("/settings", json=SETTINGS_BASELINE)
     response.raise_for_status()
 
 
