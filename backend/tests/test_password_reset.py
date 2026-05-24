@@ -146,6 +146,7 @@ def test_confirm_rejects_unknown_token(client):
     response = _confirm_reset(client, "garbage-token-value")
 
     assert response.status_code == 400
+    assert response.json()["detail"]["code"] == "reset_token_invalid"
 
 
 def test_confirm_rejects_already_used_token(client, user_factory):
@@ -157,6 +158,7 @@ def test_confirm_rejects_already_used_token(client, user_factory):
 
     assert first.status_code == 204
     assert second.status_code == 400
+    assert second.json()["detail"]["code"] == "reset_token_used"
 
 
 def test_confirm_rejects_expired_token(client, user_factory):
@@ -174,6 +176,7 @@ def test_confirm_rejects_expired_token(client, user_factory):
     response = _confirm_reset(client, raw_token)
 
     assert response.status_code == 400
+    assert response.json()["detail"]["code"] == "reset_token_expired"
 
 
 def test_confirm_rejects_weak_password(client, user_factory):

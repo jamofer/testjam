@@ -11,6 +11,7 @@ vi.mock("../hooks/useAuth", () => ({
   }),
   useLogout: () => () => {},
   useUpdateMe: () => ({ mutate: () => {}, isPending: false }),
+  useStorageAuthSync: () => {},
 }))
 
 vi.mock("../hooks/useProjects", () => ({
