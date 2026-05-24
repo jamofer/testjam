@@ -10,7 +10,7 @@ from testjam.schemas.settings import (
     AppSettingsPublicOut,
     AppSettingsUpdate,
 )
-from testjam.services.backup import cleanup_archive, create_backup
+from testjam.services.backup import BackupFailed, cleanup_archive, create_backup
 from testjam.services.email import smtp_configured
 from testjam.services.log_flusher import configure_from_settings as configure_log_flusher
 from testjam.services.restore import RestoreSummary, restore_backup
@@ -89,7 +89,10 @@ def download_backup(
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
 ):
-    artifact = create_backup(db, db.get_bind())
+    try:
+        artifact = create_backup(db, db.get_bind())
+    except BackupFailed as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
     background_tasks.add_task(cleanup_archive, artifact.path)
     return FileResponse(
         artifact.path,
