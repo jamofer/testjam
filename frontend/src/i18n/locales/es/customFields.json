@@ -25,7 +25,9 @@
     "optionsHint": "Una por línea — valor | etiqueta",
     "required": "Obligatorio al crear",
     "default": "Valor por defecto",
-    "defaultHint": "Pre-rellena los nuevos registros. Obligatorio para ejecuciones con required=true."
+    "defaultHint": "Pre-rellena los nuevos registros. Obligatorio para ejecuciones con required=true.",
+    "defaultHintBool": "Pre-rellena los nuevos registros. Acepta true/false/sí/no/1/0 (sin distinguir mayúsculas).",
+    "defaultHintMultiSelect": "Pre-rellena los nuevos registros. Usa | para separar valores cuando contienen comas."
   },
   "actions": {
     "save": "Guardar",
@@ -70,5 +72,11 @@
   "columns": {
     "title": "Columnas",
     "subtitle": "Mostrar campos personalizados"
+  },
+  "bool": {
+    "yes": "Sí",
+    "no": "No",
+    "unset": "Sin establecer",
+    "unsetWithDefault": "Por defecto ({{value}})"
   }
 }

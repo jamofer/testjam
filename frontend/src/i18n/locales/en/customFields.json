@@ -25,7 +25,9 @@
     "optionsHint": "One per line — value | label",
     "required": "Required on create",
     "default": "Default value",
-    "defaultHint": "Pre-fills new records. Required for executions with required=true."
+    "defaultHint": "Pre-fills new records. Required for executions with required=true.",
+    "defaultHintBool": "Pre-fills new records. Accepts true/false/yes/no/1/0 (case-insensitive).",
+    "defaultHintMultiSelect": "Pre-fills new records. Use | to separate values when they contain commas."
   },
   "actions": {
     "save": "Save",
@@ -70,5 +72,11 @@
   "columns": {
     "title": "Columns",
     "subtitle": "Show custom fields"
+  },
+  "bool": {
+    "yes": "Yes",
+    "no": "No",
+    "unset": "Not set",
+    "unsetWithDefault": "Default ({{value}})"
   }
 }
