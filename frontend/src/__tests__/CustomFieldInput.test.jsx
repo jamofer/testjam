@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { describe, it, expect, vi } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 
 import "../i18n"
@@ -50,14 +50,37 @@ describe("CustomFieldsForm", () => {
     expect(onChange).toHaveBeenLastCalledWith({ priority: "P0" })
   })
 
-  it("toggles boolean fields via checkbox", async () => {
+  it("emits true when the user picks Yes from the tri-state bool select", async () => {
     const onChange = vi.fn()
     const definitions = [buildDefinition({ key: "is_blocker", label: "Blocker", type: "bool" })]
 
     render(<CustomFieldsForm definitions={definitions} values={{}} onChange={onChange} />)
-    await userEvent.click(screen.getByRole("checkbox"))
+    fireEvent.click(screen.getByRole("combobox"))
+    fireEvent.click(screen.getByRole("option", { name: "Yes" }))
 
     expect(onChange).toHaveBeenLastCalledWith({ is_blocker: true })
+  })
+
+  it("emits false explicitly when the user picks No (distinguishing it from unset)", async () => {
+    const onChange = vi.fn()
+    const definitions = [buildDefinition({ key: "is_blocker", label: "Blocker", type: "bool" })]
+
+    render(<CustomFieldsForm definitions={definitions} values={{}} onChange={onChange} />)
+    fireEvent.click(screen.getByRole("combobox"))
+    fireEvent.click(screen.getByRole("option", { name: "No" }))
+
+    expect(onChange).toHaveBeenLastCalledWith({ is_blocker: false })
+  })
+
+  it("surfaces the declared default value inside the unset option label", async () => {
+    const definitions = [buildDefinition({
+      key: "is_blocker", label: "Blocker", type: "bool", default_value: false,
+    })]
+
+    render(<CustomFieldsForm definitions={definitions} values={{}} onChange={vi.fn()} />)
+    fireEvent.click(screen.getByRole("combobox"))
+
+    expect(screen.getByRole("option", { name: /Default \(No\)/i })).toBeInTheDocument()
   })
 
   it("removes the key when the value becomes empty", async () => {

@@ -73,14 +73,8 @@ function FieldControl({ definition, value, onChange }) {
         />
       )
     case "bool":
-      return (
-        <input
-          type="checkbox"
-          checked={!!value}
-          onChange={event => onChange(event.target.checked)}
-          className="h-4 w-4"
-        />
-      )
+      return <BoolControl definition={definition} value={value} onChange={onChange} />
+
     case "date":
       return (
         <Input
@@ -97,6 +91,34 @@ function FieldControl({ definition, value, onChange }) {
       return null
   }
 }
+
+const BOOL_TRUE = "__true__"
+const BOOL_FALSE = "__false__"
+
+function BoolControl({ definition, value, onChange }) {
+  const { t } = useTranslation("customFields")
+  const selected = value === true ? BOOL_TRUE : value === false ? BOOL_FALSE : NONE_VALUE
+  const hasDefault = definition.default_value === true || definition.default_value === false
+  const unsetLabel = hasDefault
+    ? t("bool.unsetWithDefault", { value: definition.default_value ? t("bool.yes") : t("bool.no") })
+    : t("bool.unset")
+  const pickValue = next => {
+    if (next === BOOL_TRUE) onChange(true)
+    else if (next === BOOL_FALSE) onChange(false)
+    else onChange(undefined)
+  }
+  return (
+    <Select value={selected} onValueChange={pickValue}>
+      <SelectTrigger><SelectValue /></SelectTrigger>
+      <SelectContent>
+        <SelectItem value={NONE_VALUE}>{unsetLabel}</SelectItem>
+        <SelectItem value={BOOL_TRUE}>{t("bool.yes")}</SelectItem>
+        <SelectItem value={BOOL_FALSE}>{t("bool.no")}</SelectItem>
+      </SelectContent>
+    </Select>
+  )
+}
+
 
 function SingleSelectControl({ definition, value, onChange }) {
   const { t } = useTranslation("customFields")

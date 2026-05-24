@@ -14,6 +14,7 @@ import {
   useReorderCustomFields,
   useUnarchiveCustomField,
 } from "../../hooks/useCustomFields"
+import { coerceDefault } from "../../lib/customFieldDefaults"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog"
 import { EmptyState } from "../ui/empty-state"
@@ -332,9 +333,15 @@ function CreateFieldDialog({ open, onOpenChange, projectId, defaultEntityType, o
             <Input
               value={defaultValue}
               onChange={event => setDefaultValue(event.target.value)}
-              placeholder={isSelect ? "value" : ""}
+              placeholder={defaultValuePlaceholder(type)}
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400">{t("fields.defaultHint")}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {type === "multi_select"
+                ? t("fields.defaultHintMultiSelect")
+                : type === "bool"
+                  ? t("fields.defaultHintBool")
+                  : t("fields.defaultHint")}
+            </p>
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -358,6 +365,14 @@ function CreateFieldDialog({ open, onOpenChange, projectId, defaultEntityType, o
   )
 }
 
+function defaultValuePlaceholder(type) {
+  if (type === "multi_select") return "p0|p1|p2"
+  if (type === "bool") return "true / false"
+  if (type === "single_select") return "value"
+  return ""
+}
+
+
 function parseOptions(text) {
   return text
     .split("\n")
@@ -369,9 +384,3 @@ function parseOptions(text) {
     })
 }
 
-function coerceDefault(type, raw) {
-  if (type === "number") return Number(raw)
-  if (type === "bool") return raw === "true" || raw === "1"
-  if (type === "multi_select") return raw.split(",").map(item => item.trim()).filter(Boolean)
-  return raw
-}
