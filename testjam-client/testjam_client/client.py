@@ -17,6 +17,7 @@ from typing import Any, Protocol
 import httpx
 
 from testjam_client.errors import raise_for_status
+from testjam_client.resources.backup import BackupResource
 from testjam_client.resources.bugs import BugsResource
 from testjam_client.resources.cases import CasesResource
 from testjam_client.resources.custom_fields import CustomFieldsResource
@@ -83,6 +84,7 @@ class TestjamClient:
         self.tokens = TokensResource(self)
         self.mentions = MentionsResource(self)
         self.public_reports = PublicReportsResource(self)
+        self.backup = BackupResource(self)
 
     def login(self, username: str, password: str) -> str:
         response = self._http.request(

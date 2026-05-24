@@ -34,6 +34,15 @@ DUMP_FILENAME = "dump.sql"
 UPLOADS_PREFIX = "uploads/"
 
 
+class BackupFailed(RuntimeError):
+    """Raised when the backup pipeline can't produce a usable archive.
+
+    Carries the diagnostic the operator needs to act on — usually the
+    pg_dump stderr — so the API layer can surface it as a 503 detail
+    instead of swallowing it into a generic 500.
+    """
+
+
 @dataclass
 class BackupArtifact:
     path: str
@@ -85,6 +94,11 @@ def _dump_database(db: Session, engine: Engine) -> str:
 
 
 def _pg_dump_to(database_url: str, dump_path: str) -> None:
+    if not pg_dump_available():
+        raise BackupFailed(
+            "pg_dump is not installed in the API container; backup endpoint "
+            "needs a matching postgresql-client.",
+        )
     parsed = urlparse(database_url)
     env = os.environ.copy()
     if parsed.password:
@@ -100,7 +114,9 @@ def _pg_dump_to(database_url: str, dump_path: str) -> None:
     with open(dump_path, "w") as out:
         result = subprocess.run(cmd, env=env, stdout=out, stderr=subprocess.PIPE, check=False)
     if result.returncode != 0:
-        raise RuntimeError(f"pg_dump failed: {result.stderr.decode('utf-8', 'replace')}")
+        raise BackupFailed(
+            f"pg_dump failed: {result.stderr.decode('utf-8', 'replace').strip()}",
+        )
 
 
 def _sqlite_dump_to(db: Session, dump_path: str) -> None:
