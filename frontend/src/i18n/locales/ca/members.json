@@ -36,7 +36,9 @@
     "empty": {
       "title": "Cap grup assignat",
       "description": "Assigna un grup per donar a tots els seus membres el mateix rol en aquest projecte."
-    }
+    },
+    "noCandidatesEmpty": "Encara no existeix cap grup. Crea'n un a l'administració d'Usuaris (pestanya Grups) i apareixerà aquí.",
+    "noCandidatesAllAssigned": "Tots els grups existents ja estan assignats a aquest projecte."
   },
   "tokens": {
     "title": "Tokens d'API del projecte",

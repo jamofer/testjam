@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next"
 import { Shield, Trash2, Plus } from "lucide-react"
 import { useMembers, useAddMember, useUpdateMember, useRemoveMember } from "../hooks/useMembers"
 import { useProject } from "../hooks/useProjects"
-import { Breadcrumbs } from "../components/ui/breadcrumbs"
+import { PageHeader, PageBody } from "../components/ui/page-header"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "../api/client"
 import { Button } from "../components/ui/button"
@@ -73,26 +73,47 @@ export function MembersPage() {
     }
   }
 
+  const crumbs = [
+    { label: t("nav:global.projects"), to: "/projects" },
+    { label: project?.name ?? "…", to: `/projects/${projectId}` },
+    { label: t("nav:project.members") },
+  ]
+
   if (membersQuery.isError) {
     return (
-      <div className="pl-14 pr-4 py-4 md:p-8 max-w-2xl xl:max-w-4xl 2xl:max-w-5xl">
-        <ErrorState onRetry={() => membersQuery.refetch()} />
-      </div>
+      <>
+        <PageHeader crumbs={crumbs}>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t("title")}</h1>
+        </PageHeader>
+        <PageBody>
+          <div className="max-w-4xl">
+            <ErrorState onRetry={() => membersQuery.refetch()} />
+          </div>
+        </PageBody>
+      </>
     )
   }
-  if (isLoading) return <p className="text-gray-500 dark:text-gray-400">{t("loading")}</p>
+  if (isLoading) {
+    return (
+      <>
+        <PageHeader crumbs={crumbs}>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t("title")}</h1>
+        </PageHeader>
+        <PageBody>
+          <p className="text-gray-500 dark:text-gray-400">{t("loading")}</p>
+        </PageBody>
+      </>
+    )
+  }
 
   return (
-    <div className="pl-14 pr-4 py-4 md:p-8 max-w-2xl xl:max-w-4xl 2xl:max-w-5xl space-y-6">
-      <Breadcrumbs
-        crumbs={[
-          { label: t("nav:global.projects"), to: "/projects" },
-          { label: project?.name ?? "…", to: `/projects/${projectId}` },
-          { label: t("nav:project.members") },
-        ]}
-      />
-      <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t("title")}</h1>
+    <>
+      <PageHeader crumbs={crumbs}>
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t("title")}</h1>
+      </PageHeader>
 
+      <PageBody>
+        <div className="max-w-4xl space-y-6">
       <section className="bg-white dark:bg-gray-900 border rounded-xl shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b flex items-center gap-2">
           <Shield size={15} className="text-gray-500 dark:text-gray-400" />
@@ -142,7 +163,7 @@ export function MembersPage() {
         )}
 
         {!usersQuery.isError && addableUsers.length > 0 && (
-          <form onSubmit={handleAdd} className="px-5 py-4 border-t bg-gray-50 dark:bg-gray-900 flex gap-2">
+          <form onSubmit={handleAdd} className="px-5 py-4 border-t bg-gray-50 dark:bg-gray-900 flex flex-wrap gap-2">
             <select
               value={selectedUserId}
               onChange={event => setSelectedUserId(event.target.value)}
@@ -167,7 +188,9 @@ export function MembersPage() {
         )}
       </section>
 
-      <ProjectGroupsSection projectId={projectId} />
-    </div>
+          <ProjectGroupsSection projectId={projectId} />
+        </div>
+      </PageBody>
+    </>
   )
 }

@@ -36,7 +36,9 @@
     "empty": {
       "title": "Sen grupos asignados",
       "description": "Asigna un grupo para darlles a todos os seus membros o mesmo rol neste proxecto."
-    }
+    },
+    "noCandidatesEmpty": "Aínda non existe ningún grupo. Crea un na administración de Usuarios (pestana Grupos) e aparecerá aquí.",
+    "noCandidatesAllAssigned": "Todos os grupos existentes xa están asignados a este proxecto."
   },
   "tokens": {
     "title": "Tokens de API do proxecto",

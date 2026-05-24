@@ -79,10 +79,22 @@ export function ProjectGroupsSection({ projectId }) {
         )}
       </div>
 
-      {candidates.length > 0 && (
+      {candidates.length > 0 ? (
         <AddRow candidates={candidates} onSubmit={(groupId, role) => add.mutate({ groupId, role })} />
+      ) : (
+        <NoCandidatesHint hasGroups={groups.length > 0} />
       )}
     </section>
+  )
+}
+
+
+function NoCandidatesHint({ hasGroups }) {
+  const { t } = useTranslation("members")
+  return (
+    <p className="px-5 py-4 border-t bg-gray-50 dark:bg-gray-900 text-xs text-gray-500 dark:text-gray-400">
+      {hasGroups ? t("groups.noCandidatesAllAssigned") : t("groups.noCandidatesEmpty")}
+    </p>
   )
 }
 
