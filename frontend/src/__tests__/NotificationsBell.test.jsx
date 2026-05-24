@@ -25,7 +25,7 @@ function setup({ list = [], unread = 0 } = {}) {
   const qc = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0, staleTime: Infinity } },
   })
-  qc.setQueryData(["notifications"], list)
+  qc.setQueryData(["notifications"], { pages: [list], pageParams: [0] })
   qc.setQueryData(["notifications", "unread-count"], { unread })
   return render(
     <QueryClientProvider client={qc}>

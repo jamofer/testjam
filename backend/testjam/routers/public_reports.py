@@ -118,27 +118,63 @@ def view_public_report(
 ):
     row = public_reports.lookup_active(db, token)
     if row is None:
-        raise HTTPException(status_code=404, detail="Report not available")
+        return _branded_error_response(
+            status_code=404,
+            title="This report is no longer available",
+            body="The link may have been revoked by the project owner or the report may have been removed.",
+        )
 
     app_settings = get_app_settings(db)
     base_url = _public_base_url(request, app_settings.site_url)
     try:
         html = public_reports.render(db, row, base_url=base_url)
     except public_reports.PublicReportError as exc:
-        raise HTTPException(status_code=410, detail=str(exc)) from exc
+        return _branded_error_response(
+            status_code=410,
+            title="This report has expired",
+            body=str(exc),
+        )
 
     public_reports.record_view(db, row)
     return HTMLResponse(content=html, headers=_public_report_headers())
 
 
 def _public_report_headers() -> dict[str, str]:
-    """Headers applied to anonymous public report HTML responses.
-
-    `Referrer-Policy: no-referrer` prevents the token in the URL path from
-    leaking to third-party origins when the report links out to external
-    pages or loads cross-origin assets.
-    """
     return {"Referrer-Policy": "no-referrer"}
+
+
+def _branded_error_response(status_code: int, title: str, body: str) -> HTMLResponse:
+    html = f"""<!doctype html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Testjam · {title}</title>
+  <style>
+    :root {{ color-scheme: light dark; }}
+    body {{ margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            background: #f9fafb; color: #1f2937;
+            min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }}
+    @media (prefers-color-scheme: dark) {{
+      body {{ background: #0f172a; color: #e5e7eb; }}
+      .card {{ background: #1e293b; border-color: #334155; }}
+      .muted {{ color: #94a3b8; }}
+    }}
+    .card {{ max-width: 28rem; padding: 2rem 2.25rem; border-radius: 0.75rem;
+             background: white; border: 1px solid #e5e7eb;
+             box-shadow: 0 1px 2px rgba(0,0,0,0.04); text-align: center; }}
+    .brand {{ font-weight: 700; font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;
+              color: #6366f1; margin-bottom: 1rem; }}
+    h1 {{ margin: 0 0 0.75rem; font-size: 1.25rem; }}
+    .muted {{ color: #6b7280; font-size: 0.95rem; line-height: 1.45; }}
+  </style>
+</head><body>
+  <main class="card">
+    <p class="brand">Testjam</p>
+    <h1>{title}</h1>
+    <p class="muted">{body}</p>
+  </main>
+</body></html>"""
+    return HTMLResponse(content=html, status_code=status_code, headers=_public_report_headers())
 
 
 def _public_base_url(request: Request, configured_site_url: str | None) -> str:

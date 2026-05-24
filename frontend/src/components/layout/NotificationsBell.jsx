@@ -57,12 +57,18 @@ export function NotificationsBell({ enabled = true }) {
 
 function NotificationsDrawer({ open, onClose }) {
   const { t } = useTranslation("ui")
-  const { data: list = [] } = useNotifications()
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useNotifications()
   const markRead = useMarkRead()
   const markAllRead = useMarkAllRead()
 
   if (!open) return null
 
+  const list = (data?.pages ?? []).flat()
   const unread = list.filter(n => !n.is_read).length
 
   return createPortal(
@@ -97,9 +103,9 @@ function NotificationsDrawer({ open, onClose }) {
           {list.length === 0 ? (
             <p className="px-4 py-10 text-sm text-gray-400 dark:text-gray-500 text-center">{t("notifications.empty")}</p>
           ) : (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-gray-100 dark:divide-gray-800">
               {list.map(n => (
-                <li key={n.id} className={n.is_read ? "" : "bg-rose-50/60"}>
+                <li key={n.id} className={n.is_read ? "" : "bg-rose-50/60 dark:bg-rose-950/30"}>
                   <div className="flex items-start gap-2 px-4 py-3">
                     <div className="flex-1 min-w-0">
                       {n.link ? (
@@ -124,6 +130,16 @@ function NotificationsDrawer({ open, onClose }) {
                   </div>
                 </li>
               ))}
+              {hasNextPage && (
+                <li className="px-4 py-3 text-center">
+                  <button type="button"
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                    className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 disabled:opacity-50">
+                    {isFetchingNextPage ? t("notifications.loadingMore") : t("notifications.loadMore")}
+                  </button>
+                </li>
+              )}
             </ul>
           )}
         </div>

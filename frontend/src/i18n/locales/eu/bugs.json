@@ -189,7 +189,9 @@
   },
   "empty": {
     "title": "Oraindik ez dago akatsik",
-    "description": "Eman berri akats baten emaitza akatsdun batetik edo sortu eskuz."
+    "description": "Eman berri akats baten emaitza akatsdun batetik edo sortu eskuz.",
+    "titleNoMatches": "Filtroekin bat datorren akatsik ez",
+    "descriptionNoMatches": "Doitu edo garbitu filtroak emaitza gehiago ikusteko."
   },
   "toast": {
     "created": "Akatsa sortua",

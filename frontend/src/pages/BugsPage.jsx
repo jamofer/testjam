@@ -65,17 +65,20 @@ export function BugsPage() {
       params.cf_key = cfFieldKey
       if (cfFieldValue !== "any") params.cf_value = cfFieldValue
     }
+    const query = debouncedSearch.trim()
+    if (query) params.search = query
     return params
-  }, [statusFilter, severityFilter, versionFilter, cfFieldKey, cfFieldValue])
+  }, [statusFilter, severityFilter, versionFilter, cfFieldKey, cfFieldValue, debouncedSearch])
 
   const { data: bugs = [], isLoading } = useBugs(projectId, queryParams)
   const deleteBug = useDeleteBug(projectId)
-
-  const filtered = useMemo(() => {
-    const query = debouncedSearch.trim().toLowerCase()
-    if (!query) return bugs
-    return bugs.filter(bug => bug.title.toLowerCase().includes(query))
-  }, [bugs, debouncedSearch])
+  const filtered = bugs
+  const hasActiveFilters =
+    statusFilter !== "any" ||
+    severityFilter !== "any" ||
+    versionFilter !== "any" ||
+    cfFieldKey !== "any" ||
+    debouncedSearch.trim().length > 0
 
   const [bugPendingDelete, setBugPendingDelete] = useState(null)
 
@@ -227,8 +230,8 @@ export function BugsPage() {
           ) : filtered.length === 0 ? (
             <EmptyState
               icon={BugIcon}
-              title={t("empty.title")}
-              description={t("empty.description")}
+              title={hasActiveFilters ? t("empty.titleNoMatches") : t("empty.title")}
+              description={hasActiveFilters ? t("empty.descriptionNoMatches") : t("empty.description")}
             />
           ) : (
             <ul className="space-y-2">

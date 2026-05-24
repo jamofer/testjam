@@ -24,6 +24,7 @@
     "save": "Gorde",
     "cancel": "Utzi",
     "run": "Exekutatu",
+    "runDisabledNoCases": "Gehitu gutxienez proba-kasu bat plan hau exekutatu aurretik",
     "updated": "Plana eguneratuta",
     "caseRemoved": "Kasua kenduta",
     "empty": {

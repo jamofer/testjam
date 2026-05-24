@@ -45,6 +45,8 @@
     "markAllRead": "Mark all read",
     "close": "Close notifications",
     "empty": "No notifications",
-    "markRead": "Mark as read"
+    "markRead": "Mark as read",
+    "loadMore": "Load more",
+    "loadingMore": "Loading…"
   }
 }

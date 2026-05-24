@@ -24,6 +24,7 @@
     "save": "Save",
     "cancel": "Cancel",
     "run": "Run",
+    "runDisabledNoCases": "Add at least one test case before running this plan",
     "updated": "Plan updated",
     "caseRemoved": "Case removed",
     "empty": {

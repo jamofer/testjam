@@ -45,6 +45,8 @@
     "markAllRead": "Marca-les totes com a llegides",
     "close": "Tanca les notificacions",
     "empty": "Sense notificacions",
-    "markRead": "Marca com a llegida"
+    "markRead": "Marca com a llegida",
+    "loadMore": "Carrega'n més",
+    "loadingMore": "Carregant…"
   }
 }

@@ -189,7 +189,9 @@
   },
   "empty": {
     "title": "Encara no hi ha bugs",
-    "description": "Reporta'n un des d'un resultat fallit o crea'n un manualment."
+    "description": "Reporta'n un des d'un resultat fallit o crea'n un manualment.",
+    "titleNoMatches": "Cap bug coincideix amb els filtres",
+    "descriptionNoMatches": "Ajusta o esborra els filtres actius per veure més resultats."
   },
   "toast": {
     "created": "Bug creat",
