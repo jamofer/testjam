@@ -71,6 +71,12 @@
     "fieldSteps": "Pasos"
   },
   "discussion": {
+    "empty": "Aínda non hai comentarios",
+    "add": "Engadir comentario",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "save": "Gardar",
+    "cancel": "Cancelar",
     "deleteTitle": "Eliminar este comentario?",
     "deleteDescription": "O comentario eliminarase de xeito permanente."
   }

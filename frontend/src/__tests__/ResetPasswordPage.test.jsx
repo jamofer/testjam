@@ -79,4 +79,21 @@ describe("ResetPasswordPage", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/invalid or expired token/i)
   })
+
+  it.each([
+    ["reset_token_invalid", /not recognized/i],
+    ["reset_token_used", /already used/i],
+    ["reset_token_expired", /expired/i],
+  ])("maps backend error code %s to its localized message", async (code, pattern) => {
+    authApi.confirmPasswordReset.mockRejectedValue({
+      response: { data: { detail: { code, message: "fallback" } } },
+    })
+    renderPage("/reset-password?token=bad")
+
+    fireEvent.change(screen.getByLabelText(/new password/i), { target: { value: "fresh-secret-12" } })
+    fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: "fresh-secret-12" } })
+    fireEvent.click(screen.getByRole("button", { name: /update password/i }))
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(pattern)
+  })
 })

@@ -53,7 +53,7 @@ export function ResetPasswordPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         {confirmReset.isError && (
           <p className="text-sm text-red-500" role="alert">
-            {confirmReset.error?.response?.data?.detail || t('reset.failure')}
+            {resetErrorMessage(t, confirmReset.error)}
           </p>
         )}
         <PasswordField
@@ -119,6 +119,20 @@ function PasswordField({ id, label, value, onChange, autoComplete }) {
     </div>
   )
 }
+
+function resetErrorMessage(t, error) {
+  const detail = error?.response?.data?.detail
+  const code = typeof detail === 'object' ? detail?.code : null
+  if (code) {
+    const i18nKey = `reset.errors.${code}`
+    const translated = t(i18nKey)
+    if (translated !== i18nKey) return translated
+  }
+  if (typeof detail === 'string') return detail
+  if (typeof detail === 'object' && detail?.message) return detail.message
+  return t('reset.failure')
+}
+
 
 function BackToLogin() {
   const { t } = useTranslation('auth')

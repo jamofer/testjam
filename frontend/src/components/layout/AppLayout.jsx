@@ -4,13 +4,14 @@ import { Menu } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Sidebar } from './Sidebar'
 import { CommandPalette } from '../ui/command-palette'
-import { useMe, useUpdateMe } from '../../hooks/useAuth'
+import { useMe, useUpdateMe, useStorageAuthSync } from '../../hooks/useAuth'
 import { useProjectDeletionWatcher } from '../../hooks/useProjectDeletionWatcher'
 import { browserTimezone } from '../../lib/format'
 import i18n, { setLocale, SUPPORTED_LOCALES } from '../../i18n'
 
 export function AppLayout() {
   const { t } = useTranslation(['nav', 'common'])
+  useStorageAuthSync()
   const { data: user, isLoading, isError } = useMe()
   const updateMe = useUpdateMe()
   const detectedTimezoneBootstrapped = useRef(false)

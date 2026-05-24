@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from enum import Enum
 
 from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
@@ -11,6 +12,13 @@ from testjam.services import email_templates
 from testjam.services.email import send_email
 from testjam.services.notification_events import NotificationEvent
 from testjam.services.settings import get_settings as get_app_settings
+
+
+class PasswordResetOutcome(str, Enum):
+    OK = "ok"
+    UNKNOWN = "unknown"
+    USED = "used"
+    EXPIRED = "expired"
 
 
 def request_password_reset(
@@ -37,18 +45,28 @@ def issue_reset_email_for_user(
     _dispatch_reset_email(db, user, raw_token, background)
 
 
-def confirm_password_reset(db: Session, raw_token: str, new_password: str) -> bool:
-    token = _load_active_token(db, raw_token)
-    if token is None:
-        return False
-    user = db.get(User, token.user_id)
+def confirm_password_reset(
+    db: Session, raw_token: str, new_password: str,
+) -> PasswordResetOutcome:
+    record = (
+        db.query(PasswordResetToken)
+        .filter(PasswordResetToken.token_hash == PasswordResetToken.hash(raw_token))
+        .first()
+    )
+    if record is None:
+        return PasswordResetOutcome.UNKNOWN
+    if record.used_at is not None:
+        return PasswordResetOutcome.USED
+    if _expires_at_utc(record) <= datetime.now(timezone.utc):
+        return PasswordResetOutcome.EXPIRED
+    user = db.get(User, record.user_id)
     if user is None or not user.is_active or user.deleted_at is not None:
-        return False
+        return PasswordResetOutcome.UNKNOWN
     user.hashed_password = hash_password(new_password)
-    token.used_at = datetime.now(timezone.utc)
+    record.used_at = datetime.now(timezone.utc)
     db.commit()
     clear_lockout(db, user)
-    return True
+    return PasswordResetOutcome.OK
 
 
 def _create_reset_token(db: Session, user: User) -> tuple[str, str, datetime]:
@@ -57,19 +75,6 @@ def _create_reset_token(db: Session, user: User) -> tuple[str, str, datetime]:
     db.add(record)
     db.commit()
     return raw, token_hash, expires_at
-
-
-def _load_active_token(db: Session, raw_token: str) -> PasswordResetToken | None:
-    record = (
-        db.query(PasswordResetToken)
-        .filter(PasswordResetToken.token_hash == PasswordResetToken.hash(raw_token))
-        .first()
-    )
-    if record is None or record.used_at is not None:
-        return None
-    if _expires_at_utc(record) <= datetime.now(timezone.utc):
-        return None
-    return record
 
 
 def _expires_at_utc(token: PasswordResetToken) -> datetime:

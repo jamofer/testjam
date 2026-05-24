@@ -71,6 +71,12 @@
     "fieldSteps": "Passos"
   },
   "discussion": {
+    "empty": "Encara no hi ha comentaris",
+    "add": "Afegeix comentari",
+    "edit": "Edita",
+    "delete": "Elimina",
+    "save": "Desa",
+    "cancel": "Cancel·la",
     "deleteTitle": "Eliminar aquest comentari?",
     "deleteDescription": "El comentari s'eliminarà de manera permanent."
   }

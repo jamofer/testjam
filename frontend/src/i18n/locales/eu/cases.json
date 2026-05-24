@@ -71,6 +71,12 @@
     "fieldSteps": "Urratsak"
   },
   "discussion": {
+    "empty": "Oraindik ez dago iruzkinik",
+    "add": "Gehitu iruzkina",
+    "edit": "Editatu",
+    "delete": "Ezabatu",
+    "save": "Gorde",
+    "cancel": "Utzi",
     "deleteTitle": "Iruzkin hau ezabatu?",
     "deleteDescription": "Iruzkina behin betiko ezabatuko da."
   }

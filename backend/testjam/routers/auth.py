@@ -25,6 +25,7 @@ from testjam.models.user import User
 from testjam.schemas.user import TokenResponse
 from testjam.services.password_reset import (
     PasswordResetMisconfigured,
+    PasswordResetOutcome,
     confirm_password_reset,
     request_password_reset,
 )
@@ -106,9 +107,27 @@ def password_reset_request(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+RESET_ERROR_DETAIL = {
+    PasswordResetOutcome.UNKNOWN: "Reset token is not recognized",
+    PasswordResetOutcome.USED: "Reset token has already been used",
+    PasswordResetOutcome.EXPIRED: "Reset token has expired",
+}
+RESET_ERROR_CODE = {
+    PasswordResetOutcome.UNKNOWN: "reset_token_invalid",
+    PasswordResetOutcome.USED: "reset_token_used",
+    PasswordResetOutcome.EXPIRED: "reset_token_expired",
+}
+
+
 @router.post("/password-reset/confirm", status_code=status.HTTP_204_NO_CONTENT)
 def password_reset_confirm(body: PasswordResetConfirm, db: Session = Depends(get_db)):
-    succeeded = confirm_password_reset(db, body.token, body.new_password)
-    if not succeeded:
-        raise HTTPException(status_code=400, detail="Invalid or expired token")
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    outcome = confirm_password_reset(db, body.token, body.new_password)
+    if outcome is PasswordResetOutcome.OK:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    raise HTTPException(
+        status_code=400,
+        detail={
+            "code": RESET_ERROR_CODE[outcome],
+            "message": RESET_ERROR_DETAIL[outcome],
+        },
+    )
