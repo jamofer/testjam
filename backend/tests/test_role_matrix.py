@@ -2,8 +2,7 @@
 
 Catches regressions where a writer-required endpoint silently accepts
 viewer or outsider credentials. Admin is excluded on purpose: admins
-bypass every check, so admin coverage hides role bugs (see TG2 in
-PRE-RELEASE_V1.0.md).
+bypass every check, so admin coverage hides role bugs.
 """
 import pytest
 
