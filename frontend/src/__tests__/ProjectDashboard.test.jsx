@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { MemoryRouter } from "react-router-dom"
 
@@ -83,5 +83,46 @@ describe("ProjectDashboard", () => {
     await waitFor(() =>
       expect(dashboardApi.get).toHaveBeenCalledWith(42, { range: 30 }),
     )
+  })
+
+  it("renders the recent execution pill with the derived effective status", async () => {
+    setup()
+
+    await screen.findByText("Nightly")
+    expect(screen.getByText("Pass")).toBeInTheDocument()
+    expect(screen.queryByText("Completed")).toBeNull()
+  })
+
+  it("shows passed/failed/blocked/not_run counts next to each recent execution", async () => {
+    const failingPayload = {
+      ...PAYLOAD,
+      recent_executions: {
+        executions: [
+          {
+            id: 100, title: "Daily smoke", status: "completed",
+            version_name: null, environment: null,
+            created_at: "2026-05-15T00:00:00Z", started_at: null, finished_at: null,
+            duration_ms: 9000, passed: 3, failed: 2, blocked: 1, not_run: 4,
+          },
+        ],
+      },
+    }
+    dashboardApi.get.mockResolvedValue(failingPayload)
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ProjectDashboard projectId={42} range={30} onRangeChange={vi.fn()} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    const row = (await screen.findByText("Daily smoke")).closest("li")
+    expect(row).not.toBeNull()
+    expect(within(row).getByText("Fail")).toBeInTheDocument()
+    expect(within(row).getByText("3")).toBeInTheDocument()
+    expect(within(row).getByText("2")).toBeInTheDocument()
+    expect(within(row).getByText("1")).toBeInTheDocument()
+    expect(within(row).getByText("4")).toBeInTheDocument()
   })
 })

@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { FileText, FolderOpen, Layers, PlayCircle, Tag } from "lucide-react"
+import { AlertTriangle, CheckCircle2, FileText, FolderOpen, Layers, MinusCircle, PlayCircle, Tag, XCircle } from "lucide-react"
 
 import { useDashboard } from "../../hooks/useDashboard"
 import { fmtDuration } from "../../lib/format"
-import { STATUS_CONFIG } from "../../lib/statusConfig"
+import { effectiveExecutionStatus, executionStatusPill } from "../../lib/executionStatus"
 import { DateLabel } from "../ui/date-label"
 import { Skeleton } from "../ui/skeleton"
 import { Sparkline } from "./Sparkline"
@@ -240,11 +240,11 @@ function VersionsCardRow({ item, projectId }) {
 
 function RecentExecutionRow({ item }) {
   const { t } = useTranslation("common")
-  const status = STATUS_CONFIG[item.status] ?? STATUS_CONFIG.not_run
+  const effective = effectiveExecutionStatus(item)
   return (
     <li className="flex items-center gap-2">
-      <span className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded ${status.pill}`}>
-        {t(`status.${item.status}`, status.label)}
+      <span className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded ${executionStatusPill(effective)}`}>
+        {t(`status.${effective}`)}
       </span>
       <Link
         to={`/executions/${item.id}/run`}
@@ -253,7 +253,13 @@ function RecentExecutionRow({ item }) {
       >
         {item.title}
       </Link>
-      <span className="shrink-0 text-xs text-gray-400 dark:text-gray-500">
+      <span className="shrink-0 flex items-center gap-1.5 text-[10px] text-gray-500 dark:text-gray-400" aria-label={t("status.passed") + "/" + t("status.failed") + "/" + t("status.blocked") + "/" + t("status.not_run")}>
+        <span className="flex items-center gap-0.5"><CheckCircle2 size={10} className="text-green-500" />{item.passed ?? 0}</span>
+        <span className="flex items-center gap-0.5"><XCircle size={10} className="text-red-500" />{item.failed ?? 0}</span>
+        <span className="flex items-center gap-0.5"><AlertTriangle size={10} className="text-yellow-500" />{item.blocked ?? 0}</span>
+        <span className="flex items-center gap-0.5"><MinusCircle size={10} className="text-gray-400 dark:text-gray-500" />{item.not_run ?? 0}</span>
+      </span>
+      <span className="shrink-0 text-[10px] text-gray-400 dark:text-gray-500">
         {fmtDuration(item.duration_ms) ?? <DateLabel iso={item.created_at} />}
       </span>
     </li>
