@@ -5,6 +5,7 @@ from importlib.metadata import PackageNotFoundError, version
 import httpx
 import typer
 
+from testjam_client.cli.commands import about as about_commands
 from testjam_client.cli.commands import auth as auth_commands
 from testjam_client.cli.commands import backup as backup_commands
 from testjam_client.cli.commands import bugs as bug_commands
@@ -133,3 +134,4 @@ app.add_typer(execution_commands.build_app())
 app.add_typer(run_commands.build_app())
 app.add_typer(bug_commands.build_app())
 app.add_typer(backup_commands.build_app())
+app.add_typer(about_commands.build_app())
