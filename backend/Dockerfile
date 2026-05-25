@@ -17,6 +17,13 @@ RUN apt-get update \
 
 WORKDIR /app
 
+ARG GIT_REF=dev
+ARG GIT_COMMIT=unknown
+ARG BUILD_DATE=unknown
+ENV TESTJAM_VERSION_REF=${GIT_REF} \
+    TESTJAM_VERSION_COMMIT=${GIT_COMMIT} \
+    TESTJAM_BUILD_DATE=${BUILD_DATE}
+
 COPY . .
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -e ".[dev]"

@@ -1,0 +1,11 @@
+{
+  "loading": "Carregant…",
+  "unknown": "desconegut",
+  "license": "Programari de codi obert amb llicència MIT",
+  "source": "Codi a GitHub",
+  "fields": {
+    "release": "Versió",
+    "commit": "Commit",
+    "builtAt": "Compilat"
+  }
+}
