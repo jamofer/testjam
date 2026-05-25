@@ -82,7 +82,7 @@ Las claves deben coincidir con definiciones activas de tipo `execution` en el pr
 ## Consejos
 
 - **Idempotente**: reejecutar la misma suite nunca duplica casos. Altas, renames y bajas se propagan.
-- **Polución por listener**: por defecto, cada sync escribe una revisión por caso tocado. El item de roadmap [P1.6](../../ROADMAP.md) colapsa eso a una revisión por sync.
+- **Polución por listener**: por defecto, cada sync escribe una revisión por caso tocado. Una mejora futura colapsará eso a una sola revisión por sync.
 - **Tolerancia a fallos**: si Testjam no responde, el listener degrada con elegancia — Robot sigue corriendo, hay un warning. No buffea estado: reconectar a mitad de corrida no recupera los eventos perdidos del test en vuelo.
 
 ## Más allá del listener

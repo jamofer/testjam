@@ -82,7 +82,7 @@ The keys must match active custom-field definitions of `entity_type=execution` o
 ## Tips
 
 - **Idempotent**: re-running the same suite never duplicates cases. Add, rename and delete operations propagate to Testjam.
-- **Listener pollution**: by default every sync writes a revision per touched case. The roadmap item [P1.6](../../ROADMAP.md) collapses those into a single revision per sync.
+- **Listener pollution**: by default every sync writes a revision per touched case. A future improvement will collapse those into a single revision per sync.
 - **Failure tolerance**: if Testjam is unreachable, the listener degrades gracefully — Robot keeps running and prints a warning. No state is buffered, so reconnect mid-run means the in-flight test will not have its events backfilled.
 
 ## Beyond the listener

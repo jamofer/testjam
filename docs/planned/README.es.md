@@ -1,39 +1,31 @@
-# Funciones planificadas
+# Funcionalidades planificadas
 
 > Translation: [README.md](README.md).
 
-Esta carpeta describe funciones **planificadas** que **aún no están disponibles** en Testjam. Cada página captura el objetivo de usuario, el esquema de datos, los endpoints API esperados y las decisiones de diseño abiertas. El objetivo es doble:
+Esta carpeta describe funcionalidades **planificadas** pero **aún no disponibles** en Testjam v1.0. Cada página captura el objetivo de cara al usuario, el esquema de datos previsto, los endpoints de API esperados y las decisiones de diseño abiertas.
 
-- Marcar expectativas para usuarios que navegan el manual ("¿puedo hacer X hoy?").
-- Dar a integradores un anticipo estable para preparar webhooks, schemas y hooks de UI.
-
-Estas páginas son **prospectivas**. Cualquier cosa aquí puede cambiar sin aviso hasta que la feature aterrice y pase al [manual](../manual/README.es.md).
-
-El plan de ingeniería autoritativo vive en [`ROADMAP.md`](../../ROADMAP.md) en la raíz del proyecto — más granular e incluye orden de implementación.
+Estas páginas son **prospectivas**. Cualquier cosa aquí puede cambiar sin aviso hasta que la funcionalidad se publique y se mueva al [manual de usuario](../manual/README.es.md).
 
 ## Índice
 
-| Feature | Estado | Motivación |
-|---------|--------|------------|
-| [Bug tracking nativo](bug-tracking.es.md) | No iniciado | Cerrar el ciclo QA sin salir de Testjam. |
-| [Dashboards de proyecto](dashboards.es.md) | No iniciado | Primera impresión al entrar a un proyecto. |
-| [Modo oscuro](dark-mode.es.md) | No iniciado | Paridad UX con competidores modernos. |
-| [Webhooks salientes](webhooks.es.md) | No iniciado | Integración con ecosistema CI/CD. |
-| [Linking externo](external-linking.es.md) | No iniciado | Bidireccional con Jira / GitHub / GitLab / ADO. |
-| [Runner Docker](docker-runner.es.md) | No iniciado | Diferenciador vs cualquier OSS comercial. |
-| [Grupos con propósito](groups.es.md) | No iniciado | Resolución de permisos por grupo. |
-| [Admin ampliado](admin-extended.es.md) | No iniciado | Exponer acciones admin que ya existen en la API. |
-| [Orgs multi-tenant](multi-tenant.es.md) | No iniciado | Sólo si Testjam pasa a SaaS. |
+| Funcionalidad | Estado | Motivación |
+|---------------|--------|------------|
+| [Runner Docker](docker-runner.es.md) | Sin empezar | Ejecutar tests automáticos sin un worker CI externo. |
+| [Multi-tenant (organizaciones)](multi-tenant.es.md) | Sin empezar | Capa de organizaciones sobre proyectos (sólo si Testjam pasa a hosting gestionado). |
 
 ## Convenciones de estas páginas
 
 Cada página planificada sigue el mismo esqueleto:
 
-1. **Por qué** — problema de usuario.
-2. **Qué vas a ver** — boceto de UI / UX.
-3. **Modelo de datos** — tablas, columnas, relaciones nuevas.
+1. **Por qué** — el problema de cara al usuario.
+2. **Qué verás** — esbozo de la UI / UX.
+3. **Modelo de datos** — nuevas tablas, columnas, relaciones.
 4. **API** — tabla de endpoints.
-5. **Preguntas abiertas** — decisiones de diseño pendientes.
-6. **Fuera de alcance** — exclusiones explícitas para limitar el trabajo.
+5. **Preguntas abiertas** — decisiones de diseño en curso.
+6. **Fuera de alcance** — exclusiones explícitas que acotan el trabajo.
 
-Una página se mueve de `planned/` a `manual/` cuando la feature entra entera en master. No deben quedar páginas planned obsoletas tras la entrega.
+Una página se mueve de `planned/` a `manual/` cuando la funcionalidad está completamente fusionada.
+
+## Enviadas en v1.0 (antes planificadas)
+
+Tracker de bugs, dashboards de proyecto, modo oscuro, webhooks salientes, linking externo a Jira / GitHub / GitLab / Azure DevOps / OpenProject, grupos con herencia de rol y operaciones de administración extendidas, todas se publicaron con v1.0 y ahora viven en el manual de usuario.

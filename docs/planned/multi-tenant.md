@@ -1,6 +1,6 @@
 # Multi-tenant orgs — Planned
 
-> Traducción: [multi-tenant.es.md](multi-tenant.es.md). · Status: **Not started · gated**. · Roadmap reference: **P4.2**.
+> Traducción: [multi-tenant.es.md](multi-tenant.es.md). · Status: **Not started · gated**.
 
 ## Why
 
