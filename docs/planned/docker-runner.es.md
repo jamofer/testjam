@@ -1,6 +1,6 @@
 # Runner Docker — Planificado
 
-> Translation: [docker-runner.md](docker-runner.md). · Estado: **No iniciado**. · Referencia roadmap: **P4.1**.
+> Translation: [docker-runner.md](docker-runner.md). · Estado: **No iniciado**.
 
 ## Por qué
 
