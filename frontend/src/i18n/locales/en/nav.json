@@ -26,6 +26,7 @@
   "user": {
     "profile": "Profile",
     "settings": "Settings",
+    "about": "About",
     "logout": "Logout",
     "theme": "Theme",
     "themeLight": "Light",

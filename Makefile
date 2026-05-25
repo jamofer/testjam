@@ -6,6 +6,15 @@ BUILD_STAMP = .docker-build-stamp
 BUILD_DEPS  = backend/Dockerfile backend/pyproject.toml \
               frontend/Dockerfile frontend/package.json frontend/package-lock.json
 
+# Build metadata surfaced by GET /api/v1/about (sidebar version chip + About
+# dialog). Re-evaluated on every make invocation so a `git checkout` followed
+# by `make up` recreates the api container with the new branch/commit env —
+# no rebuild needed since source is bind-mounted.
+GIT_REF     := $(shell git describe --tags --exact-match 2>/dev/null || git rev-parse --abbrev-ref HEAD 2>/dev/null || echo dev)
+GIT_COMMIT  := $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
+BUILD_DATE  := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+export GIT_REF GIT_COMMIT BUILD_DATE
+
 .PHONY: help up down reset rebuild admin backup build-client test test-api test-client test-cli-e2e test-orchestrator test-front test-e2e _up-api _up-front
 
 help:

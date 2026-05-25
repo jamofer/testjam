@@ -1,0 +1,11 @@
+{
+  "loading": "Loading…",
+  "unknown": "unknown",
+  "license": "MIT-licensed open-source software",
+  "source": "Source on GitHub",
+  "fields": {
+    "release": "Release",
+    "commit": "Commit",
+    "builtAt": "Built"
+  }
+}

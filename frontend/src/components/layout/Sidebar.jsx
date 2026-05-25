@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from "react"
 import { NavLink, Link, useMatch } from "react-router-dom"
-import { Bug, FolderKanban, Users, LogOut, UserCircle, FolderOpen, LayoutDashboard, PlayCircle, ClipboardList, ChevronLeft, Server, ListChecks, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon, Sliders, X } from "lucide-react"
+import { Bug, FolderKanban, Users, LogOut, UserCircle, FolderOpen, LayoutDashboard, PlayCircle, ClipboardList, ChevronLeft, Server, ListChecks, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon, Sliders, Info, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useLogout } from "../../hooks/useAuth"
 import { useProject } from "../../hooks/useProjects"
 import { useExecution } from "../../hooks/useExecutions"
 import { useCase, useSuite } from "../../hooks/useSuites"
+import { useAbout } from "../../hooks/useAbout"
 import { useQuery } from "@tanstack/react-query"
 import { plansApi } from "../../api/testplans"
 import { Logo } from "../ui/logo"
 import { LocaleSwitcher } from "../ui/locale-switcher"
 import { ThemeToggle } from "../ui/theme-toggle"
+import { AboutDialog, aboutShortLabel } from "../ui/about-dialog"
 import { NotificationsBell } from "./NotificationsBell"
 
 // ── Project-scoped nav items ───────────────────────────────────────────────────
@@ -129,6 +131,7 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
   const logout = useLogout()
   const activeProjectId = useActiveProjectId()
   const { data: project } = useProject(activeProjectId)
+  const [aboutOpen, setAboutOpen] = useState(false)
   const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPod|iPad/.test(navigator.platform)
 
   return (
@@ -138,23 +141,26 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
         md:relative md:translate-x-0
         ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
     >
-      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 shrink-0 flex items-center justify-between gap-2">
-        <Link to="/projects" className="inline-flex">
-          <Logo size={26} />
-        </Link>
-        <div className="flex items-center gap-1">
-          <NotificationsBell enabled={!!user} />
-          {onCloseMobile && (
-            <button
-              type="button"
-              aria-label={t("closeMenu")}
-              onClick={onCloseMobile}
-              className="md:hidden w-8 h-8 flex items-center justify-center rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-              <X size={16} />
-            </button>
-          )}
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
+        <div className="flex items-center justify-between gap-2">
+          <Link to="/projects" className="inline-flex">
+            <Logo size={26} />
+          </Link>
+          <div className="flex items-center gap-1">
+            <NotificationsBell enabled={!!user} />
+            {onCloseMobile && (
+              <button
+                type="button"
+                aria-label={t("closeMenu")}
+                onClick={onCloseMobile}
+                className="md:hidden w-8 h-8 flex items-center justify-center rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
         </div>
+        <VersionTag onOpenAbout={() => setAboutOpen(true)} />
       </div>
 
       {onOpenPalette && (
@@ -224,12 +230,35 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
       </nav>
 
       {/* User menu + footer */}
-      <UserMenu user={user} logout={logout} isAdmin={!!user?.is_admin} />
+      <UserMenu
+        user={user}
+        logout={logout}
+        isAdmin={!!user?.is_admin}
+        onOpenAbout={() => setAboutOpen(true)}
+      />
+
+      <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
     </aside>
   )
 }
 
-function UserMenu({ user, logout, isAdmin }) {
+function VersionTag({ onOpenAbout }) {
+  const { data } = useAbout()
+  const label = aboutShortLabel(data)
+  if (!label) return null
+  return (
+    <button
+      type="button"
+      onClick={onOpenAbout}
+      className="mt-1 block w-full text-left text-[10px] font-mono text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 truncate"
+      title={label}
+    >
+      {label}
+    </button>
+  )
+}
+
+function UserMenu({ user, logout, isAdmin, onOpenAbout }) {
   const { t } = useTranslation("nav")
   const [open, setOpen] = useState(false)
   const wrapRef = useRef(null)
@@ -299,6 +328,11 @@ function UserMenu({ user, logout, isAdmin }) {
             <LocaleSwitcher compact className="w-full" />
           </div>
           <div className="my-1 border-t border-gray-100 dark:border-gray-800" />
+          <button type="button" role="menuitem"
+            onClick={() => { setOpen(false); onOpenAbout() }}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">
+            <Info size={14} /> {t("user.about")}
+          </button>
           <button type="button" role="menuitem"
             onClick={() => { setOpen(false); logout() }}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400">

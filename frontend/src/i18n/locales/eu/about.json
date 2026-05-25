@@ -1,0 +1,11 @@
+{
+  "loading": "Kargatzen…",
+  "unknown": "ezezaguna",
+  "license": "MIT lizentziadun kode irekiko softwarea",
+  "source": "Kodea GitHub-en",
+  "fields": {
+    "release": "Bertsioa",
+    "commit": "Commit-a",
+    "builtAt": "Konpilatua"
+  }
+}
