@@ -10,21 +10,24 @@ This page walks you from a blank machine to a logged-in Testjam UI.
 - Outbound HTTPS to pull the official images (or a mirror configured on the host).
 - (Optional) A reverse proxy with TLS termination — Caddy, nginx, Cloudflare Tunnel, … — pointing at the exposed `APP_PORT`.
 
-The bundled stack ships three long-running containers:
+The bundled stack ships three long-running containers, all pulled from the public GitHub Container Registry:
 
-| Container | Image                  | Role                                                            |
-|-----------|------------------------|-----------------------------------------------------------------|
-| `db`      | `postgres:18.3-alpine` | Persistent database, mounted on a named volume.                 |
-| `api`     | `testjam-api`          | FastAPI + Uvicorn, runs Alembic migrations on start.            |
-| `web`     | `testjam-frontend`     | Nginx serving the built UI and proxying `/api/` to the backend. |
+| Container | Image                                       | Role                                                            |
+|-----------|---------------------------------------------|-----------------------------------------------------------------|
+| `db`      | `postgres:18.3-alpine`                      | Persistent database, mounted on a named volume.                 |
+| `api`     | `ghcr.io/jamofer/testjam-api:v1.0.0`        | FastAPI + Uvicorn, runs Alembic migrations on start.            |
+| `web`     | `ghcr.io/jamofer/testjam-web:v1.0.0`        | Nginx serving the built UI and proxying `/api/` to the backend. |
 
 Only the `web` container exposes a host port (`APP_PORT`, default `8080`).
 
-## 1 · Clone & configure
+## 1 · Download compose + env example
+
+No clone required — only two files:
 
 ```bash
-git clone https://github.com/Jamofer/testjam.git
-cd testjam
+mkdir testjam && cd testjam
+curl -fsSLO https://raw.githubusercontent.com/Jamofer/testjam/v1.0.0/docker-compose.yml
+curl -fsSLO https://raw.githubusercontent.com/Jamofer/testjam/v1.0.0/.env.example
 cp .env.example .env
 ```
 
@@ -33,10 +36,12 @@ Edit `.env` and fill in **at least** the following entries:
 ```dotenv
 POSTGRES_PASSWORD=please-change-me
 SECRET_KEY=$(openssl rand -hex 32)
+INTEGRATION_ENCRYPTION_KEY=$(python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
+TESTJAM_VERSION=v1.0.0
 APP_PORT=8080
 ```
 
-`SECRET_KEY` signs JWTs — once issued, rotating it invalidates every active session.
+`SECRET_KEY` signs JWTs — once issued, rotating it invalidates every active session. `TESTJAM_VERSION` pins the image tag pulled from GHCR; **avoid `latest` in production** since the next `docker compose pull` could drag in a breaking release without warning.
 
 ## 2 · Start the stack
 
@@ -95,7 +100,18 @@ SITE_URL=https://testjam.example.com
 
 `SITE_URL` is interpolated into the reset-password link templates; pointing it at the wrong domain breaks the flow silently.
 
-## 6 · Next steps
+## 6 · Upgrading
+
+Bump `TESTJAM_VERSION` in `.env` to the new release tag (browse [releases](https://github.com/Jamofer/testjam/releases)) then:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+`alembic upgrade head` runs automatically on the new `api` container, so schema migrations are applied before the new code starts serving.
+
+## 7 · Next steps
 
 - Build your first project → [Projects](projects.md).
 - Hook your CI → [Robot listener](robot-listener.md).
