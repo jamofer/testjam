@@ -4,7 +4,8 @@
     "general": "Xeral",
     "integrations": "Integracións",
     "webhooks": "Webhooks",
-    "danger": "Zona de perigo"
+    "danger": "Zona de perigo",
+    "customFields": "Custom Fields"
   },
   "general": {
     "title": "Xeral",
@@ -71,5 +72,9 @@
   },
   "common": {
     "cancel": "Cancelar"
+  },
+  "customFields": {
+    "title": "Custom Fields",
+    "description": "Define custom fields for bugs, test cases, and executions."
   }
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { NavLink, Link, useMatch } from "react-router-dom"
-import { Bug, FolderKanban, Users, LogOut, UserCircle, FolderOpen, LayoutDashboard, PlayCircle, ClipboardList, ChevronLeft, Server, ListChecks, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon, Sliders, Info, X } from "lucide-react"
+import { Bug, FolderKanban, Users, LogOut, UserCircle, FolderOpen, LayoutDashboard, PlayCircle, ClipboardList, ChevronLeft, Server, ListChecks, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon, Info, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useLogout } from "../../hooks/useAuth"
 import { useProject } from "../../hooks/useProjects"
@@ -29,7 +29,6 @@ const PROJECT_CONFIG_NAV = [
   { to: (id) => `/projects/${id}/members`,       icon: Shield,        labelKey: "project.members"             },
   { to: (id) => `/projects/${id}/versions`,      icon: Tag,           labelKey: "project.versions"            },
   { to: (id) => `/projects/${id}/environments`,  icon: Server,        labelKey: "project.environments"        },
-  { to: (id) => `/projects/${id}/custom-fields`, icon: Sliders,       labelKey: "project.customFields"        },
 ]
 
 const PROJECT_SETTINGS_NAV = {

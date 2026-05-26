@@ -4,7 +4,8 @@
     "general": "General",
     "integrations": "Integraciones",
     "webhooks": "Webhooks",
-    "danger": "Zona de peligro"
+    "danger": "Zona de peligro",
+    "customFields": "Campos personalizados"
   },
   "general": {
     "title": "General",
@@ -71,5 +72,9 @@
   },
   "common": {
     "cancel": "Cancelar"
+  },
+  "customFields": {
+    "title": "Campos personalizados",
+    "description": "Define campos personalizados para bugs, casos de prueba y ejecuciones."
   }
 }

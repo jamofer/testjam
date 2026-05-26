@@ -30,17 +30,11 @@ export function ExternalTrackersSection({ projectId }) {
 
   return (
     <section className="space-y-3">
-      <header className="flex items-center justify-between">
-        <div>
-          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
-            {t("trackers.title")}
-          </h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t("trackers.subtitle")}</p>
-        </div>
+      <div className="flex items-center justify-end">
         <Button size="sm" variant="outline" onClick={() => setCreating(true)}>
           <Plus size={14} /> {t("trackers.new")}
         </Button>
-      </header>
+      </div>
 
       {isLoading ? null : integrations.length === 0 ? (
         <EmptyState
