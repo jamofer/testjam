@@ -158,7 +158,7 @@
       }
     },
     "step": {
-      "expected": "Esperado:",
+      "expected": "Resultado esperado:",
       "saving": "Guardando…",
       "save": "Guardar",
       "cancel": "Cancelar",

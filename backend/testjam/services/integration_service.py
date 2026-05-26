@@ -50,6 +50,20 @@ def create_integration(
     ensure_encryption_available()
     provider = _provider_or_400(provider_key)
     validated_config = _validate_provider_config(provider, config)
+    existing = (
+        db.query(ProjectIntegration)
+        .filter(
+            ProjectIntegration.project_id == project_id,
+            ProjectIntegration.provider == provider.key,
+            ProjectIntegration.name == name,
+        )
+        .first()
+    )
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Integration '{name}' for provider '{provider.key}' already exists",
+        )
     integration = ProjectIntegration(
         project_id=project_id,
         provider=provider.key,
