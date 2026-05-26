@@ -24,9 +24,9 @@ services:
       retries: 5
 
   api:
-    # Pin TESTJAM_VERSION in .env (default v1.0.0); avoid `latest` in prod —
+    # Pin TESTJAM_VERSION in .env (default v1.0.1); avoid `latest` in prod —
     # a `docker compose pull` could drag in a breaking release without warning.
-    image: ghcr.io/jamofer/testjam-api:${TESTJAM_VERSION:-v1.0.0}
+    image: ghcr.io/jamofer/testjam-api:${TESTJAM_VERSION:-v1.0.1}
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-testjam}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-testjam}
       SECRET_KEY: ${SECRET_KEY}
@@ -48,7 +48,7 @@ services:
       retries: 6
 
   web:
-    image: ghcr.io/jamofer/testjam-web:${TESTJAM_VERSION:-v1.0.0}
+    image: ghcr.io/jamofer/testjam-web:${TESTJAM_VERSION:-v1.0.1}
     ports:
       - "${APP_PORT:-8080}:80"
     depends_on:
