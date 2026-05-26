@@ -10,9 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { toast } from "sonner"
 
 const VERSION_STATUS_STYLE = {
-  active:   { icon: Circle,       color: "text-blue-500",  bg: "bg-blue-50"  },
-  released: { icon: CheckCircle2, color: "text-green-600", bg: "bg-green-50" },
-  archived: { icon: Archive,      color: "text-gray-400 dark:text-gray-500", bg: "bg-gray-50 dark:bg-gray-900" },
+  active:   { icon: Circle,       color: "text-blue-500 dark:text-blue-400",   bg: "bg-blue-50 dark:bg-blue-950/40"   },
+  released: { icon: CheckCircle2, color: "text-green-600 dark:text-green-400", bg: "bg-green-50 dark:bg-green-950/40" },
+  archived: { icon: Archive,      color: "text-gray-400 dark:text-gray-500",   bg: "bg-gray-50 dark:bg-gray-900"      },
 }
 
 const STATUS_ORDER = { active: 0, released: 1, archived: 2 }
@@ -26,7 +26,7 @@ function VersionRow({ version, projectId }) {
   const Icon = style.icon
 
   return (
-    <li className={`flex items-center gap-3 border rounded-lg px-4 py-3 ${style.bg}`}>
+    <li className={`flex items-center gap-3 border border-gray-200 dark:border-gray-800 rounded-lg px-4 py-3 ${style.bg}`}>
       <Icon size={15} className={`${style.color} shrink-0`} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
