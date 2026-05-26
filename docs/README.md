@@ -9,6 +9,7 @@
 This folder groups every piece of documentation aimed at end-users (QA, developers) and instance administrators. It is split in two blocks:
 
 - **[User manual](manual/README.md)** — features available in the current release.
+- **[Architecture](architecture.md)** — backend + frontend project structure, conventions, and data model. Useful for contributors and LLM assistants.
 - **[Planned features](planned/README.md)** — skeleton of roadmap items that are **not yet implemented**. Useful to understand where the product is heading and to anticipate integrations.
 
 > Spanish translation: [README.es.md](README.es.md).
@@ -39,6 +40,7 @@ This folder groups every piece of documentation aimed at end-users (QA, develope
 | [Outgoing webhooks](manual/webhooks.md) | HMAC-signed events pushed to external systems. |
 | [Import & export](manual/import-export.md) | JUnit, Robot Framework, HTML/PDF/XLSX, project ZIP. |
 | [Robot listener](manual/robot-listener.md) | Stream results from your CI. |
+| [Python SDK](manual/sdk.md) | `testjam-client` setup, auth, resource modules, CI examples. |
 | [`testjam` CLI](manual/cli.md) | Interactive shell + scriptable commands against the API. |
 | [Members & API tokens](manual/members-and-tokens.md) | Roles, permissions, `X-API-Key`. |
 | [Groups](manual/groups.md) | Bundle users for project access by group. |
