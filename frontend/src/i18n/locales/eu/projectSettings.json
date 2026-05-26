@@ -4,7 +4,8 @@
     "general": "Orokorra",
     "integrations": "Integrazioak",
     "webhooks": "Webhook-ak",
-    "danger": "Arrisku-eremua"
+    "danger": "Arrisku-eremua",
+    "customFields": "Custom Fields"
   },
   "general": {
     "title": "Orokorra",
@@ -71,5 +72,9 @@
   },
   "common": {
     "cancel": "Utzi"
+  },
+  "customFields": {
+    "title": "Custom Fields",
+    "description": "Define custom fields for bugs, test cases, and executions."
   }
 }

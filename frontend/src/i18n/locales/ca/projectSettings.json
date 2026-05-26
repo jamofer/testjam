@@ -4,7 +4,8 @@
     "general": "General",
     "integrations": "Integracions",
     "webhooks": "Webhooks",
-    "danger": "Zona de perill"
+    "danger": "Zona de perill",
+    "customFields": "Custom Fields"
   },
   "general": {
     "title": "General",
@@ -71,5 +72,9 @@
   },
   "common": {
     "cancel": "Cancel·la"
+  },
+  "customFields": {
+    "title": "Custom Fields",
+    "description": "Define custom fields for bugs, test cases, and executions."
   }
 }

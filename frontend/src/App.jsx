@@ -25,7 +25,7 @@ const MembersPage = lazy(() => import("./pages/MembersPage").then(m => ({ defaul
 const VersionsPage = lazy(() => import("./pages/VersionsPage").then(m => ({ default: m.VersionsPage })))
 const VersionDetailPage = lazy(() => import("./pages/VersionDetailPage").then(m => ({ default: m.VersionDetailPage })))
 const EnvironmentsPage = lazy(() => import("./pages/EnvironmentsPage").then(m => ({ default: m.EnvironmentsPage })))
-const CustomFieldsPage = lazy(() => import("./pages/CustomFieldsPage").then(m => ({ default: m.CustomFieldsPage })))
+
 const BugsPage = lazy(() => import("./pages/BugsPage").then(m => ({ default: m.BugsPage })))
 const BugDetailPage = lazy(() => import("./pages/BugDetailPage").then(m => ({ default: m.BugDetailPage })))
 const CoverageMatrixPage = lazy(() => import("./pages/CoverageMatrixPage").then(m => ({ default: m.CoverageMatrixPage })))
@@ -73,7 +73,7 @@ export default function App() {
               <Route path="/projects/:id/members" element={<MembersPage />} />
               <Route path="/projects/:id/versions" element={<VersionsPage />} />
               <Route path="/projects/:id/environments" element={<EnvironmentsPage />} />
-              <Route path="/projects/:id/custom-fields" element={<CustomFieldsPage />} />
+              <Route path="/projects/:id/custom-fields" element={<Navigate to="../settings/custom-fields" replace />} />
               <Route path="/projects/:id/settings/*" element={<ProjectSettingsPage />} />
               <Route path="/projects/:id/integrations" element={<Navigate to="../settings/integrations" replace />} />
               <Route path="/projects/:id/bugs" element={<BugsPage />} />

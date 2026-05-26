@@ -1,19 +1,21 @@
 import { useTranslation } from "react-i18next"
 import { Navigate, NavLink, Route, Routes, useParams } from "react-router-dom"
-import { AlertTriangle, FileText, Plug, Webhook } from "lucide-react"
+import { AlertTriangle, FileText, Plug, Sliders, Webhook } from "lucide-react"
 
 import { useProject } from "../hooks/useProjects"
 import { PageBody, PageHeader } from "../components/ui/page-header"
 import { GeneralTab } from "../components/projectSettings/GeneralTab"
 import { IntegrationsTab } from "../components/projectSettings/IntegrationsTab"
 import { WebhooksTab } from "../components/projectSettings/WebhooksTab"
+import { CustomFieldsTab } from "../components/projectSettings/CustomFieldsTab"
 import { DangerZoneTab } from "../components/projectSettings/DangerZoneTab"
 
 const TABS = [
-  { value: "general",      icon: FileText,       labelKey: "tabs.general"      },
-  { value: "integrations", icon: Plug,           labelKey: "tabs.integrations" },
-  { value: "webhooks",     icon: Webhook,        labelKey: "tabs.webhooks"     },
-  { value: "danger",       icon: AlertTriangle,  labelKey: "tabs.danger"       },
+  { value: "general",       icon: FileText,       labelKey: "tabs.general"      },
+  { value: "custom-fields", icon: Sliders,        labelKey: "tabs.customFields" },
+  { value: "integrations",  icon: Plug,           labelKey: "tabs.integrations" },
+  { value: "webhooks",      icon: Webhook,        labelKey: "tabs.webhooks"     },
+  { value: "danger",        icon: AlertTriangle,  labelKey: "tabs.danger"       },
 ]
 
 export function ProjectSettingsPage() {
@@ -63,6 +65,7 @@ export function ProjectSettingsPage() {
             <Routes>
               <Route index element={<Navigate to="general" replace />} />
               <Route path="general" element={<GeneralTab projectId={projectId} project={project} />} />
+              <Route path="custom-fields" element={<CustomFieldsTab projectId={projectId} />} />
               <Route path="integrations" element={<IntegrationsTab projectId={projectId} />} />
               <Route path="webhooks" element={<WebhooksTab projectId={projectId} />} />
               <Route path="danger" element={<DangerZoneTab projectId={projectId} project={project} />} />
