@@ -49,6 +49,10 @@ export function PublicReportDialog({
 
   const handleCreate = async (event) => {
     event.preventDefault()
+    if (expiresAt && new Date(expiresAt) <= new Date()) {
+      toast.error(t("expiredDateError"))
+      return
+    }
     try {
       const payload = {
         kind: defaultKind,
@@ -133,6 +137,7 @@ export function PublicReportDialog({
                 <Input
                   type="datetime-local"
                   value={expiresAt}
+                  min={new Date().toISOString().slice(0, 16)}
                   onChange={event => setExpiresAt(event.target.value)}
                 />
                 <p className="text-xs text-gray-500">{t("expiresHelp")}</p>

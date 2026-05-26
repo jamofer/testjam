@@ -36,7 +36,11 @@
     "versionLabel": "Filtrar por versión",
     "anyStatus": "Cualquier estado",
     "anySeverity": "Cualquier severidad",
-    "anyVersion": "Cualquier versión"
+    "anyVersion": "Cualquier versión",
+    "sortLabel": "Ordenar por",
+    "sortNewest": "Más recientes",
+    "sortSeverity": "Severidad",
+    "sortCreated": "Fecha de creación"
   },
   "severity": {
     "critical": "Crítica",
@@ -66,7 +70,8 @@
     "fixedInVersionNone": "Sin establecer",
     "affectedVersion": "Versión afectada",
     "affectedVersionPlaceholder": "Elige una versión…",
-    "affectedVersionNone": "Sin establecer"
+    "affectedVersionNone": "Sin establecer",
+    "notSet": "Sin asignar"
   },
   "actions": {
     "save": "Guardar",
@@ -75,7 +80,8 @@
     "changeStatus": "Cambiar estado",
     "addComment": "Añadir comentario",
     "edit": "Editar",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "editTitle": "Clic para editar el título"
   },
   "tabs": {
     "description": "Descripción",
@@ -188,7 +194,8 @@
     "version": "Versión",
     "externalTicket": "Ticket externo",
     "tags": "Etiquetas",
-    "noTags": "Sin etiquetas"
+    "noTags": "Sin etiquetas",
+    "affectedVersion": "Versión afectada"
   },
   "links": {
     "add": "Añadir vínculo",
@@ -227,11 +234,16 @@
     "updateFailed": "No se pudieron guardar los cambios",
     "commentFailed": "No se pudo añadir el comentario",
     "commentEditFailed": "No se pudo guardar el comentario",
-    "commentDeleteFailed": "No se pudo eliminar el comentario"
+    "commentDeleteFailed": "No se pudo eliminar el comentario",
+    "severityChanged": "Severidad actualizada",
+    "severityFailed": "No se pudo cambiar la severidad"
   },
   "report": {
     "dialogTitle": "Reportar bug",
     "fromResult": "Desde el resultado {{result}}",
     "logHint": "El extracto de log se adjunta automáticamente a la descripción."
+  },
+  "list": {
+    "updated": "actualizado"
   }
 }

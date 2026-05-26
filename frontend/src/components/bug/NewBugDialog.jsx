@@ -11,12 +11,12 @@ import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { Textarea } from "../ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { Badge } from "../ui/badge"
 import { EnvironmentPicker } from "../environment/EnvironmentPicker"
 import { CustomFieldsForm } from "../customField/CustomFieldInput"
+import { SEVERITIES, SEVERITY_VARIANT } from "../../lib/bugConfig"
 
 const VERSION_NONE = "__none__"
-
-const SEVERITIES = ["critical", "high", "medium", "low"]
 
 export function NewBugDialog({ projectId, trigger, prefill = {}, onCreated }) {
   const { t } = useTranslation("bugs")
@@ -91,10 +91,16 @@ export function NewBugDialog({ projectId, trigger, prefill = {}, onCreated }) {
             <div className="space-y-1">
               <Label>{t("fields.severity")}</Label>
               <Select value={severity} onValueChange={setSeverity}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <Badge variant={SEVERITY_VARIANT[severity] ?? "secondary"}>
+                    {t(`severity.${severity}`)}
+                  </Badge>
+                </SelectTrigger>
                 <SelectContent>
                   {SEVERITIES.map(value => (
-                    <SelectItem key={value} value={value}>{t(`severity.${value}`)}</SelectItem>
+                    <SelectItem key={value} value={value}>
+                      <Badge variant={SEVERITY_VARIANT[value] ?? "secondary"}>{t(`severity.${value}`)}</Badge>
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>

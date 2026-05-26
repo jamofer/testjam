@@ -77,10 +77,12 @@ function ContextSection({ section }) {
 function ContextRow({ row }) {
   const Icon = row.icon
   return (
-    <div className="flex items-start gap-2 text-xs">
-      {Icon && <Icon size={11} className="text-gray-400 dark:text-gray-500 mt-0.5 shrink-0" />}
-      <span className="text-gray-500 dark:text-gray-400 w-20 shrink-0">{row.label}</span>
-      <span className="flex-1 min-w-0 text-gray-800 dark:text-gray-100 break-words">{row.value}</span>
+    <div className="flex items-center gap-2 text-xs">
+      <div className="w-3 shrink-0 flex items-center justify-center">
+        {Icon && <Icon size={11} className="text-gray-400 dark:text-gray-500" />}
+      </div>
+      <div className="text-gray-500 dark:text-gray-400 w-20 shrink-0">{row.label}</div>
+      <div className="flex-1 min-w-0 text-gray-800 dark:text-gray-100 break-words">{row.value}</div>
     </div>
   )
 }

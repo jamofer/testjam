@@ -36,7 +36,11 @@
     "versionLabel": "Filter by version",
     "anyStatus": "Any status",
     "anySeverity": "Any severity",
-    "anyVersion": "Any version"
+    "anyVersion": "Any version",
+    "sortLabel": "Sort by",
+    "sortNewest": "Newest first",
+    "sortSeverity": "Severity",
+    "sortCreated": "Creation date"
   },
   "severity": {
     "critical": "Critical",
@@ -66,7 +70,8 @@
     "fixedInVersionNone": "Not set",
     "affectedVersion": "Affected version",
     "affectedVersionPlaceholder": "Pick a version…",
-    "affectedVersionNone": "Not set"
+    "affectedVersionNone": "Not set",
+    "notSet": "Not set"
   },
   "actions": {
     "save": "Save",
@@ -75,7 +80,8 @@
     "changeStatus": "Change status",
     "addComment": "Add comment",
     "edit": "Edit",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "editTitle": "Click to edit title"
   },
   "tabs": {
     "description": "Description",
@@ -188,7 +194,8 @@
     "version": "Version",
     "externalTicket": "External ticket",
     "tags": "Tags",
-    "noTags": "No tags"
+    "noTags": "No tags",
+    "affectedVersion": "Affected version"
   },
   "links": {
     "add": "Add link",
@@ -227,11 +234,16 @@
     "updateFailed": "Could not save changes",
     "commentFailed": "Could not add comment",
     "commentEditFailed": "Could not save comment",
-    "commentDeleteFailed": "Could not delete comment"
+    "commentDeleteFailed": "Could not delete comment",
+    "severityChanged": "Severity updated",
+    "severityFailed": "Could not change severity"
   },
   "report": {
     "dialogTitle": "Report bug",
     "fromResult": "From result {{result}}",
     "logHint": "Log excerpt attached to the description automatically."
+  },
+  "list": {
+    "updated": "updated"
   }
 }
