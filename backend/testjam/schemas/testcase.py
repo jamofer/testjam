@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field, computed_field, field_validator
 from testjam.core.config import settings
 from testjam.schemas.user import UserOut
 
@@ -62,6 +62,11 @@ class TestCaseBase(BaseModel):
     setup: str | None = None
     teardown: str | None = None
     external_id: str | None = None
+
+    @field_validator("tags", mode="before")
+    @classmethod
+    def coerce_null_tags(cls, value):
+        return value if value is not None else []
 
 
 class TestCaseCreate(TestCaseBase):
@@ -130,6 +135,11 @@ class TestSuiteBase(BaseModel):
     description: str | None = None
     tags: list[str] = []
     parent_suite_id: int | None = None
+
+    @field_validator("tags", mode="before")
+    @classmethod
+    def coerce_null_tags(cls, value):
+        return value if value is not None else []
 
 
 class TestSuiteCreate(TestSuiteBase):

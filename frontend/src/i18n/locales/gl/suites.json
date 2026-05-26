@@ -100,7 +100,22 @@
     "cancel": "Cancelar",
     "addCaseTitle": "Título do caso…",
     "addCaseButton": "Engadir",
-    "caseCreated": "Caso creado"
+    "caseCreated": "Caso creado",
+    "copyButton": "Copy",
+    "bulkCopyTitle": "Copy {{count}} test cases",
+    "bulkCopyExisting": "Existing suite",
+    "bulkCopyNew": "New suite",
+    "bulkCopySearchSuites": "Search suites…",
+    "bulkCopyNewName": "New suite name",
+    "bulkCopySuccess": "{{count}} cases copied",
+    "bulkCopyFailed": "Could not copy cases",
+    "currentSuite": "current",
+    "noSuitesFound": "No suites found",
+    "bulkCopyParent": "Parent suite (optional)",
+    "bulkCopyRoot": "(root level)",
+    "caseDeleteTitle": "Delete test case?",
+    "caseDeleteDescription": "This will permanently delete \"{{name}}\" and all its steps.",
+    "caseDeleteFailed": "Could not delete test case"
   },
   "picker": {
     "allExcluded": "Todos os casos xa están engadidos"

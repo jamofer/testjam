@@ -41,6 +41,15 @@ export const casesApi = {
   update: (id, data) => api.put(`/cases/${id}`, data).then(r => r.data),
   delete: (id) => api.delete(`/cases/${id}`),
   bulkDelete: (ids) => api.post('/cases/bulk-delete', { ids }).then(r => r.data),
+  copy: (id, targetSuiteId, name) =>
+    api.post(`/cases/${id}/copy`, { target_suite_id: targetSuiteId, name: name || undefined }).then(r => r.data),
+  bulkCopy: (caseIds, { targetSuiteId, newSuiteName, parentSuiteId } = {}) =>
+    api.post('/cases/bulk-copy', {
+      case_ids: caseIds,
+      target_suite_id: targetSuiteId || undefined,
+      new_suite_name: newSuiteName || undefined,
+      parent_suite_id: parentSuiteId || undefined,
+    }).then(r => r.data),
 
   listSteps: (caseId) => api.get(`/cases/${caseId}/steps`).then(r => r.data),
   createStep: (caseId, data) => api.post(`/cases/${caseId}/steps`, data).then(r => r.data),

@@ -43,6 +43,9 @@ class CasesUIMixin:
     def delete_case_ui(self, name: str) -> None:
         BuiltIn().run_keyword("Click", _case_delete(name))
         BuiltIn().run_keyword(
+            "Click", 'div[role="dialog"] button:has-text("Delete")',
+        )
+        BuiltIn().run_keyword(
             "Wait For Elements State", _case_link(name), "hidden", "timeout=5s",
         )
 

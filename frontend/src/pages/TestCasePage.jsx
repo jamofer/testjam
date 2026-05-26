@@ -1,8 +1,8 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useParams, Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { Plus, History, User as UserIcon, Clock } from "lucide-react"
-import { useCase, useUpdateCase, useReorderSteps, useSuite } from "../hooks/useSuites"
+import { Copy, Plus, History, User as UserIcon, Clock } from "lucide-react"
+import { useCase, useUpdateCase, useReorderSteps, useSuite, useSuitesAll, useCopyCase, sortSuitesHierarchically } from "../hooks/useSuites"
 import { useProject } from "../hooks/useProjects"
 import { casesApi } from "../api/testcases"
 import { useQueryClient } from "@tanstack/react-query"
@@ -11,6 +11,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { MdEditor, MdViewer } from "../components/MdEditor"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs"
 import { PageHeader, PageBody } from "../components/ui/page-header"
 import { CaseRevisions } from "../components/case/CaseRevisions"
@@ -40,6 +41,9 @@ export function TestCasePage() {
   const [description, setDescription] = useState("")
   const [preconditions, setPreconditions] = useState("")
   const [newStepContent, setNewStepContent] = useState("")
+  const [copyDialogOpen, setCopyDialogOpen] = useState(false)
+  const { data: allSuites = [] } = useSuitesAll(suite?.project_id)
+  const copyCase = useCopyCase()
 
   if (isLoading) return <p className="text-gray-500 dark:text-gray-400">{t("loading")}</p>
   if (!tc) return null
@@ -148,6 +152,7 @@ export function TestCasePage() {
       <PageHeader crumbs={[
         { label: t("nav:global.projects"), to: "/projects" },
         { label: project?.name ?? "…", to: `/projects/${suite?.project_id}` },
+        { label: t("nav:project.cases"), to: `/projects/${suite?.project_id}/cases` },
         { label: tc?.name },
       ]}>
         <div className="max-w-2xl xl:max-w-4xl 2xl:max-w-5xl">
@@ -168,7 +173,8 @@ export function TestCasePage() {
               </div>
             </div>
           ) : (
-            <div className="cursor-pointer group" onClick={startEditMeta}>
+            <div className="flex items-start justify-between gap-2">
+            <div className="cursor-pointer group flex-1 min-w-0" onClick={startEditMeta}>
               <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 group-hover:text-gray-600">{tc.name}</h1>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-400 dark:text-gray-500">
                 {tc.created_by && (
@@ -199,6 +205,10 @@ export function TestCasePage() {
               {!tc.preconditions && !tc.description && (
                 <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">{t("clickToAdd")}</p>
               )}
+            </div>
+            <Button size="sm" variant="outline" onClick={() => setCopyDialogOpen(true)} title={t("copy.button")}>
+              <Copy size={14} />
+            </Button>
             </div>
           )}
         </div>
@@ -250,6 +260,101 @@ export function TestCasePage() {
           <ContextPanel sections={contextSections} />
         </div>
       </PageBody>
+
+      <CopyCaseDialog
+        open={copyDialogOpen}
+        onOpenChange={setCopyDialogOpen}
+        caseId={Number(id)}
+        caseName={tc.name}
+        currentSuiteId={tc.suite_id}
+        suites={allSuites}
+        copyCase={copyCase}
+      />
     </>
+  )
+}
+
+function CopyCaseDialog({ open, onOpenChange, caseId, caseName, currentSuiteId, suites, copyCase }) {
+  const { t } = useTranslation("cases")
+  const [targetSuiteId, setTargetSuiteId] = useState(currentSuiteId)
+  const [search, setSearch] = useState("")
+  const isSameSuite = targetSuiteId === currentSuiteId
+
+  const depthMap = useMemo(() => {
+    const map = {}
+    const parentMap = {}
+    for (const s of suites) parentMap[s.id] = s.parent_suite_id ?? null
+    const depth = (id) => {
+      if (map[id] !== undefined) return map[id]
+      const parent = parentMap[id]
+      map[id] = parent === null ? 0 : depth(parent) + 1
+      return map[id]
+    }
+    for (const s of suites) depth(s.id)
+    return map
+  }, [suites])
+
+  const sorted = useMemo(() => sortSuitesHierarchically(suites), [suites])
+  const filtered = sorted.filter(s =>
+    s.name.toLowerCase().includes(search.toLowerCase()),
+  )
+
+  const handleCopy = async () => {
+    try {
+      await copyCase.mutateAsync({ caseId, targetSuiteId })
+      toast.success(t("copy.success"))
+      onOpenChange(false)
+    } catch (error) {
+      toast.error(error?.response?.data?.detail ?? t("copy.failed"))
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("copy.title")}</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          {t("copy.description", { name: caseName })}
+        </p>
+        <div className="space-y-2">
+          <Input
+            placeholder={t("copy.searchSuites")}
+            value={search}
+            onChange={event => setSearch(event.target.value)}
+            autoFocus
+          />
+          <div className="max-h-48 overflow-y-auto rounded border border-gray-200 dark:border-gray-700">
+            {filtered.map(s => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setTargetSuiteId(s.id)}
+                className={`w-full text-left py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 ${
+                  s.id === targetSuiteId ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300 font-medium" : "text-gray-700 dark:text-gray-200"
+                }`}
+                style={{ paddingLeft: `${12 + (depthMap[s.id] ?? 0) * 16}px` }}
+              >
+                {s.name}
+                {s.id === currentSuiteId && <span className="ml-1 text-xs text-gray-400">({t("copy.currentSuite")})</span>}
+              </button>
+            ))}
+            {filtered.length === 0 && (
+              <p className="px-3 py-2 text-xs text-gray-400">{t("copy.noSuites")}</p>
+            )}
+          </div>
+          {isSameSuite && (
+            <p className="text-xs text-gray-500">{t("copy.sameSuiteHint")}</p>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>{t("cancel")}</Button>
+          <Button onClick={handleCopy} disabled={copyCase.isPending}>
+            <Copy size={14} /> {t("copy.button")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

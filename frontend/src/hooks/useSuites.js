@@ -165,6 +165,29 @@ export function useBulkDeleteCases(suiteId) {
   })
 }
 
+export function useCopyCase() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ caseId, targetSuiteId, name }) => casesApi.copy(caseId, targetSuiteId, name),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: ["cases-list", result.suite_id] })
+    },
+  })
+}
+
+export function useBulkCopyCases() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ caseIds, targetSuiteId, newSuiteName, parentSuiteId }) =>
+      casesApi.bulkCopy(caseIds, { targetSuiteId, newSuiteName, parentSuiteId }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["suites-list"] })
+      qc.invalidateQueries({ queryKey: ["suites-list-all"] })
+      qc.invalidateQueries({ queryKey: ["cases-list"] })
+    },
+  })
+}
+
 export function useCaseRevisions(caseId) {
   return useQuery({
     queryKey: ["case-revisions", caseId],
