@@ -73,6 +73,9 @@ class SuitesUIMixin:
     def delete_suite_ui(self, name: str) -> None:
         BuiltIn().run_keyword("Click", _suite_delete(name))
         BuiltIn().run_keyword(
+            "Click", 'div[role="dialog"] button:has-text("Delete")',
+        )
+        BuiltIn().run_keyword(
             "Wait For Elements State", _suite_header(name), "hidden", "timeout=5s",
         )
 
