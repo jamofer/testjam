@@ -24,7 +24,11 @@
     "version": "Versión",
     "assignee": "Asignado",
     "tag": "Etiqueta",
-    "any": "Calquera"
+    "any": "Calquera",
+    "sortLabel": "Sort by",
+    "sortNewest": "Newest first",
+    "sortSeverity": "Severity",
+    "sortCreated": "Creation date"
   },
   "severity": {
     "critical": "Crítica",
@@ -48,7 +52,8 @@
     "version": "Versión",
     "environment": "Contorno",
     "assignee": "Asignado",
-    "externalUrl": "URL do tícket externo"
+    "externalUrl": "URL do tícket externo",
+    "notSet": "Not set"
   },
   "actions": {
     "save": "Gardar",
@@ -57,7 +62,8 @@
     "changeStatus": "Cambiar estado",
     "addComment": "Engadir comentario",
     "edit": "Editar",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "editTitle": "Click to edit title"
   },
   "tabs": {
     "description": "Descrición",
@@ -166,7 +172,8 @@
     "version": "Versión",
     "externalTicket": "Tícket externo",
     "tags": "Etiquetas",
-    "noTags": "Sen etiquetas"
+    "noTags": "Sen etiquetas",
+    "affectedVersion": "Affected version"
   },
   "links": {
     "add": "Engadir vínculo",
@@ -205,11 +212,16 @@
     "updateFailed": "Non se puideron gardar os cambios",
     "commentFailed": "Non se puido engadir o comentario",
     "commentEditFailed": "Non se puido gardar o comentario",
-    "commentDeleteFailed": "Non se puido eliminar o comentario"
+    "commentDeleteFailed": "Non se puido eliminar o comentario",
+    "severityChanged": "Severity updated",
+    "severityFailed": "Could not change severity"
   },
   "report": {
     "dialogTitle": "Reportar bug",
     "fromResult": "Dende o resultado {{result}}",
     "logHint": "O extracto do log adxúntase automaticamente á descrición."
+  },
+  "list": {
+    "updated": "updated"
   }
 }

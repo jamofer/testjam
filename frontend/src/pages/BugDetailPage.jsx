@@ -59,7 +59,7 @@ import { BugTimeline } from "../components/bug/BugTimeline"
 import { BugExternalLinksPanel } from "../components/integration/BugExternalLinksPanel"
 import { CustomFieldsEditableBody } from "../components/customField/CustomFieldInput"
 import { MdEditor, MdViewer } from "../components/MdEditor"
-import { SEVERITY_VARIANT, STATUS_VARIANT, STATUSES } from "../lib/bugConfig"
+import { SEVERITIES, SEVERITY_VARIANT, STATUS_VARIANT, STATUSES } from "../lib/bugConfig"
 
 export function BugDetailPage() {
   const { t } = useTranslation(["bugs", "nav", "customFields"])
@@ -124,6 +124,8 @@ export function BugDetailPage() {
   const [editingBody, setEditingBody] = useState("")
   const [editingDescription, setEditingDescription] = useState(false)
   const [descriptionDraft, setDescriptionDraft] = useState("")
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [titleDraft, setTitleDraft] = useState("")
   const [deleteBugOpen, setDeleteBugOpen] = useState(false)
   const [commentPendingDelete, setCommentPendingDelete] = useState(null)
   const statusLabels = useMemo(
@@ -132,10 +134,23 @@ export function BugDetailPage() {
   )
   const historyCount = activity.length + comments.length
 
-  const fixedInVersionPicker = bug ? (
-    <FixedInVersionPicker
-      bug={bug}
+  const affectedVersionPicker = bug ? (
+    <VersionPicker
+      value={bug.version_id}
       versions={versions}
+      placeholder={t("fields.affectedVersionPlaceholder")}
+      onChange={(versionId) =>
+        updateBug.mutateAsync({ id: bug.id, data: { version_id: versionId } })
+      }
+      saving={updateBug.isPending}
+    />
+  ) : null
+
+  const fixedInVersionPicker = bug ? (
+    <VersionPicker
+      value={bug.fixed_in_version_id}
+      versions={versions}
+      placeholder={t("fields.fixedInVersionPlaceholder")}
       onChange={(versionId) =>
         updateBug.mutateAsync({ id: bug.id, data: { fixed_in_version_id: versionId } })
       }
@@ -158,14 +173,37 @@ export function BugDetailPage() {
     ),
   } : null
 
+  const handleStatusChange = async (status) => {
+    if (!bug || status === bug.status) return
+    try {
+      await changeStatus.mutateAsync({ id: bug.id, status })
+      toast.success(t("toast.statusChanged"))
+    } catch (error) {
+      toast.error(error?.response?.data?.detail ?? t("toast.statusFailed"))
+    }
+  }
+
+  const handleSeverityChange = async (severity) => {
+    if (!bug || severity === bug.severity) return
+    try {
+      await updateBug.mutateAsync({ id: bug.id, data: { severity } })
+      toast.success(t("toast.severityChanged"))
+    } catch (error) {
+      toast.error(error?.response?.data?.detail ?? t("toast.severityFailed"))
+    }
+  }
+
   const contextSections = useMemo(() => {
     if (!bug) return []
     return buildContextSections({
       bug,
       links,
       linkContext,
+      affectedVersionPicker,
       fixedInVersionPicker,
       customFieldsSection,
+      onSeverityChange: handleSeverityChange,
+      onStatusChange: handleStatusChange,
       onDeleteLink: canWrite
         ? (linkId) => removeLink.mutateAsync({ bugId: bug.id, linkId })
         : null,
@@ -185,7 +223,7 @@ export function BugDetailPage() {
       ) : null,
       t,
     })
-  }, [bug, links, linkContext, removeLink, fixedInVersionPicker, customFieldsSection, canWrite, t])
+  }, [bug, links, linkContext, removeLink, affectedVersionPicker, fixedInVersionPicker, customFieldsSection, canWrite, t])
 
   if (isLoading || !bug) {
     return (
@@ -198,14 +236,19 @@ export function BugDetailPage() {
     )
   }
 
-  const handleStatusChange = async (status) => {
-    if (status === bug.status) return
-    try {
-      await changeStatus.mutateAsync({ id: bug.id, status })
-      toast.success(t("toast.statusChanged"))
-    } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("toast.statusFailed"))
+  const handleTitleSave = async () => {
+    const trimmed = titleDraft.trim()
+    if (!trimmed || trimmed === bug.title) {
+      setEditingTitle(false)
+      return
     }
+    try {
+      await updateBug.mutateAsync({ id: bug.id, data: { title: trimmed } })
+      toast.success(t("toast.updated"))
+    } catch (error) {
+      toast.error(error?.response?.data?.detail ?? t("toast.updateFailed"))
+    }
+    setEditingTitle(false)
   }
 
   const handleDelete = async () => {
@@ -296,16 +339,30 @@ export function BugDetailPage() {
           <div className="min-w-0">
             <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100 break-words md:truncate flex items-center gap-2 flex-wrap">
               <span className="font-mono text-gray-400 dark:text-gray-500">#{bug.number}</span>
-              {bug.title}
+              {editingTitle ? (
+                <input
+                  autoFocus
+                  className="flex-1 min-w-0 bg-transparent border-b border-primary-400 outline-none text-xl font-bold"
+                  value={titleDraft}
+                  onChange={event => setTitleDraft(event.target.value)}
+                  onBlur={handleTitleSave}
+                  onKeyDown={event => {
+                    if (event.key === "Enter") handleTitleSave()
+                    if (event.key === "Escape") setEditingTitle(false)
+                  }}
+                />
+              ) : (
+                <span
+                  className="cursor-pointer hover:underline decoration-gray-300 dark:decoration-gray-600 underline-offset-4"
+                  onClick={() => { setTitleDraft(bug.title); setEditingTitle(true) }}
+                  title={t("actions.editTitle")}
+                >
+                  {bug.title}
+                </span>
+              )}
               <LiveIndicator connected={live} />
             </h1>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-sm text-gray-500 dark:text-gray-400">
-              <Badge variant={SEVERITY_VARIANT[bug.severity] ?? "secondary"}>
-                {t(`severity.${bug.severity}`)}
-              </Badge>
-              <Badge variant={STATUS_VARIANT[bug.status] ?? "secondary"}>
-                {t(`statuses.${bug.status}`)}
-              </Badge>
               {bug.environment && (
                 <EnvironmentBadge projectId={bug.project_id} slug={bug.environment} />
               )}
@@ -346,18 +403,6 @@ export function BugDetailPage() {
               <span>{isWatching ? t("watch.watching") : t("watch.watch")}</span>
               <span className="ml-1 text-xs opacity-70">{bug.watcher_count ?? watchers.length}</span>
             </Button>
-            <Select value={bug.status} onValueChange={handleStatusChange}>
-              <SelectTrigger className="h-9 w-auto min-w-[10rem] text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUSES.map(option => (
-                  <SelectItem key={option} value={option}>
-                    {t(`statuses.${option}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
             {canDelete && (
               <Button
                 variant="ghost"
@@ -533,7 +578,7 @@ export function BugDetailPage() {
   )
 }
 
-function buildContextSections({ bug, links, linkContext, onDeleteLink, addLinkDialog, fixedInVersionPicker, customFieldsSection, t }) {
+function buildContextSections({ bug, links, linkContext, onDeleteLink, addLinkDialog, affectedVersionPicker, fixedInVersionPicker, customFieldsSection, onSeverityChange, onStatusChange, t }) {
   const sections = []
 
   sections.push({
@@ -542,17 +587,39 @@ function buildContextSections({ bug, links, linkContext, onDeleteLink, addLinkDi
       {
         label: t("context.severity"),
         value: (
-          <Badge variant={SEVERITY_VARIANT[bug.severity] ?? "secondary"}>
-            {t(`severity.${bug.severity}`)}
-          </Badge>
+          <Select value={bug.severity} onValueChange={onSeverityChange}>
+            <SelectTrigger className="h-7 text-xs w-full">
+              <Badge variant={SEVERITY_VARIANT[bug.severity] ?? "secondary"}>
+                {t(`severity.${bug.severity}`)}
+              </Badge>
+            </SelectTrigger>
+            <SelectContent>
+              {SEVERITIES.map(option => (
+                <SelectItem key={option} value={option}>
+                  <Badge variant={SEVERITY_VARIANT[option] ?? "secondary"}>{t(`severity.${option}`)}</Badge>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         ),
       },
       {
         label: t("context.status"),
         value: (
-          <Badge variant={STATUS_VARIANT[bug.status] ?? "secondary"}>
-            {t(`statuses.${bug.status}`)}
-          </Badge>
+          <Select value={bug.status} onValueChange={onStatusChange}>
+            <SelectTrigger className="h-7 text-xs w-full">
+              <Badge variant={STATUS_VARIANT[bug.status] ?? "secondary"}>
+                {t(`statuses.${bug.status}`)}
+              </Badge>
+            </SelectTrigger>
+            <SelectContent>
+              {STATUSES.map(option => (
+                <SelectItem key={option} value={option}>
+                  <Badge variant={STATUS_VARIANT[option] ?? "secondary"}>{t(`statuses.${option}`)}</Badge>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         ),
       },
       {
@@ -581,6 +648,11 @@ function buildContextSections({ bug, links, linkContext, onDeleteLink, addLinkDi
         value: bug.updated_at && bug.updated_at !== bug.created_at
           ? <DateLabel iso={bug.updated_at} mode="relative" />
           : null,
+      },
+      {
+        label: t("context.affectedVersion"),
+        icon: Tag,
+        value: affectedVersionPicker,
       },
       {
         label: t("context.fixedInVersion"),
@@ -903,23 +975,23 @@ function OtherLinkContent({ link, bug, t }) {
   return <span className="text-gray-500 dark:text-gray-400">{link.label}</span>
 }
 
-const FIXED_IN_NONE = "__none__"
+const VERSION_NONE = "__none__"
 
-function FixedInVersionPicker({ bug, versions, onChange, saving }) {
+function VersionPicker({ value: versionId, versions, placeholder, onChange, saving }) {
   const { t } = useTranslation("bugs")
-  const value = bug.fixed_in_version_id ? String(bug.fixed_in_version_id) : FIXED_IN_NONE
+  const selectValue = versionId ? String(versionId) : VERSION_NONE
   const handleChange = (next) => {
-    const nextId = next === FIXED_IN_NONE ? null : Number(next)
-    if (nextId === (bug.fixed_in_version_id ?? null)) return
+    const nextId = next === VERSION_NONE ? null : Number(next)
+    if (nextId === (versionId ?? null)) return
     onChange(nextId)
   }
   return (
-    <Select value={value} onValueChange={handleChange} disabled={saving}>
+    <Select value={selectValue} onValueChange={handleChange} disabled={saving}>
       <SelectTrigger className="h-7 text-xs w-full">
-        <SelectValue placeholder={t("fields.fixedInVersionPlaceholder")} />
+        <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={FIXED_IN_NONE}>{t("fields.fixedInVersionNone")}</SelectItem>
+        <SelectItem value={VERSION_NONE}>{t("fields.notSet")}</SelectItem>
         {versions.map(version => (
           <SelectItem key={version.id} value={String(version.id)}>{version.name}</SelectItem>
         ))}

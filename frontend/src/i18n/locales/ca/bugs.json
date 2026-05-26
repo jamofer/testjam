@@ -24,7 +24,11 @@
     "version": "Versió",
     "assignee": "Assignat",
     "tag": "Etiqueta",
-    "any": "Qualsevol"
+    "any": "Qualsevol",
+    "sortLabel": "Sort by",
+    "sortNewest": "Newest first",
+    "sortSeverity": "Severity",
+    "sortCreated": "Creation date"
   },
   "severity": {
     "critical": "Crítica",
@@ -48,7 +52,8 @@
     "version": "Versió",
     "environment": "Entorn",
     "assignee": "Assignat",
-    "externalUrl": "URL del tiquet extern"
+    "externalUrl": "URL del tiquet extern",
+    "notSet": "Not set"
   },
   "actions": {
     "save": "Desa",
@@ -57,7 +62,8 @@
     "changeStatus": "Canvia estat",
     "addComment": "Afegeix comentari",
     "edit": "Edita",
-    "cancel": "Cancel·la"
+    "cancel": "Cancel·la",
+    "editTitle": "Click to edit title"
   },
   "tabs": {
     "description": "Descripció",
@@ -166,7 +172,8 @@
     "version": "Versió",
     "externalTicket": "Tiquet extern",
     "tags": "Etiquetes",
-    "noTags": "Sense etiquetes"
+    "noTags": "Sense etiquetes",
+    "affectedVersion": "Affected version"
   },
   "links": {
     "add": "Afegeix vincle",
@@ -205,11 +212,16 @@
     "updateFailed": "No s'han pogut desar els canvis",
     "commentFailed": "No s'ha pogut afegir el comentari",
     "commentEditFailed": "No s'ha pogut desar el comentari",
-    "commentDeleteFailed": "No s'ha pogut eliminar el comentari"
+    "commentDeleteFailed": "No s'ha pogut eliminar el comentari",
+    "severityChanged": "Severity updated",
+    "severityFailed": "Could not change severity"
   },
   "report": {
     "dialogTitle": "Reporta bug",
     "fromResult": "Des del resultat {{result}}",
     "logHint": "L'extracte del log s'adjunta automàticament a la descripció."
+  },
+  "list": {
+    "updated": "updated"
   }
 }

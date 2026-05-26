@@ -30,5 +30,6 @@
   "revoked": "Enllaç revocat",
   "revokeFailed": "No s'ha pogut revocar l'enllaç",
   "created": "Enllaç públic generat",
-  "createFailed": "No s'ha pogut crear l'enllaç"
+  "createFailed": "No s'ha pogut crear l'enllaç",
+  "expiredDateError": "Expiration date must be in the future"
 }

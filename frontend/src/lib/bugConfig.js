@@ -1,3 +1,5 @@
+export const SEVERITIES = ["critical", "high", "medium", "low"]
+
 export const SEVERITY_VARIANT = {
   critical: "destructive",
   high: "warning",

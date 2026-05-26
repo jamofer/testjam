@@ -47,6 +47,7 @@ export function BugsPage() {
   const statusFilter = searchParams.get("status") || ANY
   const severityFilter = searchParams.get("severity") || ANY
   const versionFilter = searchParams.get("version_id") || ANY
+  const sortBy = searchParams.get("sort_by") || "number"
   const cfFieldKey = searchParams.get("cf_key") || ANY
   const cfFieldValue = searchParams.get("cf_value") || ANY
   const urlSearch = searchParams.get("search") || ""
@@ -67,6 +68,7 @@ export function BugsPage() {
   const setStatusFilter = (value) => setSingleParam("status", value)
   const setSeverityFilter = (value) => setSingleParam("severity", value)
   const setVersionFilter = (value) => setSingleParam("version_id", value)
+  const setSortBy = (value) => setSingleParam("sort_by", value === "number" ? null : value)
   const setCfFieldKey = (value) => {
     replaceParam(next => {
       if (!value || value === ANY) { next.delete("cf_key"); next.delete("cf_value") }
@@ -100,8 +102,9 @@ export function BugsPage() {
     }
     const query = debouncedSearch.trim()
     if (query) params.search = query
+    if (sortBy !== "number") params.sort_by = sortBy
     return params
-  }, [statusFilter, severityFilter, versionFilter, cfFieldKey, cfFieldValue, debouncedSearch])
+  }, [statusFilter, severityFilter, versionFilter, cfFieldKey, cfFieldValue, debouncedSearch, sortBy])
 
   const { data: bugs = [], isLoading } = useBugs(projectId, queryParams)
   const deleteBug = useDeleteBug(projectId)
@@ -239,6 +242,16 @@ export function BugsPage() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="h-9 w-44" aria-label={t("filters.sortLabel")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="number">{t("filters.sortNewest")}</SelectItem>
+                <SelectItem value="severity">{t("filters.sortSeverity")}</SelectItem>
+                <SelectItem value="created_at">{t("filters.sortCreated")}</SelectItem>
+              </SelectContent>
+            </Select>
             {customFieldDefs.length > 0 && (
               <CustomFieldFilter
                 definitions={customFieldDefs}
@@ -295,7 +308,13 @@ export function BugsPage() {
                           </Badge>
                         )}
                         {bug.assigned_to && <span>@{bug.assigned_to.username}</span>}
-                        <DateLabel value={bug.created_at} />
+                        {bug.created_by && <span>{bug.created_by.username}</span>}
+                        <DateLabel iso={bug.created_at} />
+                        {bug.updated_at && bug.updated_at !== bug.created_at && (
+                          <span className="italic">
+                            {t("list.updated")} <DateLabel iso={bug.updated_at} mode="relative" />
+                          </span>
+                        )}
                       </div>
                     </div>
                   </Link>

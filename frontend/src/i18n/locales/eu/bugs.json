@@ -24,7 +24,11 @@
     "version": "Bertsioa",
     "assignee": "Esleitua",
     "tag": "Etiketa",
-    "any": "Edozein"
+    "any": "Edozein",
+    "sortLabel": "Sort by",
+    "sortNewest": "Newest first",
+    "sortSeverity": "Severity",
+    "sortCreated": "Creation date"
   },
   "severity": {
     "critical": "Kritikoa",
@@ -48,7 +52,8 @@
     "version": "Bertsioa",
     "environment": "Ingurunea",
     "assignee": "Esleitua",
-    "externalUrl": "Kanpoko txartelaren URLa"
+    "externalUrl": "Kanpoko txartelaren URLa",
+    "notSet": "Not set"
   },
   "actions": {
     "save": "Gorde",
@@ -57,7 +62,8 @@
     "changeStatus": "Aldatu egoera",
     "addComment": "Gehitu iruzkina",
     "edit": "Editatu",
-    "cancel": "Utzi"
+    "cancel": "Utzi",
+    "editTitle": "Click to edit title"
   },
   "tabs": {
     "description": "Deskribapena",
@@ -166,7 +172,8 @@
     "version": "Bertsioa",
     "externalTicket": "Kanpoko txartela",
     "tags": "Etiketak",
-    "noTags": "Etiketarik ez"
+    "noTags": "Etiketarik ez",
+    "affectedVersion": "Affected version"
   },
   "links": {
     "add": "Gehitu lotura",
@@ -205,11 +212,16 @@
     "updateFailed": "Ezin izan dira aldaketak gorde",
     "commentFailed": "Ezin izan da iruzkina gehitu",
     "commentEditFailed": "Ezin izan da iruzkina gorde",
-    "commentDeleteFailed": "Ezin izan da iruzkina ezabatu"
+    "commentDeleteFailed": "Ezin izan da iruzkina ezabatu",
+    "severityChanged": "Severity updated",
+    "severityFailed": "Could not change severity"
   },
   "report": {
     "dialogTitle": "Eman akatsaren berri",
     "fromResult": "Emaitzatik {{result}}",
     "logHint": "Logaren laburpena automatikoki gehitzen zaio deskribapenari."
+  },
+  "list": {
+    "updated": "updated"
   }
 }

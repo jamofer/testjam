@@ -30,5 +30,6 @@
   "revoked": "Ligazón revogada",
   "revokeFailed": "Non se puido revogar a ligazón",
   "created": "Ligazón pública xerada",
-  "createFailed": "Non se puido crear a ligazón"
+  "createFailed": "Non se puido crear a ligazón",
+  "expiredDateError": "Expiration date must be in the future"
 }

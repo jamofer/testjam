@@ -30,5 +30,6 @@
   "revoked": "Esteka baliogabetuta",
   "revokeFailed": "Ezin izan da esteka baliogabetu",
   "created": "Esteka publikoa sortu da",
-  "createFailed": "Ezin izan da esteka sortu"
+  "createFailed": "Ezin izan da esteka sortu",
+  "expiredDateError": "Expiration date must be in the future"
 }

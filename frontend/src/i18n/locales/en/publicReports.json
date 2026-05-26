@@ -30,5 +30,6 @@
   "revoked": "Link revoked",
   "revokeFailed": "Could not revoke link",
   "created": "Public link generated",
-  "createFailed": "Could not create link"
+  "createFailed": "Could not create link",
+  "expiredDateError": "Expiration date must be in the future"
 }

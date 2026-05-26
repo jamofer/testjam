@@ -30,5 +30,6 @@
   "revoked": "Enlace revocado",
   "revokeFailed": "No se pudo revocar el enlace",
   "created": "Enlace público generado",
-  "createFailed": "No se pudo crear el enlace"
+  "createFailed": "No se pudo crear el enlace",
+  "expiredDateError": "La fecha de expiración debe ser futura"
 }

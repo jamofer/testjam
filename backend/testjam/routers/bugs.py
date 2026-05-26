@@ -19,7 +19,7 @@ import shutil
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
@@ -176,6 +176,17 @@ def _latest_active_version_id(db: Session, project_id: int) -> int | None:
     return row[0] if row else None
 
 
+SEVERITY_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+
+
+def _bug_sort_clause(sort_by: str | None):
+    if sort_by == "severity":
+        return case(SEVERITY_ORDER, value=Bug.severity, else_=99)
+    if sort_by == "created_at":
+        return Bug.created_at.desc()
+    return Bug.number.desc()
+
+
 @projects_router.get("/{id}/bugs", response_model=list[BugOut])
 def list_bugs(
     id: int,
@@ -188,6 +199,7 @@ def list_bugs(
     search: str | None = None,
     cf_key: str | None = None,
     cf_value: str | None = None,
+    sort_by: str | None = None,
     skip: int = 0,
     limit: int = 50,
     db: Session = Depends(get_db),
@@ -218,7 +230,8 @@ def list_bugs(
     if search:
         like = f"%{search.lower()}%"
         query = query.filter(func.lower(Bug.title).like(like))
-    rows = query.order_by(Bug.number.desc()).all()
+    order = _bug_sort_clause(sort_by)
+    rows = query.order_by(order).all()
     if tag:
         rows = [bug for bug in rows if bug.tags and tag in bug.tags]
     if cf_key:
