@@ -52,7 +52,7 @@ Plan suites, drive manual runs with keyboard shortcuts, stream CI results live, 
 
 ---
 
-## Deploy
+## Quick start
 
 ```bash
 cp .env.example .env
@@ -63,58 +63,33 @@ docker compose exec api python scripts/create_admin.py \
   --username admin --email admin@example.com --password secret
 ```
 
-Three containers: `db` (Postgres 18), `api` (FastAPI + uvicorn workers), `web` (nginx serving the built frontend + proxying `/api/` to the API).
+Open `http://localhost:8080` and sign in. API docs at `http://localhost:8080/api/docs`.
 
-Only one host port is exposed: `APP_PORT` (default `8080`). Point your external reverse proxy / TLS terminator (nginx, Caddy, Cloudflare, …) at it.
+Three containers: `db` (Postgres 18), `api` (FastAPI + uvicorn), `web` (nginx + built frontend). Only `APP_PORT` (default `8080`) is exposed to the host.
 
-### Required env vars
+---
 
-| Variable             | Purpose                                                |
-|----------------------|--------------------------------------------------------|
-| `POSTGRES_PASSWORD`  | Password for the bundled Postgres instance.            |
-| `SECRET_KEY`         | JWT signing secret. Generate with `openssl rand -hex 32`. |
-| `APP_PORT`           | Optional. Host port mapped to the web container (default `8080`). |
+## Documentation
 
-### Upgrade
+Full user manual, SDK reference, CLI guide, and architecture overview live in **[`docs/`](docs/README.md)**.
 
-```bash
-git pull
-docker compose pull        # for any base images that moved
-docker compose up -d --build
-```
-
-Alembic migrations run automatically on container start.
-
-### Backup & restore
-
-A full backup contains the database dump and the uploads volume.
-
-```bash
-# Periodic backup. Honors BACKUP_DIR (default ./backups) and RETENTION_DAYS (default 14).
-make backup
-```
-
-`scripts/backup.sh` writes a timestamped `testjam-<UTC>.tar.gz` and prunes archives older than `RETENTION_DAYS`. Schedule from cron / systemd timers as needed.
-
-You can also generate or restore a backup from the running app (admin only):
-
-- **Download backup**: Settings → "Download backup" produces a ZIP with `manifest.json`, `dump.sql`, and the `uploads/` tree. Same archive is reachable from any host via `testjam backup --out PATH` (admin token required).
-- **Restore from backup**: Settings → "Restore from backup". The form requires uploading the ZIP and typing `REPLACE ALL DATA` to confirm. Restore is destructive — it drops existing tables, replays the dump, and replaces the uploads tree. The backup's `manifest.json` `dialect` must match the running server.
-
-Per-project export ships from the project page (**Export** button) and downloads a `project-<slug>-<UTC>.zip` containing `project.json` plus binary case/result/execution attachments — useful for moving a single project between instances or archiving long-term.
-
-Schema migrations on restore: run `alembic upgrade head` after restoring an older backup. If the dump was produced against a newer schema, downgrade with `alembic downgrade <rev>` first.
+| Section | What you'll find |
+|---------|------------------|
+| [Getting started](docs/manual/getting-started.md) | Deploy, first admin, sign in |
+| [User manual](docs/manual/README.md) | All features end-to-end |
+| [Python SDK](docs/manual/sdk.md) | `testjam-client` setup, examples, auth |
+| [`testjam` CLI](docs/manual/cli.md) | Shell commands, profiles, REPL |
+| [Robot listener](docs/manual/robot-listener.md) | Stream CI results live |
+| [Architecture](docs/architecture.md) | Backend + frontend structure for contributors and LLMs |
+| [Members & tokens](docs/manual/members-and-tokens.md) | Roles, permissions, API keys |
+| [Administration](docs/manual/admin.md) | Backups, restore, instance settings |
 
 ---
 
 ## Development
 
-Dev uses a separate compose file (`docker-compose-dev.yml`) with bind-mounted source, hot reload, Mailpit on `:8025`, and an `e2e` profile.
-
 ```bash
-# one-time per shell
 export COMPOSE_FILE=docker-compose-dev.yml
-
 docker compose up
 docker compose exec api python scripts/create_admin.py \
   --username admin --email admin@example.com --password secret
@@ -122,59 +97,14 @@ docker compose exec api python scripts/create_admin.py \
 
 UI on http://localhost:5173 · API on http://localhost:8000/api/docs
 
-### Reset the database
-
 ```bash
-docker compose down -v && docker compose up
-```
-
-### Tests
-
-```bash
-make test                # backend + frontend + e2e
+make test                # all suites
 make test-api            # pytest (backend)
 make test-front          # vitest (frontend)
-make test-client         # pytest (testjam-client SDK)
-make test-listener       # pytest (Robot Framework listener)
-make test-orchestrator   # pytest (e2e orchestrator)
-make test-e2e            # orchestrator: 1 Robot execution per leaf suite (parallel)
+make test-e2e            # Robot Framework (parallel)
 ```
 
-`WORKERS=N` controls both the api uvicorn pool and the orchestrator process pool (default 4). Frontend `node_modules` lives in an anonymous Docker volume — always run `npm`/`vitest` inside the container (the Makefile does this for you), never on the host. The `e2e` service is gated by the `e2e` profile so it never runs on `docker compose up`.
-
-### Single file or test
-
-```bash
-make test-api          ARGS=tests/test_executions.py::test_create_manual_execution
-make test-front        ARGS=__tests__/PlanDetailPage
-make test-client       ARGS=tests/test_projects.py
-make test-orchestrator ARGS=orchestrator/tests/test_main.py
-make test-e2e          ARGS="-s 'Api Server.01 Auth'"         # single nested suite
-make test-e2e          ARGS="-s 'Api Server.*'"               # nested glob
-make test-e2e          ARGS="-t 'Successful*'"                # test-name glob
-```
-
----
-
-## Robot Framework listener (external CI)
-
-The Robot listener ships inside the `testjam-client` package as the optional `robot-listener` extra. It creates a fresh execution per run, discovers and syncs suites/cases/steps from the Robot tree, and streams pass/fail + per-step duration + per-line logs live.
-
-```bash
-pip install "./testjam-client[robot-listener]"
-TESTJAM_API_URL=http://your-host:8080/api/v1 \
-TESTJAM_USER=admin TESTJAM_PASS=secret \
-TESTJAM_PROJECT="My Project" \
-robot --listener testjam_client.listener.TestjamListener tests/
-```
-
-Auth: `TESTJAM_USER` + `TESTJAM_PASS` (admin login) or `TESTJAM_API_KEY`. See `testjam-client/README.md` for details. The legacy `testjam_listener.TestjamListener` import path still works as a compatibility shim.
-
-Robot tags of the form `cf:key=value` (or `cf:key=a,b,c` for multi-select) are parsed at runtime and persisted as `execution.custom_fields` — useful for tagging a run with the build phase, environment matrix, target browser, etc.
-
-## API tokens
-
-**Project → Members → API Tokens** issues a project-scoped token. Send `X-API-Key: <token>` on every request. Cross-project access returns 403.
+See [`docs/architecture.md`](docs/architecture.md) for project structure and conventions.
 
 ---
 
@@ -187,20 +117,3 @@ What changed was the arrival of LLMs capable of pair-programming at design speed
 ### On the name
 
 **Testjam** here refers strictly to this open-source repository — the self-hosted test management tool documented above. The name was chosen for this codebase in April 2019 and the project is unaffiliated with anything else that may happen to share it. If you arrived here looking for a different product that uses the same name, you're in the wrong place.
-
-## Model overview
-
-```
-Project
- ├── TestSuite (self-ref: parent_suite_id)
- │    └── TestCase
- │         └── TestStep
- ├── TestPlan ↔ TestCase  (M2M)
- └── TestExecution
-      └── TestResult
-           └── TestStepResult
-```
-
-`TestExecution.type`: `manual` | `automatic`.
-Execution status: `pending · in_progress · completed · aborted`.
-Result / step status: `not_run · passed · failed · blocked`.
