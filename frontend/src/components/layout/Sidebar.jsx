@@ -141,7 +141,7 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
         md:relative md:translate-x-0
         ${mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
     >
-      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
+      <div className="px-5 pt-4 pb-1 border-b border-gray-100 dark:border-gray-800 shrink-0">
         <div className="flex items-center justify-between gap-2">
           <Link to="/projects" className="inline-flex">
             <Logo size={26} />
@@ -250,7 +250,7 @@ function VersionTag({ onOpenAbout }) {
     <button
       type="button"
       onClick={onOpenAbout}
-      className="mt-1 block w-full text-left text-[10px] font-mono text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 truncate"
+      className="mt-0.5 block w-full text-left text-[10px] font-mono text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 truncate"
       title={label}
     >
       {label}
