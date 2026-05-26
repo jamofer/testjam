@@ -218,6 +218,130 @@ def unarchive_case(id: int, db: Session = Depends(get_db), current: User = Depen
     return case
 
 
+class CaseCopy(BaseModel):
+    target_suite_id: int
+    name: str | None = None
+
+
+class BulkCaseCopy(BaseModel):
+    case_ids: list[int]
+    target_suite_id: int | None = None
+    new_suite_name: str | None = None
+    parent_suite_id: int | None = None
+
+
+def _unique_case_name(db: Session, suite_id: int, base_name: str) -> str:
+    existing = {
+        row[0]
+        for row in db.query(TestCase.name).filter(TestCase.suite_id == suite_id).all()
+    }
+    if base_name not in existing:
+        return base_name
+    for i in range(1, 100):
+        candidate = f"{base_name} (copy {i})" if i > 1 else f"{base_name} (copy)"
+        if candidate not in existing:
+            return candidate
+    return f"{base_name} (copy)"
+
+
+def _clone_case(db: Session, source: TestCase, target_suite_id: int, name: str, current: User) -> TestCase:
+    max_order = db.query(TestCase).filter(TestCase.suite_id == target_suite_id).count()
+    copy = TestCase(
+        suite_id=target_suite_id,
+        name=name,
+        description=source.description,
+        preconditions=source.preconditions,
+        setup=source.setup,
+        teardown=source.teardown,
+        tags=list(source.tags) if source.tags else [],
+        custom_fields=dict(source.custom_fields) if source.custom_fields else {},
+        order=max_order + 1,
+        created_by_id=current.id,
+        updated_by_id=current.id,
+    )
+    db.add(copy)
+    db.flush()
+    for step in source.steps:
+        db.add(TestStep(
+            test_case_id=copy.id,
+            action=step.action,
+            expected_result=step.expected_result,
+            step_type=step.step_type,
+            order=step.order,
+        ))
+    write_revision(db, copy, current, "created")
+    return copy
+
+
+@cases_router.post("/{id}/copy", response_model=TestCaseOut, status_code=status.HTTP_201_CREATED)
+def copy_case(id: int, body: CaseCopy, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    source = db.get(TestCase, id)
+    if not source:
+        raise HTTPException(status_code=404, detail="Not found")
+    target_suite = db.get(TestSuite, body.target_suite_id)
+    if not target_suite:
+        raise HTTPException(status_code=404, detail="Target suite not found")
+    _require_case_writer(db, current, target_suite.project_id)
+    if body.name:
+        name = body.name
+    elif body.target_suite_id == source.suite_id:
+        name = _unique_case_name(db, body.target_suite_id, source.name)
+    else:
+        name = source.name
+    copy = _clone_case(db, source, body.target_suite_id, name, current)
+    db.commit()
+    db.refresh(copy)
+    return copy
+
+
+@cases_router.post("/bulk-copy", response_model=list[TestCaseOut], status_code=status.HTTP_201_CREATED)
+def bulk_copy_cases(body: BulkCaseCopy, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+    if not body.case_ids:
+        return []
+    if not body.target_suite_id and not body.new_suite_name:
+        raise HTTPException(status_code=422, detail="Provide target_suite_id or new_suite_name")
+    sources = db.query(TestCase).filter(TestCase.id.in_(body.case_ids)).all()
+    if not sources:
+        raise HTTPException(status_code=404, detail="No cases found")
+    source_project_id = _project_id_for_case(sources[0], db)
+    if body.new_suite_name:
+        _require_case_writer(db, current, source_project_id)
+        trimmed_name = body.new_suite_name.strip()
+        existing_suite = (
+            db.query(TestSuite)
+            .filter(
+                TestSuite.project_id == source_project_id,
+                TestSuite.parent_suite_id == body.parent_suite_id,
+                TestSuite.name == trimmed_name,
+            )
+            .first()
+        )
+        if existing_suite:
+            raise HTTPException(status_code=409, detail=f"Suite '{trimmed_name}' already exists")
+        suite = TestSuite(
+            project_id=source_project_id,
+            name=trimmed_name,
+            parent_suite_id=body.parent_suite_id,
+        )
+        db.add(suite)
+        db.flush()
+        target_suite_id = suite.id
+    else:
+        target_suite = db.get(TestSuite, body.target_suite_id)
+        if not target_suite:
+            raise HTTPException(status_code=404, detail="Target suite not found")
+        _require_case_writer(db, current, target_suite.project_id)
+        target_suite_id = body.target_suite_id
+    copies = []
+    for source in sources:
+        name = source.name if target_suite_id != source.suite_id else _unique_case_name(db, target_suite_id, source.name)
+        copies.append(_clone_case(db, source, target_suite_id, name, current))
+    db.commit()
+    for copy in copies:
+        db.refresh(copy)
+    return copies
+
+
 class BulkIds(BaseModel):
     ids: list[int]
 

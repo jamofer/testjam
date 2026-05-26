@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useContext, createContext } from "react"
 import { Link, useParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { Plus, Trash2, Pencil, ChevronRight, FolderOpen, ListPlus, X, GripVertical } from "lucide-react"
+import { Copy, Plus, Trash2, Pencil, ChevronRight, FolderOpen, ListPlus, X, GripVertical } from "lucide-react"
 import { useTreeItemNav } from "../../hooks/useTreeItemNav"
 import { useProjectRole } from "../../hooks/useProjectRole"
 
@@ -10,7 +10,8 @@ import { TestCaseItem } from "../ui/test-case-item"
 import { useQueryClient, useQuery } from "@tanstack/react-query"
 import {
   useChildSuites, useCreateSuite, useUpdateSuite, useDeleteSuite, useArchiveSuite, useReorderProjectSuites,
-  useCases, useCreateCase, useDeleteCase, useBulkDeleteCases, useReorderSuiteSteps, useReorderSuiteCases,
+  useCases, useCreateCase, useDeleteCase, useBulkDeleteCases, useBulkCopyCases, useSuitesAll, useReorderSuiteSteps, useReorderSuiteCases,
+  sortSuitesHierarchically,
 } from "../../hooks/useSuites"
 import { suitesApi } from "../../api/testcases"
 import { plansApi } from "../../api/testplans"
@@ -73,7 +74,7 @@ function AddSubSuiteInline({ parentSuiteId, projectId, onDone }) {
   )
 }
 
-function SortableCaseRow({ tc, suiteId, deleteCase, selected, toggle, canWrite }) {
+function SortableCaseRow({ tc, suiteId, onDelete, selected, toggle, canWrite }) {
   const { t } = useTranslation("suites")
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: tc.id, activationConstraint: { distance: 5 } })
@@ -116,7 +117,7 @@ function SortableCaseRow({ tc, suiteId, deleteCase, selected, toggle, canWrite }
       </div>
       {canWrite && (
         <button
-          onClick={() => deleteCase.mutate(tc.id, { onSuccess: () => toast.success(t("row.caseDeleted")) })}
+          onClick={() => onDelete(tc)}
           className="opacity-0 group-hover:opacity-100 text-gray-400 dark:text-gray-500 hover:text-red-500 shrink-0">
           <Trash2 size={13} />
         </button>
@@ -132,10 +133,15 @@ function CaseList({ suiteId }) {
   const { data: cases = [] } = useCases(suiteId)
   const deleteCase = useDeleteCase(suiteId)
   const bulkDelete = useBulkDeleteCases(suiteId)
+  const bulkCopy = useBulkCopyCases()
   const reorderCases = useReorderSuiteCases(suiteId)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
   const [selected, setSelected] = useState(new Set())
   const [planId, setPlanId] = useState("")
+  const [copySuiteId, setCopySuiteId] = useState("")
+  const [newSuiteName, setNewSuiteName] = useState("")
+  const [bulkCopyOpen, setBulkCopyOpen] = useState(false)
+  const { data: allSuites = [] } = useSuitesAll(selected.size > 0 ? projectId : undefined)
 
   const { data: plans = [] } = useQuery({
     queryKey: ["plans", projectId],
@@ -153,6 +159,19 @@ function CaseList({ suiteId }) {
   })
   const toggleAll = () => setSelected(allSelected ? new Set() : new Set(allIds))
   const clear = () => setSelected(new Set())
+
+  const [casePendingDelete, setCasePendingDelete] = useState(null)
+  const confirmCaseDelete = async () => {
+    if (!casePendingDelete) return
+    try {
+      await deleteCase.mutateAsync(casePendingDelete.id)
+      toast.success(t("row.caseDeleted"))
+    } catch (error) {
+      toast.error(error?.response?.data?.detail ?? t("row.caseDeleteFailed"))
+    } finally {
+      setCasePendingDelete(null)
+    }
+  }
 
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
   const confirmBulkDelete = async () => {
@@ -210,7 +229,7 @@ function CaseList({ suiteId }) {
         <SortableContext items={cases.map(c => c.id)} strategy={verticalListSortingStrategy}>
           <ul className="pl-4 space-y-0.5">
             {cases.map(tc => (
-              <SortableCaseRow key={tc.id} tc={tc} suiteId={suiteId} deleteCase={deleteCase}
+              <SortableCaseRow key={tc.id} tc={tc} suiteId={suiteId} onDelete={setCasePendingDelete}
                 selected={selected} toggle={toggle} canWrite={canWrite} />
             ))}
           </ul>
@@ -223,10 +242,15 @@ function CaseList({ suiteId }) {
             {t("row.selectedCount", { count: selected.size })}
           </span>
           {canWrite && (
-            <Button size="sm" variant="outline" onClick={() => setBulkDeleteOpen(true)}
-              disabled={bulkDelete.isPending}>
-              <Trash2 size={12} /> {t("row.deleteButton")}
-            </Button>
+            <>
+              <Button size="sm" variant="outline" onClick={() => setBulkCopyOpen(true)}>
+                <Copy size={12} /> {t("row.copyButton")}
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setBulkDeleteOpen(true)}
+                disabled={bulkDelete.isPending}>
+                <Trash2 size={12} /> {t("row.deleteButton")}
+              </Button>
+            </>
           )}
           {plans.length > 0 && (
             <div className="flex items-center gap-1">
@@ -260,6 +284,27 @@ function CaseList({ suiteId }) {
         destructive
         busy={bulkDelete.isPending}
         onConfirm={confirmBulkDelete}
+      />
+
+      <ConfirmDialog
+        open={casePendingDelete !== null}
+        onOpenChange={(open) => { if (!open) setCasePendingDelete(null) }}
+        title={t("row.caseDeleteTitle")}
+        description={t("row.caseDeleteDescription", { name: casePendingDelete?.name })}
+        confirmLabel={t("common:actions.delete")}
+        destructive
+        busy={deleteCase.isPending}
+        onConfirm={confirmCaseDelete}
+      />
+
+      <BulkCopyDialog
+        open={bulkCopyOpen}
+        onOpenChange={setBulkCopyOpen}
+        caseIds={[...selected]}
+        currentSuiteId={suiteId}
+        suites={allSuites}
+        bulkCopy={bulkCopy}
+        onSuccess={() => { clear(); setBulkCopyOpen(false) }}
       />
     </div>
   )
@@ -474,15 +519,11 @@ export function SuiteRow({ suite, projectId, dragHandleProps }) {
   const handleDeleteClick = async () => {
     try {
       const impact = await suitesApi.deleteImpact(suite.id)
-      if (impact.result_count > 0) {
-        setDeleteImpact(impact)
-        setConfirmOpen(true)
-        return
-      }
+      setDeleteImpact(impact)
     } catch {
-      // fall through to plain delete on impact failure
+      setDeleteImpact(null)
     }
-    deleteSuite.mutate(suite.id, { onSuccess: () => toast.success(t("deleted")) })
+    setConfirmOpen(true)
   }
   const handleArchiveConfirmed = () => {
     archiveSuite.mutate(suite.id, {
@@ -631,6 +672,138 @@ function DeleteSuiteDialog({ open, impact, onCancel, onArchive, onDelete, archiv
           )}
           <Button variant="ghost" onClick={onCancel}>
             {t("confirmDelete.cancel")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+
+function BulkCopyDialog({ open, onOpenChange, caseIds, currentSuiteId, suites, bulkCopy, onSuccess }) {
+  const { t } = useTranslation("suites")
+  const [mode, setMode] = useState("existing")
+  const [targetSuiteId, setTargetSuiteId] = useState(null)
+  const [newSuiteName, setNewSuiteName] = useState("")
+  const [parentSuiteId, setParentSuiteId] = useState(null)
+  const [search, setSearch] = useState("")
+
+  const depthMap = useMemo(() => {
+    const map = {}
+    const parentMap = {}
+    for (const s of suites) parentMap[s.id] = s.parent_suite_id ?? null
+    const depth = (id) => {
+      if (map[id] !== undefined) return map[id]
+      const parent = parentMap[id]
+      map[id] = parent === null ? 0 : depth(parent) + 1
+      return map[id]
+    }
+    for (const s of suites) depth(s.id)
+    return map
+  }, [suites])
+
+  const sorted = useMemo(() => sortSuitesHierarchically(suites), [suites])
+  const filtered = sorted.filter(s =>
+    s.name.toLowerCase().includes(search.toLowerCase()),
+  )
+
+  const canSubmit = mode === "new" ? newSuiteName.trim().length > 0 : targetSuiteId !== null
+
+  const handleCopy = async () => {
+    try {
+      if (mode === "new") {
+        await bulkCopy.mutateAsync({ caseIds, newSuiteName: newSuiteName.trim(), parentSuiteId })
+      } else {
+        await bulkCopy.mutateAsync({ caseIds, targetSuiteId })
+      }
+      toast.success(t("row.bulkCopySuccess", { count: caseIds.length }))
+      onSuccess()
+    } catch (error) {
+      toast.error(error?.response?.data?.detail ?? t("row.bulkCopyFailed"))
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("row.bulkCopyTitle", { count: caseIds.length })}</DialogTitle>
+        </DialogHeader>
+        <div className="flex gap-2 mb-2">
+          <Button size="sm" variant={mode === "existing" ? "default" : "outline"} onClick={() => setMode("existing")}>
+            {t("row.bulkCopyExisting")}
+          </Button>
+          <Button size="sm" variant={mode === "new" ? "default" : "outline"} onClick={() => setMode("new")}>
+            {t("row.bulkCopyNew")}
+          </Button>
+        </div>
+        {mode === "existing" ? (
+          <div className="space-y-2">
+            <Input
+              placeholder={t("row.bulkCopySearchSuites")}
+              value={search}
+              onChange={event => setSearch(event.target.value)}
+              autoFocus
+            />
+            <div className="max-h-48 overflow-y-auto rounded border border-gray-200 dark:border-gray-700">
+              {filtered.map(s => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setTargetSuiteId(s.id)}
+                  className={`w-full text-left py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 ${
+                    s.id === targetSuiteId ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300 font-medium" : "text-gray-700 dark:text-gray-200"
+                  }`}
+                  style={{ paddingLeft: `${12 + (depthMap[s.id] ?? 0) * 16}px` }}
+                >
+                  {s.name}
+                  {s.id === currentSuiteId && <span className="ml-1 text-xs text-gray-400">({t("row.currentSuite")})</span>}
+                </button>
+              ))}
+              {filtered.length === 0 && (
+                <p className="px-3 py-2 text-xs text-gray-400">{t("row.noSuitesFound")}</p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Input
+              placeholder={t("row.bulkCopyNewName")}
+              value={newSuiteName}
+              onChange={event => setNewSuiteName(event.target.value)}
+              autoFocus
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t("row.bulkCopyParent")}</p>
+            <div className="max-h-36 overflow-y-auto rounded border border-gray-200 dark:border-gray-700">
+              <button
+                type="button"
+                onClick={() => setParentSuiteId(null)}
+                className={`w-full text-left px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 ${
+                  parentSuiteId === null ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300 font-medium" : "text-gray-700 dark:text-gray-200"
+                }`}
+              >
+                {t("row.bulkCopyRoot")}
+              </button>
+              {sorted.map(s => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setParentSuiteId(s.id)}
+                  className={`w-full text-left py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 ${
+                    s.id === parentSuiteId ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300 font-medium" : "text-gray-700 dark:text-gray-200"
+                  }`}
+                  style={{ paddingLeft: `${12 + (depthMap[s.id] ?? 0) * 16}px` }}
+                >
+                  {s.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>{t("common:actions.cancel")}</Button>
+          <Button onClick={handleCopy} disabled={!canSubmit || bulkCopy.isPending}>
+            <Copy size={14} /> {t("row.copyButton")}
           </Button>
         </DialogFooter>
       </DialogContent>

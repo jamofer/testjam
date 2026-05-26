@@ -79,5 +79,16 @@
     "cancel": "Cancel",
     "deleteTitle": "Delete this comment?",
     "deleteDescription": "This will permanently remove the comment."
+  },
+  "copy": {
+    "button": "Copy",
+    "title": "Copy test case",
+    "description": "Copy \"{{name}}\" with all steps to another suite.",
+    "currentSuite": "current",
+    "sameSuiteHint": "A copy suffix will be added to the name.",
+    "success": "Test case copied",
+    "failed": "Could not copy test case",
+    "searchSuites": "Search suites…",
+    "noSuites": "No suites found"
   }
 }

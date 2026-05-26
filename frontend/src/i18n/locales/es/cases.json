@@ -79,5 +79,16 @@
     "cancel": "Cancelar",
     "deleteTitle": "¿Eliminar este comentario?",
     "deleteDescription": "El comentario se eliminará de forma permanente."
+  },
+  "copy": {
+    "button": "Copiar",
+    "title": "Copiar caso de prueba",
+    "description": "Copiar \"{{name}}\" con todos los pasos a otra suite.",
+    "currentSuite": "actual",
+    "sameSuiteHint": "Se añadirá un sufijo al nombre.",
+    "success": "Caso copiado",
+    "failed": "No se pudo copiar el caso",
+    "searchSuites": "Buscar suites…",
+    "noSuites": "No se encontraron suites"
   }
 }

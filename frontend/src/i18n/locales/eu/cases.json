@@ -79,5 +79,16 @@
     "cancel": "Utzi",
     "deleteTitle": "Iruzkin hau ezabatu?",
     "deleteDescription": "Iruzkina behin betiko ezabatuko da."
+  },
+  "copy": {
+    "button": "Copy",
+    "title": "Copy test case",
+    "description": "Copy \"{{name}}\" with all steps to another suite.",
+    "currentSuite": "current",
+    "sameSuiteHint": "A copy suffix will be added to the name.",
+    "success": "Test case copied",
+    "failed": "Could not copy test case",
+    "searchSuites": "Search suites…",
+    "noSuites": "No suites found"
   }
 }

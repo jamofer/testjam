@@ -100,7 +100,22 @@
     "cancel": "Cancelar",
     "addCaseTitle": "Título del caso…",
     "addCaseButton": "Añadir",
-    "caseCreated": "Caso creado"
+    "caseCreated": "Caso creado",
+    "copyButton": "Copiar",
+    "bulkCopyTitle": "Copiar {{count}} casos",
+    "bulkCopyExisting": "Suite existente",
+    "bulkCopyNew": "Nueva suite",
+    "bulkCopySearchSuites": "Buscar suites…",
+    "bulkCopyNewName": "Nombre de la nueva suite",
+    "bulkCopySuccess": "{{count}} casos copiados",
+    "bulkCopyFailed": "No se pudieron copiar los casos",
+    "currentSuite": "actual",
+    "noSuitesFound": "No se encontraron suites",
+    "bulkCopyParent": "Suite padre (opcional)",
+    "bulkCopyRoot": "(nivel raíz)",
+    "caseDeleteTitle": "¿Eliminar caso de prueba?",
+    "caseDeleteDescription": "Se eliminará permanentemente \"{{name}}\" y todos sus pasos.",
+    "caseDeleteFailed": "No se pudo eliminar el caso"
   },
   "picker": {
     "allExcluded": "Todos los casos ya están añadidos",
