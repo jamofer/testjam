@@ -125,6 +125,7 @@ class TestjamLibrary(
         self.current_result_id: int | None = None
         self.current_step_id: int | None = None
         self.current_step_result_id: int | None = None
+        self.execution_attachment_ids: dict[str, int] = {}
         self.current_group_id: int | None = None
         self.last_status_code: int | None = None
         self.last_import_summary: dict | None = None
