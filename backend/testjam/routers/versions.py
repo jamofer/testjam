@@ -8,7 +8,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import (
-    get_current_user,
+    AuthContext,
+    authorize_project,
+    get_auth_context,
     require_project_access,
     require_project_writer,
     require_writable_project_access,
@@ -22,12 +24,11 @@ from testjam.schemas.version import (
     VersionAttachmentOut,
 )
 from testjam.services import uploads
-from testjam.services.permissions import effective_role
+from testjam.services.permissions import WRITER_ROLES
 
 VERSION_UPLOAD_DIR = os.path.join(settings.UPLOAD_DIR, "versions")
 
-UPLOAD_ROLES = {"owner", "tester"}
-DELETE_ROLES = {"owner"}
+ATTACHMENT_DELETE_ROLES = {"owner"}
 
 projects_router = APIRouter(prefix="/projects", tags=["Versions"])
 versions_router = APIRouter(prefix="/versions", tags=["Versions"])
@@ -38,14 +39,6 @@ def _version_or_404(db: Session, version_id: int) -> ProjectVersion:
     if not version:
         raise HTTPException(status_code=404, detail="Not found")
     return version
-
-
-def _require_project_role(db: Session, project_id: int, user: User, allowed: set[str]) -> None:
-    if user.is_admin:
-        return
-    role = effective_role(db, user.id, project_id)
-    if role not in allowed:
-        raise HTTPException(status_code=403, detail="Insufficient project role")
 
 
 def _attachment_out(attachment: VersionAttachment) -> VersionAttachmentOut:
@@ -78,18 +71,16 @@ def create_version(id: int, body: ProjectVersionCreate, db: Session = Depends(ge
 
 
 @versions_router.get("/{id}", response_model=ProjectVersionOut)
-def get_version(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
-    v = db.get(ProjectVersion, id)
-    if not v:
-        raise HTTPException(status_code=404, detail="Not found")
-    return v
+def get_version(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
+    version = _version_or_404(db, id)
+    authorize_project(db, ctx, version.project_id)
+    return version
 
 
 @versions_router.put("/{id}", response_model=ProjectVersionOut)
-def update_version(id: int, body: ProjectVersionUpdate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
-    v = db.get(ProjectVersion, id)
-    if not v:
-        raise HTTPException(status_code=404, detail="Not found")
+def update_version(id: int, body: ProjectVersionUpdate, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
+    v = _version_or_404(db, id)
+    authorize_project(db, ctx, v.project_id, WRITER_ROLES)
     update_data = body.model_dump(exclude_unset=True)
     previous_status = v.status
     new_status = update_data.get("status")
@@ -112,10 +103,9 @@ def update_version(id: int, body: ProjectVersionUpdate, db: Session = Depends(ge
 
 
 @versions_router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_version(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
-    v = db.get(ProjectVersion, id)
-    if not v:
-        raise HTTPException(status_code=404, detail="Not found")
+def delete_version(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
+    v = _version_or_404(db, id)
+    authorize_project(db, ctx, v.project_id, WRITER_ROLES)
     db.delete(v)
     db.commit()
 
@@ -124,10 +114,10 @@ def delete_version(id: int, db: Session = Depends(get_db), _: User = Depends(get
 def list_version_attachments(
     id: int,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     version = _version_or_404(db, id)
-    _require_project_role(db, version.project_id, current, {"owner", "tester", "viewer"})
+    authorize_project(db, ctx, version.project_id)
     rows = (
         db.query(VersionAttachment)
         .filter(VersionAttachment.version_id == id)
@@ -146,10 +136,10 @@ def upload_version_attachment(
     id: int,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     version = _version_or_404(db, id)
-    _require_project_role(db, version.project_id, current, UPLOAD_ROLES)
+    authorize_project(db, ctx, version.project_id, WRITER_ROLES)
     payload = uploads.read_attachment(file)
     destination_directory = os.path.join(VERSION_UPLOAD_DIR, str(id))
     os.makedirs(destination_directory, exist_ok=True)
@@ -163,7 +153,7 @@ def upload_version_attachment(
         content_type=file.content_type,
         size_bytes=len(payload),
         file_path=destination_path,
-        uploaded_by_id=current.id,
+        uploaded_by_id=ctx.user.id,
     )
     db.add(attachment)
     db.commit()
@@ -176,10 +166,10 @@ def download_version_attachment(
     id: int,
     attachment_id: int,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     version = _version_or_404(db, id)
-    _require_project_role(db, version.project_id, current, {"owner", "tester", "viewer"})
+    authorize_project(db, ctx, version.project_id)
     attachment = (
         db.query(VersionAttachment)
         .filter(VersionAttachment.id == attachment_id, VersionAttachment.version_id == id)
@@ -202,10 +192,10 @@ def delete_version_attachment(
     id: int,
     attachment_id: int,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     version = _version_or_404(db, id)
-    _require_project_role(db, version.project_id, current, DELETE_ROLES)
+    authorize_project(db, ctx, version.project_id, ATTACHMENT_DELETE_ROLES)
     attachment = (
         db.query(VersionAttachment)
         .filter(VersionAttachment.id == attachment_id, VersionAttachment.version_id == id)

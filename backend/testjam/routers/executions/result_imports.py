@@ -9,13 +9,13 @@ from defusedxml.common import DefusedXmlException
 from fastapi import BackgroundTasks, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user
+from testjam.auth.dependencies import AuthContext, authorize_project, get_auth_context
 from testjam.database import get_db
 from testjam.models.execution import TestExecution, TestResult, TestStepResult
-from testjam.models.user import User
 from testjam.routers.executions import executions_router
 from testjam.schemas.execution import BulkResultResponse
 from testjam.services import execution_events, uploads
+from testjam.services.permissions import WRITER_ROLES
 from testjam.services.settings import get_settings as get_app_settings
 
 
@@ -91,11 +91,12 @@ def import_junit(
     background: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     ex = db.get(TestExecution, id)
     if not ex:
         raise HTTPException(status_code=404, detail="Execution not found")
+    authorize_project(db, ctx, ex.project_id, WRITER_ROLES)
     if ex.status in {"completed", "aborted"}:
         raise HTTPException(status_code=409, detail="Execution is closed")
 
@@ -178,11 +179,12 @@ def import_robotframework(
     background: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     ex = db.get(TestExecution, id)
     if not ex:
         raise HTTPException(status_code=404, detail="Execution not found")
+    authorize_project(db, ctx, ex.project_id, WRITER_ROLES)
     if ex.status in {"completed", "aborted"}:
         raise HTTPException(status_code=409, detail="Execution is closed")
 
