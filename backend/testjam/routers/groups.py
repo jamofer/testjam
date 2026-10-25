@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user
+from testjam.auth.dependencies import get_current_user, require_admin
 from testjam.database import get_db
 from testjam.models.user import Group, GroupMember, User
 from testjam.schemas.user import GroupCreate, GroupMemberOut, GroupMemberUpdate, GroupOut
@@ -25,7 +25,7 @@ def list_groups(db: Session = Depends(get_db), _: User = Depends(get_current_use
 
 
 @router.post("", response_model=GroupOut, status_code=status.HTTP_201_CREATED)
-def create_group(body: GroupCreate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def create_group(body: GroupCreate, db: Session = Depends(get_db), _: User = Depends(require_admin)):
     if db.query(Group).filter(Group.name == body.name).first():
         raise HTTPException(status_code=400, detail="Group name already exists")
     group = Group(**body.model_dump())
@@ -44,7 +44,7 @@ def get_group(id: int, db: Session = Depends(get_db), _: User = Depends(get_curr
 
 
 @router.put("/{id}", response_model=GroupOut)
-def update_group(id: int, body: GroupCreate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def update_group(id: int, body: GroupCreate, db: Session = Depends(get_db), _: User = Depends(require_admin)):
     group = db.get(Group, id)
     if not group:
         raise HTTPException(status_code=404, detail="Not found")
@@ -56,7 +56,7 @@ def update_group(id: int, body: GroupCreate, db: Session = Depends(get_db), _: U
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_group(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def delete_group(id: int, db: Session = Depends(get_db), _: User = Depends(require_admin)):
     group = db.get(Group, id)
     if not group:
         raise HTTPException(status_code=404, detail="Not found")
@@ -77,7 +77,7 @@ def list_members(id: int, db: Session = Depends(get_db), _: User = Depends(get_c
 
 
 @router.post("/{id}/members", status_code=status.HTTP_201_CREATED)
-def add_member(id: int, user_id: int, role: str, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def add_member(id: int, user_id: int, role: str, db: Session = Depends(get_db), _: User = Depends(require_admin)):
     if not db.get(Group, id):
         raise HTTPException(status_code=404, detail="Group not found")
     if not db.get(User, user_id):
@@ -90,7 +90,7 @@ def add_member(id: int, user_id: int, role: str, db: Session = Depends(get_db), 
 
 
 @router.put("/{id}/members/{user_id}")
-def update_member(id: int, user_id: int, body: GroupMemberUpdate, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def update_member(id: int, user_id: int, body: GroupMemberUpdate, db: Session = Depends(get_db), _: User = Depends(require_admin)):
     member = db.query(GroupMember).filter_by(group_id=id, user_id=user_id).first()
     if not member:
         raise HTTPException(status_code=404, detail="Member not found")
@@ -100,7 +100,7 @@ def update_member(id: int, user_id: int, body: GroupMemberUpdate, db: Session = 
 
 
 @router.delete("/{id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_member(id: int, user_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def remove_member(id: int, user_id: int, db: Session = Depends(get_db), _: User = Depends(require_admin)):
     member = db.query(GroupMember).filter_by(group_id=id, user_id=user_id).first()
     if not member:
         raise HTTPException(status_code=404, detail="Member not found")
