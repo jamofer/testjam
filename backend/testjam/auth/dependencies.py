@@ -11,7 +11,7 @@ from testjam.database import get_db
 from testjam.models.project import Project
 from testjam.models.token import ApiToken
 from testjam.models.user import User
-from testjam.services.permissions import has_project_access, is_project_writer
+from testjam.services.permissions import VALID_ROLES, effective_role, is_project_writer
 
 bearer_scheme = HTTPBearer(auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
@@ -82,16 +82,7 @@ def require_project_access_ctx(
     ctx: AuthContext = Depends(get_auth_context),
 ) -> AuthContext:
     """Like require_project_access but returns the full AuthContext."""
-    if ctx.project_scope is not None and ctx.project_scope != id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="API token is not authorized for this project",
-        )
-    if not has_project_access(db, ctx.user, id):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not a project member",
-        )
+    authorize_project(db, ctx, id)
     return ctx
 
 
@@ -113,16 +104,7 @@ def require_project_access(
     Project-scoped API tokens may only access their own project. Non-admin users
     must be members of the project (directly or via a group). The path parameter
     must be named `id` (consistent with how project routes declare it)."""
-    if ctx.project_scope is not None and ctx.project_scope != id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="API token is not authorized for this project",
-        )
-    if not has_project_access(db, ctx.user, id):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not a project member",
-        )
+    authorize_project(db, ctx, id)
     return ctx.user
 
 
@@ -150,6 +132,28 @@ def require_project_writer(
         )
 
 
+def authorize_project(
+    db: Session, ctx: AuthContext, project_id: int, roles: set[str] = VALID_ROLES,
+) -> None:
+    """Raise 403 unless the active credential may act on the project with one of
+    `roles`. Flat routes (`/versions/{id}`, `/results/{id}`…) load the resource
+    first and pass its `project_id` here."""
+    _reject_out_of_scope_token(ctx, project_id)
+    if ctx.user.is_admin:
+        return
+    role = effective_role(db, ctx.user.id, project_id)
+    if role is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not a project member",
+        )
+    if role not in roles:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient project role",
+        )
+
+
 def _build_context(
     user: User,
     project_scope: int | None = None,
@@ -157,6 +161,14 @@ def _build_context(
 ) -> AuthContext:
     set_current_user_id(user.id)
     return AuthContext(user=user, project_scope=project_scope, token_name=token_name)
+
+
+def _reject_out_of_scope_token(ctx: AuthContext, project_id: int) -> None:
+    if ctx.project_scope is not None and ctx.project_scope != project_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="API token is not authorized for this project",
+        )
 
 
 def _is_token_expired(token: ApiToken) -> bool:

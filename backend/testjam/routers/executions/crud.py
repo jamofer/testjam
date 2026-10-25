@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session, selectinload
 
 from testjam.auth.dependencies import (
     AuthContext,
-    get_current_user,
+    authorize_project,
+    get_auth_context,
     require_project_access,
     require_project_access_ctx,
     require_project_writer,
@@ -29,7 +30,7 @@ from testjam.schemas.execution import (
 )
 from testjam.services import environments as env_service, execution_events
 from testjam.services import custom_fields as custom_field_service
-from testjam.services.permissions import effective_role
+from testjam.services.permissions import WRITER_ROLES, effective_role
 
 REOPENABLE_STATUSES = {"completed", "aborted"}
 
@@ -147,10 +148,11 @@ def create_execution(
 
 
 @executions_router.get("/{id}", response_model=TestExecutionOut)
-def get_execution(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def get_execution(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     ex = load_execution_full(db, id)
     if not ex:
         raise HTTPException(status_code=404, detail="Not found")
+    authorize_project(db, ctx, ex.project_id)
     return execution_out(ex)
 
 
@@ -160,11 +162,12 @@ def update_execution(
     body: TestExecutionUpdate,
     background: BackgroundTasks,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     ex = db.get(TestExecution, id)
     if not ex:
         raise HTTPException(status_code=404, detail="Not found")
+    authorize_project(db, ctx, ex.project_id, WRITER_ROLES)
     previous_status = ex.status
     previous_assignee_id = ex.assigned_to_id
     raw_update = body.model_dump(exclude_unset=True)
@@ -190,7 +193,7 @@ def update_execution(
         setattr(ex, field, value)
     db.flush()
     execution_events.on_execution_updated(
-        db, ex, current, background,
+        db, ex, ctx.user, background,
         previous_status=previous_status,
         previous_assignee_id=previous_assignee_id,
     )
@@ -203,12 +206,13 @@ def reopen_execution(
     id: int,
     background: BackgroundTasks,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     ex = db.get(TestExecution, id)
     if not ex:
         raise HTTPException(status_code=404, detail="Not found")
-    _require_reopen_permission(db, ex, current)
+    authorize_project(db, ctx, ex.project_id)
+    _require_reopen_permission(db, ex, ctx.user)
     if ex.status not in REOPENABLE_STATUSES:
         raise HTTPException(
             status_code=409,
@@ -219,7 +223,7 @@ def reopen_execution(
     ex.finished_at = None
     db.flush()
     execution_events.on_execution_updated(
-        db, ex, current, background,
+        db, ex, ctx.user, background,
         previous_status=previous_status,
         previous_assignee_id=ex.assigned_to_id,
     )
@@ -228,11 +232,11 @@ def reopen_execution(
 
 
 @executions_router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_execution(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def delete_execution(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     ex = db.get(TestExecution, id)
     if not ex:
         raise HTTPException(status_code=404, detail="Not found")
-    require_project_writer(db, current, ex.project_id)
+    authorize_project(db, ctx, ex.project_id, WRITER_ROLES)
     execution_id = ex.id
     project_id = ex.project_id
     db.delete(ex)
