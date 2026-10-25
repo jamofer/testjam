@@ -25,7 +25,7 @@ class StubWS:
 
 @pytest.fixture
 def fake_server():
-    return fakeredis.aioredis.FakeServer()
+    return fakeredis.FakeServer()
 
 
 @pytest.fixture(autouse=True)
