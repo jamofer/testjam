@@ -13,7 +13,12 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user, require_project_access
+from testjam.auth.dependencies import (
+    AuthContext,
+    authorize_project,
+    get_auth_context,
+    require_project_access,
+)
 from testjam.core.config import settings
 from testjam.database import get_db
 from testjam.models.testcase import TestCase, TestSuite
@@ -48,11 +53,13 @@ def _stream_bytes(payload: bytes) -> Iterator[bytes]:
 def export_execution_xlsx(
     id: int,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
+    current = ctx.user
     ex = load_execution_full(db, id)
     if not ex:
         raise HTTPException(status_code=404, detail="Not found")
+    authorize_project(db, ctx, ex.project_id)
     _enforce_export_cap(len(ex.results), kind="results")
 
     wb = openpyxl.Workbook()
@@ -105,11 +112,13 @@ def export_execution_html(
     id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
+    current = ctx.user
     execution = load_execution_for_report(db, id)
     if not execution:
         raise HTTPException(status_code=404, detail="Not found")
+    authorize_project(db, ctx, execution.project_id)
     _enforce_export_cap(len(execution.results), kind="results")
 
     app_settings = get_app_settings(db)

@@ -1,8 +1,31 @@
 """Shared helpers used across execution submodules."""
+from fastapi import HTTPException
 from sqlalchemy.orm import Session, selectinload
 
+from testjam.auth.dependencies import AuthContext, authorize_project
 from testjam.models.execution import ExecutionAttachment, TestExecution, TestResult
 from testjam.schemas.execution import ExecutionAttachmentOut, ExecutionSummary, TestExecutionOut
+from testjam.services.permissions import VALID_ROLES
+
+
+def authorized_execution(
+    db: Session, ctx: AuthContext, execution_id: int, roles: set[str] = VALID_ROLES,
+) -> TestExecution:
+    execution = db.get(TestExecution, execution_id)
+    if execution is None:
+        raise HTTPException(status_code=404, detail="Not found")
+    authorize_project(db, ctx, execution.project_id, roles)
+    return execution
+
+
+def authorized_result(
+    db: Session, ctx: AuthContext, result_id: int, roles: set[str] = VALID_ROLES,
+) -> TestResult:
+    result = db.get(TestResult, result_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Not found")
+    authorize_project(db, ctx, result.execution.project_id, roles)
+    return result
 
 
 def compute_summary(execution: TestExecution) -> ExecutionSummary:
