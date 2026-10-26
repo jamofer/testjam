@@ -35,6 +35,16 @@ def _collect_subtree_suite_ids(db: Session, root_id: int) -> list[int]:
     return visited
 
 
+def _reject_invalid_parent(db: Session, project_id: int, parent_suite_id: int | None, suite_id: int | None = None) -> None:
+    if parent_suite_id is None:
+        return
+    parent = db.get(TestSuite, parent_suite_id)
+    if parent is None or parent.project_id != project_id:
+        raise HTTPException(status_code=422, detail="Parent suite not found in this project")
+    if suite_id is not None and parent_suite_id in _collect_subtree_suite_ids(db, suite_id):
+        raise HTTPException(status_code=422, detail="A suite cannot be moved under itself or its descendants")
+
+
 def _subtree_case_ids(db: Session, suite_ids: list[int]) -> list[int]:
     if not suite_ids:
         return []
@@ -78,6 +88,7 @@ def list_suites(
 @projects_router.post("/{id}/suites", response_model=TestSuiteOut, status_code=status.HTTP_201_CREATED)
 def create_suite(id: int, body: TestSuiteCreate, db: Session = Depends(get_db), current: User = Depends(require_writable_project_access)):
     require_project_writer(db, current, id)
+    _reject_invalid_parent(db, id, body.parent_suite_id)
     duplicate = (
         db.query(TestSuite)
         .filter(
@@ -116,6 +127,7 @@ def update_suite(id: int, body: TestSuiteUpdate, db: Session = Depends(get_db), 
     if not suite:
         raise HTTPException(status_code=404, detail="Not found")
     authorize_project(db, ctx, suite.project_id, WRITER_ROLES)
+    _reject_invalid_parent(db, suite.project_id, body.parent_suite_id, suite.id)
     if body.name is not None and body.name != suite.name:
         duplicate = (
             db.query(TestSuite)
