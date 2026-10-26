@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:18.3-alpine
         env:
           POSTGRES_USER: testjam
           POSTGRES_PASSWORD: testjam

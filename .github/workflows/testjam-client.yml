@@ -51,3 +51,26 @@ jobs:
           UPLOAD_DIR: ${{ runner.temp }}/testjam-uploads
           INTEGRATION_ENCRYPTION_KEY: eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg=
         run: pytest -q
+
+  compat:
+    name: import smoke (python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: testjam-client/pyproject.toml
+
+      - name: Install testjam-client
+        working-directory: testjam-client
+        run: pip install ".[all]"
+
+      - name: Import every module
+        working-directory: testjam-client
+        run: python scripts/import_smoke.py
