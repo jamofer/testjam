@@ -86,7 +86,18 @@ def require_project_access_ctx(
     return ctx
 
 
-def require_admin(current: User = Depends(get_current_user)) -> User:
+def get_unscoped_user(ctx: AuthContext = Depends(get_auth_context)) -> User:
+    """Account-level routes (admin, profile, personal tokens) must not be reachable
+    with a project-scoped API token, even when its owner is an admin."""
+    if ctx.project_scope is not None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Project-scoped API tokens cannot access account-level routes",
+        )
+    return ctx.user
+
+
+def require_admin(current: User = Depends(get_unscoped_user)) -> User:
     if not current.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

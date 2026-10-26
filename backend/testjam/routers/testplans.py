@@ -3,7 +3,9 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import (
-    get_current_user,
+    AuthContext,
+    authorize_project,
+    get_auth_context,
     require_project_access,
     require_project_writer,
     require_writable_project_access,
@@ -13,7 +15,7 @@ from testjam.models.testcase import TestCase, TestSuite
 from testjam.models.testplan import TestPlan
 from testjam.models.user import User
 from testjam.schemas.testplan import TestPlanCreate, TestPlanOut, TestPlanUpdate
-from testjam.services.permissions import has_project_access
+from testjam.services.permissions import WRITER_ROLES
 
 
 class PlanCaseIds(BaseModel):
@@ -55,20 +57,20 @@ def create_plan(id: int, body: TestPlanCreate, db: Session = Depends(get_db), cu
 
 
 @plans_router.get("/{id}", response_model=TestPlanOut)
-def get_plan(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def get_plan(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     plan = db.get(TestPlan, id)
     if not plan:
         raise HTTPException(status_code=404, detail="Not found")
-    _require_plan_member(db, current, plan)
+    authorize_project(db, ctx, plan.project_id)
     return _plan_out(plan)
 
 
 @plans_router.put("/{id}", response_model=TestPlanOut)
-def update_plan(id: int, body: TestPlanUpdate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def update_plan(id: int, body: TestPlanUpdate, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     plan = db.get(TestPlan, id)
     if not plan:
         raise HTTPException(status_code=404, detail="Not found")
-    require_project_writer(db, current, plan.project_id)
+    authorize_project(db, ctx, plan.project_id, WRITER_ROLES)
     if body.title is not None:
         plan.title = body.title
     if body.description is not None:
@@ -81,21 +83,21 @@ def update_plan(id: int, body: TestPlanUpdate, db: Session = Depends(get_db), cu
 
 
 @plans_router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_plan(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def delete_plan(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     plan = db.get(TestPlan, id)
     if not plan:
         raise HTTPException(status_code=404, detail="Not found")
-    require_project_writer(db, current, plan.project_id)
+    authorize_project(db, ctx, plan.project_id, WRITER_ROLES)
     db.delete(plan)
     db.commit()
 
 
 @plans_router.post("/{id}/cases", response_model=TestPlanOut)
-def add_cases_to_plan(id: int, body: PlanCaseIds, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def add_cases_to_plan(id: int, body: PlanCaseIds, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     plan = db.get(TestPlan, id)
     if not plan:
         raise HTTPException(status_code=404, detail="Not found")
-    require_project_writer(db, current, plan.project_id)
+    authorize_project(db, ctx, plan.project_id, WRITER_ROLES)
     existing_ids = {c.id for c in plan.cases}
     new_ids = [cid for cid in body.case_ids if cid not in existing_ids]
     if new_ids:
@@ -113,8 +115,3 @@ def _scoped_cases(db: Session, project_id: int, case_ids: list[int]) -> list[Tes
         .filter(TestCase.id.in_(case_ids), TestSuite.project_id == project_id)
         .all()
     )
-
-
-def _require_plan_member(db: Session, user: User, plan: TestPlan) -> None:
-    if not has_project_access(db, user, plan.project_id):
-        raise HTTPException(status_code=403, detail="Not a project member")
