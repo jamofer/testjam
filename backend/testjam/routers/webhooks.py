@@ -15,9 +15,8 @@ from __future__ import annotations
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user
+from testjam.auth.dependencies import AuthContext, authorize_project, get_auth_context
 from testjam.database import get_db
-from testjam.models.user import User
 from testjam.models.webhook import Webhook, WebhookDelivery
 from testjam.schemas.webhook import (
     WebhookCreate,
@@ -27,7 +26,7 @@ from testjam.schemas.webhook import (
     WebhookWithSecret,
 )
 from testjam.services import webhook_dispatch
-from testjam.services.permissions import effective_role
+from testjam.services.permissions import OWNER_ROLES
 
 
 projects_router = APIRouter(prefix="/projects", tags=["Webhooks"])
@@ -35,13 +34,6 @@ webhooks_router = APIRouter(prefix="/webhooks", tags=["Webhooks"])
 
 DELIVERY_LIST_LIMIT_MAX = 100
 DELIVERY_LIST_LIMIT_DEFAULT = 25
-
-
-def _require_project_owner(db: Session, user: User, project_id: int) -> None:
-    if user.is_admin:
-        return
-    if effective_role(db, user.id, project_id) != "owner":
-        raise HTTPException(status_code=403, detail="Project owner required")
 
 
 def _get_webhook(db: Session, webhook_id: int) -> Webhook:
@@ -55,9 +47,9 @@ def _get_webhook(db: Session, webhook_id: int) -> Webhook:
 def list_webhooks(
     id: int,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
-    _require_project_owner(db, current, id)
+    authorize_project(db, ctx, id, OWNER_ROLES)
     return (
         db.query(Webhook)
         .filter(Webhook.project_id == id)
@@ -73,9 +65,9 @@ def create_webhook(
     id: int,
     body: WebhookCreate,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
-    _require_project_owner(db, current, id)
+    authorize_project(db, ctx, id, OWNER_ROLES)
     webhook = Webhook(
         project_id=id,
         name=body.name,
@@ -94,10 +86,10 @@ def create_webhook(
 def get_webhook(
     id: int,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     webhook = _get_webhook(db, id)
-    _require_project_owner(db, current, webhook.project_id)
+    authorize_project(db, ctx, webhook.project_id, OWNER_ROLES)
     return webhook
 
 
@@ -106,10 +98,10 @@ def update_webhook(
     id: int,
     body: WebhookUpdate,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     webhook = _get_webhook(db, id)
-    _require_project_owner(db, current, webhook.project_id)
+    authorize_project(db, ctx, webhook.project_id, OWNER_ROLES)
     data = body.model_dump(exclude_unset=True)
     if "url" in data and data["url"] is not None:
         data["url"] = str(data["url"])
@@ -126,10 +118,10 @@ def update_webhook(
 def delete_webhook(
     id: int,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     webhook = _get_webhook(db, id)
-    _require_project_owner(db, current, webhook.project_id)
+    authorize_project(db, ctx, webhook.project_id, OWNER_ROLES)
     db.delete(webhook)
     db.commit()
 
@@ -139,10 +131,10 @@ def test_webhook(
     id: int,
     background: BackgroundTasks,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     webhook = _get_webhook(db, id)
-    _require_project_owner(db, current, webhook.project_id)
+    authorize_project(db, ctx, webhook.project_id, OWNER_ROLES)
     envelope = webhook_dispatch.build_envelope(
         "webhook.test",
         {"message": "ping from Testjam", "webhook_id": webhook.id},
@@ -157,10 +149,10 @@ def list_deliveries(
     id: int,
     limit: int = DELIVERY_LIST_LIMIT_DEFAULT,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     webhook = _get_webhook(db, id)
-    _require_project_owner(db, current, webhook.project_id)
+    authorize_project(db, ctx, webhook.project_id, OWNER_ROLES)
     capped = max(1, min(limit, DELIVERY_LIST_LIMIT_MAX))
     return (
         db.query(WebhookDelivery)

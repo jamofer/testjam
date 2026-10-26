@@ -10,8 +10,8 @@ from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import (
     AuthContext,
+    authorize_project,
     get_auth_context,
-    get_current_user,
     require_project_access,
     require_project_writer,
     require_writable_project_access,
@@ -146,9 +146,11 @@ def reorder_custom_fields(
 def get_custom_field(
     id: int,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
-    return _get_definition(db, id)
+    definition = _get_definition(db, id)
+    authorize_project(db, ctx, definition.project_id)
+    return definition
 
 
 @custom_fields_router.put(

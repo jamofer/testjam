@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user, require_project_access
+from testjam.auth.dependencies import get_unscoped_user, require_project_access
 from testjam.database import get_db
 from testjam.models.project import Project, ProjectMember
 from testjam.models.token import ApiToken
@@ -13,7 +13,7 @@ project_router = APIRouter(prefix="/projects/{id}/tokens", tags=["Tokens"])
 
 
 @user_router.get("", response_model=list[ApiTokenOut])
-def list_user_tokens(db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def list_user_tokens(db: Session = Depends(get_db), current: User = Depends(get_unscoped_user)):
     return db.query(ApiToken).filter(ApiToken.user_id == current.id).all()
 
 
@@ -21,7 +21,7 @@ def list_user_tokens(db: Session = Depends(get_db), current: User = Depends(get_
 def create_user_token(
     body: ApiTokenCreate,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(get_unscoped_user),
 ):
     clash = (
         db.query(ApiToken)
@@ -49,7 +49,7 @@ def create_user_token(
 def rotate_user_token(
     token_id: int,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(get_unscoped_user),
 ):
     token = db.query(ApiToken).filter(ApiToken.id == token_id, ApiToken.user_id == current.id).first()
     if not token:
@@ -59,7 +59,7 @@ def rotate_user_token(
 
 
 @user_router.delete("/{token_id}", status_code=status.HTTP_204_NO_CONTENT)
-def revoke_user_token(token_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def revoke_user_token(token_id: int, db: Session = Depends(get_db), current: User = Depends(get_unscoped_user)):
     t = db.query(ApiToken).filter(ApiToken.id == token_id, ApiToken.user_id == current.id).first()
     if not t:
         raise HTTPException(status_code=404, detail="Token not found")

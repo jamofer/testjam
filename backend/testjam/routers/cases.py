@@ -10,7 +10,6 @@ from testjam.auth.dependencies import (
     AuthContext,
     authorize_project,
     get_auth_context,
-    get_current_user,
     require_project_access,
 )
 from testjam.core.config import settings
@@ -28,7 +27,7 @@ from testjam.schemas.testcase import (
 from testjam.services import case_events, mention_notify, uploads
 from testjam.services import custom_fields as custom_field_service
 from testjam.services.case_revisions import write_revision
-from testjam.services.permissions import effective_role
+from testjam.services.permissions import WRITER_ROLES, effective_role
 
 UPLOAD_DIR = os.path.join(settings.UPLOAD_DIR, "cases")
 
@@ -90,11 +89,11 @@ def list_cases(
 
 
 @suites_router.post("/{id}/cases", response_model=TestCaseOut, status_code=status.HTTP_201_CREATED)
-def create_case(id: int, body: TestCaseCreate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def create_case(id: int, body: TestCaseCreate, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     suite = db.get(TestSuite, id)
     if suite is None:
         raise HTTPException(status_code=404, detail="Suite not found")
-    _require_case_writer(db, current, suite.project_id)
+    authorize_project(db, ctx, suite.project_id, WRITER_ROLES)
     duplicate = db.query(TestCase).filter(TestCase.suite_id == id, TestCase.name == body.name).first()
     if duplicate:
         raise HTTPException(status_code=409, detail=f"Test case '{body.name}' already exists")
@@ -106,13 +105,13 @@ def create_case(id: int, body: TestCaseCreate, db: Session = Depends(get_db), cu
     case = TestCase(
         suite_id=id,
         order=max_order + 1,
-        created_by_id=current.id,
-        updated_by_id=current.id,
+        created_by_id=ctx.user.id,
+        updated_by_id=ctx.user.id,
         **payload,
     )
     db.add(case)
     db.flush()
-    write_revision(db, case, current, "created")
+    write_revision(db, case, ctx.user, "created")
     db.commit()
     db.refresh(case)
     return case
@@ -124,11 +123,11 @@ def get_case(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(
 
 
 @cases_router.put("/{id}", response_model=TestCaseOut)
-def update_case(id: int, body: TestCaseUpdate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def update_case(id: int, body: TestCaseUpdate, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
-    _require_case_writer(db, current, _project_id_for_case(case, db))
+    authorize_project(db, ctx, _project_id_for_case(case, db), WRITER_ROLES)
     update_data = body.model_dump(exclude_unset=True)
     incoming_custom_fields = update_data.pop("custom_fields", None)
     update_data = {key: value for key, value in update_data.items() if value is not None}
@@ -143,9 +142,9 @@ def update_case(id: int, body: TestCaseUpdate, db: Session = Depends(get_db), cu
         )
     for field, value in update_data.items():
         setattr(case, field, value)
-    case.updated_by_id = current.id
+    case.updated_by_id = ctx.user.id
     db.flush()
-    write_revision(db, case, current, "updated")
+    write_revision(db, case, ctx.user, "updated")
     db.commit()
     db.refresh(case)
     return case
@@ -185,40 +184,40 @@ def get_case_revision(
 
 
 @cases_router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_case(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def delete_case(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
-    _require_case_writer(db, current, _project_id_for_case(case, db))
+    authorize_project(db, ctx, _project_id_for_case(case, db), WRITER_ROLES)
     db.delete(case)
     db.commit()
 
 
 @cases_router.post("/{id}/archive", response_model=TestCaseOut)
-def archive_case(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def archive_case(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     from datetime import datetime, timezone
 
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
-    _require_case_writer(db, current, _project_id_for_case(case, db))
+    authorize_project(db, ctx, _project_id_for_case(case, db), WRITER_ROLES)
     if case.archived_at is None:
         case.archived_at = datetime.now(timezone.utc)
-        case.updated_by_id = current.id
+        case.updated_by_id = ctx.user.id
         db.commit()
         db.refresh(case)
     return case
 
 
 @cases_router.post("/{id}/unarchive", response_model=TestCaseOut)
-def unarchive_case(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def unarchive_case(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
-    _require_case_writer(db, current, _project_id_for_case(case, db))
+    authorize_project(db, ctx, _project_id_for_case(case, db), WRITER_ROLES)
     if case.archived_at is not None:
         case.archived_at = None
-        case.updated_by_id = current.id
+        case.updated_by_id = ctx.user.id
         db.commit()
         db.refresh(case)
     return case
@@ -281,19 +280,18 @@ def _clone_case(db: Session, source: TestCase, target_suite_id: int, name: str, 
 
 @cases_router.post("/{id}/copy", response_model=TestCaseOut, status_code=status.HTTP_201_CREATED)
 def copy_case(id: int, body: CaseCopy, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
-    current = ctx.user
     source = _authorized_case(db, ctx, id)
     target_suite = db.get(TestSuite, body.target_suite_id)
     if not target_suite:
         raise HTTPException(status_code=404, detail="Target suite not found")
-    _require_case_writer(db, current, target_suite.project_id)
+    authorize_project(db, ctx, target_suite.project_id, WRITER_ROLES)
     if body.name:
         name = body.name
     elif body.target_suite_id == source.suite_id:
         name = _unique_case_name(db, body.target_suite_id, source.name)
     else:
         name = source.name
-    copy = _clone_case(db, source, body.target_suite_id, name, current)
+    copy = _clone_case(db, source, body.target_suite_id, name, ctx.user)
     db.commit()
     db.refresh(copy)
     return copy
@@ -301,7 +299,6 @@ def copy_case(id: int, body: CaseCopy, db: Session = Depends(get_db), ctx: AuthC
 
 @cases_router.post("/bulk-copy", response_model=list[TestCaseOut], status_code=status.HTTP_201_CREATED)
 def bulk_copy_cases(body: BulkCaseCopy, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
-    current = ctx.user
     if not body.case_ids:
         return []
     if not body.target_suite_id and not body.new_suite_name:
@@ -313,7 +310,7 @@ def bulk_copy_cases(body: BulkCaseCopy, db: Session = Depends(get_db), ctx: Auth
         authorize_project(db, ctx, source_project)
     source_project_id = _project_id_for_case(sources[0], db)
     if body.new_suite_name:
-        _require_case_writer(db, current, source_project_id)
+        authorize_project(db, ctx, source_project_id, WRITER_ROLES)
         trimmed_name = body.new_suite_name.strip()
         existing_suite = (
             db.query(TestSuite)
@@ -338,12 +335,12 @@ def bulk_copy_cases(body: BulkCaseCopy, db: Session = Depends(get_db), ctx: Auth
         target_suite = db.get(TestSuite, body.target_suite_id)
         if not target_suite:
             raise HTTPException(status_code=404, detail="Target suite not found")
-        _require_case_writer(db, current, target_suite.project_id)
+        authorize_project(db, ctx, target_suite.project_id, WRITER_ROLES)
         target_suite_id = body.target_suite_id
     copies = []
     for source in sources:
         name = source.name if target_suite_id != source.suite_id else _unique_case_name(db, target_suite_id, source.name)
-        copies.append(_clone_case(db, source, target_suite_id, name, current))
+        copies.append(_clone_case(db, source, target_suite_id, name, ctx.user))
     db.commit()
     for copy in copies:
         db.refresh(copy)
@@ -359,7 +356,7 @@ class BulkAddToPlan(BaseModel):
 
 
 @cases_router.post("/bulk-delete", status_code=status.HTTP_200_OK)
-def bulk_delete_cases(body: BulkIds, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def bulk_delete_cases(body: BulkIds, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     if not body.ids:
         return {"deleted": 0}
     project_ids = {
@@ -371,7 +368,7 @@ def bulk_delete_cases(body: BulkIds, db: Session = Depends(get_db), current: Use
         .all()
     }
     for project_id in project_ids:
-        _require_case_writer(db, current, project_id)
+        authorize_project(db, ctx, project_id, WRITER_ROLES)
     deleted = db.query(TestCase).filter(TestCase.id.in_(body.ids)).delete(synchronize_session=False)
     db.commit()
     return {"deleted": deleted}
@@ -386,11 +383,11 @@ class CaseReorder(BaseModel):
 
 
 @suites_router.post("/{id}/cases/reorder", response_model=list[TestCaseOut])
-def reorder_suite_cases(id: int, body: CaseReorder, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def reorder_suite_cases(id: int, body: CaseReorder, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     suite = db.get(TestSuite, id)
     if not suite:
         raise HTTPException(status_code=404, detail="Not found")
-    _require_case_writer(db, current, suite.project_id)
+    authorize_project(db, ctx, suite.project_id, WRITER_ROLES)
     rows = db.query(TestCase).filter(TestCase.suite_id == id).all()
     by_id = {c.id: c for c in rows}
     if set(body.case_ids) != set(by_id.keys()):
@@ -402,21 +399,21 @@ def reorder_suite_cases(id: int, body: CaseReorder, db: Session = Depends(get_db
 
 
 @cases_router.post("/{id}/steps/reorder", response_model=list[TestStepOut])
-def reorder_case_steps(id: int, body: StepReorder, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def reorder_case_steps(id: int, body: StepReorder, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
-    _require_case_writer(db, current, _project_id_for_case(case, db))
+    authorize_project(db, ctx, _project_id_for_case(case, db), WRITER_ROLES)
     steps = {s.id: s for s in db.query(TestStep).filter(TestStep.test_case_id == id).all()}
     for new_order, step_id in enumerate(body.step_ids, start=1):
         step = steps.get(step_id)
         if step is None:
             raise HTTPException(status_code=400, detail=f"Step {step_id} not in case {id}")
         step.order = new_order
-    case.updated_by_id = current.id
+    case.updated_by_id = ctx.user.id
     db.flush()
     db.refresh(case)
-    write_revision(db, case, current, "updated")
+    write_revision(db, case, ctx.user, "updated")
     db.commit()
     return db.query(TestStep).filter(TestStep.test_case_id == id).order_by(TestStep.order).all()
 
@@ -440,11 +437,11 @@ def _touch_case_revision(db: Session, case_id: int, actor: User) -> None:
 
 
 @cases_router.delete("/{id}/steps", status_code=status.HTTP_204_NO_CONTENT)
-def delete_all_steps(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def delete_all_steps(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     case = _get_case(db, id)
-    _require_case_writer(db, current, _project_id_for_case(case, db))
+    authorize_project(db, ctx, _project_id_for_case(case, db), WRITER_ROLES)
     db.query(TestStep).filter(TestStep.test_case_id == id).delete()
-    _touch_case_revision(db, id, current)
+    _touch_case_revision(db, id, ctx.user)
     db.commit()
 
 
@@ -457,12 +454,12 @@ def replace_case_steps(
     id: int,
     body: StepsReplace,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
-    _require_case_writer(db, current, _project_id_for_case(case, db))
+    authorize_project(db, ctx, _project_id_for_case(case, db), WRITER_ROLES)
     db.query(TestStep).filter(TestStep.test_case_id == id).delete()
     db.flush()
     for index, step in enumerate(body.steps, start=1):
@@ -474,18 +471,18 @@ def replace_case_steps(
             expected_result=step.expected_result,
             step_type=step.step_type,
         ))
-    case.updated_by_id = current.id
+    case.updated_by_id = ctx.user.id
     db.flush()
     db.refresh(case)
-    write_revision(db, case, current, "updated")
+    write_revision(db, case, ctx.user, "updated")
     db.commit()
     return db.query(TestStep).filter(TestStep.test_case_id == id).order_by(TestStep.order).all()
 
 
 @cases_router.post("/{id}/steps", response_model=TestStepOut, status_code=status.HTTP_201_CREATED)
-def create_step(id: int, body: TestStepCreate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def create_step(id: int, body: TestStepCreate, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     case = _get_case(db, id)
-    _require_case_writer(db, current, _project_id_for_case(case, db))
+    authorize_project(db, ctx, _project_id_for_case(case, db), WRITER_ROLES)
     order = body.order
     if order is None:
         max_order = db.query(TestStep).filter(TestStep.test_case_id == id).count()
@@ -493,38 +490,38 @@ def create_step(id: int, body: TestStepCreate, db: Session = Depends(get_db), cu
     step = TestStep(test_case_id=id, **{**body.model_dump(exclude={"order"}), "order": order})
     db.add(step)
     db.flush()
-    _touch_case_revision(db, id, current)
+    _touch_case_revision(db, id, ctx.user)
     db.commit()
     db.refresh(step)
     return step
 
 
 @cases_router.put("/{id}/steps/{step_id}", response_model=TestStepOut)
-def update_step(id: int, step_id: int, body: TestStepUpdate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def update_step(id: int, step_id: int, body: TestStepUpdate, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     step = db.query(TestStep).filter(TestStep.id == step_id, TestStep.test_case_id == id).first()
     if not step:
         raise HTTPException(status_code=404, detail="Not found")
     case = _get_case(db, id)
-    _require_case_writer(db, current, _project_id_for_case(case, db))
+    authorize_project(db, ctx, _project_id_for_case(case, db), WRITER_ROLES)
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(step, field, value)
     db.flush()
-    _touch_case_revision(db, id, current)
+    _touch_case_revision(db, id, ctx.user)
     db.commit()
     db.refresh(step)
     return step
 
 
 @cases_router.delete("/{id}/steps/{step_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_step(id: int, step_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def delete_step(id: int, step_id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     step = db.query(TestStep).filter(TestStep.id == step_id, TestStep.test_case_id == id).first()
     if not step:
         raise HTTPException(status_code=404, detail="Not found")
     case = _get_case(db, id)
-    _require_case_writer(db, current, _project_id_for_case(case, db))
+    authorize_project(db, ctx, _project_id_for_case(case, db), WRITER_ROLES)
     db.delete(step)
     db.flush()
-    _touch_case_revision(db, id, current)
+    _touch_case_revision(db, id, ctx.user)
     db.commit()
 
 
@@ -541,12 +538,12 @@ def upload_attachment(
     id: int,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
-    _require_case_writer(db, current, _project_id_for_case(case, db))
+    authorize_project(db, ctx, _project_id_for_case(case, db), WRITER_ROLES)
     payload = uploads.read_attachment(file)
     dest_dir = os.path.join(UPLOAD_DIR, str(id))
     os.makedirs(dest_dir, exist_ok=True)
@@ -560,7 +557,7 @@ def upload_attachment(
         content_type=file.content_type,
         size_bytes=len(payload),
         file_path=dest_path,
-        uploaded_by=current.username,
+        uploaded_by=ctx.user.username,
     )
     db.add(attachment)
     db.commit()
@@ -583,19 +580,16 @@ def download_case_attachment(
 
 
 @cases_router.delete("/{id}/attachments/{attachment_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_attachment(id: int, attachment_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def delete_attachment(id: int, attachment_id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     att = db.query(Attachment).filter(Attachment.id == attachment_id, Attachment.test_case_id == id).first()
     if not att:
         raise HTTPException(status_code=404, detail="Not found")
     case = _get_case(db, id)
-    _require_case_writer(db, current, _project_id_for_case(case, db))
+    authorize_project(db, ctx, _project_id_for_case(case, db), WRITER_ROLES)
     if os.path.exists(att.file_path):
         os.remove(att.file_path)
     db.delete(att)
     db.commit()
-
-
-COMMENT_WRITER_ROLES = {"tester", "owner"}
 
 
 def _get_case(db: Session, case_id: int) -> TestCase:
@@ -614,21 +608,6 @@ def _authorized_case(db: Session, ctx: AuthContext, case_id: int) -> TestCase:
 def _project_id_for_case(case: TestCase, db: Session) -> int:
     suite = db.get(TestSuite, case.suite_id)
     return suite.project_id
-
-
-def _require_case_writer(db: Session, user: User, project_id: int) -> None:
-    if user.is_admin:
-        return
-    role = effective_role(db, user.id, project_id)
-    if role not in COMMENT_WRITER_ROLES:
-        raise HTTPException(status_code=403, detail="Tester role or higher required")
-
-
-def _require_case_viewer(db: Session, user: User, project_id: int) -> None:
-    if user.is_admin:
-        return
-    if effective_role(db, user.id, project_id) is None:
-        raise HTTPException(status_code=403, detail="Not a project member")
 
 
 def _case_mention_subject(case: TestCase) -> str:
@@ -666,11 +645,11 @@ def _fan_out_case_mentions(
 def list_case_comments(
     id: int,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     case = _get_case(db, id)
     project_id = _project_id_for_case(case, db)
-    _require_case_viewer(db, current, project_id)
+    authorize_project(db, ctx, project_id)
     return list(case.comments)
 
 
@@ -682,17 +661,17 @@ def add_case_comment(
     body: CaseCommentCreate,
     background: BackgroundTasks,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     case = _get_case(db, id)
     project_id = _project_id_for_case(case, db)
-    _require_case_writer(db, current, project_id)
-    comment = CaseComment(test_case_id=case.id, body=body.body, created_by_id=current.id)
+    authorize_project(db, ctx, project_id, WRITER_ROLES)
+    comment = CaseComment(test_case_id=case.id, body=body.body, created_by_id=ctx.user.id)
     db.add(comment)
     db.commit()
     db.refresh(comment)
     case_events.on_case_comment_added(comment)
-    _fan_out_case_mentions(db, case, project_id, comment.body, None, current, background)
+    _fan_out_case_mentions(db, case, project_id, comment.body, None, ctx.user, background)
     return comment
 
 
@@ -703,12 +682,13 @@ def update_case_comment(
     body: CaseCommentUpdate,
     background: BackgroundTasks,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     comment = db.get(CaseComment, comment_id)
     if comment is None or comment.test_case_id != id:
         raise HTTPException(status_code=404, detail="Not found")
-    if comment.created_by_id != current.id and not current.is_admin:
+    authorize_project(db, ctx, _project_id_for_case(comment.test_case, db))
+    if comment.created_by_id != ctx.user.id and not ctx.user.is_admin:
         raise HTTPException(status_code=403, detail="Only the author or admin can edit")
     previous_body = comment.body
     comment.body = body.body
@@ -717,7 +697,7 @@ def update_case_comment(
     case_events.on_case_comment_updated(comment)
     case = _get_case(db, id)
     project_id = _project_id_for_case(case, db)
-    _fan_out_case_mentions(db, case, project_id, comment.body, previous_body, current, background)
+    _fan_out_case_mentions(db, case, project_id, comment.body, previous_body, ctx.user, background)
     return comment
 
 
@@ -726,15 +706,16 @@ def delete_case_comment(
     id: int,
     comment_id: int,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     comment = db.get(CaseComment, comment_id)
     if comment is None or comment.test_case_id != id:
         raise HTTPException(status_code=404, detail="Not found")
     case = comment.test_case
     project_id = _project_id_for_case(case, db)
-    is_author = comment.created_by_id == current.id
-    is_owner = current.is_admin or effective_role(db, current.id, project_id) == "owner"
+    authorize_project(db, ctx, project_id)
+    is_author = comment.created_by_id == ctx.user.id
+    is_owner = ctx.user.is_admin or effective_role(db, ctx.user.id, project_id) == "owner"
     if not is_author and not is_owner:
         raise HTTPException(status_code=403, detail="Only the author or project owner can delete")
     db.delete(comment)

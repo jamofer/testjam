@@ -9,6 +9,7 @@ from testjam.models.user import GroupMember
 ROLE_PRIORITY: dict[str, int] = {"owner": 3, "tester": 2, "viewer": 1}
 VALID_ROLES: set[str] = set(ROLE_PRIORITY.keys())
 WRITER_ROLES: set[str] = {"owner", "tester"}
+OWNER_ROLES: set[str] = {"owner"}
 
 
 def has_project_access(db: Session, user, project_id: int) -> bool:

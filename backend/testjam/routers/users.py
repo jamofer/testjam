@@ -1,7 +1,7 @@
 from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user, require_admin
+from testjam.auth.dependencies import get_current_user, get_unscoped_user, require_admin
 from testjam.auth.security import hash_password, verify_password
 from testjam.database import get_db
 from testjam.models.user import User
@@ -55,7 +55,7 @@ def get_me(current: User = Depends(get_current_user)):
 
 
 @router.put("/me", response_model=UserOut)
-def update_me(body: UserUpdate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def update_me(body: UserUpdate, db: Session = Depends(get_db), current: User = Depends(get_unscoped_user)):
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(current, field, value)
     db.commit()
@@ -64,7 +64,7 @@ def update_me(body: UserUpdate, db: Session = Depends(get_db), current: User = D
 
 
 @router.put("/me/password", status_code=204)
-def change_my_password(body: PasswordChange, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def change_my_password(body: PasswordChange, db: Session = Depends(get_db), current: User = Depends(get_unscoped_user)):
     if not verify_password(body.current_password, current.hashed_password):
         raise HTTPException(status_code=400, detail="Current password is incorrect")
     current.hashed_password = hash_password(body.new_password)
@@ -75,7 +75,7 @@ def change_my_password(body: PasswordChange, db: Session = Depends(get_db), curr
 def delete_my_account(
     body: UserDeleteRequest = Body(default_factory=UserDeleteRequest),
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(get_unscoped_user),
 ):
     if not get_app_settings(db).allow_user_self_delete:
         raise HTTPException(status_code=403, detail="Self-account deletion is disabled by the administrator")

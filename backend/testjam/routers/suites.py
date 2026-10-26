@@ -8,7 +8,6 @@ from testjam.auth.dependencies import (
     AuthContext,
     authorize_project,
     get_auth_context,
-    get_current_user,
     require_project_access,
     require_project_writer,
     require_writable_project_access,
@@ -22,6 +21,7 @@ from testjam.schemas.testcase import (
     SuiteStepCreate, SuiteStepOut, SuiteStepUpdate,
     TestSuiteCreate, TestSuiteOut, TestSuiteUpdate,
 )
+from testjam.services.permissions import WRITER_ROLES
 
 
 def _collect_subtree_suite_ids(db: Session, root_id: int) -> list[int]:
@@ -111,11 +111,11 @@ def get_suite(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends
 
 
 @suites_router.put("/{id}", response_model=TestSuiteOut)
-def update_suite(id: int, body: TestSuiteUpdate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def update_suite(id: int, body: TestSuiteUpdate, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     suite = db.get(TestSuite, id)
     if not suite:
         raise HTTPException(status_code=404, detail="Not found")
-    require_project_writer(db, current, suite.project_id)
+    authorize_project(db, ctx, suite.project_id, WRITER_ROLES)
     if body.name is not None and body.name != suite.name:
         duplicate = (
             db.query(TestSuite)
@@ -137,11 +137,11 @@ def update_suite(id: int, body: TestSuiteUpdate, db: Session = Depends(get_db), 
 
 
 @suites_router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_suite(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def delete_suite(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     suite = db.get(TestSuite, id)
     if not suite:
         raise HTTPException(status_code=404, detail="Not found")
-    require_project_writer(db, current, suite.project_id)
+    authorize_project(db, ctx, suite.project_id, WRITER_ROLES)
     db.delete(suite)
     db.commit()
 
@@ -170,11 +170,11 @@ def delete_suite_impact(id: int, db: Session = Depends(get_db), ctx: AuthContext
 
 
 @suites_router.post("/{id}/archive", response_model=SuiteArchiveResult)
-def archive_suite(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def archive_suite(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     suite = db.get(TestSuite, id)
     if not suite:
         raise HTTPException(status_code=404, detail="Not found")
-    require_project_writer(db, current, suite.project_id)
+    authorize_project(db, ctx, suite.project_id, WRITER_ROLES)
     suite_ids = _collect_subtree_suite_ids(db, id)
     cases = (
         db.query(TestCase)
@@ -184,7 +184,7 @@ def archive_suite(id: int, db: Session = Depends(get_db), current: User = Depend
     now = datetime.now(timezone.utc)
     for case in cases:
         case.archived_at = now
-        case.updated_by_id = current.id
+        case.updated_by_id = ctx.user.id
     db.commit()
     return SuiteArchiveResult(suite_count=len(suite_ids), archived_case_count=len(cases))
 
@@ -229,11 +229,11 @@ def reorder_project_suites(
 
 
 @suites_router.post("/{id}/steps/reorder", response_model=list[SuiteStepOut])
-def reorder_suite_steps(id: int, body: StepReorder, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def reorder_suite_steps(id: int, body: StepReorder, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     suite = db.get(TestSuite, id)
     if not suite:
         raise HTTPException(status_code=404, detail="Not found")
-    require_project_writer(db, current, suite.project_id)
+    authorize_project(db, ctx, suite.project_id, WRITER_ROLES)
     steps = {s.id: s for s in db.query(SuiteStep).filter(SuiteStep.suite_id == id).all()}
     for new_order, step_id in enumerate(body.step_ids, start=1):
         step = steps.get(step_id)
@@ -245,11 +245,11 @@ def reorder_suite_steps(id: int, body: StepReorder, db: Session = Depends(get_db
 
 
 @suites_router.post("/{id}/steps", response_model=SuiteStepOut, status_code=status.HTTP_201_CREATED)
-def create_suite_step(id: int, body: SuiteStepCreate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def create_suite_step(id: int, body: SuiteStepCreate, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     suite = db.get(TestSuite, id)
     if not suite:
         raise HTTPException(status_code=404, detail="Not found")
-    require_project_writer(db, current, suite.project_id)
+    authorize_project(db, ctx, suite.project_id, WRITER_ROLES)
     step = SuiteStep(suite_id=id, **body.model_dump())
     db.add(step)
     db.commit()
@@ -258,12 +258,12 @@ def create_suite_step(id: int, body: SuiteStepCreate, db: Session = Depends(get_
 
 
 @suites_router.put("/{id}/steps/{step_id}", response_model=SuiteStepOut)
-def update_suite_step(id: int, step_id: int, body: SuiteStepUpdate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def update_suite_step(id: int, step_id: int, body: SuiteStepUpdate, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     step = db.query(SuiteStep).filter(SuiteStep.id == step_id, SuiteStep.suite_id == id).first()
     if not step:
         raise HTTPException(status_code=404, detail="Not found")
     suite = db.get(TestSuite, id)
-    require_project_writer(db, current, suite.project_id)
+    authorize_project(db, ctx, suite.project_id, WRITER_ROLES)
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(step, field, value)
     db.commit()
@@ -272,22 +272,22 @@ def update_suite_step(id: int, step_id: int, body: SuiteStepUpdate, db: Session 
 
 
 @suites_router.delete("/{id}/steps/{step_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_suite_step(id: int, step_id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def delete_suite_step(id: int, step_id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     step = db.query(SuiteStep).filter(SuiteStep.id == step_id, SuiteStep.suite_id == id).first()
     if not step:
         raise HTTPException(status_code=404, detail="Not found")
     suite = db.get(TestSuite, id)
-    require_project_writer(db, current, suite.project_id)
+    authorize_project(db, ctx, suite.project_id, WRITER_ROLES)
     db.delete(step)
     db.commit()
 
 
 @suites_router.delete("/{id}/steps", status_code=status.HTTP_204_NO_CONTENT)
-def delete_all_suite_steps(id: int, step_type: str | None = None, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def delete_all_suite_steps(id: int, step_type: str | None = None, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     suite = db.get(TestSuite, id)
     if not suite:
         raise HTTPException(status_code=404, detail="Not found")
-    require_project_writer(db, current, suite.project_id)
+    authorize_project(db, ctx, suite.project_id, WRITER_ROLES)
     q = db.query(SuiteStep).filter(SuiteStep.suite_id == id)
     if step_type:
         q = q.filter(SuiteStep.step_type == step_type)
