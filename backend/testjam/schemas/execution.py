@@ -44,7 +44,9 @@ class TestStepResultUpdate(BaseModel):
 class TestStepResultOut(BaseModel):
     id: int
     test_result_id: int
-    step_id: int
+    step_id: int | None
+    step_action: str | None = None
+    step_expected_result: str | None = None
     status: str
     comment: str | None
     duration_ms: int | None = None
@@ -90,7 +92,7 @@ class TestResultUpdate(BaseModel):
 class TestResultOut(BaseModel):
     id: int
     execution_id: int
-    test_case_id: int
+    test_case_id: int | None
     test_case_title: str | None = None
     status: str
     comment: str | None

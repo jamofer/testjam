@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from sqlalchemy import ForeignKey, Integer, JSON, String, Text, func
+from sqlalchemy import ForeignKey, Integer, JSON, String, Text, event, func, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from testjam.database import Base
@@ -57,7 +57,10 @@ class TestResult(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     execution_id: Mapped[int] = mapped_column(ForeignKey("test_executions.id", ondelete="CASCADE"), index=True)
-    test_case_id: Mapped[int] = mapped_column(ForeignKey("test_cases.id", ondelete="CASCADE"))
+    test_case_id: Mapped[int | None] = mapped_column(
+        ForeignKey("test_cases.id", ondelete="SET NULL"), nullable=True
+    )
+    test_case_title: Mapped[str | None] = mapped_column(String(255), nullable=True)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="not_run")
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     executed_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
@@ -65,7 +68,7 @@ class TestResult(Base):
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     execution: Mapped[TestExecution] = relationship(back_populates="results")
-    test_case: Mapped[TestCase] = relationship()
+    test_case: Mapped[TestCase | None] = relationship()
     step_results: Mapped[list[TestStepResult]] = relationship(
         back_populates="test_result", cascade="all, delete-orphan"
     )
@@ -79,7 +82,11 @@ class TestStepResult(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     test_result_id: Mapped[int] = mapped_column(ForeignKey("test_results.id", ondelete="CASCADE"))
-    step_id: Mapped[int] = mapped_column(ForeignKey("test_steps.id", ondelete="CASCADE"))
+    step_id: Mapped[int | None] = mapped_column(
+        ForeignKey("test_steps.id", ondelete="SET NULL"), nullable=True
+    )
+    step_action: Mapped[str | None] = mapped_column(Text, nullable=True)
+    step_expected_result: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="not_run")
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -87,7 +94,7 @@ class TestStepResult(Base):
     log_output: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     test_result: Mapped[TestResult] = relationship(back_populates="step_results")
-    step: Mapped[TestStep] = relationship()
+    step: Mapped[TestStep | None] = relationship()
 
 
 class ResultAttachment(Base):
@@ -119,3 +126,25 @@ class ExecutionAttachment(Base):
     uploaded_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
     execution: Mapped[TestExecution] = relationship(back_populates="attachments")
+
+
+@event.listens_for(TestResult, "before_insert")
+def snapshot_test_case(mapper, connection, target: TestResult) -> None:
+    if target.test_case_title is not None or target.test_case_id is None:
+        return
+    cases = Base.metadata.tables["test_cases"]
+    target.test_case_title = connection.scalar(
+        select(cases.c.name).where(cases.c.id == target.test_case_id)
+    )
+
+
+@event.listens_for(TestStepResult, "before_insert")
+def snapshot_test_step(mapper, connection, target: TestStepResult) -> None:
+    if target.step_action is not None or target.step_id is None:
+        return
+    steps = Base.metadata.tables["test_steps"]
+    row = connection.execute(
+        select(steps.c.action, steps.c.expected_result).where(steps.c.id == target.step_id)
+    ).first()
+    if row is not None:
+        target.step_action, target.step_expected_result = row
