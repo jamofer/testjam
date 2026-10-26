@@ -1,6 +1,9 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_CORS_ORIGINS = "http://localhost:5173,http://localhost:3000"
+
+PLACEHOLDER_SECRET_KEYS = {"change-me-in-production", "change-me-use-openssl-rand-hex-32"}
 
 
 class Settings(BaseSettings):
@@ -9,7 +12,7 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "postgresql://testjam:testjam@db:5432/testjam"
 
-    SECRET_KEY: str = "change-me-in-production"
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 8
     BCRYPT_ROUNDS: int = 12
@@ -55,6 +58,13 @@ class Settings(BaseSettings):
         "text/javascript,image/svg+xml,application/x-msdownload,"
         "application/x-httpd-php,text/x-php"
     )
+
+    @field_validator("SECRET_KEY")
+    @classmethod
+    def reject_insecure_secret_key(cls, value: str) -> str:
+        if not value.strip() or value in PLACEHOLDER_SECRET_KEYS:
+            raise ValueError("SECRET_KEY must be set to a random value, e.g. `openssl rand -hex 32`")
+        return value
 
     @property
     def blocked_attachment_mime_types(self) -> set[str]:
