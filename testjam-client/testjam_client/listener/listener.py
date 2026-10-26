@@ -67,11 +67,10 @@ class TestjamListener:
         self._execution_custom_fields: dict[str, Any] = {}
 
         self.streaming_enabled = True
-        # Robot always wraps the command-line target in a synthetic root suite
-        # (e.g. ``robot suites/`` produces a top-level "Suites" suite). The
-        # convention is to always invoke from the directory that holds the
-        # real ``__init__.robot`` definitions, so we drop the synthetic root
-        # to keep the Testjam hierarchy aligned with the on-disk layout.
+        # ``robot suites/`` wraps the run in a top-level "Suites" directory
+        # suite; dropping it keeps the Testjam hierarchy aligned with the
+        # on-disk layout. ``robot file.robot`` has no such wrapper: the root
+        # suite is the file itself and holds the tests.
         self._is_root_suite = True
         self._output_dir: str | None = None
         self._suite_stack: list[tuple[int, str]] = []
@@ -85,7 +84,8 @@ class TestjamListener:
             source = getattr(data, "source", None)
             if source:
                 self._output_dir = str(Path(source).parent)
-            return
+            if not _is_file_suite(source):
+                return
 
         parent_suite_id = self._suite_stack[-1][0] if self._suite_stack else None
         description = (getattr(data, "doc", None) or "").strip() or None
@@ -445,6 +445,10 @@ def _parse_cf_tags(tags: list[str]) -> dict[str, Any]:
         else:
             result[key] = raw
     return result
+
+
+def _is_file_suite(source: Any) -> bool:
+    return bool(source) and Path(source).is_file()
 
 
 def _locate_artefact(output_dir: str | None, filename: str) -> Path | None:

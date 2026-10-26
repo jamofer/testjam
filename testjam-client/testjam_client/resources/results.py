@@ -15,13 +15,15 @@ class ResultsResource(Resource):
         execution_id: int,
         *,
         test_case_id: int,
-        status: str = "not_run",
+        status: str | None = None,
         comment: str | None = None,
         executed_by: str | None = None,
         duration_ms: int | None = None,
         step_results: list[dict] | None = None,
     ) -> dict:
-        body: dict[str, Any] = {"test_case_id": test_case_id, "status": status}
+        body: dict[str, Any] = {"test_case_id": test_case_id}
+        if status is not None:
+            body["status"] = status
         if comment is not None:
             body["comment"] = comment
         if executed_by is not None:
