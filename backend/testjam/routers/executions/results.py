@@ -4,10 +4,11 @@ from datetime import datetime, timezone
 from fastapi import BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session, selectinload
 
-from testjam.auth.dependencies import AuthContext, authorize_project, get_auth_context
+from testjam.auth.dependencies import AuthContext, get_auth_context
 from testjam.database import get_db
 from testjam.models.execution import TestExecution, TestResult, TestStepResult
 from testjam.routers.executions import executions_router, results_router
+from testjam.routers.executions._helpers import authorized_execution, authorized_result
 from testjam.schemas.execution import (
     BulkResultCreate,
     BulkResultResponse,
@@ -21,30 +22,12 @@ from testjam.schemas.execution import (
     TestStepResultUpdate,
 )
 from testjam.services import execution_events
-from testjam.services.permissions import VALID_ROLES, WRITER_ROLES
+from testjam.services.permissions import WRITER_ROLES
 
 STEP_RESULT_LOG_SEPARATOR = "\n\n"
 TERMINAL_EXECUTION_STATUSES = {"completed", "aborted"}
 
 
-def _authorized_execution(
-    db: Session, ctx: AuthContext, execution_id: int, roles: set[str] = VALID_ROLES,
-) -> TestExecution:
-    execution = db.get(TestExecution, execution_id)
-    if execution is None:
-        raise HTTPException(status_code=404, detail="Execution not found")
-    authorize_project(db, ctx, execution.project_id, roles)
-    return execution
-
-
-def _authorized_result(
-    db: Session, ctx: AuthContext, result_id: int, roles: set[str] = VALID_ROLES,
-) -> TestResult:
-    result = db.get(TestResult, result_id)
-    if result is None:
-        raise HTTPException(status_code=404, detail="Not found")
-    authorize_project(db, ctx, result.execution.project_id, roles)
-    return result
 
 
 def _project_id_for_execution(db: Session, execution_id: int) -> int | None:
@@ -99,7 +82,7 @@ def _resolve_execution_id(db: Session, result_id: int) -> int | None:
 def list_results(
     id: int, status: str | None = None, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)
 ):
-    _authorized_execution(db, ctx, id)
+    authorized_execution(db, ctx, id)
     q = (
         db.query(TestResult)
         .options(
@@ -128,7 +111,7 @@ def create_result(
     background: BackgroundTasks,
     db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context),
 ):
-    _reject_if_terminal(_authorized_execution(db, ctx, id, WRITER_ROLES))
+    _reject_if_terminal(authorized_execution(db, ctx, id, WRITER_ROLES))
     existing = db.query(TestResult).filter_by(execution_id=id, test_case_id=body.test_case_id).first()
     previous_status = existing.status if existing else None
     if existing:
@@ -168,7 +151,7 @@ def bulk_results(
     background: BackgroundTasks,
     db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context),
 ):
-    _reject_if_terminal(_authorized_execution(db, ctx, id, WRITER_ROLES))
+    _reject_if_terminal(authorized_execution(db, ctx, id, WRITER_ROLES))
     created = updated = 0
     errors = []
     newly_failed_ids: list[int] = []
@@ -214,7 +197,7 @@ def bulk_results(
 
 @results_router.get("/{id}", response_model=TestResultOut)
 def get_result(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
-    return _result_out(_authorized_result(db, ctx, id))
+    return _result_out(authorized_result(db, ctx, id))
 
 
 @results_router.put("/{id}", response_model=TestResultOut)
@@ -223,7 +206,7 @@ def update_result(
     background: BackgroundTasks,
     db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context),
 ):
-    result = _authorized_result(db, ctx, id, WRITER_ROLES)
+    result = authorized_result(db, ctx, id, WRITER_ROLES)
     _reject_if_terminal(result.execution)
     previous_status = result.status
     for field, value in body.model_dump(exclude_none=True).items():
@@ -250,7 +233,7 @@ def start_step_result(
     db: Session = Depends(get_db),
     ctx: AuthContext = Depends(get_auth_context),
 ):
-    result = _authorized_result(db, ctx, id, WRITER_ROLES)
+    result = authorized_result(db, ctx, id, WRITER_ROLES)
     _reject_if_terminal(result.execution)
 
     now = datetime.now(timezone.utc)
@@ -310,7 +293,7 @@ def update_step_result(
     db: Session = Depends(get_db),
     ctx: AuthContext = Depends(get_auth_context),
 ):
-    _authorized_result(db, ctx, id, WRITER_ROLES)
+    authorized_result(db, ctx, id, WRITER_ROLES)
     sr = _load_step_result(db, id, step_result_id)
     if not sr:
         raise HTTPException(status_code=404, detail="Not found")
@@ -338,7 +321,7 @@ def append_step_result_log(
     db: Session = Depends(get_db),
     ctx: AuthContext = Depends(get_auth_context),
 ):
-    _authorized_result(db, ctx, id, WRITER_ROLES)
+    authorized_result(db, ctx, id, WRITER_ROLES)
     step_result = _load_step_result(db, id, step_result_id)
     if not step_result:
         raise HTTPException(status_code=404, detail="Not found")

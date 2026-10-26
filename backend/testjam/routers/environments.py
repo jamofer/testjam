@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import (
     AuthContext,
+    authorize_project,
     get_auth_context,
-    get_current_user,
     require_project_access,
     require_writable_project_access,
 )
@@ -134,9 +134,11 @@ def reorder_environments(
 def get_environment(
     id: int,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
-    return _get_environment(db, id)
+    environment = _get_environment(db, id)
+    authorize_project(db, ctx, environment.project_id)
+    return environment
 
 
 @environments_router.put("/{id}", response_model=EnvironmentOut)

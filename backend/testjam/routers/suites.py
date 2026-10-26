@@ -5,6 +5,9 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import (
+    AuthContext,
+    authorize_project,
+    get_auth_context,
     get_current_user,
     require_project_access,
     require_project_writer,
@@ -99,10 +102,11 @@ def create_suite(id: int, body: TestSuiteCreate, db: Session = Depends(get_db), 
 
 
 @suites_router.get("/{id}", response_model=TestSuiteOut)
-def get_suite(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def get_suite(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     suite = db.get(TestSuite, id)
     if not suite:
         raise HTTPException(status_code=404, detail="Not found")
+    authorize_project(db, ctx, suite.project_id)
     return _suite_out(suite)
 
 
@@ -143,10 +147,11 @@ def delete_suite(id: int, db: Session = Depends(get_db), current: User = Depends
 
 
 @suites_router.get("/{id}/delete-impact", response_model=SuiteDeleteImpact)
-def delete_suite_impact(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def delete_suite_impact(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     suite = db.get(TestSuite, id)
     if not suite:
         raise HTTPException(status_code=404, detail="Not found")
+    authorize_project(db, ctx, suite.project_id)
     suite_ids = _collect_subtree_suite_ids(db, id)
     case_ids = _subtree_case_ids(db, suite_ids)
     if case_ids:

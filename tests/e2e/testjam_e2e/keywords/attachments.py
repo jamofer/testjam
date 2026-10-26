@@ -10,7 +10,9 @@ class AttachmentsMixin:
 
     @keyword("I attach file ${path} to the execution")
     def attach_file_to_execution(self, path: str) -> int:
-        return self._upload(f"/executions/{self.current_execution_id}/attachments", path)
+        attachment_id = self._upload(f"/executions/{self.current_execution_id}/attachments", path)
+        self.execution_attachment_ids[Path(path).name] = attachment_id
+        return attachment_id
 
     @keyword("I attach file ${path} to the current result")
     def attach_file_to_current_result(self, path: str) -> int:
@@ -48,14 +50,12 @@ class AttachmentsMixin:
 
     @keyword("I try to download the execution attachment named ${filename}")
     def try_download_execution_attachment(self, filename: str) -> None:
-        attachment = self._find_execution_attachment(filename)
-        url = f"/executions/{self.current_execution_id}/attachments/{attachment['id']}/download"
+        url = f"/executions/{self.current_execution_id}/attachments/{self._execution_attachment_id(filename)}/download"
         self.last_status_code = self.client.get(url).status_code
 
     @keyword("I try to download the execution attachment named ${filename} unauthenticated")
     def try_download_execution_attachment_anon(self, filename: str) -> None:
-        attachment = self._find_execution_attachment(filename)
-        url = f"/executions/{self.current_execution_id}/attachments/{attachment['id']}/download"
+        url = f"/executions/{self.current_execution_id}/attachments/{self._execution_attachment_id(filename)}/download"
         previous = self.client.session.headers.pop("Authorization", None)
         try:
             self.last_status_code = self.client.get(url).status_code
@@ -63,12 +63,9 @@ class AttachmentsMixin:
             if previous is not None:
                 self.client.session.headers["Authorization"] = previous
 
-    def _find_execution_attachment(self, filename: str) -> dict:
-        response = self.client.get(f"/executions/{self.current_execution_id}/attachments")
-        assert response.status_code == 200, response.text
-        attachment = next((a for a in response.json() if a["filename"] == filename), None)
-        assert attachment, f"Attachment '{filename}' not found"
-        return attachment
+    def _execution_attachment_id(self, filename: str) -> int:
+        assert filename in self.execution_attachment_ids, f"Attachment '{filename}' was not uploaded"
+        return self.execution_attachment_ids[filename]
 
     def _upload(self, path: str, file_path: str) -> int:
         resolved = self._resolve_fixture(file_path)

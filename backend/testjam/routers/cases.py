@@ -6,11 +6,16 @@ from pydantic import BaseModel
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user, require_project_access
+from testjam.auth.dependencies import (
+    AuthContext,
+    authorize_project,
+    get_auth_context,
+    get_current_user,
+    require_project_access,
+)
 from testjam.core.config import settings
 from testjam.database import get_db
 from testjam.models.case_revision import CaseRevision
-from testjam.models.project import ProjectMember
 from testjam.models.testcase import Attachment, CaseComment, TestCase, TestStep, TestSuite
 from testjam.models.testplan import TestPlan
 from testjam.models.user import User
@@ -68,8 +73,12 @@ def list_cases(
     external_id: str | None = None,
     include_archived: bool = False,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
+    suite = db.get(TestSuite, id)
+    if suite is None:
+        raise HTTPException(status_code=404, detail="Suite not found")
+    authorize_project(db, ctx, suite.project_id)
     q = db.query(TestCase).filter(TestCase.suite_id == id)
     if not include_archived:
         q = q.filter(TestCase.archived_at.is_(None))
@@ -110,11 +119,8 @@ def create_case(id: int, body: TestCaseCreate, db: Session = Depends(get_db), cu
 
 
 @cases_router.get("/{id}", response_model=TestCaseOut)
-def get_case(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
-    case = db.get(TestCase, id)
-    if not case:
-        raise HTTPException(status_code=404, detail="Not found")
-    return case
+def get_case(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
+    return _authorized_case(db, ctx, id)
 
 
 @cases_router.put("/{id}", response_model=TestCaseOut)
@@ -151,10 +157,9 @@ def list_case_revisions(
     skip: int = 0,
     limit: int = 50,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
-    if not db.get(TestCase, id):
-        raise HTTPException(status_code=404, detail="Not found")
+    _authorized_case(db, ctx, id)
     limit = min(limit, 200)
     return (
         db.query(CaseRevision)
@@ -170,8 +175,9 @@ def list_case_revisions(
 def get_case_revision(
     id: int, rev_id: int,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
+    _authorized_case(db, ctx, id)
     rev = db.query(CaseRevision).filter(CaseRevision.id == rev_id, CaseRevision.case_id == id).first()
     if not rev:
         raise HTTPException(status_code=404, detail="Not found")
@@ -274,10 +280,9 @@ def _clone_case(db: Session, source: TestCase, target_suite_id: int, name: str, 
 
 
 @cases_router.post("/{id}/copy", response_model=TestCaseOut, status_code=status.HTTP_201_CREATED)
-def copy_case(id: int, body: CaseCopy, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
-    source = db.get(TestCase, id)
-    if not source:
-        raise HTTPException(status_code=404, detail="Not found")
+def copy_case(id: int, body: CaseCopy, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
+    current = ctx.user
+    source = _authorized_case(db, ctx, id)
     target_suite = db.get(TestSuite, body.target_suite_id)
     if not target_suite:
         raise HTTPException(status_code=404, detail="Target suite not found")
@@ -295,7 +300,8 @@ def copy_case(id: int, body: CaseCopy, db: Session = Depends(get_db), current: U
 
 
 @cases_router.post("/bulk-copy", response_model=list[TestCaseOut], status_code=status.HTTP_201_CREATED)
-def bulk_copy_cases(body: BulkCaseCopy, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def bulk_copy_cases(body: BulkCaseCopy, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
+    current = ctx.user
     if not body.case_ids:
         return []
     if not body.target_suite_id and not body.new_suite_name:
@@ -303,6 +309,8 @@ def bulk_copy_cases(body: BulkCaseCopy, db: Session = Depends(get_db), current: 
     sources = db.query(TestCase).filter(TestCase.id.in_(body.case_ids)).all()
     if not sources:
         raise HTTPException(status_code=404, detail="No cases found")
+    for source_project in {_project_id_for_case(source, db) for source in sources}:
+        authorize_project(db, ctx, source_project)
     source_project_id = _project_id_for_case(sources[0], db)
     if body.new_suite_name:
         _require_case_writer(db, current, source_project_id)
@@ -416,7 +424,8 @@ def reorder_case_steps(id: int, body: StepReorder, db: Session = Depends(get_db)
 # ─── Steps ────────────────────────────────────────────────────────────────────
 
 @cases_router.get("/{id}/steps", response_model=list[TestStepOut])
-def list_steps(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def list_steps(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
+    _authorized_case(db, ctx, id)
     return db.query(TestStep).filter(TestStep.test_case_id == id).order_by(TestStep.order).all()
 
 
@@ -522,7 +531,8 @@ def delete_step(id: int, step_id: int, db: Session = Depends(get_db), current: U
 # ─── Attachments ──────────────────────────────────────────────────────────────
 
 @cases_router.get("/{id}/attachments", response_model=list[AttachmentOut])
-def list_attachments(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def list_attachments(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
+    _authorized_case(db, ctx, id)
     return db.query(Attachment).filter(Attachment.test_case_id == id).all()
 
 
@@ -563,22 +573,9 @@ def download_case_attachment(
     id: int,
     attachment_id: int,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
-    case = db.get(TestCase, id)
-    if not case:
-        raise HTTPException(status_code=404, detail="Not found")
-    suite = db.get(TestSuite, case.suite_id)
-    if not suite:
-        raise HTTPException(status_code=404, detail="Not found")
-    if not current.is_admin:
-        member = (
-            db.query(ProjectMember)
-            .filter_by(project_id=suite.project_id, user_id=current.id)
-            .first()
-        )
-        if not member:
-            raise HTTPException(status_code=403, detail="Not a project member")
+    _authorized_case(db, ctx, id)
     att = db.query(Attachment).filter(Attachment.id == attachment_id, Attachment.test_case_id == id).first()
     if not att or not os.path.exists(att.file_path):
         raise HTTPException(status_code=404, detail="Not found")
@@ -605,6 +602,12 @@ def _get_case(db: Session, case_id: int) -> TestCase:
     case = db.get(TestCase, case_id)
     if case is None:
         raise HTTPException(status_code=404, detail="Not found")
+    return case
+
+
+def _authorized_case(db: Session, ctx: AuthContext, case_id: int) -> TestCase:
+    case = _get_case(db, case_id)
+    authorize_project(db, ctx, _project_id_for_case(case, db))
     return case
 
 
