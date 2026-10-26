@@ -59,6 +59,7 @@ jobs:
           --health-retries 10
     env:
       DATABASE_URL: postgresql://testjam:testjam@localhost:5432/testjam
+      SECRET_KEY: ci-only-secret-key-for-migration-checks
     steps:
       - uses: actions/checkout@v4
 
