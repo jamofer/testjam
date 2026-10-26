@@ -218,7 +218,7 @@ def render_html(
             else ""
         )
         open_attr = 'open data-error="1"' if is_error else ""
-        case_name = result.test_case.name if result.test_case else str(result.test_case_id)
+        case_name = result.test_case_title or str(result.test_case_id)
         return f"""<details class="test" {open_attr}>
       <summary class="thd">
         <span class="chevron">▶</span>

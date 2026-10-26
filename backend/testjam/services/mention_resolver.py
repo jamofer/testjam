@@ -110,7 +110,7 @@ def _resolve_result(
         return ResolvedMentionOut(
             kind="result", id=execution_id, sub_ids=[result_id], accessible=False,
         )
-    case_name = result.test_case.name if result.test_case else f"result {result.id}"
+    case_name = result.test_case_title or f"result {result.id}"
     parts = [
         MentionPart(
             kind="execution", label=result.execution.title,
@@ -153,7 +153,7 @@ def _resolve_step_result(
             kind="step_result", id=execution_id,
             sub_ids=[result_id, step_id], accessible=False,
         )
-    case_name = result.test_case.name if result.test_case else f"result {result.id}"
+    case_name = result.test_case_title or f"result {result.id}"
     deep_url = f"/executions/{execution_id}/run#result-{result_id}-step-{step.id}"
     parts = [
         MentionPart(

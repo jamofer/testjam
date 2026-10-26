@@ -86,7 +86,7 @@ def export_execution_xlsx(
     ws_res = wb.create_sheet("Results")
     ws_res.append(["Test Case", "Status", "Executed by", f"Executed at ({tz_label})", "Duration (ms)", "Comment"])
     for r in ex.results:
-        tc_name = r.test_case.name if r.test_case else str(r.test_case_id)
+        tc_name = r.test_case_title or str(r.test_case_id)
         ws_res.append([
             tc_name,
             r.status,

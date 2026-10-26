@@ -46,9 +46,7 @@ def _reject_if_terminal(execution: TestExecution | None) -> None:
 
 
 def _result_out(result: TestResult) -> TestResultOut:
-    out = TestResultOut.model_validate(result)
-    out.test_case_title = result.test_case.name if result.test_case else None
-    return out
+    return TestResultOut.model_validate(result)
 
 
 def _format_log_entry(level: str, message: str) -> str:
@@ -86,7 +84,6 @@ def list_results(
     q = (
         db.query(TestResult)
         .options(
-            selectinload(TestResult.test_case),
             selectinload(TestResult.step_results),
             selectinload(TestResult.attachments),
         )
@@ -94,13 +91,7 @@ def list_results(
     )
     if status:
         q = q.filter(TestResult.status == status)
-    results = q.order_by(TestResult.id).all()
-    out = []
-    for r in results:
-        ro = TestResultOut.model_validate(r)
-        ro.test_case_title = r.test_case.name if r.test_case else None
-        out.append(ro)
-    return out
+    return [_result_out(result) for result in q.order_by(TestResult.id).all()]
 
 
 @executions_router.post(

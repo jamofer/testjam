@@ -32,7 +32,7 @@ export function StepsSection({ steps, stepResults, onUpdate, onSaveComment, isAu
               {typeSteps.map(step => {
                 const stepResult = stepResults.find(sr => sr.step_id === step.id)
                 return (
-                  <StepResultRow key={step.id} step={step} stepResult={stepResult}
+                  <StepResultRow key={step.id} step={stepAsExecuted(step, stepResult)} stepResult={stepResult}
                     onUpdate={onUpdate} onSaveComment={onSaveComment} isAutomated={isAutomated}
                     focused={step.id === focusedStepId} followLive={followLive} />
                 )
@@ -43,4 +43,9 @@ export function StepsSection({ steps, stepResults, onUpdate, onSaveComment, isAu
       })}
     </div>
   )
+}
+
+function stepAsExecuted(step, stepResult) {
+  if (!stepResult?.step_action) return step
+  return { ...step, action: stepResult.step_action, expected_result: stepResult.step_expected_result }
 }
