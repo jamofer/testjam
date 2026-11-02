@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from testjam.auth.lockout import clear_lockout
 from testjam.auth.security import hash_password
 from testjam.models.user import User
-from testjam.services.password_reset import issue_reset_email_for_user
+from testjam.services.password_reset import issue_reset_email_for_user, revoke_reset_tokens
 
 TEMPORARY_PASSWORD_LENGTH = 16
 PASSWORD_ALPHABET = string.ascii_letters + string.digits
@@ -18,6 +18,7 @@ PASSWORD_ALPHABET = string.ascii_letters + string.digits
 def issue_temporary_password(db: Session, user: User) -> str:
     raw = "".join(secrets.choice(PASSWORD_ALPHABET) for _ in range(TEMPORARY_PASSWORD_LENGTH))
     user.hashed_password = hash_password(raw)
+    revoke_reset_tokens(db, user.id)
     clear_lockout(db, user)
     db.commit()
     return raw
