@@ -155,6 +155,22 @@ def test_dispatch_succeeds_and_persists_delivery(auth_client, project_id, monkey
     assert deliveries[0]["attempt_count"] == 1
 
 
+def test_dispatch_refuses_internal_destination_without_retries(auth_client, project_id, monkeypatch):
+    webhook = _create_webhook(auth_client, project_id, url="http://169.254.169.254/latest").json()
+
+    def fail_on_connect(*_args, **_kwargs):
+        pytest.fail("must not connect to a blocked destination")
+
+    monkeypatch.setattr(webhook_dispatch.httpx, "AsyncClient", fail_on_connect)
+    envelope = webhook_dispatch.build_envelope("bug.created", {"id": 1}, project_id)
+
+    asyncio.run(webhook_dispatch._run_dispatch(webhook["id"], "bug.created", envelope))
+
+    [delivery] = auth_client.get(f"/api/v1/webhooks/{webhook['id']}/deliveries").json()
+    assert (delivery["succeeded"], delivery["attempt_count"]) == (False, 1)
+    assert "OUTBOUND_ALLOWED_HOSTS" in delivery["last_error"]
+
+
 def test_dispatch_retries_on_5xx_then_records_failure(auth_client, project_id, monkeypatch):
     webhook = _create_webhook(auth_client, project_id, events=["bug.created"]).json()
     calls = {"n": 0}

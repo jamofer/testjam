@@ -1,9 +1,15 @@
+import ipaddress
+import re
+
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 DEFAULT_CORS_ORIGINS = "http://localhost:5173,http://localhost:3000"
 
 PLACEHOLDER_SECRET_KEYS = {"change-me-in-production", "change-me-use-openssl-rand-hex-32"}
+
+HOST_LABEL = r"[a-z0-9]([a-z0-9-]*[a-z0-9])?"
+HOST_PATTERN = re.compile(rf"(\*\.)?{HOST_LABEL}(\.{HOST_LABEL})*")
 
 
 class Settings(BaseSettings):
@@ -24,6 +30,12 @@ class Settings(BaseSettings):
     # integration push/sync endpoints refuse with 503.
     INTEGRATION_ENCRYPTION_KEY: str = ""
     INTEGRATION_HTTP_TIMEOUT_SECONDS: float = 15.0
+
+    # CSV of internal targets webhooks and integrations may reach besides public
+    # addresses: IPs, CIDR ranges, hostnames or `*.domain` wildcards, e.g.
+    # `gitlab.corp.example,*.ci.corp.example,10.20.0.0/16`. Everything else that
+    # is not globally routable is refused.
+    OUTBOUND_ALLOWED_HOSTS: str = ""
 
     CORS_ORIGINS: str = DEFAULT_CORS_ORIGINS
 
@@ -66,6 +78,23 @@ class Settings(BaseSettings):
             raise ValueError("SECRET_KEY must be set to a random value, e.g. `openssl rand -hex 32`")
         return value
 
+    @field_validator("OUTBOUND_ALLOWED_HOSTS")
+    @classmethod
+    def reject_invalid_outbound_hosts(cls, value: str) -> str:
+        for entry in _split_entries(value):
+            if _parse_network(entry) is None and not _is_host_pattern(entry):
+                raise ValueError(f"OUTBOUND_ALLOWED_HOSTS entry is not an IP, CIDR or hostname: {entry}")
+        return value
+
+    @property
+    def outbound_allowed_networks(self) -> list[ipaddress.IPv4Network | ipaddress.IPv6Network]:
+        networks = [_parse_network(entry) for entry in _split_entries(self.OUTBOUND_ALLOWED_HOSTS)]
+        return [network for network in networks if network is not None]
+
+    @property
+    def outbound_allowed_host_patterns(self) -> list[str]:
+        return [entry for entry in _split_entries(self.OUTBOUND_ALLOWED_HOSTS) if _parse_network(entry) is None]
+
     @property
     def blocked_attachment_mime_types(self) -> set[str]:
         return {item.strip().lower() for item in self.BLOCKED_ATTACHMENT_MIME_TYPES.split(",") if item.strip()}
@@ -75,6 +104,22 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
 
     model_config = SettingsConfigDict(env_file=".env")
+
+
+def _split_entries(value: str) -> list[str]:
+    return [item.strip().lower() for item in value.split(",") if item.strip()]
+
+
+def _parse_network(entry: str) -> ipaddress.IPv4Network | ipaddress.IPv6Network | None:
+    try:
+        return ipaddress.ip_network(entry)
+    except ValueError:
+        return None
+
+
+def _is_host_pattern(entry: str) -> bool:
+    last_label = entry.rsplit(".", 1)[-1]
+    return HOST_PATTERN.fullmatch(entry) is not None and not last_label.isdigit()
 
 
 settings = Settings()

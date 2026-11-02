@@ -9,6 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Literal, Protocol
 
+from testjam.services import outbound_http
+
 
 NormalizedStatus = Literal["open", "closed", "unknown"]
 
@@ -25,6 +27,13 @@ class ProviderRequestError(ProviderError):
     def __init__(self, message: str, *, status_code: int | None = None) -> None:
         super().__init__(message)
         self.status_code = status_code
+
+
+def ensure_allowed_destination(url: str) -> None:
+    try:
+        outbound_http.ensure_allowed_destination(url)
+    except outbound_http.BlockedDestinationError as exc:
+        raise ProviderRequestError(str(exc)) from exc
 
 
 @dataclass(frozen=True)

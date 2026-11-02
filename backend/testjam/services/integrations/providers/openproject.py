@@ -28,6 +28,7 @@ from testjam.services.integrations.base import (
     NormalizedStatus,
     ProviderConfigError,
     ProviderRequestError,
+    ensure_allowed_destination,
     register_provider,
 )
 
@@ -168,6 +169,7 @@ class OpenProjectProvider:
             "Accept": "application/json",
             "Content-Type": "application/json",
         }
+        ensure_allowed_destination(url)
         timeout = settings.INTEGRATION_HTTP_TIMEOUT_SECONDS
         try:
             with httpx.Client(timeout=timeout) as http:

@@ -27,6 +27,7 @@ from testjam.services.integrations.base import (
     NormalizedStatus,
     ProviderConfigError,
     ProviderRequestError,
+    ensure_allowed_destination,
     register_provider,
 )
 from testjam.services.integrations.markdown_to_html import to_html
@@ -199,6 +200,7 @@ class AzureDevOpsProvider:
         }
         if extra_headers:
             headers.update(extra_headers)
+        ensure_allowed_destination(url)
         timeout = settings.INTEGRATION_HTTP_TIMEOUT_SECONDS
         try:
             with httpx.Client(timeout=timeout) as http:

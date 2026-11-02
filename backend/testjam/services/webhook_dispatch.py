@@ -27,6 +27,7 @@ from fastapi import BackgroundTasks
 
 from testjam import database
 from testjam.models.webhook import Webhook, WebhookDelivery
+from testjam.services import outbound_http
 
 
 log = logging.getLogger("testjam.webhooks")
@@ -104,6 +105,7 @@ async def _run_dispatch(webhook_id: int, event_type: str, envelope: dict[str, An
     for attempt_index in range(len(RETRY_DELAYS_SECONDS) + 1):
         attempt = attempt_index + 1
         try:
+            await asyncio.to_thread(outbound_http.ensure_allowed_destination, url)
             async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT_SECONDS) as client:
                 response = await client.post(url, content=body, headers=headers)
             status_code = response.status_code
@@ -115,6 +117,11 @@ async def _run_dispatch(webhook_id: int, event_type: str, envelope: dict[str, An
             last_error = f"HTTP {response.status_code}"
             if response.status_code < 500:
                 break
+        except outbound_http.BlockedDestinationError as exc:
+            status_code = None
+            response_excerpt = None
+            last_error = str(exc)
+            break
         except httpx.HTTPError as exc:
             status_code = None
             response_excerpt = None
