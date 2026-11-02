@@ -28,7 +28,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 def list_users(
     include_deleted: bool = False,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(get_unscoped_user),
 ):
     query = db.query(User)
     if include_deleted and not current.is_admin:
@@ -86,7 +86,7 @@ def delete_my_account(
 def get_user_by_username(
     username: str,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(get_unscoped_user),
 ):
     user = db.query(User).filter(User.username == username).first()
     if not user:
@@ -97,7 +97,7 @@ def get_user_by_username(
 
 
 @router.get("/{id}", response_model=UserOut)
-def get_user(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def get_user(id: int, db: Session = Depends(get_db), current: User = Depends(get_unscoped_user)):
     user = db.get(User, id)
     if not user:
         raise HTTPException(status_code=404, detail="Not found")

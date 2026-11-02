@@ -46,7 +46,36 @@ ACCOUNT_ENDPOINTS = [
     ("PUT", "/api/v1/users/me/password", {"current_password": "pw", "new_password": "pwned123"}),
     ("POST", "/api/v1/users", {"username": "backdoor", "email": "backdoor@test.com", "password": "pw"}),
     ("POST", "/api/v1/projects", {"name": "Escape"}),
+    ("GET", "/api/v1/users/1", None),
+    ("GET", "/api/v1/users/by-username/alice", None),
+    ("GET", "/api/v1/groups/1", None),
+    ("GET", "/api/v1/groups/1/members", None),
+    ("POST", "/api/v1/notifications/1/read", None),
+    ("GET", "/api/v1/users/me/notification-preferences/bug.created", None),
+    ("PUT", "/api/v1/users/me/notification-preferences/bug.created", {"in_app": False}),
 ]
+
+SESSION_PATH_PREFIXES = ("/api/v1/auth/",)
+TOKEN_REACHABLE_ROUTES = {
+    ("GET", "/health"),
+    ("GET", "/api/v1/about"),
+    ("GET", "/api/v1/settings/public"),
+    ("GET", "/api/v1/integrations/providers"),
+    ("GET", "/api/v1/users/me"),
+    ("GET", "/api/v1/projects"),
+    ("POST", "/api/v1/cases/bulk-copy"),
+    ("POST", "/api/v1/cases/bulk-delete"),
+}
+
+
+def _account_level_routes() -> list[tuple[str, str]]:
+    routes = {
+        (method.upper(), path)
+        for path, operations in app.openapi()["paths"].items()
+        for method in operations
+        if "{" not in path and not path.startswith(SESSION_PATH_PREFIXES)
+    }
+    return sorted(routes - TOKEN_REACHABLE_ROUTES)
 
 
 @pytest.fixture
@@ -175,6 +204,15 @@ def test_admin_project_token_cannot_reach_account_routes(
     admin_project_token_client, method, path, payload,
 ):
     response = _send(admin_project_token_client, method, path, payload, {})
+
+    assert response.status_code == 403
+
+
+@pytest.mark.parametrize("method,path", _account_level_routes())
+def test_project_token_cannot_reach_routes_outside_its_project(
+    admin_project_token_client, method, path,
+):
+    response = admin_project_token_client.request(method, path)
 
     assert response.status_code == 403
 

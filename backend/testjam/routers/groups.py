@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user, require_admin
+from testjam.auth.dependencies import get_unscoped_user, require_admin
 from testjam.database import get_db
 from testjam.models.user import Group, GroupMember, User
 from testjam.schemas.user import GroupCreate, GroupMemberOut, GroupMemberUpdate, GroupOut
@@ -20,7 +20,7 @@ def _group_out(group: Group) -> GroupOut:
 
 
 @router.get("", response_model=list[GroupOut])
-def list_groups(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def list_groups(db: Session = Depends(get_db), _: User = Depends(get_unscoped_user)):
     return [_group_out(group) for group in db.query(Group).all()]
 
 
@@ -36,7 +36,7 @@ def create_group(body: GroupCreate, db: Session = Depends(get_db), _: User = Dep
 
 
 @router.get("/{id}", response_model=GroupOut)
-def get_group(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def get_group(id: int, db: Session = Depends(get_db), _: User = Depends(get_unscoped_user)):
     group = db.get(Group, id)
     if not group:
         raise HTTPException(status_code=404, detail="Not found")
@@ -69,7 +69,7 @@ def _member_out(m: GroupMember) -> GroupMemberOut:
 
 
 @router.get("/{id}/members", response_model=list[GroupMemberOut])
-def list_members(id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def list_members(id: int, db: Session = Depends(get_db), _: User = Depends(get_unscoped_user)):
     group = db.get(Group, id)
     if not group:
         raise HTTPException(status_code=404, detail="Not found")
