@@ -12,6 +12,7 @@ quacks like ``httpx.Client.request`` (returning an object with
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any, Protocol
 
 import httpx
@@ -103,6 +104,9 @@ class TestjamClient:
 
     def set_token(self, token: str) -> None:
         self._http.headers["Authorization"] = f"Bearer {token}"
+
+    def wrap_http(self, wrapper: Callable[[HttpAdapter], HttpAdapter]) -> None:
+        self._http = wrapper(self._http)
 
     def close(self) -> None:
         if self._owns_http and hasattr(self._http, "close"):

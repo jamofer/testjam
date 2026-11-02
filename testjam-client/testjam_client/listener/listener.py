@@ -13,12 +13,19 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import httpx
+
 from testjam_client import TestjamClient
-from testjam_client.errors import TestjamError, ValidationError
+from testjam_client.errors import TestjamError
+from testjam_client.listener.circuit_breaker import NetworkCircuitBreaker
 from testjam_client.listener.log import format_log_line, isoformat_timestamp
 from testjam_client.listener.status import map_rf_status
 
 log = logging.getLogger("testjam.listener")
+
+API_ERRORS = (TestjamError, httpx.TransportError)
+MAX_CONSECUTIVE_NETWORK_FAILURES = 3
+NETWORK_RETRY_COOLDOWN_SECONDS = 60.0
 
 
 class TestjamListener:
@@ -41,6 +48,13 @@ class TestjamListener:
         execution_title = os.getenv("TESTJAM_EXECUTION_TITLE")
 
         self.client = TestjamClient(base_url, api_key=api_key)
+        self.client.wrap_http(
+            lambda http: NetworkCircuitBreaker(
+                http,
+                max_failures=MAX_CONSECUTIVE_NETWORK_FAILURES,
+                cooldown_seconds=NETWORK_RETRY_COOLDOWN_SECONDS,
+            ),
+        )
         if not api_key:
             if not (admin_user and admin_password):
                 raise ValueError(
@@ -87,27 +101,29 @@ class TestjamListener:
             if not _is_file_suite(source):
                 return
 
-        parent_suite_id = self._suite_stack[-1][0] if self._suite_stack else None
-        description = (getattr(data, "doc", None) or "").strip() or None
-        suite = self.client.suites.find_or_create(
-            self.project_id, data.name,
-            parent_suite_id=parent_suite_id, description=description,
-        )
-        parent_path = self._suite_stack[-1][1] if self._suite_stack else ""
+        parent_suite_id, parent_path = self._suite_stack[-1] if self._suite_stack else (None, "")
         suite_path = f"{parent_path}.{data.name}" if parent_path else data.name
-        self._suite_stack.append((suite["id"], suite_path))
+        suite_id = None
+        if parent_suite_id is not None or not self._suite_stack:
+            suite_id = self._find_or_create_suite(data, parent_suite_id)
+        self._suite_stack.append((suite_id, suite_path))
 
     def end_suite(self, _data: Any, _result: Any) -> None:
         if self._suite_stack:
             self._suite_stack.pop()
 
     def start_test(self, data: Any, _result: Any) -> None:
-        current = self._suite_stack[-1] if self._suite_stack else None
-        if current is None:
-            self._test = None
+        self._test = None
+        self._keyword_depth = 0
+        suite_id, suite_path = self._suite_stack[-1] if self._suite_stack else (None, "")
+        if suite_id is None:
             return
-        suite_id, suite_path = current
+        try:
+            self._test = self._begin_test(data, suite_id, suite_path)
+        except httpx.TransportError as exc:
+            log.warning("Skipping test %s: %s", data.name, exc)
 
+    def _begin_test(self, data: Any, suite_id: int, suite_path: str) -> _TestState | None:
         description = (getattr(data, "doc", None) or "").strip() or None
         tags = [str(tag) for tag in getattr(data, "tags", [])]
         self._execution_custom_fields.update(_parse_cf_tags(tags))
@@ -117,25 +133,22 @@ class TestjamListener:
             external_id=external_id, description=description, tags=tags,
         )
         if case is None:
-            self._test = None
-            return
+            return None
 
         step_ids = _sync_steps_from_rf_test(self.client, case["id"], data)
         try:
             created = self.client.results.create(
                 self.execution_id, test_case_id=case["id"],
             )
-        except TestjamError:
-            self._test = None
-            return
+        except API_ERRORS:
+            return None
 
-        self._test = _TestState(
-            result_id=created["id"], case_id=case["id"], step_ids=step_ids,
-        )
-        self._keyword_depth = 0
         self._safe_update_result(
             created["id"], status="running",
             executed_at=datetime.now(timezone.utc).isoformat(),
+        )
+        return _TestState(
+            result_id=created["id"], case_id=case["id"], step_ids=step_ids,
         )
 
     def end_test(self, _data: Any, result: Any) -> None:
@@ -153,7 +166,7 @@ class TestjamListener:
                         test_case_id=test.case_id,
                         step_results=test.pending_step_results,
                     )
-                except TestjamError:
+                except API_ERRORS:
                     pass
         finally:
             self._test = None
@@ -175,7 +188,7 @@ class TestjamListener:
         try:
             row = self.client.step_results.start(test.result_id, step_id)
             self._step = _StepState(step_result_id=row["id"], step_id=step_id)
-        except TestjamError as exc:
+        except API_ERRORS as exc:
             self._maybe_disable_streaming(exc)
             self._step = _StepState(step_result_id=0, step_id=step_id)
 
@@ -195,7 +208,7 @@ class TestjamListener:
                 )
             else:
                 test.pending_step_results.append({"step_id": step.step_id, **payload})
-        except TestjamError as exc:
+        except API_ERRORS as exc:
             self._maybe_disable_streaming(exc)
             test.pending_step_results.append({"step_id": step.step_id, **payload})
         finally:
@@ -220,7 +233,7 @@ class TestjamListener:
                 test.result_id, step.step_result_id,
                 level=level, message=text, ts=isoformat_timestamp(timestamp),
             )
-        except TestjamError as exc:
+        except API_ERRORS as exc:
             self._maybe_disable_streaming(exc)
             step.log_buffer.append(format_log_line(level, text, timestamp))
 
@@ -233,24 +246,35 @@ class TestjamListener:
             update_payload["custom_fields"] = self._execution_custom_fields
         try:
             self.client.executions.update(self.execution_id, **update_payload)
-        except TestjamError:
+        except API_ERRORS:
             log.warning("Failed to mark execution %s completed", self.execution_id)
-        self._upload_artefacts()
-        self.client.close()
+        try:
+            self._upload_artefacts()
+        finally:
+            self.client.close()
+
+    def _find_or_create_suite(self, data: Any, parent_suite_id: int | None) -> int | None:
+        description = (getattr(data, "doc", None) or "").strip() or None
+        try:
+            suite = self.client.suites.find_or_create(
+                self.project_id, data.name,
+                parent_suite_id=parent_suite_id, description=description,
+            )
+        except httpx.TransportError as exc:
+            log.warning("Skipping suite %s: %s", data.name, exc)
+            return None
+        return suite["id"]
 
     def _safe_update_result(self, result_id: int, **payload: Any) -> None:
         try:
             self.client.results.update(result_id, **payload)
-        except TestjamError:
+        except API_ERRORS:
             pass
 
-    def _maybe_disable_streaming(self, exc: TestjamError) -> None:
-        if 400 <= exc.status_code < 500:
+    def _maybe_disable_streaming(self, exc: Exception) -> None:
+        if isinstance(exc, httpx.TransportError) or 400 <= exc.status_code < 500:
             self.streaming_enabled = False
-            log.info(
-                "Server rejected streaming endpoint (status=%s); falling back to batch.",
-                exc.status_code,
-            )
+            log.info("Streaming unavailable (%s); falling back to batch.", exc)
 
     def _upload_artefacts(self) -> None:
         for filename, mime in (("log.html", "text/html"), ("output.xml", "application/xml")):
@@ -263,7 +287,7 @@ class TestjamListener:
                         self.execution_id,
                         filename=filename, content=file_handle, mime=mime,
                     )
-            except TestjamError:
+            except API_ERRORS:
                 log.warning("Failed to upload %s for execution %s", filename, self.execution_id)
 
 
@@ -341,7 +365,7 @@ def _find_or_create_case_by_external_id(
             external_id=external_id,
             description=description, tags=tags,
         )
-    except (ValidationError, TestjamError):
+    except API_ERRORS:
         return None
 
 
