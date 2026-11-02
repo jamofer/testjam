@@ -78,7 +78,7 @@ Webhook configuration requires **owner** or **admin**. Tester / viewer cannot li
 ## Security recommendations
 
 - Always use HTTPS endpoints. Testjam refuses `http://` URLs unless `ALLOW_INSECURE_WEBHOOKS=1` is set explicitly.
-- Testjam only delivers to public addresses. To reach an internal receiver, add its network to `OUTBOUND_ALLOWED_NETWORKS` (CIDR list, comma-separated). A blocked delivery fails without retries and shows the reason in the delivery log.
+- Testjam only delivers to public addresses. To reach an internal receiver, add it to `OUTBOUND_ALLOWED_HOSTS`: a comma-separated list of IPs, CIDR ranges, hostnames or `*.domain` wildcards, which match subdomains only. A blocked delivery fails without retries and shows the reason in the delivery log.
 - Rotate the secret periodically. Old secrets become invalid the moment you save the new one.
 - Verify the signature on every request. Do not trust event type or payload before validating.
 - Use the `X-Testjam-Delivery-Id` header for idempotency; Testjam may redeliver after a recoverable failure.

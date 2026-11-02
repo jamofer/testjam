@@ -168,7 +168,7 @@ def test_dispatch_refuses_internal_destination_without_retries(auth_client, proj
 
     [delivery] = auth_client.get(f"/api/v1/webhooks/{webhook['id']}/deliveries").json()
     assert (delivery["succeeded"], delivery["attempt_count"]) == (False, 1)
-    assert "OUTBOUND_ALLOWED_NETWORKS" in delivery["last_error"]
+    assert "OUTBOUND_ALLOWED_HOSTS" in delivery["last_error"]
 
 
 def test_dispatch_retries_on_5xx_then_records_failure(auth_client, project_id, monkeypatch):

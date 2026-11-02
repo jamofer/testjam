@@ -32,6 +32,48 @@ NON_PUBLIC_ADDRESSES = [
 
 PUBLIC_ADDRESSES = ["93.184.216.34", "2606:4700:4700::1111"]
 
+ALLOWED_HOST_URLS = [
+    ("gitlab.corp.example", "https://gitlab.corp.example/api"),
+    ("GitLab.Corp.Example", "https://gitlab.corp.example/api"),
+    ("gitlab.corp.example", "https://GITLAB.corp.example/api"),
+    ("gitlab.corp.example", "https://gitlab.corp.example./api"),
+    ("gitlab", "http://gitlab:8080/api"),
+    ("*.corp.example", "https://gitlab.corp.example/api"),
+    ("*.corp.example", "https://ci.eu.corp.example/api"),
+    ("10.20.0.0/16, gitlab.corp.example", "https://gitlab.corp.example/api"),
+]
+
+NOT_ALLOWED_HOST_URLS = [
+    ("gitlab.corp.example", "https://jira.corp.example/api"),
+    ("gitlab.corp.example", "https://gitlab.corp.example.evil.example/api"),
+    ("gitlab.corp.example", "https://evilgitlab.corp.example/api"),
+    ("gitlab.corp.example", "https://gitlab.corp.example@evil.example/api"),
+    ("*.corp.example", "https://corp.example/api"),
+    ("*.corp.example", "https://evilcorp.example/api"),
+]
+
+VALID_ALLOWED_HOSTS = [
+    "",
+    "10.20.0.0/16",
+    "192.168.1.10",
+    "fd00::/8",
+    "gitlab",
+    "gitlab.corp.example",
+    "*.corp.example",
+    " gitlab.corp.example , 10.20.0.0/16 ",
+]
+
+INVALID_ALLOWED_HOSTS = [
+    "not a host",
+    "*",
+    "*corp.example",
+    "gitlab.*",
+    "https://gitlab.corp.example",
+    "10.20.0.0/33",
+    "10.20.1.5/16",
+    "999.1.1.1",
+]
+
 PROVIDERS = [
     (GitHubProvider(), {"owner": "acme", "repo": "widgets", "api_base": METADATA_URL}),
     (GitLabProvider(), {"project": "acme/widgets", "base_url": METADATA_URL}),
@@ -46,6 +88,14 @@ def resolves_to(monkeypatch):
     def install(*addresses: str) -> None:
         records = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", (address, 0)) for address in addresses]
         monkeypatch.setattr(outbound_http.socket, "getaddrinfo", lambda *_args, **_kwargs: records)
+
+    return install
+
+
+@pytest.fixture
+def allow_hosts(monkeypatch):
+    def install(value: str) -> None:
+        monkeypatch.setattr(settings, "OUTBOUND_ALLOWED_HOSTS", value)
 
     return install
 
@@ -72,19 +122,36 @@ def test_host_with_any_non_public_address_is_blocked(resolves_to):
         outbound_http.ensure_allowed_destination(URL)
 
 
-def test_allowed_network_opens_internal_address(resolves_to, monkeypatch):
-    monkeypatch.setattr(settings, "OUTBOUND_ALLOWED_NETWORKS", "10.20.0.0/16")
+def test_allowed_network_opens_internal_address(resolves_to, allow_hosts):
+    allow_hosts("10.20.0.0/16")
     resolves_to("10.20.1.5")
 
     outbound_http.ensure_allowed_destination(URL)
 
 
-def test_allowed_network_keeps_other_internal_addresses_blocked(resolves_to, monkeypatch):
-    monkeypatch.setattr(settings, "OUTBOUND_ALLOWED_NETWORKS", "10.20.0.0/16")
+def test_allowed_network_keeps_other_internal_addresses_blocked(resolves_to, allow_hosts):
+    allow_hosts("10.20.0.0/16")
     resolves_to("169.254.169.254")
 
     with pytest.raises(outbound_http.BlockedDestinationError):
         outbound_http.ensure_allowed_destination(URL)
+
+
+@pytest.mark.parametrize("allowed,url", ALLOWED_HOST_URLS)
+def test_allowed_host_opens_internal_address(resolves_to, allow_hosts, allowed, url):
+    allow_hosts(allowed)
+    resolves_to("10.20.1.5")
+
+    outbound_http.ensure_allowed_destination(url)
+
+
+@pytest.mark.parametrize("allowed,url", NOT_ALLOWED_HOST_URLS)
+def test_host_outside_the_allowed_list_stays_blocked(resolves_to, allow_hosts, allowed, url):
+    allow_hosts(allowed)
+    resolves_to("10.20.1.5")
+
+    with pytest.raises(outbound_http.BlockedDestinationError):
+        outbound_http.ensure_allowed_destination(url)
 
 
 def test_unresolvable_host_is_left_to_the_http_client(monkeypatch):
@@ -96,17 +163,24 @@ def test_unresolvable_host_is_left_to_the_http_client(monkeypatch):
     outbound_http.ensure_allowed_destination(URL)
 
 
-def test_url_without_host_is_blocked():
+@pytest.mark.parametrize("url", ["http://", "http://target.example:notaport/"])
+def test_url_without_valid_host_is_blocked(url):
     with pytest.raises(outbound_http.BlockedDestinationError):
-        outbound_http.ensure_allowed_destination("http://")
+        outbound_http.ensure_allowed_destination(url)
 
 
-def test_invalid_allowed_network_is_rejected_at_startup():
+@pytest.mark.parametrize("value", VALID_ALLOWED_HOSTS)
+def test_valid_allowed_hosts_are_accepted_at_startup(value):
+    Settings(SECRET_KEY="x" * 32, OUTBOUND_ALLOWED_HOSTS=value)
+
+
+@pytest.mark.parametrize("value", INVALID_ALLOWED_HOSTS)
+def test_invalid_allowed_hosts_are_rejected_at_startup(value):
     with pytest.raises(ValidationError):
-        Settings(SECRET_KEY="x" * 32, OUTBOUND_ALLOWED_NETWORKS="not-a-network")
+        Settings(SECRET_KEY="x" * 32, OUTBOUND_ALLOWED_HOSTS=value)
 
 
 @pytest.mark.parametrize("provider,config", PROVIDERS, ids=lambda value: type(value).__name__)
 def test_integrations_refuse_internal_destinations(provider, config):
-    with pytest.raises(ProviderRequestError, match="OUTBOUND_ALLOWED_NETWORKS"):
+    with pytest.raises(ProviderRequestError, match="OUTBOUND_ALLOWED_HOSTS"):
         provider.health_check(config, "secret")

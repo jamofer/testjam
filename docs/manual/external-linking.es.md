@@ -68,5 +68,5 @@ Edita la integración para pegar una credencial nueva. La vieja se sobrescribe y
 - Las credenciales se cifran en reposo con la clave Fernet configurada en `INTEGRATION_ENCRYPTION_KEY`. Rota esta clave siguiendo el script de migración en `scripts/rotate_fernet.py`.
 - La autenticación fallida devuelve 503 con el mensaje de error del proveedor — nunca la credencial.
 - Push y pull usan la API REST oficial del proveedor; nada se scrapea.
-- Solo se alcanzan direcciones públicas. Para un proveedor self-hosted en una red interna, añade su red a `OUTBOUND_ALLOWED_NETWORKS` (lista CIDR separada por comas).
+- Solo se alcanzan direcciones públicas. Para un proveedor self-hosted en una red interna, añádelo a `OUTBOUND_ALLOWED_HOSTS`: una lista separada por comas de IP, rangos CIDR, hostnames o comodines `*.dominio`, que solo cubren subdominios.
 - Los tests de integración cubren el happy path por proveedor usando un shim `FakeProvider`.
