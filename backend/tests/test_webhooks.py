@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import json
 
+import httpx
 import pytest
 
 from testjam.services import webhook_dispatch, webhook_events
@@ -158,10 +159,14 @@ def test_dispatch_succeeds_and_persists_delivery(auth_client, project_id, monkey
 def test_dispatch_refuses_internal_destination_without_retries(auth_client, project_id, monkeypatch):
     webhook = _create_webhook(auth_client, project_id, url="http://169.254.169.254/latest").json()
 
-    def fail_on_connect(*_args, **_kwargs):
+    def fail_on_connect(_request):
         pytest.fail("must not connect to a blocked destination")
 
-    monkeypatch.setattr(webhook_dispatch.httpx, "AsyncClient", fail_on_connect)
+    monkeypatch.setattr(
+        webhook_dispatch.httpx,
+        "AsyncHTTPTransport",
+        lambda: httpx.MockTransport(fail_on_connect),
+    )
     envelope = webhook_dispatch.build_envelope("bug.created", {"id": 1}, project_id)
 
     asyncio.run(webhook_dispatch._run_dispatch(webhook["id"], "bug.created", envelope))

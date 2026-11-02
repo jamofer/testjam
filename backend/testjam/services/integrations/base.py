@@ -6,8 +6,12 @@ time. The HTTP layer only ever interacts with the abstract API.
 """
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any, Literal, Protocol
+
+import httpx
 
 from testjam.services import outbound_http
 
@@ -29,10 +33,12 @@ class ProviderRequestError(ProviderError):
         self.status_code = status_code
 
 
-def ensure_allowed_destination(url: str) -> None:
+@contextmanager
+def guarded_client(timeout: float) -> Iterator[httpx.Client]:
     try:
-        outbound_http.ensure_allowed_destination(url)
-    except outbound_http.BlockedDestinationError as exc:
+        with outbound_http.client(timeout) as http:
+            yield http
+    except (outbound_http.BlockedDestinationError, httpx.InvalidURL) as exc:
         raise ProviderRequestError(str(exc)) from exc
 
 
