@@ -39,10 +39,6 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     full_name: str | None = None
     email: EmailStr | None = None
-    is_active: bool | None = None
-    password: str | None = None
-    failed_login_count: int | None = None
-    clear_lockout: bool | None = None
     timezone: str | None = None
     use_relative_dates: bool | None = None
     locale: str | None = None
