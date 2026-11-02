@@ -2,15 +2,18 @@
 from datetime import datetime, timezone
 
 from fastapi import BackgroundTasks, Depends, HTTPException, status
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
 from testjam.auth.dependencies import AuthContext, get_auth_context
 from testjam.database import get_db
 from testjam.models.execution import TestExecution, TestResult, TestStepResult
+from testjam.models.testcase import TestCase, TestSuite
 from testjam.routers.executions import executions_router, results_router
 from testjam.routers.executions._helpers import authorized_execution, authorized_result
 from testjam.schemas.execution import (
     BulkResultCreate,
+    BulkResultItem,
     BulkResultResponse,
     StepResultLogAppend,
     StepResultLogAppendResponse,
@@ -26,6 +29,7 @@ from testjam.services.permissions import WRITER_ROLES
 
 STEP_RESULT_LOG_SEPARATOR = "\n\n"
 TERMINAL_EXECUTION_STATUSES = {"completed", "aborted"}
+BULK_ITEM_SAVE_ERROR = "Could not save result"
 
 
 
@@ -69,6 +73,48 @@ def _load_step_result(db: Session, result_id: int, step_result_id: int) -> TestS
         )
         .first()
     )
+
+
+def _bulk_item_rejection(db: Session, project_id: int, item: BulkResultItem) -> str | None:
+    case = (
+        db.query(TestCase)
+        .join(TestSuite, TestSuite.id == TestCase.suite_id)
+        .filter(TestCase.id == item.test_case_id, TestSuite.project_id == project_id)
+        .first()
+    )
+    if case is None:
+        return "Test case not found in this project"
+    case_step_ids = {step.id for step in case.steps}
+    if any(step_result.step_id not in case_step_ids for step_result in item.step_results):
+        return "Step does not belong to this test case"
+    return None
+
+
+def _upsert_bulk_item(db: Session, execution_id: int, item: BulkResultItem) -> tuple[TestResult, str | None]:
+    result = db.query(TestResult).filter_by(execution_id=execution_id, test_case_id=item.test_case_id).first()
+    previous_status = result.status if result else None
+    if result:
+        for field, value in item.model_dump(exclude={"step_results"}, exclude_none=True).items():
+            setattr(result, field, value)
+    else:
+        result = TestResult(**item.model_dump(exclude={"step_results"}), execution_id=execution_id)
+        db.add(result)
+    db.flush()
+    for step_result in item.step_results:
+        existing_step_result = (
+            db.query(TestStepResult)
+            .filter_by(test_result_id=result.id, step_id=step_result.step_id)
+            .first()
+        )
+        if existing_step_result:
+            existing_step_result.status = step_result.status
+            existing_step_result.comment = step_result.comment
+            if step_result.duration_ms is not None:
+                existing_step_result.duration_ms = step_result.duration_ms
+        else:
+            db.add(TestStepResult(test_result_id=result.id, **step_result.model_dump()))
+    db.flush()
+    return result, previous_status
 
 
 def _resolve_execution_id(db: Session, result_id: int) -> int | None:
@@ -142,43 +188,28 @@ def bulk_results(
     background: BackgroundTasks,
     db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context),
 ):
-    _reject_if_terminal(authorized_execution(db, ctx, id, WRITER_ROLES))
+    execution = authorized_execution(db, ctx, id, WRITER_ROLES)
+    _reject_if_terminal(execution)
     created = updated = 0
     errors = []
     newly_failed_ids: list[int] = []
     for item in body.results:
+        rejection = _bulk_item_rejection(db, execution.project_id, item)
+        if rejection:
+            errors.append({"test_case_id": item.test_case_id, "error": rejection})
+            continue
         try:
-            existing = (
-                db.query(TestResult).filter_by(execution_id=id, test_case_id=item.test_case_id).first()
-            )
-            previous_status = existing.status if existing else None
-            if existing:
-                for field, value in item.model_dump(exclude={"step_results"}, exclude_none=True).items():
-                    setattr(existing, field, value)
-                result = existing
-                updated += 1
-            else:
-                result = TestResult(**item.model_dump(exclude={"step_results"}), execution_id=id)
-                db.add(result)
-                created += 1
-            db.flush()
-            for sr in item.step_results:
-                existing_sr = (
-                    db.query(TestStepResult)
-                    .filter_by(test_result_id=result.id, step_id=sr.step_id)
-                    .first()
-                )
-                if existing_sr:
-                    existing_sr.status = sr.status
-                    existing_sr.comment = sr.comment
-                    if sr.duration_ms is not None:
-                        existing_sr.duration_ms = sr.duration_ms
-                else:
-                    db.add(TestStepResult(test_result_id=result.id, **sr.model_dump()))
-            if result.status == "failed" and previous_status != "failed":
-                newly_failed_ids.append(result.id)
-        except Exception as e:
-            errors.append({"test_case_id": item.test_case_id, "error": str(e)})
+            with db.begin_nested():
+                result, previous_status = _upsert_bulk_item(db, id, item)
+        except SQLAlchemyError:
+            errors.append({"test_case_id": item.test_case_id, "error": BULK_ITEM_SAVE_ERROR})
+            continue
+        if previous_status is None:
+            created += 1
+        else:
+            updated += 1
+        if result.status == "failed" and previous_status != "failed":
+            newly_failed_ids.append(result.id)
     db.commit()
     execution_events.on_results_bulk_updated(
         db, id, failed_result_ids=newly_failed_ids, background=background,
