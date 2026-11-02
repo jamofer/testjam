@@ -56,18 +56,6 @@ def get_auth_context(
             user = db.get(User, uid)
             if user and user.is_active and user.deleted_at is None:
                 return _build_context(user, project_scope=token.project_id, token_name=token.name)
-        # Fallback: legacy api_key field on User
-        user = (
-            db.query(User)
-            .filter(
-                User.api_key == api_key,
-                User.is_active == True,
-                User.deleted_at.is_(None),
-            )
-            .first()
-        )
-        if user:
-            return _build_context(user)
 
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
