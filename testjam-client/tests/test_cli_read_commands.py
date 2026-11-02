@@ -13,8 +13,26 @@ import pytest
 from typer.testing import CliRunner
 
 from testjam_client.cli import app
+from testjam_client.cli.commands import bugs, cases, executions, plans, projects, run, suites
 
 runner = CliRunner()
+
+COLUMNS_BY_RESOURCE = [
+    (projects.LIST_COLUMNS, "project"),
+    (projects.SHOW_COLUMNS, "project"),
+    (suites.LIST_COLUMNS, "suite"),
+    (suites.SHOW_COLUMNS, "suite"),
+    (cases.LIST_COLUMNS, "case"),
+    (cases.SHOW_COLUMNS, "case"),
+    (plans.LIST_COLUMNS, "plan"),
+    (plans.SHOW_COLUMNS, "plan"),
+    (executions.LIST_COLUMNS, "execution"),
+    (executions.SHOW_COLUMNS, "execution"),
+    (run.SHOW_COLUMNS, "execution"),
+    (bugs.LIST_COLUMNS, "bug"),
+    (bugs.SHOW_COLUMNS, "bug"),
+    (bugs.COMMENT_COLUMNS, "comment"),
+]
 
 
 @pytest.fixture
@@ -37,6 +55,7 @@ def cli_state(auth_client, tmp_path, monkeypatch) -> dict:
         project["id"], title="CI run", type="manual", test_case_ids=[case["id"]],
     )
     bug = auth_client.bugs.create(project["id"], title="Login broken", severity="high")
+    comment = auth_client.bugs.add_comment(bug["id"], "Reproduced")
 
     return {
         "project": project,
@@ -45,8 +64,20 @@ def cli_state(auth_client, tmp_path, monkeypatch) -> dict:
         "plan": plan,
         "execution": execution,
         "bug": bug,
+        "comment": comment,
         "config_file": config_file,
     }
+
+
+@pytest.mark.parametrize("columns,resource", COLUMNS_BY_RESOURCE)
+def test_columns_match_api_fields(cli_state, columns, resource):
+    assert set(columns) <= set(cli_state[resource])
+
+
+def test_user_columns_show_the_username(cli_state):
+    result = runner.invoke(app, ["bug", "show", str(cli_state["bug"]["id"])])
+
+    assert "email" not in result.output
 
 
 def test_project_list_includes_seeded_project(cli_state):

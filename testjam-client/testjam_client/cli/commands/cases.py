@@ -11,8 +11,8 @@ from testjam_client.cli import output, runtime
 from testjam_client.cli.state import CliState
 
 
-LIST_COLUMNS = ["id", "name", "external_id", "is_archived"]
-SHOW_COLUMNS = ["id", "name", "description", "external_id", "suite_id", "is_archived"]
+LIST_COLUMNS = ["id", "name", "external_id", "archived_at"]
+SHOW_COLUMNS = ["id", "name", "description", "external_id", "suite_id", "archived_at"]
 STEP_SEPARATOR = " => "
 
 
