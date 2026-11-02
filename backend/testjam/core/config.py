@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     # is not globally routable is refused.
     OUTBOUND_ALLOWED_HOSTS: str = ""
 
+    # Reverse proxies in front of the API that append to X-Forwarded-For. The
+    # bundled nginx counts as one; add one per load balancer in front of it.
+    # Entries further left are client-supplied and never trusted.
+    TRUSTED_PROXY_COUNT: int = 1
+
     CORS_ORIGINS: str = DEFAULT_CORS_ORIGINS
 
     REDIS_URL: str | None = None
