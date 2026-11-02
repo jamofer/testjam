@@ -45,6 +45,7 @@ ACCOUNT_ENDPOINTS = [
     ("PUT", "/api/v1/users/me", {"email": "taken-over@test.com"}),
     ("PUT", "/api/v1/users/me/password", {"current_password": "pw", "new_password": "pwned123"}),
     ("POST", "/api/v1/users", {"username": "backdoor", "email": "backdoor@test.com", "password": "pw"}),
+    ("POST", "/api/v1/projects", {"name": "Escape"}),
 ]
 
 
@@ -176,6 +177,20 @@ def test_admin_project_token_cannot_reach_account_routes(
     response = _send(admin_project_token_client, method, path, payload, {})
 
     assert response.status_code == 403
+
+
+def test_member_project_token_lists_only_its_project(foreign_scoped_token_client):
+    response = foreign_scoped_token_client.get("/api/v1/projects")
+
+    assert [project["name"] for project in response.json()] == ["Other"]
+
+
+def test_admin_project_token_lists_only_its_project(auth_client, admin_project_token_client):
+    auth_client.post("/api/v1/projects", json={"name": "Unrelated"})
+
+    response = admin_project_token_client.get("/api/v1/projects")
+
+    assert [project["name"] for project in response.json()] == ["CI"]
 
 
 def test_admin_project_token_can_still_read_own_identity(admin_project_token_client):

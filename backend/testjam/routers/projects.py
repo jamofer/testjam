@@ -6,7 +6,12 @@ from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user, require_project_access
+from testjam.auth.dependencies import (
+    AuthContext,
+    get_auth_context,
+    get_unscoped_user,
+    require_project_access,
+)
 from testjam.database import get_db
 from testjam.models.execution import TestExecution, TestResult
 from testjam.models.project import Project, ProjectMember
@@ -79,14 +84,13 @@ def _project_out(project: Project, db: Session) -> ProjectOut:
 def list_projects(
     include_archived: bool = False,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     query = db.query(Project)
-    if not current.is_admin:
-        accessible_ids = accessible_project_ids(db, current.id)
-        if not accessible_ids:
-            return []
-        query = query.filter(Project.id.in_(accessible_ids))
+    if ctx.project_scope is not None:
+        query = query.filter(Project.id == ctx.project_scope)
+    if not ctx.user.is_admin:
+        query = query.filter(Project.id.in_(accessible_project_ids(db, ctx.user.id)))
     if not include_archived:
         query = query.filter(Project.archived_at.is_(None))
     return [_project_out(p, db) for p in query.all()]
@@ -97,7 +101,7 @@ def _find_project_by_name(db: Session, name: str) -> Project | None:
 
 
 @router.post("", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)
-def create_project(body: ProjectCreate, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def create_project(body: ProjectCreate, db: Session = Depends(get_db), current: User = Depends(get_unscoped_user)):
     if _find_project_by_name(db, body.name):
         raise HTTPException(status_code=409, detail=f"Project '{body.name}' already exists")
     project = Project(**body.model_dump())
