@@ -68,4 +68,5 @@ Edit the integration to paste a new credential. The old one is overwritten and r
 - Credentials are encrypted at rest with the Fernet key configured in `INTEGRATION_ENCRYPTION_KEY`. Rotate this key by following the migration script in `scripts/rotate_fernet.py`.
 - Failed authentication returns 503 with the provider's error message — never the credential.
 - Push and pull both use the provider's official REST API; nothing is scraped.
+- Only public addresses are reachable. For a self-hosted provider on an internal network, add its network to `OUTBOUND_ALLOWED_NETWORKS` (CIDR list, comma-separated).
 - Integration tests cover the happy path per provider using a `FakeProvider` shim.

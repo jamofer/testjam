@@ -17,6 +17,7 @@ from testjam.services.integrations.base import (
     NormalizedStatus,
     ProviderConfigError,
     ProviderRequestError,
+    ensure_allowed_destination,
     register_provider,
 )
 
@@ -141,6 +142,7 @@ class GitHubProvider:
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
         }
+        ensure_allowed_destination(url)
         timeout = settings.INTEGRATION_HTTP_TIMEOUT_SECONDS
         try:
             with httpx.Client(timeout=timeout) as http:

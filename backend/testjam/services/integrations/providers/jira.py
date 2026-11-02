@@ -22,6 +22,7 @@ from testjam.services.integrations.base import (
     NormalizedStatus,
     ProviderConfigError,
     ProviderRequestError,
+    ensure_allowed_destination,
     register_provider,
 )
 from testjam.services.integrations.markdown_to_adf import to_adf
@@ -148,6 +149,7 @@ class JiraProvider:
 
     def _request(self, method: str, url: str, config: dict[str, Any], secret: str, **kwargs):
         headers = _auth_headers(config, secret)
+        ensure_allowed_destination(url)
         timeout = settings.INTEGRATION_HTTP_TIMEOUT_SECONDS
         try:
             with httpx.Client(timeout=timeout) as http:
