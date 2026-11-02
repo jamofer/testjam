@@ -10,7 +10,7 @@ from testjam_client.cli.state import CliState
 LIST_COLUMNS = ["id", "title", "type", "status", "created_at"]
 SHOW_COLUMNS = [
     "id", "title", "type", "status", "project_id", "version_id",
-    "environment_id", "plan_id", "created_at", "completed_at",
+    "environment", "created_at", "finished_at",
 ]
 
 

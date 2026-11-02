@@ -14,8 +14,8 @@ from testjam_client.cli.state import CliState
 
 
 SHOW_COLUMNS = [
-    "id", "title", "type", "status", "project_id", "plan_id",
-    "version_id", "environment_id", "created_at",
+    "id", "title", "type", "status", "project_id",
+    "version_id", "environment", "created_at",
 ]
 
 DEFAULT_POLL_SECONDS = 1.0
@@ -62,7 +62,7 @@ def start_run(
         )
         if plan_id is not None and not test_case_ids:
             plan = client.plans.get(plan_id)
-            test_case_ids = list(plan.get("case_ids") or [])
+            test_case_ids = list(plan.get("test_case_ids") or [])
         payload = client.executions.create(
             project_id,
             title=title,

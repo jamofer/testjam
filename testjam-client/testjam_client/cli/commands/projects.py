@@ -7,8 +7,8 @@ from testjam_client.cli import output, runtime
 from testjam_client.cli.state import CliState
 
 
-LIST_COLUMNS = ["id", "name", "description", "is_active"]
-SHOW_COLUMNS = ["id", "name", "description", "is_active", "created_at"]
+LIST_COLUMNS = ["id", "name", "description", "archived_at"]
+SHOW_COLUMNS = ["id", "name", "description", "archived_at", "created_at"]
 
 
 def build_app() -> typer.Typer:

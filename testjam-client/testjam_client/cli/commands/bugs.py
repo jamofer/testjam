@@ -10,13 +10,13 @@ from testjam_client.cli import output, runtime
 from testjam_client.cli.state import CliState
 
 
-LIST_COLUMNS = ["id", "number", "title", "status", "severity", "assigned_to_id"]
+LIST_COLUMNS = ["id", "number", "title", "status", "severity", "assigned_to"]
 SHOW_COLUMNS = [
     "id", "number", "title", "description", "status", "severity",
-    "tags", "version_id", "fixed_in_version_id", "environment_id",
-    "assigned_to_id", "reporter_id", "external_ticket_url", "created_at",
+    "tags", "version_id", "fixed_in_version_id", "environment",
+    "assigned_to", "created_by", "external_ticket_url", "created_at",
 ]
-COMMENT_COLUMNS = ["id", "body", "user_id", "created_at"]
+COMMENT_COLUMNS = ["id", "body", "created_by", "created_at"]
 STDIN_MARKER = "-"
 
 

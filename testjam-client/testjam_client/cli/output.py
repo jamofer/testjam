@@ -18,6 +18,7 @@ from testjam_client.cli.colors import style_status
 
 console = Console()
 STATUS_COLUMN = "status"
+USER_LABEL_KEY = "username"
 WORK_SPINNER = "dots"
 
 
@@ -76,6 +77,8 @@ def _cell(column: str, value: Any) -> str:
 def _stringify(value: Any) -> str:
     if value is None:
         return ""
+    if isinstance(value, dict) and USER_LABEL_KEY in value:
+        return str(value[USER_LABEL_KEY])
     if isinstance(value, (dict, list)):
         return json.dumps(value, default=str)
     return str(value)

@@ -41,6 +41,19 @@ def cli_state(auth_client, tmp_path, monkeypatch) -> dict:
     }
 
 
+def test_start_with_plan_runs_the_plan_cases(cli_state):
+    sdk = cli_state["client"]
+    case_ids = [case["id"] for case in cli_state["cases"]]
+    plan = sdk.plans.create(cli_state["project"]["id"], "Sprint", test_case_ids=case_ids)
+
+    result = runner.invoke(
+        app, ["--yes", "--json", "run", "start", "Nightly", "--project", "Demo", "--plan", str(plan["id"])],
+    )
+
+    execution_id = json.loads(result.output)["id"]
+    assert len(sdk.executions.list_results(execution_id)) == len(case_ids)
+
+
 def test_tail_returns_zero_when_all_results_pass(cli_state):
     execution_id = _seed_execution(cli_state, statuses=["passed", "passed"], terminal="completed")
 

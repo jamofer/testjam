@@ -7,7 +7,7 @@ from testjam_client.cli import output, runtime
 from testjam_client.cli.state import CliState
 
 
-LIST_COLUMNS = ["id", "name", "parent_suite_id", "case_count"]
+LIST_COLUMNS = ["id", "name", "parent_suite_id", "test_case_ids"]
 SHOW_COLUMNS = ["id", "name", "description", "parent_suite_id", "project_id"]
 
 
