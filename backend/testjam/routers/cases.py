@@ -56,13 +56,16 @@ def search_project_cases(
     if q:
         like = f"%{q}%"
         query = query.filter(or_(TestCase.name.ilike(like), TestCase.description.ilike(like)))
-    rows = query.order_by(TestCase.created_at.desc()).offset(skip).limit(limit).all()
+    query = query.order_by(TestCase.created_at.desc())
+    if not tags and not cf_key:
+        return query.offset(skip).limit(limit).all()
+    rows = query.all()
     if tags:
         tagset = set(tags)
         rows = [c for c in rows if c.tags and tagset.intersection(c.tags)]
     if cf_key:
         rows = [c for c in rows if custom_field_service.matches_value(c.custom_fields, cf_key, cf_value)]
-    return rows
+    return rows[skip:skip + limit]
 
 
 @suites_router.get("/{id}/cases", response_model=list[TestCaseOut])
