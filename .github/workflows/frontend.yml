@@ -40,3 +40,12 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  prod-image:
+    name: production image (frontend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build production image
+        run: docker build -f frontend/Dockerfile.prod frontend

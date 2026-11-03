@@ -39,9 +39,6 @@ dev = [
 [tool.hatch.build.targets.wheel]
 packages = ["testjam"]
 
-[tool.hatch.build.targets.wheel.force-include]
-"testjam/templates" = "testjam/templates"
-
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
