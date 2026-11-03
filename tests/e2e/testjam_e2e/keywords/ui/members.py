@@ -1,6 +1,8 @@
 from robot.api.deco import keyword
 from robot.libraries.BuiltIn import BuiltIn
 
+from testjam_e2e.eventually import eventually
+
 
 MEMBERS_HEADING = 'h1:has-text("Members & Access")'
 MEMBERS_SECTION = 'section:has(h2:has-text("Members"))'
@@ -67,16 +69,27 @@ class MembersUIMixin:
         BuiltIn().run_keyword(
             "Wait For Elements State", _member_row(username), "visible", "timeout=5s",
         )
+        eventually(lambda: self._assert_persisted_member(username, present=True))
 
     @keyword("the project members should not include ${username}")
     def members_should_not_include(self, username: str) -> None:
         BuiltIn().run_keyword(
             "Wait For Elements State", _member_row(username), "hidden", "timeout=5s",
         )
+        eventually(lambda: self._assert_persisted_member(username, present=False))
 
     @keyword("the role of ${username} should be ${role}")
     def role_of_should_be(self, username: str, role: str) -> None:
         BuiltIn().run_keyword(
             "Get Selected Options",
             _member_role_select(username), "value", "==", role,
+        )
+        eventually(lambda: self.member_should_have_role(username, role))
+
+    def _assert_persisted_member(self, username: str, present: bool) -> None:
+        response = self.client.get(f"/projects/{self.current_project_id}/members")
+        assert response.status_code == 200, response.text
+        usernames = {member["username"] for member in response.json()}
+        assert (username in usernames) == present, (
+            f"Server members {sorted(usernames)} {'lack' if present else 'still include'} '{username}'"
         )

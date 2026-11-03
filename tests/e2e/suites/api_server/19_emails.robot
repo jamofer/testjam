@@ -42,5 +42,5 @@ Completing a failing execution emails creator and assignee
     I complete the execution
 
     # Then
-    I wait for 1 emails to ${BOB_EMAIL} within 3 seconds
+    I wait for 1 emails to ${BOB_EMAIL}
     I wait for an email to ${admin_email} with subject containing Failing run

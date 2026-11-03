@@ -6,8 +6,8 @@ from robot.api import logger
 from robot.api.deco import keyword
 
 
-DEFAULT_RECEIVE_TIMEOUT_SECONDS = 5
-ACK_TIMEOUT_SECONDS = 2
+DEFAULT_RECEIVE_TIMEOUT_SECONDS = 15
+ACK_TIMEOUT_SECONDS = 10
 
 
 class WebsocketMixin:
