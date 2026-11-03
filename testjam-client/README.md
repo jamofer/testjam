@@ -79,7 +79,7 @@ testjam config set default_project "Web"  # avoid repeating --project
 testjam project list
 testjam case create "Login" --suite 17 --steps -
 testjam run start "Nightly" --plan 5 --type automatic --yes
-testjam run tail 91                       # exit 0/1/2 = passed/failed/aborted
+testjam run tail 91 --timeout 3600        # exit 0/1/2/3/4 = passed/failed/aborted/timed out/server unreachable
 
 # Pipeline-friendly output:
 testjam --json bug list --status open | jq '.[].title'

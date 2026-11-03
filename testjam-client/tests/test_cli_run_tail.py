@@ -4,10 +4,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import httpx
 import pytest
 from typer.testing import CliRunner
 
 from testjam_client.cli import app
+from testjam_client.cli.commands import run as run_command
 
 runner = CliRunner()
 
@@ -39,6 +41,18 @@ def cli_state(auth_client, tmp_path, monkeypatch) -> dict:
         "suite": suite,
         "cases": [case_one, case_two],
     }
+
+
+@pytest.fixture
+def clock(monkeypatch):
+    now = {"seconds": 0.0}
+
+    def advance(seconds):
+        now["seconds"] += seconds
+
+    monkeypatch.setattr("testjam_client.cli.commands.run.time.monotonic", lambda: now["seconds"])
+    monkeypatch.setattr("testjam_client.cli.commands.run.time.sleep", advance)
+    return now
 
 
 def test_start_with_plan_runs_the_plan_cases(cli_state):
@@ -87,6 +101,46 @@ def test_tail_json_emits_snapshot(cli_state):
     payload = json.loads(result.output)
     assert payload["execution"]["id"] == execution_id
     assert len(payload["results"]) == 2
+
+
+def test_tail_rides_out_network_blips(cli_state, clock, monkeypatch):
+    execution_id = _seed_execution(cli_state, statuses=["passed", "passed"], terminal="completed")
+    _fail_first_fetches(cli_state["client"], monkeypatch, failures=2)
+
+    result = runner.invoke(app, ["run", "tail", str(execution_id)])
+
+    assert result.exit_code == 0
+
+
+def test_tail_gives_up_when_the_server_stays_unreachable(cli_state, clock, monkeypatch):
+    execution_id = _seed_execution(cli_state, statuses=["passed", "passed"], terminal="completed")
+    _fail_first_fetches(cli_state["client"], monkeypatch, failures=10_000)
+
+    result = runner.invoke(app, ["run", "tail", str(execution_id), "--interval", "10"])
+
+    assert result.exit_code == run_command.EXIT_UNREACHABLE
+
+
+def test_tail_stops_at_the_timeout(cli_state, clock):
+    execution_id = _seed_execution(cli_state, statuses=["passed", "passed"], terminal="in_progress")
+
+    result = runner.invoke(app, ["run", "tail", str(execution_id), "--timeout", "30", "--interval", "5"])
+
+    assert result.exit_code == run_command.EXIT_TIMED_OUT
+    assert clock["seconds"] == 30
+
+
+def _fail_first_fetches(client, monkeypatch, failures: int) -> None:
+    real_get = client.executions.get
+    remaining = {"failures": failures}
+
+    def flaky_get(execution_id):
+        if remaining["failures"]:
+            remaining["failures"] -= 1
+            raise httpx.ConnectError("connection refused")
+        return real_get(execution_id)
+
+    monkeypatch.setattr(client.executions, "get", flaky_get)
 
 
 def _seed_execution(cli_state: dict, *, statuses: list[str], terminal: str) -> int:
