@@ -12,6 +12,13 @@ class NotificationsMixin:
         actual = response.json()["unread"]
         assert actual == int(count), f"Expected {count} unread, got {actual}"
 
+    @keyword("I have no unread notifications mentioning ${text}")
+    def should_have_no_unread_mentioning(self, text: str) -> None:
+        response = self.client.get("/notifications", params={"only_unread": "true", "limit": 200})
+        assert response.status_code == 200
+        matching = [entry["message"] for entry in response.json() if text in entry["message"]]
+        assert not matching, f"Unexpected unread notifications: {matching}"
+
     @keyword("the notifications inbox should be empty")
     def inbox_should_be_empty(self) -> None:
         response = self.client.get("/notifications")

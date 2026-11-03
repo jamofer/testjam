@@ -98,9 +98,8 @@ test-front: _up-front
 	$(COMPOSE) exec -T frontend npm test -- --run $(ARGS)
 
 WORKERS ?= 4
-# Orchestrator pool is forced to 1 until the shared-admin e2e race is fixed
-# Override with `make test-e2e POOL=N`.
-POOL ?= 1
+# Parallel e2e suites, same as CI. Override with `make test-e2e POOL=N`.
+POOL ?= 4
 GIT_BRANCH := $(shell git symbolic-ref --short HEAD 2>/dev/null || echo HEAD)
 GIT_SHA    := $(shell git rev-parse --short=7 HEAD 2>/dev/null)
 GIT_VERSION := $(if $(GIT_SHA),$(GIT_BRANCH)-$(GIT_SHA))

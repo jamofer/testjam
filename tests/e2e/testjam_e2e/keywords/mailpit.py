@@ -36,6 +36,15 @@ class MailpitMixin:
     def wait_for_emails_to_within(self, count: str, recipient: str, seconds: str) -> None:
         self._wait_for_count_to(int(count), recipient, float(seconds))
 
+    @keyword("I wait for an email to ${recipient} with subject containing ${text}")
+    def wait_for_email_with_subject(self, recipient: str, text: str) -> None:
+        deadline = time.monotonic() + DEFAULT_WAIT_SECONDS
+        while time.monotonic() < deadline:
+            if self._search(f'to:"{recipient}" subject:"{text}"'):
+                return
+            time.sleep(0.2)
+        raise AssertionError(f"No email to {recipient} with '{text}' in the subject within {DEFAULT_WAIT_SECONDS}s")
+
     @keyword("the mailbox should have no emails to ${recipient}")
     def mailbox_should_have_none_to(self, recipient: str) -> None:
         matches = self._search(f'to:"{recipient}"')
