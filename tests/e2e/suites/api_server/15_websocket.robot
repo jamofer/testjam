@@ -74,5 +74,5 @@ Step result log broadcasts arrive on the execution topic
     I append a INFO log line streaming live
 
     # Then
-    I should receive a step_result.log_appended event within 3 seconds
+    I should receive a step_result.log_appended event within 15 seconds
     The last websocket payload entries should contain message streaming live

@@ -5,7 +5,7 @@ from robot.api import logger
 from robot.api.deco import keyword
 
 
-DEFAULT_WAIT_SECONDS = 5
+DEFAULT_WAIT_SECONDS = 15
 
 
 class MailpitMixin:

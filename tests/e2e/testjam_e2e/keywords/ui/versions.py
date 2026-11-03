@@ -1,6 +1,8 @@
 from robot.api.deco import keyword
 from robot.libraries.BuiltIn import BuiltIn
 
+from testjam_e2e.eventually import eventually
+
 
 VERSIONS_HEADING = 'h1:has-text("Versions")'
 VERSION_NAME_INPUT = 'input[placeholder="Version name (e.g. 1.4.0, sprint-23)…"]'
@@ -73,12 +75,14 @@ class VersionsUIMixin:
         BuiltIn().run_keyword(
             "Wait For Elements State", _version_row(name), "visible", "timeout=5s",
         )
+        eventually(lambda: self._persisted_version(name))
 
     @keyword("the versions list should not contain ${name}")
     def versions_should_not_contain(self, name: str) -> None:
         BuiltIn().run_keyword(
             "Wait For Elements State", _version_row(name), "hidden", "timeout=5s",
         )
+        eventually(lambda: self._assert_version_absent(name))
 
     @keyword("the version ${name} should be in ${status} state")
     def version_status_should_be_ui(self, name: str, status: str) -> None:
@@ -87,6 +91,7 @@ class VersionsUIMixin:
             _version_status_label(name, status.capitalize()),
             "visible", "timeout=5s",
         )
+        eventually(lambda: self._assert_version_field(name, "status", status.lower()))
 
     @keyword("the version ${name} should have tag ${tag}")
     def version_tag_should_be(self, name: str, tag: str) -> None:
@@ -94,3 +99,21 @@ class VersionsUIMixin:
             "Wait For Elements State",
             f'{_version_row(name)} >> text={tag}', "visible", "timeout=5s",
         )
+        eventually(lambda: self._assert_version_field(name, "vcs_tag", tag))
+
+    def _project_versions(self) -> dict[str, dict]:
+        response = self.client.get(f"/projects/{self.current_project_id}/versions")
+        assert response.status_code == 200, response.text
+        return {version["name"]: version for version in response.json()}
+
+    def _persisted_version(self, name: str) -> dict:
+        versions = self._project_versions()
+        assert name in versions, f"Version '{name}' is not saved on the server"
+        return versions[name]
+
+    def _assert_version_absent(self, name: str) -> None:
+        assert name not in self._project_versions(), f"Version '{name}' is still saved on the server"
+
+    def _assert_version_field(self, name: str, field: str, expected: str) -> None:
+        actual = self._persisted_version(name)[field]
+        assert actual == expected, f"Saved {field} of '{name}' is '{actual}', expected '{expected}'"
