@@ -60,7 +60,7 @@ def _setup_schema():
 
 @pytest.fixture(autouse=True)
 def setup_db(_setup_schema):
-    ip_throttle._reset_for_tests()
+    ip_throttle.use_store(ip_throttle.MemoryThrottleStore())
     with engine.begin() as conn:
         conn.execute(
             AppSettings.__table__.insert().values(
