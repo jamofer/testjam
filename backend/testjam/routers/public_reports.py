@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import require_project_access
+from testjam.auth.dependencies import require_project_access, require_project_owner
 from testjam.database import get_db
 from testjam.models.project import Project
 from testjam.models.public_report import PublicReport
@@ -24,19 +24,11 @@ from testjam.schemas.public_report import (
     PublicReportOut,
 )
 from testjam.services import public_reports
-from testjam.services.permissions import effective_role
 from testjam.services.settings import get_settings as get_app_settings
 
 projects_router = APIRouter(prefix="/projects", tags=["PublicReports"])
 public_router = APIRouter(prefix="/public", tags=["PublicReports"])
 
-
-def _require_owner_or_admin(db: Session, user: User, project_id: int) -> None:
-    if user.is_admin:
-        return
-    if effective_role(db, user.id, project_id) == "owner":
-        return
-    raise HTTPException(status_code=403, detail="Project owner or admin required")
 
 
 def _get_project(db: Session, project_id: int) -> Project:
@@ -52,7 +44,7 @@ def list_public_reports(
     db: Session = Depends(get_db),
     current: User = Depends(require_project_access),
 ):
-    _require_owner_or_admin(db, current, id)
+    require_project_owner(db, current, id)
     return public_reports.list_for_project(db, id)
 
 
@@ -67,7 +59,7 @@ def create_public_report(
     db: Session = Depends(get_db),
     current: User = Depends(require_project_access),
 ):
-    _require_owner_or_admin(db, current, id)
+    require_project_owner(db, current, id)
     project = _get_project(db, id)
     try:
         row, raw_token = public_reports.issue(
@@ -101,7 +93,7 @@ def revoke_public_report(
     db: Session = Depends(get_db),
     current: User = Depends(require_project_access),
 ):
-    _require_owner_or_admin(db, current, id)
+    require_project_owner(db, current, id)
     row = db.get(PublicReport, public_report_id)
     if row is None or row.project_id != id:
         raise HTTPException(status_code=404, detail="Not found")

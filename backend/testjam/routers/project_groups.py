@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import require_project_access
+from testjam.auth.dependencies import require_project_access, require_project_owner
 from testjam.database import get_db
 from testjam.models.project import Project, ProjectGroup
 from testjam.models.user import Group, GroupMember, User
@@ -11,17 +11,10 @@ from testjam.schemas.project import (
     ProjectGroupAssignmentOut,
     ProjectGroupAssignmentUpdate,
 )
-from testjam.services.permissions import VALID_ROLES, effective_role
+from testjam.services.permissions import VALID_ROLES
 
 router = APIRouter(prefix="/projects/{id}/groups", tags=["Project Groups"])
 
-
-def _require_owner_or_admin(project: Project, current: User, db: Session) -> None:
-    if current.is_admin:
-        return
-    if effective_role(db, current.id, project.id) == "owner":
-        return
-    raise HTTPException(status_code=403, detail="Project owner or admin required")
 
 
 def _to_out(assignment: ProjectGroup, member_count: int) -> ProjectGroupAssignmentOut:
@@ -82,7 +75,7 @@ def add_project_group(
     current: User = Depends(require_project_access),
 ):
     project = _load_project(db, id)
-    _require_owner_or_admin(project, current, db)
+    require_project_owner(db, current, project.id)
     _validate_role(body.role)
     if not db.get(Group, body.group_id):
         raise HTTPException(status_code=404, detail="Group not found")
@@ -104,7 +97,7 @@ def update_project_group(
     current: User = Depends(require_project_access),
 ):
     project = _load_project(db, id)
-    _require_owner_or_admin(project, current, db)
+    require_project_owner(db, current, project.id)
     _validate_role(body.role)
     assignment = db.query(ProjectGroup).filter_by(project_id=id, group_id=group_id).first()
     if not assignment:
@@ -123,7 +116,7 @@ def remove_project_group(
     current: User = Depends(require_project_access),
 ):
     project = _load_project(db, id)
-    _require_owner_or_admin(project, current, db)
+    require_project_owner(db, current, project.id)
     assignment = db.query(ProjectGroup).filter_by(project_id=id, group_id=group_id).first()
     if not assignment:
         raise HTTPException(status_code=404, detail="Group is not assigned to this project")
