@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-[ -d /testjam-client ] && pip install --quiet -e "/testjam-client[cli]"
+[ -d /testjam-client ] && pip install --quiet -e "/testjam-client[dev]"
 
 alembic upgrade head
 
