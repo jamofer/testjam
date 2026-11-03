@@ -17,9 +17,9 @@ import { handlersRef } from "../hooks/useTopicSocket"
 import { useProjectBugsLive } from "../hooks/useProjectBugsLive"
 
 function wrapperWith(client) {
-  return ({ children }) => (
-    <QueryClientProvider client={client}>{children}</QueryClientProvider>
-  )
+  return function Wrapper({ children }) {
+    return <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  }
 }
 
 describe("useProjectBugsLive", () => {

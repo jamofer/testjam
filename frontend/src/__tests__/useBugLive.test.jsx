@@ -16,9 +16,9 @@ vi.mock("../hooks/useTopicSocket", () => {
 import { handlersRef } from "../hooks/useTopicSocket"
 import { useBugLive } from "../hooks/useBugLive"
 
-const wrap = (client) => ({ children }) => (
-  <QueryClientProvider client={client}>{children}</QueryClientProvider>
-)
+const wrap = (client) => function Wrapper({ children }) {
+  return <QueryClientProvider client={client}>{children}</QueryClientProvider>
+}
 
 describe("useBugLive", () => {
   it("appends a new comment to the comments cache", () => {

@@ -31,15 +31,17 @@ import {
 import { useProjectDeletionWatcher } from "../hooks/useProjectDeletionWatcher"
 
 function wrapperWith(client, initialPath) {
-  return ({ children }) => (
-    <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[initialPath]}>
-        <Routes>
-          <Route path="*" element={<>{children}<LocationProbe /></>} />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>
-  )
+  return function Wrapper({ children }) {
+    return (
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={[initialPath]}>
+          <Routes>
+            <Route path="*" element={<>{children}<LocationProbe /></>} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    )
+  }
 }
 
 let lastLocation = null

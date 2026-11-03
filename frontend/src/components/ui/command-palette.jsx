@@ -6,7 +6,7 @@ import { useProjects } from "../../hooks/useProjects"
 import { useExecutions } from "../../hooks/useExecutions"
 import { useSearchCases } from "../../hooks/useSuites"
 import { useDebounced } from "../../hooks/useDebounced"
-import { fuzzyFilter, fuzzyScore } from "../../lib/fuzzy"
+import { fuzzyFilter } from "../../lib/fuzzy"
 import { loadRecents, pushRecent } from "../../lib/commandPaletteRecents"
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "./dialog"
 
@@ -42,6 +42,8 @@ function Group({ label, children }) {
     </div>
   )
 }
+
+const ICON_BY_KIND = { project: FolderOpen, exec: PlayCircle, case: FileText }
 
 export function CommandPalette({ open, onOpenChange, onAction }) {
   const { t } = useTranslation("ui")
@@ -117,7 +119,6 @@ export function CommandPalette({ open, onOpenChange, onAction }) {
     return fuzzyFilter(ql, all, action => action.title)
   }, [activeProjectId, navigate, onAction, ql, t])
 
-  const ICON_BY_KIND = { project: FolderOpen, exec: PlayCircle, case: FileText }
 
   const recentItems = useMemo(() => {
     if (ql) return []

@@ -6,7 +6,7 @@ const TRIGGER_KINDS = {
   "~": "case",
 }
 
-const STOP_CHARS = /[\s,;:()\[\]{}'"`]/
+const STOP_CHARS = /[\s,;:()[\]{}'"`]/
 
 // Given the current textarea value and caret position, decide whether an
 // autocomplete popover should be open and what kind/query to send.

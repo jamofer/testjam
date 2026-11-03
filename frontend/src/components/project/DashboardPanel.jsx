@@ -2,6 +2,7 @@ import { useMemo } from "react"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { CheckCircle2, XCircle, AlertTriangle, MinusCircle, PlayCircle, FolderOpen, FileText, TrendingUp } from "lucide-react"
+import { EMPTY_LIST } from "../../lib/utils"
 
 const STATUS_DOT = {
   completed:   "bg-green-500",
@@ -40,7 +41,7 @@ function Sparkline({ values, width = 140, height = 32 }) {
 
 export function DashboardPanel({ project, compact = false }) {
   const { t } = useTranslation("projects")
-  const recent = project?.recent_executions ?? []
+  const recent = project?.recent_executions ?? EMPTY_LIST
   const chronological = useMemo(() => [...recent].reverse(), [recent])
   const passRates = useMemo(
     () => chronological.map(passRateOf).filter(value => value != null),

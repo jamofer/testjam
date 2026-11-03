@@ -139,8 +139,6 @@ function CaseList({ suiteId }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
   const [selected, setSelected] = useState(new Set())
   const [planId, setPlanId] = useState("")
-  const [copySuiteId, setCopySuiteId] = useState("")
-  const [newSuiteName, setNewSuiteName] = useState("")
   const [bulkCopyOpen, setBulkCopyOpen] = useState(false)
   const { data: allSuites = [] } = useSuitesAll(selected.size > 0 ? projectId : undefined)
 

@@ -10,7 +10,7 @@
 // Output schema mirrors backend/testjam/services/mentions.py so the
 // notification fan-out and the MdViewer renderer see the same tokens.
 
-const USER_PATTERN = /(?<!\S)@([a-zA-Z0-9_.\-]+)/g
+const USER_PATTERN = /(?<!\S)@([a-zA-Z0-9_.-]+)/g
 const BUG_PATTERN = /(?<!\S)#(\d+)\b/g
 const EXECUTION_PATTERN = /(?<!\S)!(\d+)(?:\/(\d+)(?:\/(\d+))?)?\b/g
 const CASE_PATTERN = /(?<!\S)~(\d+)\b/g
