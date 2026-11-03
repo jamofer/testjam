@@ -67,7 +67,6 @@ export function SettingsPage() {
       setForm({
         site_url: settings.site_url ?? "",
         app_name: settings.app_name ?? "",
-        allow_registration: settings.allow_registration,
         allow_user_self_delete: settings.allow_user_self_delete ?? false,
         default_environment: settings.default_environment ?? "",
         default_version_pattern: settings.default_version_pattern ?? "",
@@ -114,7 +113,6 @@ export function SettingsPage() {
     const payload = {
       site_url: form.site_url || null,
       app_name: form.app_name,
-      allow_registration: form.allow_registration,
       allow_user_self_delete: form.allow_user_self_delete,
       default_environment: form.default_environment || null,
       default_version_pattern: form.default_version_pattern || null,
@@ -164,9 +162,6 @@ export function SettingsPage() {
             <Field label={t("settings.sections.general.appName")}>
               <Input value={form.app_name} onChange={event => set("app_name")(event.target.value)} />
             </Field>
-            <Toggle checked={form.allow_registration}
-              onChange={set("allow_registration")}
-              label={t("settings.sections.general.allowRegistration")} />
             <Toggle checked={form.allow_user_self_delete}
               onChange={set("allow_user_self_delete")}
               label={t("settings.sections.general.allowSelfDelete")} />
