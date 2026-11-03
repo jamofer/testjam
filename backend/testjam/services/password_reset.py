@@ -63,13 +63,22 @@ def confirm_password_reset(
     if user is None or not user.is_active or user.deleted_at is not None:
         return PasswordResetOutcome.UNKNOWN
     user.hashed_password = hash_password(new_password)
-    record.used_at = datetime.now(timezone.utc)
+    revoke_reset_tokens(db, user.id)
     db.commit()
     clear_lockout(db, user)
     return PasswordResetOutcome.OK
 
 
+def revoke_reset_tokens(db: Session, user_id: int) -> None:
+    """Retire pending reset links; the caller commits."""
+    db.query(PasswordResetToken).filter(
+        PasswordResetToken.user_id == user_id,
+        PasswordResetToken.used_at.is_(None),
+    ).update({PasswordResetToken.used_at: datetime.now(timezone.utc)})
+
+
 def _create_reset_token(db: Session, user: User) -> tuple[str, str, datetime]:
+    revoke_reset_tokens(db, user.id)
     raw, token_hash, expires_at = PasswordResetToken.generate()
     record = PasswordResetToken(user_id=user.id, token_hash=token_hash, expires_at=expires_at)
     db.add(record)

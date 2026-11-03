@@ -105,8 +105,7 @@ async def _run_dispatch(webhook_id: int, event_type: str, envelope: dict[str, An
     for attempt_index in range(len(RETRY_DELAYS_SECONDS) + 1):
         attempt = attempt_index + 1
         try:
-            await asyncio.to_thread(outbound_http.ensure_allowed_destination, url)
-            async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT_SECONDS) as client:
+            async with outbound_http.async_client(REQUEST_TIMEOUT_SECONDS) as client:
                 response = await client.post(url, content=body, headers=headers)
             status_code = response.status_code
             response_excerpt = response.text[:RESPONSE_EXCERPT_LIMIT] or None
@@ -117,7 +116,7 @@ async def _run_dispatch(webhook_id: int, event_type: str, envelope: dict[str, An
             last_error = f"HTTP {response.status_code}"
             if response.status_code < 500:
                 break
-        except outbound_http.BlockedDestinationError as exc:
+        except (outbound_http.BlockedDestinationError, httpx.InvalidURL) as exc:
             status_code = None
             response_excerpt = None
             last_error = str(exc)

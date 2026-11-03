@@ -1,12 +1,16 @@
 """Notifications: assignment triggers, list/read, WS endpoint sanity."""
 
+from datetime import datetime, timezone
+
 import pytest
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
-from testjam.auth.security import hash_password
+from testjam.auth.security import create_access_token, hash_password
 from testjam.models.user import User
 from tests.conftest import TestingSession
+
+WEBSOCKET_PATHS = ["/api/v1/ws", "/api/v1/notifications/ws"]
 
 
 def _add_user(username: str) -> int:
@@ -113,3 +117,21 @@ def test_ws_accepts_valid_token(client: TestClient):
 
     with client.websocket_connect(f"/api/v1/notifications/ws?token={token}"):
         pass
+
+
+@pytest.mark.parametrize("path", WEBSOCKET_PATHS)
+def test_ws_rejects_soft_deleted_user(client: TestClient, path):
+    token = create_access_token(subject="ghost")
+    with TestingSession() as db:
+        db.add(User(
+            username="ghost",
+            email="ghost@x.com",
+            hashed_password=hash_password("pw"),
+            is_active=True,
+            deleted_at=datetime.now(timezone.utc),
+        ))
+        db.commit()
+
+    with pytest.raises(WebSocketDisconnect):
+        with client.websocket_connect(f"{path}?token={token}"):
+            pass

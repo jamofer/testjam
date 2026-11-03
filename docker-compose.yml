@@ -34,6 +34,7 @@ services:
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       INTEGRATION_ENCRYPTION_KEY: ${INTEGRATION_ENCRYPTION_KEY}
       OUTBOUND_ALLOWED_HOSTS: ${OUTBOUND_ALLOWED_HOSTS:-}
+      TRUSTED_PROXY_COUNT: ${TRUSTED_PROXY_COUNT:-1}
     volumes:
       - uploads:/app/uploads
     depends_on:

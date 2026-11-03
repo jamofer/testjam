@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user
+from testjam.auth.dependencies import get_unscoped_user
 from testjam.database import get_db
 from testjam.models.user import User
 from testjam.schemas.notification_preference import (
@@ -27,7 +27,7 @@ def _require_known_event(event_type: str) -> None:
 @router.get("", response_model=list[NotificationPreferenceOut])
 def list_my_notification_preferences(
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(get_unscoped_user),
 ):
     return notification_preferences.list_for_user(db, current.id)
 
@@ -36,7 +36,7 @@ def list_my_notification_preferences(
 def get_my_notification_preference(
     event_type: str,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(get_unscoped_user),
 ):
     _require_known_event(event_type)
     preference = notification_preferences.get_or_create(db, current.id, event_type)
@@ -49,7 +49,7 @@ def update_my_notification_preference(
     event_type: str,
     body: NotificationPreferenceUpdate,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(get_unscoped_user),
 ):
     _require_known_event(event_type)
     return notification_preferences.set_preference(

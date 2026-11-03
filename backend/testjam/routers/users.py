@@ -17,6 +17,7 @@ from testjam.schemas.user import (
     UserPublicOut,
     UserUpdate,
 )
+from testjam.services import password_reset
 from testjam.services.admin_reset import issue_temporary_password, send_reset_email
 from testjam.services.settings import get_settings as get_app_settings
 from testjam.services.user_activity import collect_user_activity
@@ -29,7 +30,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 def list_users(
     include_deleted: bool = False,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(get_unscoped_user),
 ):
     query = db.query(User)
     if include_deleted and not current.is_admin:
@@ -43,6 +44,8 @@ def list_users(
 def create_user(body: UserCreate, db: Session = Depends(get_db), _: User = Depends(require_admin)):
     if db.query(User).filter(User.username == body.username).first():
         raise HTTPException(status_code=400, detail="Username already exists")
+    if _is_email_taken(db, body.email):
+        raise HTTPException(status_code=400, detail="Email already in use")
     user = User(**body.model_dump(exclude={"password"}), hashed_password=hash_password(body.password))
     db.add(user)
     db.commit()
@@ -57,6 +60,8 @@ def get_me(current: User = Depends(get_current_user)):
 
 @router.put("/me", response_model=UserOut)
 def update_me(body: UserUpdate, db: Session = Depends(get_db), current: User = Depends(get_unscoped_user)):
+    if body.email and _is_email_taken(db, body.email, current.id):
+        raise HTTPException(status_code=400, detail="Email already in use")
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(current, field, value)
     db.commit()
@@ -69,6 +74,7 @@ def change_my_password(body: PasswordChange, db: Session = Depends(get_db), curr
     if not verify_password(body.current_password, current.hashed_password):
         raise HTTPException(status_code=400, detail="Current password is incorrect")
     current.hashed_password = hash_password(body.new_password)
+    password_reset.revoke_reset_tokens(db, current.id)
     db.commit()
 
 
@@ -87,7 +93,7 @@ def delete_my_account(
 def get_user_by_username(
     username: str,
     db: Session = Depends(get_db),
-    current: User = Depends(get_current_user),
+    current: User = Depends(get_unscoped_user),
 ):
     user = db.query(User).filter(User.username == username).first()
     if not user:
@@ -98,7 +104,7 @@ def get_user_by_username(
 
 
 @router.get("/{id}", response_model=UserOut | UserPublicOut)
-def get_user(id: int, db: Session = Depends(get_db), current: User = Depends(get_current_user)):
+def get_user(id: int, db: Session = Depends(get_db), current: User = Depends(get_unscoped_user)):
     user = db.get(User, id)
     if not user:
         raise HTTPException(status_code=404, detail="Not found")
@@ -118,6 +124,8 @@ def update_user(id: int, body: AdminUserUpdate, db: Session = Depends(get_db), _
         clash = db.query(User).filter(User.username == new_username, User.id != id).first()
         if clash:
             raise HTTPException(status_code=409, detail="Username already exists")
+    if body.email and _is_email_taken(db, body.email, id):
+        raise HTTPException(status_code=409, detail="Email already in use")
     if payload.pop("clear_lockout", False):
         user.locked_until = None
         user.failed_login_count = 0
@@ -187,3 +195,7 @@ def _visible_to(viewer: User, user: User) -> UserOut | UserPublicOut:
     """Contact and session details stay between the user and administrators."""
     schema = UserOut if viewer.is_admin or viewer.id == user.id else UserPublicOut
     return schema.model_validate(user)
+
+
+def _is_email_taken(db: Session, email: str, user_id: int | None = None) -> bool:
+    return db.query(User.id).filter(User.email == email, User.id != user_id).first() is not None
