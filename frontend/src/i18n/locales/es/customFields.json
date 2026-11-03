@@ -78,5 +78,8 @@
     "no": "No",
     "unset": "Sin establecer",
     "unsetWithDefault": "Por defecto ({{value}})"
+  },
+  "select": {
+    "unset": "Sin establecer"
   }
 }
