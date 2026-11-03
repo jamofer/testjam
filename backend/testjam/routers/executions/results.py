@@ -1,5 +1,5 @@
 """Manual result endpoints (CRUD, bulk update, step-result update)."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.exc import SQLAlchemyError
@@ -258,7 +258,7 @@ def start_step_result(
     result = authorized_result(db, ctx, id, WRITER_ROLES)
     _reject_if_terminal(result.execution)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     existing = (
         db.query(TestStepResult)
         .filter_by(test_result_id=id, step_id=body.step_id)

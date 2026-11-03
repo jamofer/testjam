@@ -1,10 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-
 from fastapi import status as http_status
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import AuthContext, get_auth_context, get_current_user, require_project_access
+from testjam.auth.dependencies import (
+    AuthContext,
+    get_auth_context,
+    get_current_user,
+    require_project_access,
+)
 from testjam.database import get_db
 from testjam.models.bug import Bug
 from testjam.models.execution import TestExecution, TestResult
@@ -28,7 +32,6 @@ from testjam.services import bug_activity, integration_service
 from testjam.services.bug_numbering import next_bug_number
 from testjam.services.integrations import list_providers
 from testjam.services.permissions import effective_role
-
 
 OWNER_ROLES = {"owner"}
 WRITER_ROLES = {"owner", "tester"}
@@ -329,7 +332,7 @@ def _create_bug_from_result(
     body: ResultReportRequest,
     actor: User,
 ) -> Bug:
-    for attempt in range(5):
+    for _ in range(5):
         bug = Bug(
             project_id=project_id,
             number=next_bug_number(db, project_id),

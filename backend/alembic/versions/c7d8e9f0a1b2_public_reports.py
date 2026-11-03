@@ -4,21 +4,21 @@ Revision ID: c7d8e9f0a1b2
 Revises: 68c5c4c30227, a1b2c3d4e5f6, a4b7c2d9e1f6
 Create Date: 2026-05-20 00:00:00.000000
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
 import testjam.models._types
+from alembic import op
 
 revision: str = "c7d8e9f0a1b2"
-down_revision: Union[str, Sequence[str], None] = (
+down_revision: str | Sequence[str] | None = (
     "68c5c4c30227",
     "a1b2c3d4e5f6",
     "a4b7c2d9e1f6",
 )
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

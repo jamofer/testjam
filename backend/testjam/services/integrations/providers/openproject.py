@@ -32,7 +32,6 @@ from testjam.services.integrations.base import (
     register_provider,
 )
 
-
 _DEFAULT_STATUS_MAPPING = {
     "Closed": "closed",
     "Resolved": "closed",

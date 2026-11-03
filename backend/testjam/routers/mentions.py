@@ -25,7 +25,6 @@ from testjam.schemas.mention import (
 )
 from testjam.services import mention_resolver, mention_search
 
-
 router = APIRouter(prefix="/projects", tags=["Mentions"])
 
 SEARCH_LIMIT_MAX = 25

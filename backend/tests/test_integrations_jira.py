@@ -11,7 +11,6 @@ from testjam.services.integrations.base import (
 )
 from testjam.services.integrations.providers.jira import JiraProvider
 
-
 BASE = "https://acme.atlassian.net"
 
 

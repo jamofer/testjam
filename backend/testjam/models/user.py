@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
+
 from sqlalchemy import Boolean, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from testjam.database import Base
 from testjam.models._types import UTCDateTime
+
+if TYPE_CHECKING:
+    from testjam.models.project import ProjectGroup, ProjectMember
 
 
 class User(Base):

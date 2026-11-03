@@ -4,15 +4,16 @@ Revision ID: c4696244fc13
 Revises: 7e267648907c
 Create Date: 2026-05-13 19:59:12.864528
 """
-from typing import Sequence, Union
-from alembic import op
+from collections.abc import Sequence
+
 import sqlalchemy as sa
 
+from alembic import op
 
 revision: str = 'c4696244fc13'
-down_revision: Union[str, None] = '7e267648907c'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = '7e267648907c'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

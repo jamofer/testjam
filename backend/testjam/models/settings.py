@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+
 from sqlalchemy import Boolean, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -61,4 +62,4 @@ class AppSettings(Base):
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
 
-    updated_by: Mapped["User | None"] = relationship()  # noqa: F821
+    updated_by: Mapped[User | None] = relationship()  # noqa: F821

@@ -2,7 +2,7 @@
 import io
 import xml.etree.ElementTree as ET
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unicodedata import normalize
 
 import defusedxml.ElementTree as DefusedET
@@ -141,7 +141,7 @@ def import_junit(
     try:
         tree = DefusedET.parse(io.BytesIO(payload))
     except (ET.ParseError, DefusedXmlException) as e:
-        raise HTTPException(status_code=400, detail=f"Invalid XML: {e}")
+        raise HTTPException(status_code=400, detail=f"Invalid XML: {e}") from e
 
     root = tree.getroot()
     # Support both <testsuites><testsuite>... and bare <testsuite>...
@@ -155,7 +155,7 @@ def import_junit(
     result_index = _ResultIndex(ex)
     created = updated = 0
     errors: list[dict] = []
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     newly_failed_ids: list[int] = []
 
     for tc_elem in tc_elements:
@@ -223,7 +223,7 @@ def import_robotframework(
     try:
         tree = DefusedET.parse(io.BytesIO(payload))
     except (ET.ParseError, DefusedXmlException) as e:
-        raise HTTPException(status_code=400, detail=f"Invalid XML: {e}")
+        raise HTTPException(status_code=400, detail=f"Invalid XML: {e}") from e
 
     root = tree.getroot()
     if root.tag not in ("robot", "suite"):
@@ -232,7 +232,7 @@ def import_robotframework(
     result_index = _ResultIndex(ex)
     created = updated = 0
     errors: list[dict] = []
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     newly_failed_ids: list[int] = []
 
     def _process_suite(suite_elem: ET.Element, parent_path: str = "") -> None:
@@ -290,7 +290,7 @@ def import_robotframework(
                 )
                 kw_elems = list(test_elem.findall("kw"))
 
-                for step, kw in zip(steps, kw_elems):
+                for step, kw in zip(steps, kw_elems, strict=False):
                     kw_status_elem = kw.find("status")
                     kw_rf_status = (
                         kw_status_elem.get("status", "NOT RUN") if kw_status_elem is not None else "NOT RUN"

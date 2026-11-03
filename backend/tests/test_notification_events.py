@@ -14,7 +14,7 @@ def test_event_values_are_stable_strings():
 
 
 def test_known_event_types_matches_enum():
-    assert KNOWN_EVENT_TYPES == {e.value for e in NotificationEvent}
+    assert {e.value for e in NotificationEvent} == KNOWN_EVENT_TYPES
 
 
 def test_event_str_round_trip():

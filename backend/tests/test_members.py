@@ -3,7 +3,6 @@ from fastapi.testclient import TestClient
 
 from testjam.auth.security import hash_password
 from testjam.models.user import User
-from testjam.models.project import ProjectMember
 
 
 @pytest.fixture

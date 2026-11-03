@@ -1,5 +1,5 @@
 """Tests for the public-report share token API."""
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -10,7 +10,6 @@ from testjam.models.project import ProjectMember
 from testjam.models.public_report import PublicReport
 from testjam.models.user import User
 from tests.conftest import TestingSession
-
 
 PUBLIC_PATH = "/api/v1/public/reports"
 PROJECT_PUBLIC_PATH = "/api/v1/projects/{project_id}/public-reports"
@@ -219,7 +218,7 @@ def test_expired_token_returns_404(client, auth_client, project_id):
         PROJECT_PUBLIC_PATH.format(project_id=project_id),
         json={"kind": "bug_report"},
     ).json()
-    expired_at = datetime.now(timezone.utc) - timedelta(minutes=5)
+    expired_at = datetime.now(UTC) - timedelta(minutes=5)
     with TestingSession() as db:
         row = db.get(PublicReport, created["id"])
         row.expires_at = expired_at

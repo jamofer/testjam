@@ -12,7 +12,7 @@ import pytest
 
 from testjam.core.config import settings
 from testjam.models.execution import TestExecution, TestResult
-from testjam.models.testcase import TestCase, TestSuite
+from testjam.models.testcase import TestCase
 from tests.conftest import TestingSession
 
 CAP = 3

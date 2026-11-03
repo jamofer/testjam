@@ -21,7 +21,6 @@ from sqlalchemy.orm import Session
 from testjam.models.environment import ProjectEnvironment
 from testjam.models.settings import AppSettings
 
-
 _SLUG_INVALID = re.compile(r"[^a-z0-9-]+")
 _SLUG_COLLAPSE = re.compile(r"-{2,}")
 

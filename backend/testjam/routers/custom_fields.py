@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import text
@@ -21,15 +21,14 @@ from testjam.models.custom_field import CustomFieldDefinition
 from testjam.models.project import Project
 from testjam.models.user import User
 from testjam.schemas.custom_field import (
+    REQUIRES_DEFAULT_ENTITY_TYPES,
+    SELECT_TYPES,
     CustomFieldDefinitionCreate,
     CustomFieldDefinitionOut,
     CustomFieldDefinitionUpdate,
     CustomFieldReorder,
-    REQUIRES_DEFAULT_ENTITY_TYPES,
-    SELECT_TYPES,
 )
 from testjam.services import custom_fields as custom_field_service
-
 
 projects_router = APIRouter(prefix="/projects", tags=["Custom Fields"])
 custom_fields_router = APIRouter(prefix="/custom-fields", tags=["Custom Fields"])
@@ -84,11 +83,11 @@ def create_custom_field(
     db.add(definition)
     try:
         db.flush()
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
         raise HTTPException(
             status_code=409, detail="Custom field key already exists"
-        )
+        ) from exc
     db.commit()
     db.refresh(definition)
     return definition
@@ -213,7 +212,7 @@ def archive_custom_field(
     definition = _get_definition(db, id)
     _require_writable(db, definition, ctx)
     if definition.archived_at is None:
-        definition.archived_at = datetime.now(timezone.utc)
+        definition.archived_at = datetime.now(UTC)
     db.commit()
     db.refresh(definition)
     return definition

@@ -10,7 +10,7 @@ Catches three failure modes the suite missed before:
   client can't disable pagination by requesting an absurd page size.
 * ``skip`` past the end returns ``[]`` instead of 500.
 """
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -47,7 +47,7 @@ def bulk_bugs(project_id):
 @pytest.fixture
 def bulk_executions(auth_client, project_id):
     rows = []
-    base = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    base = datetime(2026, 1, 1, tzinfo=UTC)
     for i in range(TOTAL_BUGS):
         rows.append(TestExecution(
             project_id=project_id,
@@ -66,7 +66,7 @@ def bulk_executions(auth_client, project_id):
 def bulk_notifications(auth_client):
     me = _resolve_user_id(auth_client)
     rows = []
-    base = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    base = datetime(2026, 1, 1, tzinfo=UTC)
     for i in range(TOTAL_BUGS):
         rows.append(Notification(
             user_id=me,

@@ -21,7 +21,6 @@ from testjam.services.integrations.base import (
     register_provider,
 )
 
-
 _DEFAULT_API_BASE = "https://api.github.com"
 _DEFAULT_STATUS_MAPPING = {"open": "open", "closed": "closed"}
 

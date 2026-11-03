@@ -3,7 +3,6 @@ import io
 import openpyxl
 import pytest
 
-
 CUSTOM_FIELDS_PATH = "/api/v1/projects/{project_id}/custom-fields"
 
 

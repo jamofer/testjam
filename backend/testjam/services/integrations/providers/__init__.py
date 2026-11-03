@@ -6,8 +6,12 @@ deterministic in-process ``fake`` provider so the scaffold + tests are
 self-contained.
 """
 from testjam.services.integrations.providers import (  # noqa: F401
-    azure_devops, fake, github, gitlab, jira, openproject,
+    azure_devops,
+    fake,
+    github,
+    gitlab,
+    jira,
+    openproject,
 )
-
 
 __all__ = ["azure_devops", "fake", "github", "gitlab", "jira", "openproject"]

@@ -8,7 +8,7 @@ creation.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -74,7 +74,7 @@ def list_for_project(db: Session, project_id: int) -> list[PublicReport]:
 
 def revoke(db: Session, report: PublicReport) -> PublicReport:
     if report.revoked_at is None:
-        report.revoked_at = datetime.now(timezone.utc)
+        report.revoked_at = datetime.now(UTC)
         db.commit()
         db.refresh(report)
     return report
@@ -101,8 +101,8 @@ def is_active(report: PublicReport) -> bool:
         return True
     expires_at = report.expires_at
     if expires_at.tzinfo is None:
-        expires_at = expires_at.replace(tzinfo=timezone.utc)
-    return expires_at > datetime.now(timezone.utc)
+        expires_at = expires_at.replace(tzinfo=UTC)
+    return expires_at > datetime.now(UTC)
 
 
 def render(db: Session, report: PublicReport, *, base_url: str) -> str:
@@ -134,7 +134,7 @@ def render(db: Session, report: PublicReport, *, base_url: str) -> str:
 
 
 def record_view(db: Session, report: PublicReport) -> None:
-    report.last_viewed_at = datetime.now(timezone.utc)
+    report.last_viewed_at = datetime.now(UTC)
     report.view_count = (report.view_count or 0) + 1
     db.commit()
 

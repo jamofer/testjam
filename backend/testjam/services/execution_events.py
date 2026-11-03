@@ -267,9 +267,7 @@ def _block_running_artefacts(db: Session, execution_id: int) -> None:
         .all()
     )
     for result in running_results:
-        if result.status == "running":
-            result.status = "blocked"
-        elif any(sr.status == "blocked" for sr in result.step_results):
+        if result.status == "running" or any(sr.status == "blocked" for sr in result.step_results):
             result.status = "blocked"
     db.commit()
 

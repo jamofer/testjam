@@ -1,5 +1,5 @@
 """Soft-delete + restore + login + listing for users."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -86,7 +86,7 @@ def test_soft_deleted_user_cannot_log_in(client, user_factory):
     target = user_factory("alice", "secret-pw")
     with TestingSession() as db:
         record = db.get(User, target.id)
-        record.deleted_at = datetime.now(timezone.utc)
+        record.deleted_at = datetime.now(UTC)
         record.is_active = False
         db.commit()
 
@@ -102,7 +102,7 @@ def test_get_user_404s_for_non_admin_when_target_is_deleted(client, user_factory
     user_factory("regular", "rp")
     with TestingSession() as db:
         record = db.get(User, target.id)
-        record.deleted_at = datetime.now(timezone.utc)
+        record.deleted_at = datetime.now(UTC)
         db.commit()
 
     token = client.post("/api/v1/auth/login", data={"username": "regular", "password": "rp"}).json()["access_token"]

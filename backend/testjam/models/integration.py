@@ -1,8 +1,16 @@
 from __future__ import annotations
 
 from datetime import datetime
+
 from sqlalchemy import (
-    Boolean, ForeignKey, Integer, JSON, LargeBinary, String, UniqueConstraint, func,
+    JSON,
+    Boolean,
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    String,
+    UniqueConstraint,
+    func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -31,14 +39,14 @@ class ProjectIntegration(Base):
         UTCDateTime(), server_default=func.now(), onupdate=func.now(),
     )
 
-    credential: Mapped["IntegrationCredential | None"] = relationship(
+    credential: Mapped[IntegrationCredential | None] = relationship(
         back_populates="integration",
         uselist=False,
         cascade="all, delete-orphan",
     )
     # Deliberately no cascade: deleting an integration nullifies link.integration_id
     # so history rows survive (DB ON DELETE SET NULL + SA default behavior).
-    external_links: Mapped[list["BugExternalLink"]] = relationship(
+    external_links: Mapped[list[BugExternalLink]] = relationship(
         back_populates="integration",
     )
 
@@ -91,5 +99,5 @@ class BugExternalLink(Base):
     )
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
 
-    integration: Mapped["ProjectIntegration | None"] = relationship(back_populates="external_links")
-    bug: Mapped["Bug"] = relationship(back_populates="external_links")  # noqa: F821
+    integration: Mapped[ProjectIntegration | None] = relationship(back_populates="external_links")
+    bug: Mapped[Bug] = relationship(back_populates="external_links")  # noqa: F821

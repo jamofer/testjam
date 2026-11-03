@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import html as html_lib
 import io
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import openpyxl
 from openpyxl.styles import Font
@@ -23,7 +23,8 @@ from testjam.models.version import ProjectVersion
 from testjam.schemas.mention import MentionTokenIn
 from testjam.services.integrations.markdown_to_html import to_html as markdown_to_html
 from testjam.services.mention_resolver import resolve as resolve_mentions
-from testjam.services.mentions import Mention, enrich_html_with_mentions, parse as parse_mentions
+from testjam.services.mentions import Mention, enrich_html_with_mentions
+from testjam.services.mentions import parse as parse_mentions
 from testjam.services.timezones import format_in_user_zone, user_zone_label
 
 
@@ -56,7 +57,7 @@ def _collect_unique_tokens(bugs: list[Bug]) -> list[MentionTokenIn]:
 def _make_rich_renderer(db: Session, project_id: int, bugs: list[Bug]):
     tokens = _collect_unique_tokens(bugs)
     resolved = resolve_mentions(db, project_id, tokens) if tokens else []
-    cache = {_mention_cache_key(token): result for token, result in zip(tokens, resolved)}
+    cache = {_mention_cache_key(token): result for token, result in zip(tokens, resolved, strict=True)}
 
     def label_for(mention: Mention) -> str:
         cached = cache.get(_mention_cache_key(mention))
@@ -153,7 +154,7 @@ def render_html(
 
     timezone_label = user_zone_label(user)
     generated_at = format_in_user_zone(
-        datetime.now(timezone.utc), user, "%Y-%m-%d %H:%M %Z",
+        datetime.now(UTC), user, "%Y-%m-%d %H:%M %Z",
     )
     title_parts = [f"Bug report — {project.name}"]
     if version_id is not None:
@@ -220,7 +221,7 @@ def render_xlsx(
 
     sheet.append([])
     sheet.append([
-        f"Exported {format_in_user_zone(datetime.now(timezone.utc), user, '%Y-%m-%d %H:%M %Z')} "
+        f"Exported {format_in_user_zone(datetime.now(UTC), user, '%Y-%m-%d %H:%M %Z')} "
         f"by {user.username}",
     ])
 
@@ -381,7 +382,6 @@ def _render_custom_fields_html(
 ) -> str:
     if not definitions:
         return ""
-    e = html_lib.escape
     values = bug.custom_fields or {}
     chips: list[str] = []
     for definition in definitions:
@@ -461,7 +461,7 @@ def render_release_notes_html(db: Session, project: Project, user: User) -> str:
 
     versions = _order_versions_for_release_notes(db, project.id, by_version_id.keys())
     generated_at = format_in_user_zone(
-        datetime.now(timezone.utc), user, "%Y-%m-%d %H:%M %Z",
+        datetime.now(UTC), user, "%Y-%m-%d %H:%M %Z",
     )
     title = f"Release notes — {project.name}"
     return _build_release_notes_html(title, versions, by_version_id, generated_at, user)

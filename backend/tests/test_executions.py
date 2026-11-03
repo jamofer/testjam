@@ -1,4 +1,5 @@
 import pytest
+
 from testjam.auth.security import hash_password
 from testjam.models.user import User
 

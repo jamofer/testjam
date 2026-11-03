@@ -8,10 +8,9 @@ import pytest
 from testjam.core.logging import (
     REQUEST_ID_HEADER,
     JsonFormatter,
-    current_request_id,
-    set_current_user_id,
     _request_id,
     _user_id,
+    current_request_id,
 )
 
 

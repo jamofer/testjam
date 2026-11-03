@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from sqlalchemy import event
@@ -10,7 +10,7 @@ EXECUTIONS_PER_PROJECT = 12
 RECENT_EXECUTIONS_SHOWN = 10
 SMALL_PROJECT_COUNT = 2
 LARGE_PROJECT_COUNT = 6
-BASE_TIME = datetime(2026, 1, 1, tzinfo=timezone.utc)
+BASE_TIME = datetime(2026, 1, 1, tzinfo=UTC)
 
 
 @pytest.fixture

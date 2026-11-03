@@ -8,7 +8,6 @@ from pydantic import BaseModel, Field, computed_field, model_validator
 from testjam.core.config import settings
 from testjam.schemas.user import UserOut
 
-
 BugSeverity = Literal["critical", "high", "medium", "low"]
 ConflictCheckedField = Literal["title", "description"]
 BugStatus = Literal[

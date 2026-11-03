@@ -50,9 +50,8 @@ def _add_execution(project_id: int, title: str = "Run") -> int:
 
 
 def test_ws_rejects_invalid_token(client: TestClient):
-    with pytest.raises(WebSocketDisconnect):
-        with client.websocket_connect("/api/v1/ws?token=garbage"):
-            pass
+    with pytest.raises(WebSocketDisconnect), client.websocket_connect("/api/v1/ws?token=garbage"):
+        pass
 
 
 def test_subscribe_user_topic_for_self(client: TestClient):

@@ -1,4 +1,13 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, Request, UploadFile
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+)
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
@@ -95,7 +104,7 @@ def download_backup(
     try:
         artifact = create_backup(db, db.get_bind())
     except BackupFailed as exc:
-        raise HTTPException(status_code=503, detail=str(exc))
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     background_tasks.add_task(cleanup_archive, artifact.path)
     return FileResponse(
         artifact.path,

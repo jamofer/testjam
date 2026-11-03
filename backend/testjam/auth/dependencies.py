@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import Depends, HTTPException, Security, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, APIKeyHeader
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import update
 from sqlalchemy.orm import Session
 
@@ -180,11 +180,11 @@ def _reject_out_of_scope_token(ctx: AuthContext, project_id: int) -> None:
 def _is_token_expired(token: ApiToken) -> bool:
     if token.expires_at is None:
         return False
-    return _as_utc(token.expires_at) <= datetime.now(timezone.utc)
+    return _as_utc(token.expires_at) <= datetime.now(UTC)
 
 
 def _record_token_use(db: Session, token: ApiToken) -> None:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if token.last_used_at is not None and now - _as_utc(token.last_used_at) < TOKEN_LAST_USED_RESOLUTION:
         return
     db.execute(update(ApiToken).where(ApiToken.id == token.id).values(last_used_at=now))
@@ -192,4 +192,4 @@ def _record_token_use(db: Session, token: ApiToken) -> None:
 
 
 def _as_utc(moment: datetime) -> datetime:
-    return moment if moment.tzinfo is not None else moment.replace(tzinfo=timezone.utc)
+    return moment if moment.tzinfo is not None else moment.replace(tzinfo=UTC)

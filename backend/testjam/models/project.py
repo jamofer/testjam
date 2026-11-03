@@ -1,11 +1,20 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
+
 from sqlalchemy import ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from testjam.database import Base
 from testjam.models._types import UTCDateTime
+
+if TYPE_CHECKING:
+    from testjam.models.execution import TestExecution
+    from testjam.models.testcase import TestSuite
+    from testjam.models.testplan import TestPlan
+    from testjam.models.user import User
+    from testjam.models.version import ProjectVersion
 
 
 class Project(Base):
@@ -24,13 +33,13 @@ class Project(Base):
     plans: Mapped[list[TestPlan]] = relationship(back_populates="project", cascade="all, delete-orphan")
     executions: Mapped[list[TestExecution]] = relationship(back_populates="project", cascade="all, delete-orphan")
     versions: Mapped[list[ProjectVersion]] = relationship(back_populates="project", cascade="all, delete-orphan")
-    environments: Mapped[list["ProjectEnvironment"]] = relationship(  # noqa: F821
+    environments: Mapped[list[ProjectEnvironment]] = relationship(  # noqa: F821
         back_populates="project", cascade="all, delete-orphan"
     )
-    bugs: Mapped[list["Bug"]] = relationship(  # noqa: F821
+    bugs: Mapped[list[Bug]] = relationship(  # noqa: F821
         back_populates="project", cascade="all, delete-orphan"
     )
-    custom_field_definitions: Mapped[list["CustomFieldDefinition"]] = relationship(  # noqa: F821
+    custom_field_definitions: Mapped[list[CustomFieldDefinition]] = relationship(  # noqa: F821
         back_populates="project", cascade="all, delete-orphan"
     )
 
@@ -59,4 +68,4 @@ class ProjectGroup(Base):
     added_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
 
     project: Mapped[Project] = relationship(back_populates="group_assignments")
-    group: Mapped["Group"] = relationship(back_populates="project_assignments")  # noqa: F821
+    group: Mapped[Group] = relationship(back_populates="project_assignments")  # noqa: F821

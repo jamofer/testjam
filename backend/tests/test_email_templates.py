@@ -1,6 +1,7 @@
 """Jinja-rendered email templates: rendering, escape, footer wiring, locales."""
 from __future__ import annotations
 
+import jinja2
 import pytest
 
 from testjam.services import email_templates
@@ -111,7 +112,7 @@ def test_footer_link_falls_back_when_no_site_url():
 
 
 def test_missing_required_variable_raises():
-    with pytest.raises(Exception):
+    with pytest.raises(jinja2.UndefinedError):
         email_templates.render(ASSIGNED, {"app_name": "Testjam"})
 
 

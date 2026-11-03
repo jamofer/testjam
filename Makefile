@@ -28,6 +28,7 @@ help:
 	@echo "  make build-client Build testjam-client sdist + wheel under testjam-client/dist/"
 	@echo "  make test         Run backend + frontend + e2e (boots what it needs)"
 	@echo "  make test-api     pytest        ARGS=path/to/test"
+	@echo "  make lint         ruff (backend)"
 	@echo "  make test-client  pytest /testjam-client/tests — SDK + listener + CLI tests run in api container"
 	@echo "  make test-cli-e2e CLI smoke against the running api (creates admin if needed)"
 	@echo "  make test-orchestrator pytest tests/e2e/orchestrator/tests"
@@ -81,6 +82,9 @@ _up-front: $(BUILD_STAMP)
 
 test-api: _up-api
 	$(COMPOSE) exec -T api pytest $(ARGS)
+
+lint: _up-api
+	$(COMPOSE) exec -T api ruff check .
 
 test-client: _up-api
 	$(COMPOSE) exec -T -w /testjam-client api pytest $(ARGS)

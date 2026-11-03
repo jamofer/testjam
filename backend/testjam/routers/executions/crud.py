@@ -1,5 +1,5 @@
 """CRUD endpoints for `TestExecution`."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
@@ -28,8 +28,9 @@ from testjam.schemas.execution import (
     TestExecutionOut,
     TestExecutionUpdate,
 )
-from testjam.services import environments as env_service, execution_events
 from testjam.services import custom_fields as custom_field_service
+from testjam.services import environments as env_service
+from testjam.services import execution_events
 from testjam.services.permissions import WRITER_ROLES, effective_role
 
 REOPENABLE_STATUSES = {"completed", "aborted"}
@@ -136,7 +137,7 @@ def create_execution(
     data["custom_fields"] = custom_field_service.validate_payload(
         db, id, "execution", data.get("custom_fields"), is_create=True,
     )
-    ex = TestExecution(**data, started_at=datetime.now(timezone.utc))
+    ex = TestExecution(**data, started_at=datetime.now(UTC))
     db.add(ex)
     db.flush()
     for tc_id in body.test_case_ids:

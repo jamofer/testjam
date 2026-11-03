@@ -11,9 +11,11 @@ worker's consumer task forwards the payload to its local sockets.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
-from typing import Any, Awaitable, Callable
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 import redis.asyncio as redis_async
 
@@ -50,10 +52,8 @@ class RedisBackplane:
     async def stop(self) -> None:
         if self._consumer is not None:
             self._consumer.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError, Exception):
                 await self._consumer
-            except (asyncio.CancelledError, Exception):
-                pass
             self._consumer = None
         if self._pubsub is not None:
             try:

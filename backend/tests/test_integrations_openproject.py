@@ -11,7 +11,6 @@ from testjam.services.integrations.base import (
 )
 from testjam.services.integrations.providers.openproject import OpenProjectProvider
 
-
 BASE = "https://openproject.example.org"
 PROJECT_ID = "tj"
 
@@ -94,7 +93,7 @@ def test_create_work_package_posts_body_with_type_link(monkeypatch, provider, co
         captured["body"] = json.loads(request.content)
         return httpx.Response(201, json={
             "id": 42,
-            "_links": {"self": {"href": f"/api/v3/work_packages/42"}, "status": {"title": "New"}},
+            "_links": {"self": {"href": "/api/v3/work_packages/42"}, "status": {"title": "New"}},
         })
 
     _install(monkeypatch, handler)

@@ -10,9 +10,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sqlalchemy.orm import Session
-from testjam.database import engine
-from testjam.models import User, Project, ProjectMember
+
 from testjam.auth.security import hash_password
+from testjam.database import engine
+from testjam.models import User
 
 
 def create_admin(username: str, email: str, password: str) -> None:

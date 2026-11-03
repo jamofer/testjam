@@ -10,12 +10,13 @@ Layout:
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import tempfile
 import zipfile
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from importlib.metadata import PackageNotFoundError, version
 
 from sqlalchemy.orm import Session
@@ -38,7 +39,7 @@ class ExportArtifact:
 
 
 def export_project(db: Session, project: Project) -> ExportArtifact:
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     safe_name = _safe_slug(project.name)
 
     fd, archive_path = tempfile.mkstemp(prefix=f"testjam-project-{safe_name}-{timestamp}-", suffix=".zip")
@@ -61,7 +62,7 @@ def _manifest(project: Project) -> dict:
         "app_version": _app_version(),
         "project_id": project.id,
         "project_name": project.name,
-        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "exported_at": datetime.now(UTC).isoformat(),
     }
 
 
@@ -286,7 +287,5 @@ def _app_version() -> str:
 
 
 def cleanup_archive(path: str) -> None:
-    try:
+    with contextlib.suppress(FileNotFoundError):
         os.unlink(path)
-    except FileNotFoundError:
-        pass

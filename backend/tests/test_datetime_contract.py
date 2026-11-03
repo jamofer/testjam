@@ -45,7 +45,7 @@ def test_token_datetimes_have_offset(auth_client):
 
 def _assert_offsets(node):
     if isinstance(node, dict):
-        for key, value in node.items():
+        for value in node.values():
             _assert_offsets(value)
     elif isinstance(node, list):
         for item in node:

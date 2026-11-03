@@ -1,5 +1,5 @@
 """API token expiration, rotation, and purge."""
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -48,7 +48,7 @@ def test_create_user_token_without_expiration_returns_null(admin_client):
 
 def test_expired_token_cannot_authenticate(admin_client):
     created = _create_user_token(admin_client)
-    _set_token_expiration(created["id"], datetime.now(timezone.utc) - timedelta(seconds=1))
+    _set_token_expiration(created["id"], datetime.now(UTC) - timedelta(seconds=1))
 
     del admin_client.headers["Authorization"]
     admin_client.headers["X-API-Key"] = created["token"]
@@ -57,7 +57,7 @@ def test_expired_token_cannot_authenticate(admin_client):
 
 
 def test_token_with_future_expiration_authenticates(admin_client):
-    future = datetime.now(timezone.utc) + timedelta(hours=1)
+    future = datetime.now(UTC) + timedelta(hours=1)
     created = _create_user_token(admin_client, expires_at=future)
 
     del admin_client.headers["Authorization"]
@@ -122,10 +122,10 @@ def test_rotate_project_token_invalidates_old(admin_client, project_id):
 def test_purge_expired_tokens_deletes_only_expired_rows(admin_client):
     expired_id = _create_user_token(admin_client)["id"]
     fresh_id = _create_user_token(
-        admin_client, expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
+        admin_client, expires_at=datetime.now(UTC) + timedelta(hours=1),
     )["id"]
     never_expires_id = _create_user_token(admin_client)["id"]
-    _set_token_expiration(expired_id, datetime.now(timezone.utc) - timedelta(minutes=1))
+    _set_token_expiration(expired_id, datetime.now(UTC) - timedelta(minutes=1))
 
     with TestingSession() as db:
         deleted = purge_expired_tokens(db)
@@ -138,7 +138,7 @@ def test_purge_expired_tokens_deletes_only_expired_rows(admin_client):
 
 def test_purge_dry_run_does_not_delete(admin_client):
     expired_id = _create_user_token(admin_client)["id"]
-    _set_token_expiration(expired_id, datetime.now(timezone.utc) - timedelta(minutes=1))
+    _set_token_expiration(expired_id, datetime.now(UTC) - timedelta(minutes=1))
 
     with TestingSession() as db:
         counted = purge_expired_tokens(db, dry_run=True)

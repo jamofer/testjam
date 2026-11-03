@@ -1,5 +1,5 @@
 """Additional auth cases not covered by test_auth.py."""
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import jwt
 import pytest
@@ -124,7 +124,7 @@ def test_admin_setting_a_password_ends_sessions(auth_client, client, password_ow
 
 def test_token_without_issue_time_ends_on_password_change(client, password_owner):
     legacy_token = jwt.encode(
-        {"sub": OWNER_USERNAME, "exp": datetime.now(timezone.utc) + timedelta(minutes=5)},
+        {"sub": OWNER_USERNAME, "exp": datetime.now(UTC) + timedelta(minutes=5)},
         settings.SECRET_KEY,
         algorithm=settings.ALGORITHM,
     )
@@ -141,7 +141,7 @@ def test_token_without_issue_time_ends_on_password_change(client, password_owner
 
 def test_token_without_issue_time_works_until_password_changes(client, password_owner):
     legacy_token = jwt.encode(
-        {"sub": OWNER_USERNAME, "exp": datetime.now(timezone.utc) + timedelta(minutes=5)},
+        {"sub": OWNER_USERNAME, "exp": datetime.now(UTC) + timedelta(minutes=5)},
         settings.SECRET_KEY,
         algorithm=settings.ALGORITHM,
     )

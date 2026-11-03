@@ -7,7 +7,6 @@ from testjam.auth.security import hash_password
 from testjam.models.user import User
 from tests.conftest import TestingSession
 
-
 BASE = "/api/v1/users/me/notification-preferences"
 
 

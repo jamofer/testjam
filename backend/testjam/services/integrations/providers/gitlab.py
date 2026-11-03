@@ -25,7 +25,6 @@ from testjam.services.integrations.base import (
     register_provider,
 )
 
-
 _DEFAULT_BASE_URL = "https://gitlab.com"
 _DEFAULT_STATUS_MAPPING = {"opened": "open", "closed": "closed"}
 

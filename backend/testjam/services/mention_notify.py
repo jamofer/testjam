@@ -30,7 +30,6 @@ from testjam.services.notifications import notify
 from testjam.services.permissions import effective_role
 from testjam.services.settings import get_settings as get_app_settings
 
-
 MAX_EXCERPT_LENGTH = 280
 
 

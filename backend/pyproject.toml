@@ -34,6 +34,7 @@ dev = [
     "pytest-asyncio>=0.25.0",
     "httpx>=0.28.0",
     "fakeredis>=2.26.0",
+    "ruff>=0.14.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -49,3 +50,15 @@ python_classes = []
 [tool.ruff]
 line-length = 100
 target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+# FastAPI declares dependencies as call defaults: `db: Session = Depends(get_db)`.
+ignore = ["B008", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Logging and Sentry must be configured before the routers are imported.
+"testjam/main.py" = ["E402"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["testjam", "tests"]

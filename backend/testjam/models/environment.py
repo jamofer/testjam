@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+
 from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -30,4 +31,4 @@ class ProjectEnvironment(Base):
     archived_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
 
-    project: Mapped["Project"] = relationship(back_populates="environments")  # noqa: F821
+    project: Mapped[Project] = relationship(back_populates="environments")  # noqa: F821

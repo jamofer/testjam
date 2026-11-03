@@ -1,5 +1,5 @@
 """Password reset request + confirm endpoints."""
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -170,7 +170,7 @@ def test_confirm_rejects_expired_token(client, user_factory):
             .filter(PasswordResetToken.user_id == user.id)
             .first()
         )
-        token.expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+        token.expires_at = datetime.now(UTC) - timedelta(seconds=1)
         db.commit()
 
     response = _confirm_reset(client, raw_token)
@@ -193,7 +193,7 @@ def test_confirm_clears_existing_lockout(client, user_factory):
     with TestingSession() as db:
         target = db.get(User, user.id)
         target.failed_login_count = MAX_FAILED_LOGINS - 1
-        target.locked_until = datetime.now(timezone.utc) + timedelta(minutes=10)
+        target.locked_until = datetime.now(UTC) + timedelta(minutes=10)
         db.commit()
     raw_token = _generate_real_token_for(user.id)
 

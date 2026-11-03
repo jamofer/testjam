@@ -13,7 +13,7 @@ auto-escaped.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fastapi import BackgroundTasks
@@ -59,7 +59,7 @@ def _persist_and_push(
 def _recent_duplicate_exists(
     db: Session, user_id: int, event_type: str, link: str | None,
 ) -> bool:
-    threshold = datetime.now(timezone.utc) - timedelta(seconds=DEDUPE_WINDOW_SECONDS)
+    threshold = datetime.now(UTC) - timedelta(seconds=DEDUPE_WINDOW_SECONDS)
     return (
         db.query(Notification)
         .filter(

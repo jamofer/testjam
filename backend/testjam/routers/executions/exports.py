@@ -1,15 +1,14 @@
 """Export endpoints: HTML / XLSX for executions, XLSX for project cases."""
 import io
-from datetime import datetime, timezone
-from typing import Iterator
+from collections.abc import Iterator
+from datetime import UTC, datetime
 from urllib.parse import urlparse
 
 import openpyxl
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from openpyxl.utils import get_column_letter
-
 from fastapi import Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.utils import get_column_letter
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -82,7 +81,7 @@ def export_execution_xlsx(
     ws_sum.append([f"Finished at ({tz_label})", format_in_user_zone(ex.finished_at, current, "%Y-%m-%d %H:%M:%S")])
     ws_sum.append([
         "Generated",
-        f"{format_in_user_zone(datetime.now(timezone.utc), current, '%Y-%m-%d %H:%M %Z')} by {current.username}",
+        f"{format_in_user_zone(datetime.now(UTC), current, '%Y-%m-%d %H:%M %Z')} by {current.username}",
     ])
 
     # Results sheet
@@ -205,7 +204,7 @@ def export_cases_xlsx(
 
     ws.merge_cells("A2:H2")
     generated_at = format_in_user_zone(
-        datetime.now(timezone.utc), current, "%Y-%m-%d %H:%M %Z",
+        datetime.now(UTC), current, "%Y-%m-%d %H:%M %Z",
     )
     ws["A2"].value = f"Exported {generated_at} by {current.username}"
     ws["A2"].font = Font(size=8, color="6B7280")

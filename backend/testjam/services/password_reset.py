@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 
 from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
@@ -14,7 +14,7 @@ from testjam.services.notification_events import NotificationEvent
 from testjam.services.settings import get_settings as get_app_settings
 
 
-class PasswordResetOutcome(str, Enum):
+class PasswordResetOutcome(StrEnum):
     OK = "ok"
     UNKNOWN = "unknown"
     USED = "used"
@@ -28,7 +28,7 @@ def request_password_reset(
 ) -> None:
     user = (
         db.query(User)
-        .filter(User.email == email, User.is_active == True, User.deleted_at.is_(None))
+        .filter(User.email == email, User.is_active.is_(True), User.deleted_at.is_(None))
         .first()
     )
     if not user:
@@ -57,7 +57,7 @@ def confirm_password_reset(
         return PasswordResetOutcome.UNKNOWN
     if record.used_at is not None:
         return PasswordResetOutcome.USED
-    if _expires_at_utc(record) <= datetime.now(timezone.utc):
+    if _expires_at_utc(record) <= datetime.now(UTC):
         return PasswordResetOutcome.EXPIRED
     user = db.get(User, record.user_id)
     if user is None or not user.is_active or user.deleted_at is not None:
@@ -74,7 +74,7 @@ def revoke_reset_tokens(db: Session, user_id: int) -> None:
     db.query(PasswordResetToken).filter(
         PasswordResetToken.user_id == user_id,
         PasswordResetToken.used_at.is_(None),
-    ).update({PasswordResetToken.used_at: datetime.now(timezone.utc)})
+    ).update({PasswordResetToken.used_at: datetime.now(UTC)})
 
 
 def _create_reset_token(db: Session, user: User) -> tuple[str, str, datetime]:
@@ -88,7 +88,7 @@ def _create_reset_token(db: Session, user: User) -> tuple[str, str, datetime]:
 
 def _expires_at_utc(token: PasswordResetToken) -> datetime:
     if token.expires_at.tzinfo is None:
-        return token.expires_at.replace(tzinfo=timezone.utc)
+        return token.expires_at.replace(tzinfo=UTC)
     return token.expires_at
 
 

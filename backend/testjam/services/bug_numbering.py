@@ -11,7 +11,6 @@ from sqlalchemy.orm import Session
 
 from testjam.models.bug import Bug
 
-
 MAX_NUMBERING_RETRIES = 5
 
 

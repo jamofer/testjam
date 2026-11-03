@@ -1,6 +1,6 @@
 from datetime import datetime
+
 from pydantic import BaseModel
-from testjam.schemas.user import UserOut
 
 
 class ProjectBase(BaseModel):

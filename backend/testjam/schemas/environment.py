@@ -5,7 +5,6 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, field_validator
 
-
 SLUG_PATTERN = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$")
 HEX_COLOR_PATTERN = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
 

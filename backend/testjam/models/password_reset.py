@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -27,7 +27,7 @@ class PasswordResetToken(Base):
     def generate() -> tuple[str, str, datetime]:
         raw = secrets.token_urlsafe(32)
         token_hash = hashlib.sha256(raw.encode()).hexdigest()
-        expires_at = datetime.now(timezone.utc) + timedelta(hours=PASSWORD_RESET_TOKEN_TTL_HOURS)
+        expires_at = datetime.now(UTC) + timedelta(hours=PASSWORD_RESET_TOKEN_TTL_HOURS)
         return raw, token_hash, expires_at
 
     @staticmethod

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
@@ -18,12 +18,12 @@ def token(auth_client):
 
 @pytest.fixture
 def recent_use():
-    return datetime.now(timezone.utc) - TOKEN_LAST_USED_RESOLUTION / 2
+    return datetime.now(UTC) - TOKEN_LAST_USED_RESOLUTION / 2
 
 
 @pytest.fixture
 def stale_use():
-    return datetime.now(timezone.utc) - TOKEN_LAST_USED_RESOLUTION * 2
+    return datetime.now(UTC) - TOKEN_LAST_USED_RESOLUTION * 2
 
 
 @pytest.fixture

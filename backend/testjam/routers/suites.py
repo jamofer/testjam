@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -17,9 +17,14 @@ from testjam.models.execution import TestResult
 from testjam.models.testcase import SuiteStep, TestCase, TestSuite
 from testjam.models.user import User
 from testjam.schemas.testcase import (
-    SuiteArchiveResult, SuiteDeleteImpact,
-    SuiteStepCreate, SuiteStepOut, SuiteStepUpdate,
-    TestSuiteCreate, TestSuiteOut, TestSuiteUpdate,
+    SuiteArchiveResult,
+    SuiteDeleteImpact,
+    SuiteStepCreate,
+    SuiteStepOut,
+    SuiteStepUpdate,
+    TestSuiteCreate,
+    TestSuiteOut,
+    TestSuiteUpdate,
 )
 from testjam.services.permissions import WRITER_ROLES
 
@@ -78,7 +83,7 @@ def list_suites(
         if parent_suite_id is not None:
             q = q.filter(TestSuite.parent_suite_id == parent_suite_id)
         else:
-            q = q.filter(TestSuite.parent_suite_id == None)
+            q = q.filter(TestSuite.parent_suite_id.is_(None))
     if name is not None:
         q = q.filter(TestSuite.name == name)
     rows = q.order_by(TestSuite.order, TestSuite.id).all()
@@ -193,7 +198,7 @@ def archive_suite(id: int, db: Session = Depends(get_db), ctx: AuthContext = Dep
         .filter(TestCase.suite_id.in_(suite_ids), TestCase.archived_at.is_(None))
         .all()
     )
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     for case in cases:
         case.archived_at = now
         case.updated_by_id = ctx.user.id

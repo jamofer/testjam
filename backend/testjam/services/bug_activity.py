@@ -17,13 +17,13 @@ Callers commit the session. This module never commits.
 from __future__ import annotations
 
 import json
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 from sqlalchemy.orm import Session, selectinload
 
 from testjam.models.bug import Bug, BugActivity, BugLink
 from testjam.schemas.bug import BugActivityOut
-
 
 TRACKED_FIELDS: tuple[str, ...] = (
     "title",

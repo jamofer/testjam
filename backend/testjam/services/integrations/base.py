@@ -15,7 +15,6 @@ import httpx
 
 from testjam.services import outbound_http
 
-
 NormalizedStatus = Literal["open", "closed", "unknown"]
 
 

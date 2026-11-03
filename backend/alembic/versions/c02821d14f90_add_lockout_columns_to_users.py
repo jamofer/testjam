@@ -4,15 +4,16 @@ Revision ID: c02821d14f90
 Revises: 25e6a3f4703d
 Create Date: 2026-05-13 17:37:15.850447
 """
-from typing import Sequence, Union
-from alembic import op
+from collections.abc import Sequence
+
 import sqlalchemy as sa
 
+from alembic import op
 
 revision: str = 'c02821d14f90'
-down_revision: Union[str, None] = '25e6a3f4703d'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = '25e6a3f4703d'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

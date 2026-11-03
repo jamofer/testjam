@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 from datetime import datetime
-from sqlalchemy import ForeignKey, Integer, JSON, String, Text, func
+from typing import TYPE_CHECKING
+
+from sqlalchemy import JSON, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from testjam.database import Base
 from testjam.models._types import UTCDateTime
+
+if TYPE_CHECKING:
+    from testjam.models.project import Project
 
 
 class TestSuite(Base):
@@ -75,18 +80,18 @@ class TestCase(Base):
     attachments: Mapped[list[Attachment]] = relationship(
         back_populates="test_case", cascade="all, delete-orphan"
     )
-    revisions: Mapped[list["CaseRevision"]] = relationship(  # noqa: F821
+    revisions: Mapped[list[CaseRevision]] = relationship(  # noqa: F821
         back_populates="test_case",
         cascade="all, delete-orphan",
         order_by="CaseRevision.created_at.desc(), CaseRevision.id.desc()",
     )
-    comments: Mapped[list["CaseComment"]] = relationship(
+    comments: Mapped[list[CaseComment]] = relationship(
         back_populates="test_case",
         cascade="all, delete-orphan",
         order_by="CaseComment.created_at.asc(), CaseComment.id.asc()",
     )
-    created_by: Mapped["User | None"] = relationship(foreign_keys=[created_by_id])  # noqa: F821
-    updated_by: Mapped["User | None"] = relationship(foreign_keys=[updated_by_id])  # noqa: F821
+    created_by: Mapped[User | None] = relationship(foreign_keys=[created_by_id])  # noqa: F821
+    updated_by: Mapped[User | None] = relationship(foreign_keys=[updated_by_id])  # noqa: F821
 
 
 class CaseComment(Base):
@@ -106,7 +111,7 @@ class CaseComment(Base):
     )
 
     test_case: Mapped[TestCase] = relationship(back_populates="comments")
-    created_by: Mapped["User | None"] = relationship(foreign_keys=[created_by_id])  # noqa: F821
+    created_by: Mapped[User | None] = relationship(foreign_keys=[created_by_id])  # noqa: F821
 
 
 class TestStep(Base):
