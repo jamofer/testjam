@@ -167,7 +167,6 @@
         "siteUrlHint": "Si está definida, los adjuntos y enlaces «Ver en la app» usan esta URL en vez del host de la petición.",
         "siteUrlPlaceholder": "https://qa.example.com",
         "appName": "Nombre de la app",
-        "allowRegistration": "Permitir auto-registro de nuevos usuarios",
         "allowSelfDelete": "Permitir que los usuarios eliminen su propia cuenta",
         "ipThrottle": "Bloquear IPs tras varios intentos fallidos",
         "ipThrottleHelp": "Refleja el bloqueo por usuario sobre la IP de origen. Desactiva esta opción si tienes runners de test compartidos o proxies que agrupen muchos usuarios bajo una misma IP."
