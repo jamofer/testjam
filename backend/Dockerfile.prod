@@ -26,15 +26,17 @@ ENV TESTJAM_VERSION_REF=${GIT_REF} \
     TESTJAM_VERSION_COMMIT=${GIT_COMMIT} \
     TESTJAM_BUILD_DATE=${BUILD_DATE}
 
-COPY . .
-RUN pip install "."
+COPY pyproject.toml ./
+RUN mkdir testjam && touch testjam/__init__.py && pip install "." && rm -rf testjam
 
-RUN mkdir -p /app/uploads/cases /app/uploads/results /app/uploads/executions
+COPY . .
+RUN pip install --no-deps --force-reinstall "."
+
+RUN useradd --system --create-home --shell /usr/sbin/nologin testjam \
+    && mkdir -p /app/uploads/cases /app/uploads/results /app/uploads/executions \
+    && chown -R testjam:testjam /app/uploads
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "\
-: ${SECRET_KEY:?SECRET_KEY env var is required (generate with: openssl rand -hex 32)} && \
-: ${DATABASE_URL:?DATABASE_URL env var is required} && \
-alembic upgrade head && \
-uvicorn testjam.main:app --host 0.0.0.0 --port 8000 --workers 2 --proxy-headers --forwarded-allow-ips=*"]
+ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
+CMD ["uvicorn", "testjam.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--proxy-headers", "--forwarded-allow-ips=*"]

@@ -3,7 +3,7 @@ services:
     image: postgres:18.3-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-testjam}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ${POSTGRES_DB:-testjam}
     volumes:
       - postgres_data:/var/lib/postgresql
@@ -28,8 +28,8 @@ services:
     # a `docker compose pull` could drag in a breaking release without warning.
     image: ghcr.io/jamofer/testjam-api:${TESTJAM_VERSION:-v1.0.1}
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-testjam}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-testjam}
-      SECRET_KEY: ${SECRET_KEY}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-testjam}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-testjam}
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env (openssl rand -hex 32)}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-480}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       INTEGRATION_ENCRYPTION_KEY: ${INTEGRATION_ENCRYPTION_KEY}
@@ -54,8 +54,14 @@ services:
     ports:
       - "${APP_PORT:-8080}:80"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
 
 volumes:
   postgres_data:
