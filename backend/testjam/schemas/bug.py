@@ -10,6 +10,7 @@ from testjam.schemas.user import UserOut
 
 
 BugSeverity = Literal["critical", "high", "medium", "low"]
+ConflictCheckedField = Literal["title", "description"]
 BugStatus = Literal[
     "open",
     "in_progress",
@@ -55,6 +56,10 @@ class BugUpdate(BaseModel):
     assigned_to_id: int | None = None
     external_ticket_url: str | None = None
     custom_fields: dict[str, Any] | None = None
+    previous_values: dict[ConflictCheckedField, str | None] | None = Field(
+        default=None,
+        description="Values the client started editing from; a field changed since then answers 409.",
+    )
 
 
 class BugStatusChange(BaseModel):

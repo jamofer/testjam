@@ -109,6 +109,20 @@ def _touch_updated_by(bug: Bug, current: User) -> None:
     bug.updated_by_id = current.id
 
 
+def _reject_concurrent_edits(bug: Bug, previous_values: dict[str, str | None]) -> None:
+    for field, previous in previous_values.items():
+        if getattr(bug, field) != previous:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "code": "edit_conflict",
+                    "field": field,
+                    "current": getattr(bug, field),
+                    "message": f"Someone else changed the {field} while you were editing it",
+                },
+            )
+
+
 def _can_delete_project_resource(db: Session, user: User, project_id: int) -> bool:
     if user.is_admin:
         return True
@@ -314,7 +328,8 @@ def update_bug(
     authorize_project(db, ctx, bug.project_id, WRITER_ROLES)
     _ensure_project_writable(db, bug.project_id)
 
-    update_data = body.model_dump(exclude_unset=True)
+    _reject_concurrent_edits(bug, body.previous_values or {})
+    update_data = body.model_dump(exclude_unset=True, exclude={"previous_values"})
     previous_assignee_id = bug.assigned_to_id
     previous_snapshot = bug_activity.snapshot(bug)
     previous_description = bug.description

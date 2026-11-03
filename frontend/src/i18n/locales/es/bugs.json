@@ -236,7 +236,8 @@
     "commentEditFailed": "No se pudo guardar el comentario",
     "commentDeleteFailed": "No se pudo eliminar el comentario",
     "severityChanged": "Severidad actualizada",
-    "severityFailed": "No se pudo cambiar la severidad"
+    "severityFailed": "No se pudo cambiar la severidad",
+    "editConflict": "Otra persona lo ha cambiado mientras editabas. Tu texto se conserva; guarda de nuevo para sobrescribirlo."
   },
   "report": {
     "dialogTitle": "Reportar bug",

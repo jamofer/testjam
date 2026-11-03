@@ -62,6 +62,8 @@ import { MdEditor, MdViewer } from "../components/MdEditor"
 import { SEVERITIES, SEVERITY_VARIANT, STATUS_VARIANT, STATUSES } from "../lib/bugConfig"
 import { toastApiError } from "../lib/apiError"
 
+const EDIT_CONFLICT = "edit_conflict"
+
 export function BugDetailPage() {
   const { t } = useTranslation(["bugs", "nav", "customFields"])
   const { bugId: directBugId, projectId, number } = useParams()
@@ -127,6 +129,7 @@ export function BugDetailPage() {
   const [descriptionDraft, setDescriptionDraft] = useState("")
   const [editingTitle, setEditingTitle] = useState(false)
   const [titleDraft, setTitleDraft] = useState("")
+  const [editBase, setEditBase] = useState({})
   const [deleteBugOpen, setDeleteBugOpen] = useState(false)
   const [commentPendingDelete, setCommentPendingDelete] = useState(null)
   const statusLabels = useMemo(
@@ -244,12 +247,30 @@ export function BugDetailPage() {
       return
     }
     try {
-      await updateBug.mutateAsync({ id: bug.id, data: { title: trimmed } })
+      await updateBug.mutateAsync({
+        id: bug.id,
+        data: { title: trimmed, previous_values: { title: editBase.title } },
+      })
       toast.success(t("toast.updated"))
     } catch (error) {
+      if (handleEditConflict(error)) return
       toastApiError(error, t("toast.updateFailed"))
     }
     setEditingTitle(false)
+  }
+
+  const beginEditTitle = () => {
+    setTitleDraft(bug.title)
+    setEditBase(current => ({ ...current, title: bug.title }))
+    setEditingTitle(true)
+  }
+
+  const handleEditConflict = (error) => {
+    const conflict = editConflict(error)
+    if (!conflict) return false
+    setEditBase(current => ({ ...current, [conflict.field]: conflict.current }))
+    toastApiError(error, t("toast.editConflict"), () => t("toast.editConflict"))
+    return true
   }
 
   const handleDelete = async () => {
@@ -266,6 +287,7 @@ export function BugDetailPage() {
 
   const beginEditDescription = () => {
     setDescriptionDraft(bug.description ?? "")
+    setEditBase(current => ({ ...current, description: bug.description ?? null }))
     setEditingDescription(true)
   }
 
@@ -273,11 +295,15 @@ export function BugDetailPage() {
     try {
       await updateBug.mutateAsync({
         id: bug.id,
-        data: { description: descriptionDraft.trim() || null },
+        data: {
+          description: descriptionDraft.trim() || null,
+          previous_values: { description: editBase.description },
+        },
       })
       setEditingDescription(false)
       toast.success(t("toast.updated"))
     } catch (error) {
+      if (handleEditConflict(error)) return
       toastApiError(error, t("toast.updateFailed"))
     }
   }
@@ -355,7 +381,7 @@ export function BugDetailPage() {
               ) : (
                 <span
                   className="cursor-pointer hover:underline decoration-gray-300 dark:decoration-gray-600 underline-offset-4"
-                  onClick={() => { setTitleDraft(bug.title); setEditingTitle(true) }}
+                  onClick={beginEditTitle}
                   title={t("actions.editTitle")}
                 >
                   {bug.title}
@@ -999,4 +1025,9 @@ function VersionPicker({ value: versionId, versions, placeholder, onChange, savi
       </SelectContent>
     </Select>
   )
+}
+
+function editConflict(error) {
+  const detail = error?.response?.data?.detail
+  return detail?.code === EDIT_CONFLICT ? detail : null
 }
