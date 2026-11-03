@@ -236,7 +236,8 @@
     "commentEditFailed": "Could not save comment",
     "commentDeleteFailed": "Could not delete comment",
     "severityChanged": "Severity updated",
-    "severityFailed": "Could not change severity"
+    "severityFailed": "Could not change severity",
+    "editConflict": "Someone else changed this while you were editing. Your text is kept; save again to overwrite it."
   },
   "report": {
     "dialogTitle": "Report bug",
