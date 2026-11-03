@@ -98,6 +98,10 @@ Full reference: [`docs/manual/cli.md`](../docs/manual/cli.md).
 
 ## Resource modules
 
+Responses are plain dicts described by `TypedDict` classes in
+`testjam_client.models` (the package ships `py.typed`), and status values
+live in `testjam_client.statuses`.
+
 - `client.projects` — list, create, delete, `find_or_create`.
 - `client.suites` — hierarchy: `descendants`, `parent_chain`, `path`,
   `case_ids_recursive`, `find_or_create`.

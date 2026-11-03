@@ -10,6 +10,7 @@ import typer
 from rich.live import Live
 from rich.table import Table
 
+from testjam_client import statuses
 from testjam_client.cli import output, runtime
 from testjam_client.cli.state import CliState
 from testjam_client.errors import RateLimited, ServerError
@@ -21,9 +22,6 @@ SHOW_COLUMNS = [
 ]
 
 DEFAULT_POLL_SECONDS = 1.0
-TERMINAL_STATUSES = frozenset({"completed", "aborted"})
-FAILED_RESULT_STATUSES = frozenset({"failed", "blocked"})
-ABORTED_STATUS = "aborted"
 EXIT_FAILED = 1
 EXIT_ABORTED = 2
 EXIT_TIMED_OUT = 3
@@ -140,7 +138,7 @@ def _snapshots(client, execution_id: int, interval: float, timeout: float):
         else:
             last_reached = time.monotonic()
             yield snapshot
-            if snapshot["execution"]["status"] in TERMINAL_STATUSES:
+            if snapshot["execution"]["status"] in statuses.TERMINAL_EXECUTION_STATUSES:
                 return
         if timeout and time.monotonic() - started >= timeout:
             raise TailStopped(EXIT_TIMED_OUT, f"Execution {execution_id} still running after {timeout:g}s")
@@ -167,7 +165,7 @@ def _render_table(snapshot: dict[str, Any]) -> Table:
     table.add_column("duration_ms")
     for result in snapshot["results"]:
         steps = result.get("step_results") or []
-        passed = sum(1 for step in steps if step.get("status") == "passed")
+        passed = sum(1 for step in steps if step.get("status") == statuses.PASSED)
         table.add_row(
             str(result.get("test_case_id", "")),
             str(result.get("test_case_title") or ""),
@@ -179,9 +177,9 @@ def _render_table(snapshot: dict[str, Any]) -> Table:
 
 
 def _exit_code(execution: dict, results: list[dict]) -> int:
-    if execution.get("status") == ABORTED_STATUS:
+    if execution.get("status") == statuses.ABORTED:
         return EXIT_ABORTED
-    if any(result.get("status") in FAILED_RESULT_STATUSES for result in results):
+    if any(result.get("status") in statuses.UNSUCCESSFUL_RESULT_STATUSES for result in results):
         return EXIT_FAILED
     return 0
 

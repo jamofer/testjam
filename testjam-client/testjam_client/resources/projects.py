@@ -2,17 +2,18 @@
 from __future__ import annotations
 
 from testjam_client.errors import Conflict
+from testjam_client.models import Project
 from testjam_client.resources._base import Resource
 
 
 class ProjectsResource(Resource):
-    def list(self) -> list[dict]:
+    def list(self) -> list[Project]:
         return self._request("GET", "/projects").json()
 
-    def get(self, project_id: int) -> dict:
+    def get(self, project_id: int) -> Project:
         return self._request("GET", f"/projects/{project_id}").json()
 
-    def create(self, name: str, *, description: str | None = None) -> dict:
+    def create(self, name: str, *, description: str | None = None) -> Project:
         body: dict = {"name": name}
         if description is not None:
             body["description"] = description
@@ -21,13 +22,13 @@ class ProjectsResource(Resource):
     def delete(self, project_id: int) -> None:
         self._request("DELETE", f"/projects/{project_id}")
 
-    def find_by_name(self, name: str) -> dict | None:
+    def find_by_name(self, name: str) -> Project | None:
         for project in self.list():
             if project["name"] == name:
                 return project
         return None
 
-    def find_or_create(self, name: str, *, description: str | None = None) -> dict:
+    def find_or_create(self, name: str, *, description: str | None = None) -> Project:
         existing = self.find_by_name(name)
         if existing is not None:
             return existing

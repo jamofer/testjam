@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 from testjam_client.errors import Conflict
+from testjam_client.models import Suite
 from testjam_client.resources._base import Resource
 
 
@@ -14,7 +15,7 @@ class SuitesResource(Resource):
         *,
         parent_suite_id: int | None = None,
         all: bool = False,
-    ) -> list[dict]:
+    ) -> list[Suite]:
         params: dict[str, Any] = {}
         if parent_suite_id is not None:
             params["parent_suite_id"] = parent_suite_id
@@ -24,7 +25,7 @@ class SuitesResource(Resource):
             "GET", f"/projects/{project_id}/suites", params=params,
         ).json()
 
-    def get(self, suite_id: int) -> dict:
+    def get(self, suite_id: int) -> Suite:
         return self._request("GET", f"/suites/{suite_id}").json()
 
     def create(
@@ -34,7 +35,7 @@ class SuitesResource(Resource):
         *,
         parent_suite_id: int | None = None,
         description: str | None = None,
-    ) -> dict:
+    ) -> Suite:
         body: dict[str, Any] = {"name": name}
         if parent_suite_id is not None:
             body["parent_suite_id"] = parent_suite_id
@@ -44,13 +45,13 @@ class SuitesResource(Resource):
             "POST", f"/projects/{project_id}/suites", json=body,
         ).json()
 
-    def update(self, suite_id: int, **payload: Any) -> dict:
+    def update(self, suite_id: int, **payload: Any) -> Suite:
         return self._request("PUT", f"/suites/{suite_id}", json=payload).json()
 
     def delete(self, suite_id: int) -> None:
         self._request("DELETE", f"/suites/{suite_id}")
 
-    def descendants(self, project_id: int, suite_id: int) -> list[dict]:
+    def descendants(self, project_id: int, suite_id: int) -> list[Suite]:
         """Every sub-suite under ``suite_id`` (recursive, excludes itself)."""
         by_parent: dict[int | None, list[dict]] = {}
         for suite in self.list(project_id, all=True):
@@ -71,7 +72,7 @@ class SuitesResource(Resource):
             ids.extend(sub.get("test_case_ids", []))
         return ids
 
-    def parent_chain(self, project_id: int, suite_id: int) -> list[dict]:
+    def parent_chain(self, project_id: int, suite_id: int) -> list[Suite]:
         """Suites from root → ... → ``suite_id`` inclusive."""
         all_suites = {s["id"]: s for s in self.list(project_id, all=True)}
         chain: list[dict] = []
@@ -95,7 +96,7 @@ class SuitesResource(Resource):
         *,
         parent_suite_id: int | None = None,
         description: str | None = None,
-    ) -> dict:
+    ) -> Suite:
         existing = [
             suite for suite in self.list(project_id, parent_suite_id=parent_suite_id)
             if suite["name"] == name

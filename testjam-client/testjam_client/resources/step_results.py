@@ -3,17 +3,18 @@ from __future__ import annotations
 
 from typing import Any
 
+from testjam_client.models import StepResult
 from testjam_client.resources._base import Resource
 
 
 class StepResultsResource(Resource):
-    def start(self, result_id: int, step_id: int) -> dict:
+    def start(self, result_id: int, step_id: int) -> StepResult:
         return self._request(
             "POST", f"/results/{result_id}/step-results",
             json={"step_id": step_id},
         ).json()
 
-    def update(self, result_id: int, step_result_id: int, **payload: Any) -> dict:
+    def update(self, result_id: int, step_result_id: int, **payload: Any) -> StepResult:
         return self._request(
             "PUT", f"/results/{result_id}/step-results/{step_result_id}",
             json=payload,
