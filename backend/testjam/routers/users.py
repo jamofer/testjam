@@ -42,6 +42,8 @@ def list_users(
 def create_user(body: UserCreate, db: Session = Depends(get_db), _: User = Depends(require_admin)):
     if db.query(User).filter(User.username == body.username).first():
         raise HTTPException(status_code=400, detail="Username already exists")
+    if _is_email_taken(db, body.email):
+        raise HTTPException(status_code=400, detail="Email already in use")
     user = User(**body.model_dump(exclude={"password"}), hashed_password=hash_password(body.password))
     db.add(user)
     db.commit()
@@ -56,6 +58,8 @@ def get_me(current: User = Depends(get_current_user)):
 
 @router.put("/me", response_model=UserOut)
 def update_me(body: UserUpdate, db: Session = Depends(get_db), current: User = Depends(get_unscoped_user)):
+    if body.email and _is_email_taken(db, body.email, current.id):
+        raise HTTPException(status_code=400, detail="Email already in use")
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(current, field, value)
     db.commit()
@@ -117,6 +121,8 @@ def update_user(id: int, body: AdminUserUpdate, db: Session = Depends(get_db), _
         clash = db.query(User).filter(User.username == new_username, User.id != id).first()
         if clash:
             raise HTTPException(status_code=409, detail="Username already exists")
+    if body.email and _is_email_taken(db, body.email, id):
+        raise HTTPException(status_code=409, detail="Email already in use")
     if payload.pop("clear_lockout", False):
         user.locked_until = None
         user.failed_login_count = 0
@@ -180,3 +186,7 @@ def restore_user(id: int, db: Session = Depends(get_db), _: User = Depends(requi
     db.commit()
     db.refresh(user)
     return user
+
+
+def _is_email_taken(db: Session, email: str, user_id: int | None = None) -> bool:
+    return db.query(User.id).filter(User.email == email, User.id != user_id).first() is not None

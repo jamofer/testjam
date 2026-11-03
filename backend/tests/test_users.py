@@ -86,3 +86,57 @@ def test_get_user_by_username_not_found(auth_client):
     resp = auth_client.get("/api/v1/users/by-username/ghost")
 
     assert resp.status_code == 404
+
+
+def test_user_cannot_change_administrative_fields_of_own_account(auth_client):
+    auth_client.put("/api/v1/users/me", json={"is_active": False, "failed_login_count": 0})
+
+    response = auth_client.get("/api/v1/users/me")
+
+    assert response.json()["is_active"] is True
+
+
+def test_password_cannot_be_changed_through_profile_update(auth_client):
+    response = auth_client.put("/api/v1/users/me", json={"password": "changed-password"})
+
+    assert response.status_code == 200
+    assert "password" not in response.json()
+
+
+def test_email_of_another_user_is_rejected(auth_client):
+    auth_client.post(
+        "/api/v1/users", json={"username": "other", "email": "other@test.com", "password": "pw"},
+    )
+
+    response = auth_client.put("/api/v1/users/me", json={"email": "other@test.com"})
+
+    assert response.status_code == 400
+
+
+def test_keeping_own_email_is_accepted(auth_client):
+    email = auth_client.get("/api/v1/users/me").json()["email"]
+
+    response = auth_client.put("/api/v1/users/me", json={"email": email})
+
+    assert response.status_code == 200
+
+
+def test_creating_user_with_taken_email_is_rejected(auth_client):
+    email = auth_client.get("/api/v1/users/me").json()["email"]
+
+    response = auth_client.post(
+        "/api/v1/users", json={"username": "copycat", "email": email, "password": "pw"},
+    )
+
+    assert response.status_code == 400
+
+
+def test_admin_cannot_assign_taken_email(auth_client):
+    email = auth_client.get("/api/v1/users/me").json()["email"]
+    user_id = auth_client.post(
+        "/api/v1/users", json={"username": "other", "email": "other@test.com", "password": "pw"},
+    ).json()["id"]
+
+    response = auth_client.put(f"/api/v1/users/{user_id}", json={"email": email})
+
+    assert response.status_code == 409
