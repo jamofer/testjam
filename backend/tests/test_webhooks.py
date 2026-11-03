@@ -2,13 +2,11 @@
 from __future__ import annotations
 
 import asyncio
-import json
 
 import httpx
 import pytest
 
 from testjam.services import webhook_dispatch, webhook_events
-from testjam.models.webhook import Webhook
 from tests.conftest import TestingSession
 
 

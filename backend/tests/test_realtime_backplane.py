@@ -10,7 +10,6 @@ import pytest
 from testjam.realtime import ConnectionManager
 from testjam.realtime_backplane import RedisBackplane, get_backplane, set_backplane
 
-
 CHANNEL_PREFIX = "rt-test"
 DELIVERY_GRACE_SECONDS = 0.1
 

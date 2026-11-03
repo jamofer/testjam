@@ -4,7 +4,6 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-
 MentionKind = Literal["user", "bug", "execution", "result", "step_result", "case"]
 
 

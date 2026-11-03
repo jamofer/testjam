@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -14,7 +14,7 @@ def project_id(auth_client):
 
 
 def _seed_results(project_id: int, days_ago_to_statuses: dict[int, list[str]]) -> None:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     with TestingSession() as db:
         suite = TestSuite(project_id=project_id, name="S")
         db.add(suite)
@@ -83,7 +83,7 @@ def test_dashboard_top_fail_orders_by_failure_count(auth_client, project_id):
     case_b = auth_client.post(
         f"/api/v1/suites/{suite_id}/cases", json={"name": "Bravo", "suite_id": suite_id},
     ).json()["id"]
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     with TestingSession() as db:
         execution = TestExecution(
             project_id=project_id, title="run", type="manual", status="completed",

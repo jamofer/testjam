@@ -6,7 +6,6 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-
 CustomFieldEntityType = Literal["bug", "test_case", "execution"]
 CustomFieldType = Literal[
     "text", "number", "bool", "single_select", "multi_select", "date"

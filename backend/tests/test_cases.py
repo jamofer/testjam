@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from testjam.models.testcase import TestCase
 from tests.conftest import TestingSession
@@ -332,6 +332,6 @@ def _spread_case_timestamps() -> None:
     with TestingSession() as db:
         rows = db.query(TestCase).order_by(TestCase.id).all()
         for index, row in enumerate(rows):
-            row.created_at = datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(minutes=index)
+            row.created_at = datetime(2026, 1, 1, tzinfo=UTC) + timedelta(minutes=index)
         db.commit()
 

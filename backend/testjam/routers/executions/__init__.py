@@ -19,4 +19,4 @@ executions_router = APIRouter(prefix="/executions", tags=["TestExecutions"])
 results_router = APIRouter(prefix="/results", tags=["TestResults"])
 
 # Submodule imports register endpoints on the routers above.
-from testjam.routers.executions import crud, exports, attachments, results, result_imports  # noqa: E402, F401
+from testjam.routers.executions import attachments, crud, exports, result_imports, results  # noqa: E402, F401

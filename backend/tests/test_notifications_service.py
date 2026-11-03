@@ -1,6 +1,6 @@
 """`services.notifications.notify` dispatcher behavior."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi import BackgroundTasks
@@ -9,7 +9,8 @@ from testjam.auth.security import hash_password
 from testjam.models.notification import Notification
 from testjam.models.settings import AppSettings
 from testjam.models.user import User
-from testjam.services import notification_preferences, notifications as notifications_module
+from testjam.services import notification_preferences
+from testjam.services import notifications as notifications_module
 from testjam.services.notification_events import NotificationEvent
 from testjam.services.notifications import DEDUPE_WINDOW_SECONDS, notify
 from tests.conftest import TestingSession
@@ -192,7 +193,7 @@ def _count_notifications(user_id):
 
 
 def _backdate_notification(user_id, seconds_ago):
-    backdated = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(seconds=seconds_ago)
+    backdated = datetime.now(UTC).replace(tzinfo=None) - timedelta(seconds=seconds_ago)
     with TestingSession() as db:
         row = db.query(Notification).filter(Notification.user_id == user_id).one()
         row.created_at = backdated

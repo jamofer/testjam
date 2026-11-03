@@ -8,6 +8,7 @@ replaced wholesale.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import shutil
@@ -112,7 +113,7 @@ def _psql_apply(database_url: str, dump_path: str) -> None:
         "--dbname", (parsed.path or "/").lstrip("/"),
         "--file", dump_path,
     ]
-    result = subprocess.run(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+    result = subprocess.run(cmd, env=env, capture_output=True, check=False)
     if result.returncode != 0:
         stderr = result.stderr.decode("utf-8", "replace")
         raise HTTPException(status_code=500, detail=f"psql restore failed: {stderr.strip()}")
@@ -142,10 +143,8 @@ def _restore_uploads(source_dir: str, target_dir: str) -> int:
             if os.path.isdir(full):
                 shutil.rmtree(full, ignore_errors=True)
             else:
-                try:
+                with contextlib.suppress(FileNotFoundError):
                     os.unlink(full)
-                except FileNotFoundError:
-                    pass
     os.makedirs(target_dir, exist_ok=True)
 
     if not os.path.isdir(source_dir):

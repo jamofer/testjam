@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pytest
-from fastapi.testclient import TestClient
 
 from testjam.auth.security import hash_password
 from testjam.models.user import User

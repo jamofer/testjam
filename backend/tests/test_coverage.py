@@ -15,7 +15,7 @@ def _create_execution_with_result(auth_client, project_id, case_ids, version_id,
             "test_case_ids": case_ids,
         },
     ).json()["id"]
-    for case_id, status in zip(case_ids, statuses):
+    for case_id, status in zip(case_ids, statuses, strict=True):
         auth_client.post(
             f"/api/v1/executions/{execution_id}/results",
             json={"test_case_id": case_id, "status": status},

@@ -4,17 +4,17 @@ Revision ID: 68c5c4c30227
 Revises: a8c41f9e3b27
 Create Date: 2026-05-19 21:36:52.320837
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
 import testjam.models._types
+from alembic import op
 
 revision: str = '68c5c4c30227'
-down_revision: Union[str, None] = 'a8c41f9e3b27'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = 'a8c41f9e3b27'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

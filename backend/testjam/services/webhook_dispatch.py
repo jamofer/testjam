@@ -19,7 +19,7 @@ import hmac
 import json
 import logging
 import secrets
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -28,7 +28,6 @@ from fastapi import BackgroundTasks
 from testjam import database
 from testjam.models.webhook import Webhook, WebhookDelivery
 from testjam.services import outbound_http
-
 
 log = logging.getLogger("testjam.webhooks")
 
@@ -47,7 +46,7 @@ def generate_secret() -> str:
 def build_envelope(event_type: str, payload: dict[str, Any], project_id: int) -> dict[str, Any]:
     return {
         "event": event_type,
-        "delivered_at": datetime.now(timezone.utc).isoformat(),
+        "delivered_at": datetime.now(UTC).isoformat(),
         "project_id": project_id,
         "data": payload,
     }
@@ -137,7 +136,7 @@ async def _run_dispatch(webhook_id: int, event_type: str, envelope: dict[str, An
         row.response_excerpt = response_excerpt
         row.last_error = last_error
         row.succeeded = succeeded
-        row.completed_at = datetime.now(timezone.utc)
+        row.completed_at = datetime.now(UTC)
         db.commit()
 
     log.info(

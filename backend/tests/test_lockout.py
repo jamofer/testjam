@@ -1,5 +1,5 @@
 """Account lockout after repeated failed login attempts."""
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -84,7 +84,7 @@ def test_login_after_lockout_expiration_succeeds(client, user_factory):
     user = user_factory()
     with TestingSession() as db:
         target = db.get(User, user.id)
-        target.locked_until = datetime.now(timezone.utc) - timedelta(seconds=1)
+        target.locked_until = datetime.now(UTC) - timedelta(seconds=1)
         target.failed_login_count = 0
         db.commit()
 

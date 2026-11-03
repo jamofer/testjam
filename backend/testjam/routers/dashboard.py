@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
@@ -50,7 +50,7 @@ def get_dashboard(
         raise HTTPException(status_code=400, detail="range must be one of 7, 30, 90")
 
     requested = _parse_cards(cards)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     since = now - timedelta(days=range)
 
     payload = DashboardOut(range_days=range, generated_at=now)
@@ -296,5 +296,5 @@ def _versions_card(db: Session, project_id: int) -> VersionsCard:
             total_runs=run_counts.get(v.id, 0),
             pass_rate=pass_rate,
         ))
-    items.sort(key=lambda item: item.last_run_at or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+    items.sort(key=lambda item: item.last_run_at or datetime.min.replace(tzinfo=UTC), reverse=True)
     return VersionsCard(items=items[:VERSIONS_CARD_LIMIT])

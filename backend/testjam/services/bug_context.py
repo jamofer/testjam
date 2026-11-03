@@ -16,7 +16,6 @@ from testjam.schemas.bug import (
     BugContextExecution,
     BugContextNode,
     BugContextOut,
-    BugContextStep,
 )
 
 

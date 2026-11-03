@@ -21,11 +21,11 @@ from testjam.models.bug import Bug, BugActivity, BugAttachment, BugComment, BugL
 from testjam.models.user import User
 from testjam.realtime import notify_bug, notify_project
 from testjam.schemas.bug import (
+    TERMINAL_BUG_STATUSES,
     BugAttachmentOut,
     BugCommentOut,
     BugLinkOut,
     BugOut,
-    TERMINAL_BUG_STATUSES,
 )
 from testjam.services import bug_activity, bug_watchers, email_templates, webhook_events
 from testjam.services.notification_events import NotificationEvent

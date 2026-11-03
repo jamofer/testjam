@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
@@ -26,7 +26,6 @@ from testjam.schemas.environment import (
     EnvironmentUpdate,
 )
 from testjam.services import environments as env_service
-
 
 projects_router = APIRouter(prefix="/projects", tags=["Environments"])
 environments_router = APIRouter(prefix="/environments", tags=["Environments"])
@@ -87,9 +86,9 @@ def create_environment(
     db.add(env)
     try:
         db.flush()
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
-        raise HTTPException(status_code=409, detail="Environment slug already exists")
+        raise HTTPException(status_code=409, detail="Environment slug already exists") from exc
     env_service.apply_default_state(db, id, env, body.is_default)
     db.commit()
     db.refresh(env)
@@ -154,19 +153,22 @@ def update_environment(
     is_default = update_data.pop("is_default", None)
     previous_slug = env.slug
     new_slug = update_data.get("slug", previous_slug)
-    if new_slug != previous_slug:
-        if env.archived_at is None and _slug_in_use_by_executions(db, env.project_id, previous_slug):
-            raise HTTPException(
-                status_code=409,
-                detail="Cannot rename slug while executions reference it",
-            )
+    if (
+        new_slug != previous_slug
+        and env.archived_at is None
+        and _slug_in_use_by_executions(db, env.project_id, previous_slug)
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail="Cannot rename slug while executions reference it",
+        )
     for field, value in update_data.items():
         setattr(env, field, value)
     try:
         db.flush()
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
-        raise HTTPException(status_code=409, detail="Environment slug already exists")
+        raise HTTPException(status_code=409, detail="Environment slug already exists") from exc
     if is_default is not None:
         env_service.apply_default_state(db, env.project_id, env, is_default)
     db.commit()
@@ -183,7 +185,7 @@ def archive_environment(
     env = _get_environment(db, id)
     _require_writable_for_environment(db, env, ctx)
     if env.archived_at is None:
-        env.archived_at = datetime.now(timezone.utc)
+        env.archived_at = datetime.now(UTC)
         if env.is_default:
             env.is_default = False
     db.commit()

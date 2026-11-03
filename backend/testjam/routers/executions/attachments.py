@@ -1,6 +1,5 @@
 """Attachment endpoints for executions and test results."""
 import os
-import shutil
 
 from fastapi import Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
@@ -20,9 +19,6 @@ from testjam.schemas.execution import ExecutionAttachmentOut
 from testjam.schemas.testcase import AttachmentOut
 from testjam.services import uploads
 from testjam.services.permissions import WRITER_ROLES
-
-
-
 
 # ─── Execution attachments ────────────────────────────────────────────────────
 

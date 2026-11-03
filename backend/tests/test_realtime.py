@@ -4,12 +4,12 @@ Pure-asyncio unit tests against a stub WebSocket. No FastAPI client involved.
 """
 from __future__ import annotations
 
-import asyncio
 from typing import Any
 
 import pytest
 
-from testjam.realtime import ConnectionManager, _schedule, manager as global_manager
+from testjam.realtime import ConnectionManager, _schedule
+from testjam.realtime import manager as global_manager
 
 
 class StubWS:

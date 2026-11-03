@@ -11,6 +11,7 @@ responsible for scheduling cleanup via BackgroundTasks.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import shlex
@@ -19,7 +20,7 @@ import subprocess
 import tempfile
 import zipfile
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from importlib.metadata import PackageNotFoundError, version
 from urllib.parse import urlparse
 
@@ -54,7 +55,7 @@ def create_backup(db: Session, engine: Engine) -> BackupArtifact:
     dump_path = _dump_database(db, engine)
     manifest = _build_manifest(db, dialect)
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     fd, archive_path = tempfile.mkstemp(prefix=f"testjam-backup-{timestamp}-", suffix=".zip")
     os.close(fd)
 
@@ -74,7 +75,7 @@ def _build_manifest(db: Session, dialect: str) -> dict:
         "app_version": _app_version(),
         "schema_revision": _alembic_revision(db),
         "dialect": dialect,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "format_version": 1,
     }
 
@@ -152,10 +153,8 @@ def _app_version() -> str:
 
 
 def _safe_unlink(path: str) -> None:
-    try:
+    with contextlib.suppress(FileNotFoundError):
         os.unlink(path)
-    except FileNotFoundError:
-        pass
 
 
 def cleanup_archive(path: str) -> None:

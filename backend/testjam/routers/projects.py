@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from fastapi.responses import FileResponse
@@ -63,11 +63,11 @@ def create_project(body: ProjectCreate, db: Session = Depends(get_db), current: 
         db.flush()
         db.add(ProjectMember(project_id=project.id, user_id=current.id, role="owner"))
         db.commit()
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
         raise HTTPException(
             status_code=409, detail=f"Project '{body.name}' already exists",
-        )
+        ) from exc
     db.refresh(project)
     return project_summary(db, project)
 
@@ -124,7 +124,7 @@ def archive_project(id: int, db: Session = Depends(get_db), current: User = Depe
         raise HTTPException(status_code=404, detail="Not found")
     _require_owner_or_admin(project, current, db)
     if project.archived_at is None:
-        project.archived_at = datetime.now(timezone.utc)
+        project.archived_at = datetime.now(UTC)
         db.commit()
         db.refresh(project)
     return project_summary(db, project)

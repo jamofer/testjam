@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
@@ -13,13 +13,13 @@ def is_locked(user: User) -> bool:
     if user.locked_until is None:
         return False
     locked_until = _as_utc(user.locked_until)
-    return locked_until > datetime.now(timezone.utc)
+    return locked_until > datetime.now(UTC)
 
 
 def seconds_until_unlock(user: User) -> int:
     if user.locked_until is None:
         return 0
-    remaining = _as_utc(user.locked_until) - datetime.now(timezone.utc)
+    remaining = _as_utc(user.locked_until) - datetime.now(UTC)
     return max(0, int(remaining.total_seconds()))
 
 
@@ -35,7 +35,7 @@ def register_failed_attempt(db: Session, user: User) -> None:
     if count >= MAX_FAILED_LOGINS and count % MAX_FAILED_LOGINS == 0:
         round_number = count // MAX_FAILED_LOGINS
         minutes = min(LOCKOUT_DURATION_MINUTES * (2 ** (round_number - 1)), LOCKOUT_MAX_MINUTES)
-        user.locked_until = datetime.now(timezone.utc) + timedelta(minutes=minutes)
+        user.locked_until = datetime.now(UTC) + timedelta(minutes=minutes)
     db.commit()
 
 
@@ -49,5 +49,5 @@ def clear_lockout(db: Session, user: User) -> None:
 
 def _as_utc(value: datetime) -> datetime:
     if value.tzinfo is None:
-        return value.replace(tzinfo=timezone.utc)
+        return value.replace(tzinfo=UTC)
     return value

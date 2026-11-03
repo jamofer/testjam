@@ -11,12 +11,10 @@ from typing import Any
 
 from testjam.services.integrations.base import (
     ExternalTicket,
-    IntegrationProvider,
     NormalizedStatus,
     ProviderConfigError,
     register_provider,
 )
-
 
 _DEFAULT_STATUS_MAPPING = {"Open": "open", "Closed": "closed"}
 

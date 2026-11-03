@@ -5,7 +5,12 @@ from testjam.auth.dependencies import require_project_access
 from testjam.database import get_db
 from testjam.models.project import Project, ProjectMember
 from testjam.models.user import User
-from testjam.schemas.members import ProjectMemberAdd, ProjectMemberOut, ProjectMemberUpdate, VALID_ROLES
+from testjam.schemas.members import (
+    VALID_ROLES,
+    ProjectMemberAdd,
+    ProjectMemberOut,
+    ProjectMemberUpdate,
+)
 from testjam.services.permissions import effective_role
 
 router = APIRouter(prefix="/projects/{id}/members", tags=["Members"])

@@ -6,7 +6,7 @@ provider stays swappable.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -158,7 +158,7 @@ def push_bug_to_integration(
         url=ticket.url,
         status_raw=ticket.status_raw,
         status_normalized=ticket.status_normalized,
-        last_synced_at=datetime.now(timezone.utc),
+        last_synced_at=datetime.now(UTC),
         created_by_id=actor.id,
     )
     db.add(link)
@@ -180,7 +180,7 @@ def sync_bug_link(db: Session, link: BugExternalLink) -> BugExternalLink:
     _stamp_credential_use(integration)
     link.status_raw = ticket.status_raw
     link.status_normalized = provider.normalize_status(ticket.status_raw, integration.status_mapping)
-    link.last_synced_at = datetime.now(timezone.utc)
+    link.last_synced_at = datetime.now(UTC)
     db.commit()
     db.refresh(link)
     return link
@@ -241,4 +241,4 @@ def _default_labels(bug: Bug) -> list[str]:
 
 def _stamp_credential_use(integration: ProjectIntegration) -> None:
     if integration.credential is not None:
-        integration.credential.last_used_at = datetime.now(timezone.utc)
+        integration.credential.last_used_at = datetime.now(UTC)

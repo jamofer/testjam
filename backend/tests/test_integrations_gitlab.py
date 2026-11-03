@@ -10,7 +10,6 @@ from testjam.services.integrations.base import (
 )
 from testjam.services.integrations.providers.gitlab import GitLabProvider
 
-
 GITLAB = "https://gitlab.com"
 PROJECT_PATH = quote_path = "acme%2Fawesome"
 

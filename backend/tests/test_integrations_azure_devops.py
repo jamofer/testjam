@@ -11,7 +11,6 @@ from testjam.services.integrations.base import (
 )
 from testjam.services.integrations.providers.azure_devops import AzureDevOpsProvider
 
-
 ORG = "https://dev.azure.com/acme"
 PROJECT_ENCODED = "Widgets%20Co"
 

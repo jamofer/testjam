@@ -1,6 +1,5 @@
 import io
 
-
 JUNIT_SIMPLE = b"""<?xml version="1.0"?>
 <testsuite name="pytest" tests="3">
   <testcase classname="tests.login" name="test_login_ok" time="0.5"/>

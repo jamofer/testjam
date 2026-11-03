@@ -8,10 +8,9 @@ from __future__ import annotations
 
 import base64
 import html as html_lib
-import io
 import os
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session, selectinload
 
@@ -20,7 +19,7 @@ from testjam.models.settings import AppSettings
 from testjam.models.testcase import TestCase, TestSuite
 from testjam.models.user import User
 from testjam.services.settings import get_settings as get_app_settings
-from testjam.services.timezones import format_in_user_zone, user_zone, user_zone_label
+from testjam.services.timezones import user_zone, user_zone_label
 
 
 def load_execution_for_report(db: Session, execution_id: int) -> TestExecution | None:
@@ -288,7 +287,7 @@ def render_html(
 
     suites_html = "\n  ".join(render_suite(rid) for rid in root_order)
     tz_label = user_zone_label(viewer)
-    generated_at = datetime.now(timezone.utc).astimezone(user_tz).strftime("%-d %b %Y, %H:%M:%S")
+    generated_at = datetime.now(UTC).astimezone(user_tz).strftime("%-d %b %Y, %H:%M:%S")
     actor_label = viewer.username if viewer is not None else (viewer_label or "shared link")
     generated = f"{generated_at} {tz_label} by {e(actor_label)}"
     overall_passed = total > 0 and counts["failed"] == 0 and counts["blocked"] == 0

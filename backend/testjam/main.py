@@ -4,8 +4,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from testjam.core.config import settings
 from testjam.core.logging import RequestContextMiddleware, configure_logging
@@ -18,7 +18,36 @@ configure_sentry()
 from testjam.database import SessionLocal
 from testjam.realtime import manager, set_main_loop
 from testjam.realtime_backplane import build_backplane, set_backplane
-from testjam.routers import about, admin, auth, users, groups, projects, project_groups, dashboard, suites, cases, testplans, executions, versions, environments, bugs, custom_fields, coverage, members, mentions, public_reports, tokens, notifications, notification_preferences, settings as settings_router, webhooks, ws, health, integrations
+from testjam.routers import (
+    about,
+    admin,
+    auth,
+    bugs,
+    cases,
+    coverage,
+    custom_fields,
+    dashboard,
+    environments,
+    executions,
+    groups,
+    health,
+    integrations,
+    members,
+    mentions,
+    notification_preferences,
+    notifications,
+    project_groups,
+    projects,
+    public_reports,
+    suites,
+    testplans,
+    tokens,
+    users,
+    versions,
+    webhooks,
+    ws,
+)
+from testjam.routers import settings as settings_router
 from testjam.services import attachment_files
 from testjam.services.log_flusher import configure_from_settings as configure_log_flusher
 from testjam.services.settings import get_settings as get_app_settings

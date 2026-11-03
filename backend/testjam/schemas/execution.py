@@ -2,10 +2,10 @@ from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, computed_field
+
 from testjam.core.config import settings
 from testjam.schemas.testcase import AttachmentOut
 from testjam.schemas.user import UserOut
-
 
 ResultStatus = Literal["not_run", "running", "passed", "failed", "blocked"]
 ExecutionStatus = Literal["pending", "in_progress", "completed", "aborted"]

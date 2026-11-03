@@ -1,11 +1,20 @@
 from __future__ import annotations
 
 from datetime import datetime
-from sqlalchemy import ForeignKey, Integer, JSON, String, Text, event, func, select
+from typing import TYPE_CHECKING
+
+from sqlalchemy import JSON, ForeignKey, Integer, String, Text, event, func, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from testjam.database import Base
 from testjam.models._types import UTCDateTime
+
+if TYPE_CHECKING:
+    from testjam.models.project import Project
+    from testjam.models.testcase import TestCase, TestStep
+    from testjam.models.testplan import TestPlan
+    from testjam.models.user import User
+    from testjam.models.version import ProjectVersion
 
 
 class TestExecution(Base):

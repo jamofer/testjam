@@ -28,7 +28,6 @@ from testjam.schemas.webhook import (
 from testjam.services import webhook_dispatch
 from testjam.services.permissions import OWNER_ROLES
 
-
 projects_router = APIRouter(prefix="/projects", tags=["Webhooks"])
 webhooks_router = APIRouter(prefix="/webhooks", tags=["Webhooks"])
 

@@ -15,11 +15,11 @@ Permissions:
 from __future__ import annotations
 
 import os
-import shutil
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
-from sqlalchemy import case, func, select
+from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
+from sqlalchemy import case, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
@@ -28,16 +28,17 @@ from testjam.auth.dependencies import (
     authorize_project,
     get_auth_context,
     require_project_access,
-    require_writable_project_access,
 )
 from testjam.core.config import settings
 from testjam.database import get_db
-from testjam.models.bug import Bug, BugActivity, BugAttachment, BugComment, BugLink
+from testjam.models.bug import Bug, BugAttachment, BugComment, BugLink
 from testjam.models.execution import TestExecution
 from testjam.models.project import Project
 from testjam.models.user import User
 from testjam.models.version import ProjectVersion
 from testjam.schemas.bug import (
+    RECIPROCAL_LINK_KIND,
+    TERMINAL_BUG_STATUSES,
     BugActivityOut,
     BugAttachmentOut,
     BugCommentCreate,
@@ -51,12 +52,16 @@ from testjam.schemas.bug import (
     BugStatusChange,
     BugUpdate,
     BugWatcherOut,
-    RECIPROCAL_LINK_KIND,
-    TERMINAL_BUG_STATUSES,
 )
-from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
-
-from testjam.services import bug_activity, bug_context, bug_events, bug_reports, bug_watchers, mention_notify, uploads
+from testjam.services import (
+    bug_activity,
+    bug_context,
+    bug_events,
+    bug_reports,
+    bug_watchers,
+    mention_notify,
+    uploads,
+)
 from testjam.services import custom_fields as custom_field_service
 from testjam.services.bug_numbering import next_bug_number
 from testjam.services.environments import upsert_from_execution
@@ -273,7 +278,7 @@ def create_bug(
         created_by_id=ctx.user.id,
         updated_by_id=ctx.user.id,
     )
-    for attempt in range(5):
+    for _ in range(5):
         try:
             db.add(bug)
             db.flush()
@@ -374,7 +379,7 @@ def change_bug_status(
     previous_status = bug.status
     bug.status = body.status
     if body.status in TERMINAL_BUG_STATUSES and bug.resolved_at is None:
-        bug.resolved_at = datetime.now(timezone.utc)
+        bug.resolved_at = datetime.now(UTC)
     elif body.status not in TERMINAL_BUG_STATUSES:
         bug.resolved_at = None
     if body.status == "resolved" and bug.fixed_in_version_id is None:

@@ -4,16 +4,16 @@ Revision ID: d10c791c155a
 Revises: 0799fc4d990b
 Create Date: 2026-10-26 00:00:00.000000
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 import sqlalchemy as sa
+
 from alembic import op
 
-
 revision: str = 'd10c791c155a'
-down_revision: Union[str, None] = '0799fc4d990b'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = '0799fc4d990b'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 RESULT_CASE_FK = "test_results_test_case_id_fkey"
 STEP_RESULT_STEP_FK = "test_step_results_step_id_fkey"

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
@@ -27,11 +27,11 @@ def verify_password(plain: str, hashed: str) -> bool:
 def set_password(user: User, password: str) -> None:
     """Change the password and end every session opened with the previous one."""
     user.hashed_password = hash_password(password)
-    user.password_changed_at = datetime.now(timezone.utc)
+    user.password_changed_at = datetime.now(UTC)
 
 
 def create_access_token(subject: str) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expire = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return jwt.encode(
         {"sub": subject, "exp": expire, "iat": now.timestamp()},

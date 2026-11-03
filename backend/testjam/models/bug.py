@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from datetime import datetime
-from sqlalchemy import ForeignKey, Integer, JSON, String, Text, UniqueConstraint, func
+
+from sqlalchemy import JSON, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from testjam.database import Base
@@ -59,39 +60,39 @@ class Bug(Base):
     )
     resolved_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
 
-    project: Mapped["Project"] = relationship(back_populates="bugs")  # noqa: F821
-    assigned_to: Mapped["User | None"] = relationship(foreign_keys=[assigned_to_id])  # noqa: F821
-    created_by: Mapped["User | None"] = relationship(foreign_keys=[created_by_id])  # noqa: F821
-    updated_by: Mapped["User | None"] = relationship(foreign_keys=[updated_by_id])  # noqa: F821
-    result: Mapped["TestResult | None"] = relationship(foreign_keys=[result_id])  # noqa: F821
-    execution: Mapped["TestExecution | None"] = relationship(foreign_keys=[execution_id])  # noqa: F821
-    version: Mapped["ProjectVersion | None"] = relationship(foreign_keys=[version_id])  # noqa: F821
-    fixed_in_version: Mapped["ProjectVersion | None"] = relationship(foreign_keys=[fixed_in_version_id])  # noqa: F821
-    comments: Mapped[list["BugComment"]] = relationship(
+    project: Mapped[Project] = relationship(back_populates="bugs")  # noqa: F821
+    assigned_to: Mapped[User | None] = relationship(foreign_keys=[assigned_to_id])  # noqa: F821
+    created_by: Mapped[User | None] = relationship(foreign_keys=[created_by_id])  # noqa: F821
+    updated_by: Mapped[User | None] = relationship(foreign_keys=[updated_by_id])  # noqa: F821
+    result: Mapped[TestResult | None] = relationship(foreign_keys=[result_id])  # noqa: F821
+    execution: Mapped[TestExecution | None] = relationship(foreign_keys=[execution_id])  # noqa: F821
+    version: Mapped[ProjectVersion | None] = relationship(foreign_keys=[version_id])  # noqa: F821
+    fixed_in_version: Mapped[ProjectVersion | None] = relationship(foreign_keys=[fixed_in_version_id])  # noqa: F821
+    comments: Mapped[list[BugComment]] = relationship(
         back_populates="bug",
         cascade="all, delete-orphan",
         order_by="BugComment.created_at.asc(), BugComment.id.asc()",
     )
-    attachments: Mapped[list["BugAttachment"]] = relationship(
+    attachments: Mapped[list[BugAttachment]] = relationship(
         back_populates="bug", cascade="all, delete-orphan"
     )
-    activity: Mapped[list["BugActivity"]] = relationship(
+    activity: Mapped[list[BugActivity]] = relationship(
         back_populates="bug",
         cascade="all, delete-orphan",
         order_by="BugActivity.changed_at.asc(), BugActivity.id.asc()",
     )
-    external_links: Mapped[list["BugExternalLink"]] = relationship(  # noqa: F821
+    external_links: Mapped[list[BugExternalLink]] = relationship(  # noqa: F821
         back_populates="bug",
         cascade="all, delete-orphan",
         order_by="BugExternalLink.created_at.asc(), BugExternalLink.id.asc()",
     )
-    links: Mapped[list["BugLink"]] = relationship(
+    links: Mapped[list[BugLink]] = relationship(
         back_populates="bug",
         cascade="all, delete-orphan",
         order_by="BugLink.created_at.asc(), BugLink.id.asc()",
         foreign_keys="BugLink.bug_id",
     )
-    watchers: Mapped[list["BugWatcher"]] = relationship(
+    watchers: Mapped[list[BugWatcher]] = relationship(
         back_populates="bug",
         cascade="all, delete-orphan",
     )
@@ -114,7 +115,7 @@ class BugComment(Base):
     )
 
     bug: Mapped[Bug] = relationship(back_populates="comments")
-    created_by: Mapped["User | None"] = relationship(foreign_keys=[created_by_id])  # noqa: F821
+    created_by: Mapped[User | None] = relationship(foreign_keys=[created_by_id])  # noqa: F821
 
 
 class BugAttachment(Base):
@@ -134,7 +135,7 @@ class BugAttachment(Base):
     )
 
     bug: Mapped[Bug] = relationship(back_populates="attachments")
-    uploaded_by: Mapped["User | None"] = relationship(foreign_keys=[uploaded_by_id])  # noqa: F821
+    uploaded_by: Mapped[User | None] = relationship(foreign_keys=[uploaded_by_id])  # noqa: F821
 
 
 class BugLink(Base):
@@ -165,11 +166,11 @@ class BugLink(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
 
     bug: Mapped[Bug] = relationship(back_populates="links", foreign_keys=[bug_id])
-    execution: Mapped["TestExecution | None"] = relationship(foreign_keys=[execution_id])  # noqa: F821
-    test_case: Mapped["TestCase | None"] = relationship(foreign_keys=[test_case_id])  # noqa: F821
-    test_step: Mapped["TestStep | None"] = relationship(foreign_keys=[test_step_id])  # noqa: F821
-    target_bug: Mapped["Bug | None"] = relationship(foreign_keys=[target_bug_id])
-    created_by: Mapped["User | None"] = relationship(foreign_keys=[created_by_id])  # noqa: F821
+    execution: Mapped[TestExecution | None] = relationship(foreign_keys=[execution_id])  # noqa: F821
+    test_case: Mapped[TestCase | None] = relationship(foreign_keys=[test_case_id])  # noqa: F821
+    test_step: Mapped[TestStep | None] = relationship(foreign_keys=[test_step_id])  # noqa: F821
+    target_bug: Mapped[Bug | None] = relationship(foreign_keys=[target_bug_id])
+    created_by: Mapped[User | None] = relationship(foreign_keys=[created_by_id])  # noqa: F821
 
 
 class BugActivity(Base):
@@ -189,7 +190,7 @@ class BugActivity(Base):
     changed_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
 
     bug: Mapped[Bug] = relationship(back_populates="activity")
-    changed_by: Mapped["User | None"] = relationship(foreign_keys=[changed_by_id])  # noqa: F821
+    changed_by: Mapped[User | None] = relationship(foreign_keys=[changed_by_id])  # noqa: F821
 
 
 class BugWatcher(Base):
@@ -204,4 +205,4 @@ class BugWatcher(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
 
     bug: Mapped[Bug] = relationship(back_populates="watchers")
-    user: Mapped["User"] = relationship()  # noqa: F821
+    user: Mapped[User] = relationship()  # noqa: F821

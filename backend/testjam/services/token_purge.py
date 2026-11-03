@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
@@ -6,7 +6,7 @@ from testjam.models.token import ApiToken
 
 
 def purge_expired_tokens(db: Session, dry_run: bool = False) -> int:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expired = (
         db.query(ApiToken)
         .filter(ApiToken.expires_at.is_not(None), ApiToken.expires_at <= now)

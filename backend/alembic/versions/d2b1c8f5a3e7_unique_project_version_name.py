@@ -4,14 +4,14 @@ Revision ID: d2b1c8f5a3e7
 Revises: c5e8d1a3f9b2
 Create Date: 2026-05-18 00:00:00.000000
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
+
 from alembic import op
 
-
 revision: str = 'd2b1c8f5a3e7'
-down_revision: Union[str, None] = 'c5e8d1a3f9b2'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = 'c5e8d1a3f9b2'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

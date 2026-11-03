@@ -1,8 +1,7 @@
 """Project archive/unarchive + read-only enforcement on archived projects."""
-import pytest
 
 from testjam.auth.security import hash_password
-from testjam.models.project import Project, ProjectMember
+from testjam.models.project import ProjectMember
 from testjam.models.user import User
 from tests.conftest import TestingSession
 

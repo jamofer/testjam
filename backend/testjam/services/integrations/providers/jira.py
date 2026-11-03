@@ -27,7 +27,6 @@ from testjam.services.integrations.base import (
 )
 from testjam.services.integrations.markdown_to_adf import to_adf
 
-
 _DEFAULT_STATUS_MAPPING = {"Done": "closed"}
 _CLOSED_TERMS = {"done", "closed", "resolved"}
 

@@ -18,8 +18,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from testjam.models.bug import Bug
 from testjam.models.execution import TestExecution, TestResult
-from testjam.models.project import ProjectMember
-from testjam.models.testcase import TestCase, TestSuite, TestStep
+from testjam.models.testcase import TestCase, TestStep
 from testjam.models.user import User
 from testjam.schemas.mention import MentionPart, MentionTokenIn, ResolvedMentionOut
 from testjam.services.permissions import effective_role

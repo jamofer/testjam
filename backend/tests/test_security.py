@@ -1,7 +1,5 @@
 """Unit tests for auth/security.py — no database required."""
-import time
 
-import pytest
 
 from testjam.auth.security import create_access_token, decode_token, hash_password, verify_password
 

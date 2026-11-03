@@ -1,5 +1,5 @@
 """User soft-delete with owner-reassignment / project-archive resolution."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -39,7 +39,7 @@ def soft_delete_user(
     db.query(ProjectMember).filter(ProjectMember.user_id == target.id).delete(
         synchronize_session=False,
     )
-    target.deleted_at = datetime.now(timezone.utc)
+    target.deleted_at = datetime.now(UTC)
     target.is_active = False
     db.commit()
 
@@ -77,7 +77,7 @@ def _apply_action(
 ) -> None:
     if action.action == "archive":
         if project.archived_at is None:
-            project.archived_at = datetime.now(timezone.utc)
+            project.archived_at = datetime.now(UTC)
         return
 
     if action.new_owner_id is None:

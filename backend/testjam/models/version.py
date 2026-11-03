@@ -1,11 +1,17 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from typing import TYPE_CHECKING
+
 from sqlalchemy import Date, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from testjam.database import Base
 from testjam.models._types import UTCDateTime
+
+if TYPE_CHECKING:
+    from testjam.models.execution import TestExecution
+    from testjam.models.project import Project
 
 
 class ProjectVersion(Base):
@@ -49,4 +55,4 @@ class VersionAttachment(Base):
     )
 
     version: Mapped[ProjectVersion] = relationship(back_populates="attachments")
-    uploaded_by: Mapped["User | None"] = relationship(foreign_keys=[uploaded_by_id])  # noqa: F821
+    uploaded_by: Mapped[User | None] = relationship(foreign_keys=[uploaded_by_id])  # noqa: F821

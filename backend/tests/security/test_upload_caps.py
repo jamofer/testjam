@@ -12,7 +12,6 @@ import pytest
 
 from testjam.core.config import settings
 
-
 OVERSIZE_CAP = 64
 
 

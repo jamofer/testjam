@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, Integer, JSON, String, Text, func
+from sqlalchemy import JSON, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from testjam.database import Base
@@ -27,7 +27,7 @@ class Webhook(Base):
         UTCDateTime(), server_default=func.now(), onupdate=func.now()
     )
 
-    deliveries: Mapped[list["WebhookDelivery"]] = relationship(
+    deliveries: Mapped[list[WebhookDelivery]] = relationship(
         back_populates="webhook",
         cascade="all, delete-orphan",
         order_by="WebhookDelivery.created_at.desc(), WebhookDelivery.id.desc()",

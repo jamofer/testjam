@@ -1,6 +1,6 @@
 """Notifications: assignment triggers, list/read, WS endpoint sanity."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
@@ -103,9 +103,8 @@ def test_notifications_isolated_per_user(auth_client, project_id, case_ids):
 
 
 def test_ws_rejects_invalid_token(client: TestClient):
-    with pytest.raises(WebSocketDisconnect):
-        with client.websocket_connect("/api/v1/notifications/ws?token=garbage"):
-            pass
+    with pytest.raises(WebSocketDisconnect), client.websocket_connect("/api/v1/notifications/ws?token=garbage"):
+        pass
 
 
 def test_ws_accepts_valid_token(client: TestClient):
@@ -128,10 +127,9 @@ def test_ws_rejects_soft_deleted_user(client: TestClient, path):
             email="ghost@x.com",
             hashed_password=hash_password("pw"),
             is_active=True,
-            deleted_at=datetime.now(timezone.utc),
+            deleted_at=datetime.now(UTC),
         ))
         db.commit()
 
-    with pytest.raises(WebSocketDisconnect):
-        with client.websocket_connect(f"{path}?token={token}"):
-            pass
+    with pytest.raises(WebSocketDisconnect), client.websocket_connect(f"{path}?token={token}"):
+        pass

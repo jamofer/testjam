@@ -1,10 +1,11 @@
 import os
 from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
-from alembic import context
 
-from testjam.database import Base
+from sqlalchemy import engine_from_config, pool
+
 import testjam.models  # noqa: F401 — registers all models with Base
+from alembic import context
+from testjam.database import Base
 
 config = context.config
 if config.config_file_name is not None:

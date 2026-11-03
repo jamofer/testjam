@@ -10,7 +10,6 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import BackgroundTasks
-from sqlalchemy import cast
 from sqlalchemy.orm import Session
 
 from testjam.models.webhook import Webhook

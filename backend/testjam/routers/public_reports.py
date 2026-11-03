@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_current_user, require_project_access
+from testjam.auth.dependencies import require_project_access
 from testjam.database import get_db
 from testjam.models.project import Project
 from testjam.models.public_report import PublicReport
@@ -26,7 +26,6 @@ from testjam.schemas.public_report import (
 from testjam.services import public_reports
 from testjam.services.permissions import effective_role
 from testjam.services.settings import get_settings as get_app_settings
-
 
 projects_router = APIRouter(prefix="/projects", tags=["PublicReports"])
 public_router = APIRouter(prefix="/public", tags=["PublicReports"])

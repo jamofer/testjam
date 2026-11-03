@@ -1,6 +1,16 @@
 import os
-import shutil
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile, status
+from datetime import UTC
+
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    UploadFile,
+    status,
+)
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import or_
@@ -16,13 +26,19 @@ from testjam.core.config import settings
 from testjam.database import get_db
 from testjam.models.case_revision import CaseRevision
 from testjam.models.testcase import Attachment, CaseComment, TestCase, TestStep, TestSuite
-from testjam.models.testplan import TestPlan
 from testjam.models.user import User
 from testjam.schemas.case_revision import CaseRevisionDetail, CaseRevisionSummary
 from testjam.schemas.testcase import (
-    AttachmentOut, CaseCommentCreate, CaseCommentOut, CaseCommentUpdate,
-    TestCaseCreate, TestCaseOut, TestCaseUpdate,
-    TestStepCreate, TestStepOut, TestStepUpdate,
+    AttachmentOut,
+    CaseCommentCreate,
+    CaseCommentOut,
+    CaseCommentUpdate,
+    TestCaseCreate,
+    TestCaseOut,
+    TestCaseUpdate,
+    TestStepCreate,
+    TestStepOut,
+    TestStepUpdate,
 )
 from testjam.services import case_events, mention_notify, uploads
 from testjam.services import custom_fields as custom_field_service
@@ -198,14 +214,14 @@ def delete_case(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depen
 
 @cases_router.post("/{id}/archive", response_model=TestCaseOut)
 def archive_case(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     case = db.get(TestCase, id)
     if not case:
         raise HTTPException(status_code=404, detail="Not found")
     authorize_project(db, ctx, _project_id_for_case(case, db), WRITER_ROLES)
     if case.archived_at is None:
-        case.archived_at = datetime.now(timezone.utc)
+        case.archived_at = datetime.now(UTC)
         case.updated_by_id = ctx.user.id
         db.commit()
         db.refresh(case)

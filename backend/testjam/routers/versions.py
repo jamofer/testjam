@@ -1,6 +1,5 @@
 import os
-import shutil
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
@@ -20,7 +19,9 @@ from testjam.database import get_db
 from testjam.models.user import User
 from testjam.models.version import ProjectVersion, VersionAttachment
 from testjam.schemas.version import (
-    ProjectVersionCreate, ProjectVersionOut, ProjectVersionUpdate,
+    ProjectVersionCreate,
+    ProjectVersionOut,
+    ProjectVersionUpdate,
     VersionAttachmentOut,
 )
 from testjam.services import uploads
@@ -56,16 +57,16 @@ def create_version(id: int, body: ProjectVersionCreate, db: Session = Depends(ge
     data = body.model_dump()
     version = ProjectVersion(project_id=id, **data)
     if version.status == "released":
-        version.released_at = datetime.now(timezone.utc)
+        version.released_at = datetime.now(UTC)
     db.add(version)
     try:
         db.commit()
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Version '{data['name']}' already exists in this project",
-        )
+        ) from exc
     db.refresh(version)
     return version
 
@@ -87,17 +88,17 @@ def update_version(id: int, body: ProjectVersionUpdate, db: Session = Depends(ge
     for field, value in update_data.items():
         setattr(v, field, value)
     if new_status == "released" and previous_status != "released":
-        v.released_at = datetime.now(timezone.utc)
+        v.released_at = datetime.now(UTC)
     elif new_status and new_status != "released" and previous_status == "released":
         v.released_at = None
     try:
         db.commit()
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Another version with this name already exists in this project",
-        )
+        ) from exc
     db.refresh(v)
     return v
 

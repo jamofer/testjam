@@ -32,7 +32,6 @@ from testjam.services.integrations.base import (
 )
 from testjam.services.integrations.markdown_to_html import to_html
 
-
 _DEFAULT_STATUS_MAPPING = {
     "Closed": "closed",
     "Done": "closed",

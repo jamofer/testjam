@@ -5,7 +5,6 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-
 PublicReportKind = Literal["bug_report", "execution"]
 
 
@@ -18,7 +17,7 @@ class PublicReportCreate(BaseModel):
     expires_at: datetime | None = None
 
     @model_validator(mode="after")
-    def _check_kind_requirements(self) -> "PublicReportCreate":
+    def _check_kind_requirements(self) -> PublicReportCreate:
         if self.kind == "execution" and self.execution_id is None:
             raise ValueError("execution_id is required when kind='execution'")
         if self.kind == "bug_report" and self.execution_id is not None:

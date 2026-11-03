@@ -10,7 +10,6 @@ from __future__ import annotations
 import html
 import re
 
-
 _INLINE_PATTERN = re.compile(
     r"(\*\*(?P<bold>[^*]+)\*\*"
     r"|\*(?P<italic>[^*]+)\*"

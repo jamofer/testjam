@@ -1,5 +1,6 @@
-import pytest
 from datetime import datetime
+
+import pytest
 
 from testjam.auth.security import hash_password
 from testjam.models.execution import TestExecution

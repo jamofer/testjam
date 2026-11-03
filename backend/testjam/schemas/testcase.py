@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, Field, computed_field, field_validator
+
 from testjam.core.config import settings
 from testjam.schemas.user import UserOut
 

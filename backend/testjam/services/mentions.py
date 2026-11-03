@@ -19,11 +19,11 @@ notification fan-out and frontend rendering see the same tokens.
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from html import escape as _html_escape
 from html.parser import HTMLParser
-from typing import Callable, Literal
-
+from typing import Literal
 
 MentionKind = Literal["user", "bug", "execution", "result", "step_result", "case"]
 MentionLabelFor = Callable[["Mention"], str]

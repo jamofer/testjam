@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session, selectinload
 
 from testjam.auth.dependencies import AuthContext, authorize_project
-from testjam.models.execution import ExecutionAttachment, TestExecution, TestResult
+from testjam.models.execution import TestExecution, TestResult
 from testjam.schemas.execution import ExecutionAttachmentOut, ExecutionSummary, TestExecutionOut
 from testjam.services.permissions import VALID_ROLES
 

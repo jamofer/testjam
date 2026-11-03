@@ -4,7 +4,6 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-
 SUPPORTED_LOCALES = ("en", "es", "ca", "gl", "eu")
 
 

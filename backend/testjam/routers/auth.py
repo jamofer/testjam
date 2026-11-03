@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -73,7 +73,7 @@ def login(request: Request, form: OAuth2PasswordRequestForm = Depends(), db: Ses
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user")
     clear_lockout(db, user)
     clear_ip(client_ip)
-    user.last_login_at = datetime.now(timezone.utc)
+    user.last_login_at = datetime.now(UTC)
     user.last_login_ip = client_ip
     db.commit()
     token = create_access_token(subject=user.username)
@@ -97,7 +97,7 @@ def password_reset_request(
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=str(exc),
-        )
+        ) from exc
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

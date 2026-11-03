@@ -13,7 +13,6 @@ from __future__ import annotations
 import re
 from typing import Any
 
-
 ADF_VERSION = 1
 
 

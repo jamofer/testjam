@@ -1,4 +1,5 @@
 from datetime import date, datetime
+
 from pydantic import BaseModel, Field, computed_field
 
 from testjam.core.config import settings

@@ -15,7 +15,6 @@ from testjam.services.integrations.base import (
 )
 from testjam.services.integrations.providers.github import GitHubProvider
 
-
 GITHUB_BASE = "https://api.github.com"
 REPO_PATH = "/repos/acme/awesome"
 
