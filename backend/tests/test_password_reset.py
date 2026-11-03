@@ -204,6 +204,45 @@ def test_confirm_clears_existing_lockout(client, user_factory):
     assert refreshed.failed_login_count == 0
 
 
+def test_new_reset_request_invalidates_earlier_links(client, user_factory, captured_emails):
+    user = user_factory()
+    earlier_token = _generate_real_token_for(user.id)
+    _request_reset(client, user.email)
+
+    response = _confirm_reset(client, earlier_token)
+
+    assert response.status_code == 400
+
+
+def test_confirming_a_reset_invalidates_other_pending_links(client, user_factory):
+    user = user_factory()
+    token = _generate_real_token_for(user.id)
+    _generate_real_token_for(user.id)
+    _confirm_reset(client, token)
+
+    with TestingSession() as db:
+        pending = db.query(PasswordResetToken).filter(PasswordResetToken.used_at.is_(None)).count()
+
+    assert pending == 0
+
+
+def test_changing_password_invalidates_pending_links(client, user_factory):
+    user = user_factory()
+    token = _generate_real_token_for(user.id)
+    access_token = client.post(
+        "/api/v1/auth/login", data={"username": user.username, "password": ORIGINAL_PASSWORD},
+    ).json()["access_token"]
+    client.put(
+        "/api/v1/users/me/password",
+        json={"current_password": ORIGINAL_PASSWORD, "new_password": NEW_PASSWORD},
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+
+    response = _confirm_reset(client, token, "attacker-password")
+
+    assert response.status_code == 400
+
+
 def _generate_real_token_for(user_id: int) -> str:
     raw, token_hash, expires_at = PasswordResetToken.generate()
     with TestingSession() as db:

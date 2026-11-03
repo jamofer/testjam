@@ -16,6 +16,7 @@ from testjam.schemas.user import (
     UserOut,
     UserUpdate,
 )
+from testjam.services import password_reset
 from testjam.services.admin_reset import issue_temporary_password, send_reset_email
 from testjam.services.settings import get_settings as get_app_settings
 from testjam.services.user_activity import collect_user_activity
@@ -72,6 +73,7 @@ def change_my_password(body: PasswordChange, db: Session = Depends(get_db), curr
     if not verify_password(body.current_password, current.hashed_password):
         raise HTTPException(status_code=400, detail="Current password is incorrect")
     current.hashed_password = hash_password(body.new_password)
+    password_reset.revoke_reset_tokens(db, current.id)
     db.commit()
 
 
