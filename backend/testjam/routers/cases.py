@@ -372,9 +372,11 @@ def bulk_delete_cases(body: BulkIds, db: Session = Depends(get_db), ctx: AuthCon
     }
     for project_id in project_ids:
         authorize_project(db, ctx, project_id, WRITER_ROLES)
-    deleted = db.query(TestCase).filter(TestCase.id.in_(body.ids)).delete(synchronize_session=False)
+    cases = db.query(TestCase).filter(TestCase.id.in_(body.ids)).all()
+    for case in cases:
+        db.delete(case)
     db.commit()
-    return {"deleted": deleted}
+    return {"deleted": len(cases)}
 
 
 class StepReorder(BaseModel):
@@ -589,8 +591,6 @@ def delete_attachment(id: int, attachment_id: int, db: Session = Depends(get_db)
         raise HTTPException(status_code=404, detail="Not found")
     case = _get_case(db, id)
     authorize_project(db, ctx, _project_id_for_case(case, db), WRITER_ROLES)
-    if os.path.exists(att.file_path):
-        os.remove(att.file_path)
     db.delete(att)
     db.commit()
 

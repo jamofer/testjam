@@ -19,6 +19,7 @@ from testjam.database import SessionLocal
 from testjam.realtime import manager, set_main_loop
 from testjam.realtime_backplane import build_backplane, set_backplane
 from testjam.routers import about, admin, auth, users, groups, projects, project_groups, dashboard, suites, cases, testplans, executions, versions, environments, bugs, custom_fields, coverage, members, mentions, public_reports, tokens, notifications, notification_preferences, settings as settings_router, webhooks, ws, health, integrations
+from testjam.services import attachment_files
 from testjam.services.log_flusher import configure_from_settings as configure_log_flusher
 from testjam.services.settings import get_settings as get_app_settings
 
@@ -114,3 +115,4 @@ app.include_router(about.router, prefix=settings.API_V1_PREFIX)
 app.include_router(health.router)
 
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+attachment_files.register()
