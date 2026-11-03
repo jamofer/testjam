@@ -93,8 +93,6 @@ def delete_execution_attachment(
     )
     if not att:
         raise HTTPException(status_code=404, detail="Not found")
-    if os.path.exists(att.file_path):
-        os.remove(att.file_path)
     db.delete(att)
     db.commit()
 
@@ -166,7 +164,5 @@ def delete_result_attachment(
     )
     if not att:
         raise HTTPException(status_code=404, detail="Not found")
-    if os.path.exists(att.file_path):
-        os.remove(att.file_path)
     db.delete(att)
     db.commit()

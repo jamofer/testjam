@@ -203,7 +203,5 @@ def delete_version_attachment(
     )
     if not attachment:
         raise HTTPException(status_code=404, detail="Not found")
-    if os.path.exists(attachment.file_path):
-        os.remove(attachment.file_path)
     db.delete(attachment)
     db.commit()

@@ -756,8 +756,6 @@ def delete_attachment(
     if attachment is None:
         raise HTTPException(status_code=404, detail="Not found")
     filename = attachment.filename
-    if os.path.exists(attachment.file_path):
-        os.remove(attachment.file_path)
     db.delete(attachment)
     activity_row = bug_activity.record_attachment_removed(
         db, bug.id, filename, ctx.user.id,
