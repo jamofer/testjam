@@ -6,10 +6,11 @@ from unicodedata import normalize
 
 import defusedxml.ElementTree as DefusedET
 from defusedxml.common import DefusedXmlException
-from fastapi import BackgroundTasks, Depends, File, HTTPException, UploadFile
+from fastapi import BackgroundTasks, Depends, File, HTTPException, Request, UploadFile
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import AuthContext, authorize_project, get_auth_context
+from testjam.core.rate_limit import IMPORT_RATE_LIMIT, limiter
 from testjam.database import get_db
 from testjam.models.execution import TestExecution, TestResult, TestStepResult
 from testjam.routers.executions import executions_router
@@ -86,8 +87,10 @@ def _rf_kw_duration_ms(kw_elem: ET.Element) -> int | None:
 # ─── Import: JUnit XML ────────────────────────────────────────────────────────
 
 @executions_router.post("/{id}/results/import/junit", response_model=BulkResultResponse)
+@limiter.limit(IMPORT_RATE_LIMIT)
 def import_junit(
     id: int,
+    request: Request,
     background: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
@@ -174,8 +177,10 @@ def import_junit(
 # ─── Import: Robot Framework output.xml ──────────────────────────────────────
 
 @executions_router.post("/{id}/results/import/robotframework", response_model=BulkResultResponse)
+@limiter.limit(IMPORT_RATE_LIMIT)
 def import_robotframework(
     id: int,
+    request: Request,
     background: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),

@@ -6,6 +6,9 @@ from starlette.requests import Request
 from testjam.core.config import settings
 
 LOGIN_RATE_LIMIT = "5/minute"
+IMPORT_RATE_LIMIT = "30/minute"
+EXPORT_RATE_LIMIT = "10/minute"
+BACKUP_RATE_LIMIT = "3/minute"
 FORWARDED_FOR_HEADER = "x-forwarded-for"
 IN_MEMORY_STORAGE = "memory://"
 UNKNOWN_CLIENT = "unknown"
