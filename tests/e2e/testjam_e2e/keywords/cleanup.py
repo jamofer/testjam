@@ -84,14 +84,6 @@ class CleanupMixin:
             self.client.post(f"/users/{target['id']}/restore")
         return True
 
-    @keyword("the settings and current project are cleaned up")
-    def clean_up_settings_and_project(self) -> None:
-        self.authenticate_as_admin()
-        self.reset_settings()
-        if self.current_project_id is not None:
-            self.client.delete(f"/projects/{self.current_project_id}")
-            self.current_project_id = None
-
     @keyword("the stashed settings and current project are restored")
     def restore_stashed_settings_and_project(self) -> None:
         self.authenticate_as_admin()

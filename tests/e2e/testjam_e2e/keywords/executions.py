@@ -117,13 +117,6 @@ class ExecutionMixin:
         response = self.client.get(f"/executions/{self.current_execution_id}")
         assert response.status_code == 404
 
-    @keyword("the project should have ${count} executions")
-    def project_should_have_executions(self, count: str) -> None:
-        response = self.client.get(f"/projects/{self.current_project_id}/executions")
-        assert response.status_code == 200
-        actual = len(response.json())
-        assert actual == int(count), f"Expected {count} executions, got {actual}"
-
     @keyword("the execution should have ${count} results")
     def execution_should_have_results(self, count: str) -> None:
         response = self.client.get(f"/executions/{self.current_execution_id}/results")

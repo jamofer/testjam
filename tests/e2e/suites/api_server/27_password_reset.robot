@@ -7,7 +7,7 @@ Test Teardown    I purge users with prefix reset-
 *** Variables ***
 ${TARGET_USER}     reset-alice
 ${TARGET_EMAIL}    reset-alice@test.com
-${ORIGINAL_PASS}   original-pw
+${ORIGINAL_PASS}    original-pw
 ${NEW_PASS}        replaced-secret-1
 
 
@@ -27,11 +27,11 @@ Requesting a reset for an existing user emails them
 
 Requesting a reset for an unknown email returns 204 silently
     # When
-    I request a password reset for ghost@nowhere.com
+    I request a password reset for ghost@unknown.example
 
     # Then
     The response status should be 204
-    The mailbox should have no emails to ghost@nowhere.com
+    The mailbox should have no emails to ghost@unknown.example
 
 Confirming with a valid token lets the user log in with the new password
     # Given

@@ -80,13 +80,6 @@ class ProjectMixin:
         self.client.delete(f"/projects/{self.current_project_id}")
         self.current_project_id = None
 
-    @keyword("the project should have ${count} executions")
-    def project_should_have_executions(self, count: str) -> None:
-        response = self.client.get(f"/projects/{self.current_project_id}")
-        assert response.status_code == 200
-        actual = response.json()["execution_count"]
-        assert actual == int(count), f"Expected {count} executions, got {actual}"
-
     @keyword("I archive the project")
     def archive_project(self) -> None:
         response = self.client.post(f"/projects/{self.current_project_id}/archive")
