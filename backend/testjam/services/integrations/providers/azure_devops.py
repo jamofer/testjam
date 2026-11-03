@@ -27,7 +27,7 @@ from testjam.services.integrations.base import (
     NormalizedStatus,
     ProviderConfigError,
     ProviderRequestError,
-    ensure_allowed_destination,
+    guarded_client,
     register_provider,
 )
 from testjam.services.integrations.markdown_to_html import to_html
@@ -200,10 +200,9 @@ class AzureDevOpsProvider:
         }
         if extra_headers:
             headers.update(extra_headers)
-        ensure_allowed_destination(url)
         timeout = settings.INTEGRATION_HTTP_TIMEOUT_SECONDS
         try:
-            with httpx.Client(timeout=timeout) as http:
+            with guarded_client(timeout) as http:
                 return http.request(method, url, headers=headers, **kwargs)
         except httpx.HTTPError as exc:
             raise ProviderRequestError(f"Azure DevOps request failed: {exc}") from exc
