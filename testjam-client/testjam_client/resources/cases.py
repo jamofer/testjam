@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 from testjam_client.errors import Conflict
+from testjam_client.models import Attachment, Suite, TestCase
 from testjam_client.resources._base import Resource
 
 
@@ -27,7 +28,7 @@ class CasesResource(Resource):
         name: str | None = None,
         external_id: str | None = None,
         include_archived: bool = False,
-    ) -> list[dict]:
+    ) -> list[TestCase]:
         params: dict[str, Any] = {}
         if name is not None:
             params["name"] = name
@@ -37,7 +38,7 @@ class CasesResource(Resource):
             params["include_archived"] = True
         return self._request("GET", f"/suites/{suite_id}/cases", params=params).json()
 
-    def get(self, case_id: int) -> dict:
+    def get(self, case_id: int) -> TestCase:
         return self._request("GET", f"/cases/{case_id}").json()
 
     def create(
@@ -49,7 +50,7 @@ class CasesResource(Resource):
         tags: list[str] | None = None,
         external_id: str | None = None,
         custom_fields: dict[str, Any] | None = None,
-    ) -> dict:
+    ) -> TestCase:
         body: dict[str, Any] = {"name": name, "suite_id": suite_id}
         if description is not None:
             body["description"] = description
@@ -61,16 +62,16 @@ class CasesResource(Resource):
             body["custom_fields"] = custom_fields
         return self._request("POST", f"/suites/{suite_id}/cases", json=body).json()
 
-    def update(self, case_id: int, **payload: Any) -> dict:
+    def update(self, case_id: int, **payload: Any) -> TestCase:
         return self._request("PUT", f"/cases/{case_id}", json=payload).json()
 
     def delete(self, case_id: int) -> None:
         self._request("DELETE", f"/cases/{case_id}")
 
-    def archive(self, case_id: int) -> dict:
+    def archive(self, case_id: int) -> TestCase:
         return self._request("POST", f"/cases/{case_id}/archive").json()
 
-    def unarchive(self, case_id: int) -> dict:
+    def unarchive(self, case_id: int) -> TestCase:
         return self._request("POST", f"/cases/{case_id}/unarchive").json()
 
     def list_steps(self, case_id: int) -> list[dict]:
@@ -115,7 +116,7 @@ class CasesResource(Resource):
             "POST", f"/cases/{case_id}/steps/replace", json={"steps": steps},
         ).json()
 
-    def list_attachments(self, case_id: int) -> list[dict]:
+    def list_attachments(self, case_id: int) -> list[Attachment]:
         return self._request("GET", f"/cases/{case_id}/attachments").json()
 
     def upload_attachment(
@@ -125,7 +126,7 @@ class CasesResource(Resource):
         filename: str,
         content,
         mime: str,
-    ) -> dict:
+    ) -> Attachment:
         files = {"file": (filename, content, mime)}
         return self._request(
             "POST", f"/cases/{case_id}/attachments", files=files,
@@ -202,7 +203,7 @@ class CasesResource(Resource):
 
         return diff
 
-    def parent_chain(self, case_id: int) -> list[dict]:
+    def parent_chain(self, case_id: int) -> list[Suite]:
         """Suites from root → direct parent of ``case_id``."""
         case = self.get(case_id)
         suite = self._client.suites.get(case["suite_id"])
@@ -223,7 +224,7 @@ class CasesResource(Resource):
         suite_id: int,
         name: str,
         **kwargs: Any,
-    ) -> dict:
+    ) -> TestCase:
         existing = [c for c in self.list(suite_id, name=name) if c["name"] == name]
         if existing:
             return existing[0]

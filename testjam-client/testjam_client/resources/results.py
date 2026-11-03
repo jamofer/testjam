@@ -3,11 +3,12 @@ from __future__ import annotations
 
 from typing import Any
 
+from testjam_client.models import Attachment, Result
 from testjam_client.resources._base import Resource
 
 
 class ResultsResource(Resource):
-    def get(self, result_id: int) -> dict:
+    def get(self, result_id: int) -> Result:
         return self._request("GET", f"/results/{result_id}").json()
 
     def create(
@@ -20,7 +21,7 @@ class ResultsResource(Resource):
         executed_by: str | None = None,
         duration_ms: int | None = None,
         step_results: list[dict] | None = None,
-    ) -> dict:
+    ) -> Result:
         body: dict[str, Any] = {"test_case_id": test_case_id}
         if status is not None:
             body["status"] = status
@@ -36,13 +37,13 @@ class ResultsResource(Resource):
             "POST", f"/executions/{execution_id}/results", json=body,
         ).json()
 
-    def update(self, result_id: int, **payload: Any) -> dict:
+    def update(self, result_id: int, **payload: Any) -> Result:
         return self._request("PUT", f"/results/{result_id}", json=payload).json()
 
-    def upload_attachment(self, result_id: int, *, filename: str, content, mime: str) -> dict:
+    def upload_attachment(self, result_id: int, *, filename: str, content, mime: str) -> Attachment:
         """Attach a file (screenshot, log…) to one result."""
         files = {"file": (filename, content, mime)}
         return self._request("POST", f"/results/{result_id}/attachments", files=files).json()
 
-    def list_attachments(self, result_id: int) -> list[dict]:
+    def list_attachments(self, result_id: int) -> list[Attachment]:
         return self._request("GET", f"/results/{result_id}/attachments").json()

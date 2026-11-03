@@ -15,7 +15,7 @@ from typing import Any
 
 import httpx
 
-from testjam_client import TestjamClient
+from testjam_client import TestjamClient, statuses
 from testjam_client.errors import Conflict, TestjamError
 from testjam_client.listener.circuit_breaker import NetworkCircuitBreaker
 from testjam_client.listener.log import format_log_line, isoformat_timestamp
@@ -259,7 +259,7 @@ class TestjamListener:
 
     def close(self) -> None:
         update_payload: dict[str, Any] = {
-            "status": "aborted" if self._is_aborted else "completed",
+            "status": statuses.ABORTED if self._is_aborted else statuses.COMPLETED,
             "finished_at": datetime.now(timezone.utc).isoformat(),
         }
         if self._execution_custom_fields:
