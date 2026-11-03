@@ -8,6 +8,7 @@ from testjam_client.cli.state import CliState
 
 
 def build_client(state: CliState) -> TestjamClient:
+    _require_known_profile(state)
     profile = state.profile
     url = profile.get("url")
     if not url:
@@ -44,3 +45,12 @@ def resolve_project_id(
     if not project:
         raise typer.BadParameter(f"Project '{raw}' not found.")
     return project["id"]
+
+
+def _require_known_profile(state: CliState) -> None:
+    known = state.config.profile_names
+    if not known or state.config.has_profile(state.profile_name):
+        return
+    raise typer.BadParameter(
+        f"Unknown profile '{state.profile_name}'. Known profiles: {', '.join(known)}."
+    )
