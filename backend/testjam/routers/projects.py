@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from fastapi.responses import FileResponse
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -11,6 +11,7 @@ from testjam.auth.dependencies import (
     get_unscoped_user,
     require_project_access,
 )
+from testjam.core.rate_limit import EXPORT_RATE_LIMIT, limiter
 from testjam.database import get_db
 from testjam.models.project import Project, ProjectMember
 from testjam.models.user import User
@@ -119,8 +120,10 @@ def archive_project(id: int, db: Session = Depends(get_db), current: User = Depe
 
 
 @router.get("/{id}/export")
+@limiter.limit(EXPORT_RATE_LIMIT)
 def export_project_zip(
     id: int,
+    request: Request,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     _: User = Depends(require_project_access),

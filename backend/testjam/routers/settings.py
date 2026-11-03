@@ -1,8 +1,9 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import require_admin
+from testjam.core.rate_limit import BACKUP_RATE_LIMIT, limiter
 from testjam.database import get_db
 from testjam.models.user import User
 from testjam.schemas.settings import (
@@ -84,7 +85,9 @@ def update_settings(
 
 
 @router.get("/backup")
+@limiter.limit(BACKUP_RATE_LIMIT)
 def download_backup(
+    request: Request,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
@@ -102,7 +105,9 @@ def download_backup(
 
 
 @router.post("/restore", response_model=RestoreSummary)
+@limiter.limit(BACKUP_RATE_LIMIT)
 async def upload_restore(
+    request: Request,
     file: UploadFile = File(...),
     confirm: str = Query(..., description=f"Must equal {RESTORE_CONFIRM_TOKEN}"),
     db: Session = Depends(get_db),

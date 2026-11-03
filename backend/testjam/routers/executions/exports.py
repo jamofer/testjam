@@ -20,6 +20,7 @@ from testjam.auth.dependencies import (
     require_project_access,
 )
 from testjam.core.config import settings
+from testjam.core.rate_limit import EXPORT_RATE_LIMIT, limiter
 from testjam.database import get_db
 from testjam.models.testcase import TestCase, TestSuite
 from testjam.models.user import User
@@ -50,8 +51,10 @@ def _stream_bytes(payload: bytes) -> Iterator[bytes]:
 
 
 @executions_router.get("/{id}/export/xlsx")
+@limiter.limit(EXPORT_RATE_LIMIT)
 def export_execution_xlsx(
     id: int,
+    request: Request,
     db: Session = Depends(get_db),
     ctx: AuthContext = Depends(get_auth_context),
 ):
@@ -108,6 +111,7 @@ def export_execution_xlsx(
 
 
 @executions_router.get("/{id}/export/html")
+@limiter.limit(EXPORT_RATE_LIMIT)
 def export_execution_html(
     id: int,
     request: Request,
@@ -154,8 +158,10 @@ def _resolve_base_url(request: Request, configured_site_url: str | None) -> str:
 
 
 @projects_router.get("/{id}/cases/export/xlsx")
+@limiter.limit(EXPORT_RATE_LIMIT)
 def export_cases_xlsx(
     id: int,
+    request: Request,
     db: Session = Depends(get_db),
     current: User = Depends(require_project_access),
 ):
