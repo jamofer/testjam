@@ -89,6 +89,18 @@ class UserOut(UserBase):
     model_config = {"from_attributes": True}
 
 
+class UserPublicOut(BaseModel):
+    id: int
+    username: str
+    full_name: str | None = None
+    is_active: bool
+    is_admin: bool
+    created_at: datetime
+    last_login_at: datetime | None = None
+
+    model_config = {"from_attributes": True}
+
+
 class AdminUserUpdate(BaseModel):
     username: str | None = None
     email: EmailStr | None = None

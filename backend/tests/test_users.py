@@ -88,6 +88,60 @@ def test_get_user_by_username_not_found(auth_client):
     assert resp.status_code == 404
 
 
+def test_member_cannot_list_emails_of_other_users(role_project):
+    member = role_project["clients"]["tester"]
+
+    response = member.get("/api/v1/users")
+
+    others = [user for user in response.json() if user["username"] != "matrix_tester"]
+    assert others
+    assert all("email" not in user for user in others)
+
+
+def test_member_still_finds_users_to_add_by_name(role_project):
+    member = role_project["clients"]["tester"]
+
+    response = member.get("/api/v1/users")
+
+    assert "matrix_owner" in [user["username"] for user in response.json()]
+
+
+def test_member_sees_own_email_in_listing(role_project):
+    member = role_project["clients"]["tester"]
+
+    response = member.get("/api/v1/users")
+
+    [own] = [user for user in response.json() if user["username"] == "matrix_tester"]
+    assert own["email"] == "matrix_tester@x.com"
+
+
+def test_member_cannot_read_email_by_id(role_project):
+    member = role_project["clients"]["tester"]
+    owner_id = role_project["clients"]["owner"].get("/api/v1/users/me").json()["id"]
+
+    response = member.get(f"/api/v1/users/{owner_id}")
+
+    assert response.status_code == 200
+    assert "email" not in response.json()
+
+
+def test_member_cannot_read_email_by_username(role_project):
+    member = role_project["clients"]["tester"]
+
+    response = member.get("/api/v1/users/by-username/matrix_owner")
+
+    assert response.status_code == 200
+    assert "email" not in response.json()
+
+
+def test_admin_reads_emails_of_all_users(auth_client):
+    auth_client.post("/api/v1/users", json={"username": "a", "email": "a@x.com", "password": "pw"})
+
+    response = auth_client.get("/api/v1/users/by-username/a")
+
+    assert response.json()["email"] == "a@x.com"
+
+
 def test_user_cannot_change_administrative_fields_of_own_account(auth_client):
     auth_client.put("/api/v1/users/me", json={"is_active": False, "failed_login_count": 0})
 

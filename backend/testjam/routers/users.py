@@ -14,6 +14,7 @@ from testjam.schemas.user import (
     UserCreate,
     UserDeleteRequest,
     UserOut,
+    UserPublicOut,
     UserUpdate,
 )
 from testjam.services import password_reset
@@ -25,7 +26,7 @@ from testjam.services.user_lifecycle import soft_delete_user
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.get("", response_model=list[UserOut])
+@router.get("", response_model=list[UserOut | UserPublicOut])
 def list_users(
     include_deleted: bool = False,
     db: Session = Depends(get_db),
@@ -36,7 +37,7 @@ def list_users(
         raise HTTPException(status_code=403, detail="Admin privileges required to view deleted users")
     if not include_deleted:
         query = query.filter(User.deleted_at.is_(None))
-    return query.all()
+    return [_visible_to(current, user) for user in query.all()]
 
 
 @router.post("", response_model=UserOut, status_code=status.HTTP_201_CREATED)
@@ -88,7 +89,7 @@ def delete_my_account(
     soft_delete_user(db, current, body.owned_projects)
 
 
-@router.get("/by-username/{username}", response_model=UserOut)
+@router.get("/by-username/{username}", response_model=UserOut | UserPublicOut)
 def get_user_by_username(
     username: str,
     db: Session = Depends(get_db),
@@ -99,17 +100,17 @@ def get_user_by_username(
         raise HTTPException(status_code=404, detail="Not found")
     if user.deleted_at is not None and not current.is_admin:
         raise HTTPException(status_code=404, detail="Not found")
-    return user
+    return _visible_to(current, user)
 
 
-@router.get("/{id}", response_model=UserOut)
+@router.get("/{id}", response_model=UserOut | UserPublicOut)
 def get_user(id: int, db: Session = Depends(get_db), current: User = Depends(get_unscoped_user)):
     user = db.get(User, id)
     if not user:
         raise HTTPException(status_code=404, detail="Not found")
     if user.deleted_at is not None and not current.is_admin:
         raise HTTPException(status_code=404, detail="Not found")
-    return user
+    return _visible_to(current, user)
 
 
 @router.put("/{id}", response_model=UserOut)
@@ -188,6 +189,12 @@ def restore_user(id: int, db: Session = Depends(get_db), _: User = Depends(requi
     db.commit()
     db.refresh(user)
     return user
+
+
+def _visible_to(viewer: User, user: User) -> UserOut | UserPublicOut:
+    """Contact and session details stay between the user and administrators."""
+    schema = UserOut if viewer.is_admin or viewer.id == user.id else UserPublicOut
+    return schema.model_validate(user)
 
 
 def _is_email_taken(db: Session, email: str, user_id: int | None = None) -> bool:
