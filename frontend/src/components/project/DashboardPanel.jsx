@@ -1,15 +1,10 @@
 import { useMemo } from "react"
 import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { CheckCircle2, XCircle, AlertTriangle, MinusCircle, PlayCircle, FolderOpen, FileText, TrendingUp } from "lucide-react"
+import { PlayCircle, FolderOpen, FileText, TrendingUp } from "lucide-react"
 import { EMPTY_LIST } from "../../lib/utils"
-
-const STATUS_DOT = {
-  completed:   "bg-green-500",
-  in_progress: "bg-blue-500",
-  pending:     "bg-gray-400",
-  aborted:     "bg-red-500",
-}
+import { EXECUTION_STATUS_CONFIG } from "../../lib/executionStatus"
+import { ResultCounts } from "../execution/ResultCounts"
 
 function passRateOf(execution) {
   const ran = (execution.passed ?? 0) + (execution.failed ?? 0) + (execution.blocked ?? 0)
@@ -104,14 +99,9 @@ export function DashboardPanel({ project, compact = false }) {
             {recent.slice(0, 3).map(execution => (
               <li key={execution.id}>
                 <Link to={`/executions/${execution.id}/run`} className="flex items-center gap-1.5 text-xs group">
-                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${STATUS_DOT[execution.status] ?? "bg-gray-400"}`} />
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${EXECUTION_STATUS_CONFIG[execution.status]?.dot ?? "bg-gray-400"}`} />
                   <span className="truncate flex-1 text-gray-700 dark:text-gray-200 group-hover:text-primary-600">{execution.title}</span>
-                  <span className="flex items-center gap-1 text-[10px] text-gray-400 dark:text-gray-500 shrink-0">
-                    <CheckCircle2 size={9} className="text-green-500" />{execution.passed ?? 0}
-                    <XCircle size={9} className="text-red-500" />{execution.failed ?? 0}
-                    <AlertTriangle size={9} className="text-yellow-500" />{execution.blocked ?? 0}
-                    <MinusCircle size={9} className="text-gray-400 dark:text-gray-500" />{execution.not_run ?? 0}
-                  </span>
+                  <ResultCounts counts={execution} iconSize={9} className="text-[10px] text-gray-400 dark:text-gray-500" />
                 </Link>
               </li>
             ))}

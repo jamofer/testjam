@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react"
 import { useParams, Link, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { PlayCircle, CheckCircle2, XCircle, MinusCircle, Plus, Clock, Search, User, Download, Trash2 } from "lucide-react"
+import { PlayCircle, Plus, Clock, Search, User, Download, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { useExecutions, useDeleteExecution } from "../hooks/useExecutions"
 import { useProject } from "../hooks/useProjects"
@@ -24,13 +24,8 @@ import { SkeletonList } from "../components/ui/skeleton"
 import { EnvironmentBadge } from "../components/environment/EnvironmentBadge"
 import { ImportExecutionDialog } from "../components/execution/ImportExecutionDialog"
 import { toastApiError } from "../lib/apiError"
-
-const statusIcon = {
-  completed:  <CheckCircle2 size={15} className="text-green-500" />,
-  in_progress: <PlayCircle size={15} className="text-blue-500" />,
-  aborted:    <XCircle size={15} className="text-red-500" />,
-  pending:    <MinusCircle size={15} className="text-gray-400 dark:text-gray-500" />,
-}
+import { ExecutionStatusIcon } from "../components/execution/ExecutionStatusIcon"
+import { ResultCounts } from "../components/execution/ResultCounts"
 
 const typeBadge = {
   manual:    "secondary",
@@ -178,7 +173,7 @@ export function ExecutionsPage() {
             <div className="flex items-center justify-between gap-2">
               <Link to={`/executions/${execution.id}/run`}
                 className="font-medium text-gray-800 dark:text-gray-100 hover:underline flex items-center gap-2 min-w-0">
-                {statusIcon[execution.status]}
+                <ExecutionStatusIcon status={execution.status} size={15} />
                 <span className="truncate">{execution.title}</span>
               </Link>
               <div className="flex items-center gap-2 shrink-0">
@@ -225,12 +220,7 @@ export function ExecutionsPage() {
                 <span>· {fmtDuration(new Date(execution.finished_at) - new Date(execution.started_at ?? execution.created_at))}</span>
               )}
             </div>
-            <div className="flex gap-3 mt-1.5 text-xs">
-              <span className="text-green-600">✓ {execution.summary?.passed ?? 0}</span>
-              <span className="text-red-500">✗ {execution.summary?.failed ?? 0}</span>
-              <span className="text-yellow-600">⚠ {execution.summary?.blocked ?? 0}</span>
-              <span className="text-gray-400 dark:text-gray-500">— {execution.summary?.not_run ?? 0}</span>
-            </div>
+            <ResultCounts counts={execution.summary} iconSize={12} className="mt-1.5 text-xs text-gray-600 dark:text-gray-300" />
           </li>
         ))}
       </ul>
