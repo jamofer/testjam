@@ -1,6 +1,7 @@
 """Import endpoints: JUnit XML and Robot Framework output.xml."""
 import io
 import xml.etree.ElementTree as ET
+from collections import defaultdict
 from datetime import datetime, timezone
 from unicodedata import normalize
 
@@ -19,6 +20,10 @@ from testjam.services import execution_events, uploads
 from testjam.services.permissions import WRITER_ROLES
 from testjam.services.settings import get_settings as get_app_settings
 
+MAX_FAILURE_DETAIL_CHARS = 20_000
+NO_MATCH_ERROR = "No matching test case found"
+AMBIGUOUS_MATCH_ERROR = "Several test cases share this name; set an external id to tell them apart"
+
 
 # ─── Import helpers ───────────────────────────────────────────────────────────
 
@@ -31,17 +36,33 @@ def _normalize(s: str) -> str:
     return normalize("NFC", s).strip().lower()
 
 
-def _build_result_index(execution: TestExecution) -> dict[str, TestResult]:
-    """Return a dict keyed by external_id and by normalized title for fast lookup."""
-    index: dict[str, TestResult] = {}
-    for r in execution.results:
-        tc = r.test_case
-        if not tc:
-            continue
-        if tc.external_id:
-            index[_normalize(tc.external_id)] = r
-        index[_normalize(tc.name)] = r
-    return index
+class _ResultIndex:
+    """Find the result a report entry belongs to, by external id first, then by name.
+
+    A key shared by several test cases is ambiguous: matching it would put the
+    outcome on an arbitrary case, so the entry is reported instead.
+    """
+
+    def __init__(self, execution: TestExecution) -> None:
+        self._by_external_id: dict[str, list[TestResult]] = defaultdict(list)
+        self._by_name: dict[str, list[TestResult]] = defaultdict(list)
+        for result in execution.results:
+            case = result.test_case
+            if not case:
+                continue
+            if case.external_id:
+                self._by_external_id[_normalize(case.external_id)].append(result)
+            self._by_name[_normalize(case.name)].append(result)
+
+    def find(self, keys: list[str]) -> tuple[TestResult | None, str | None]:
+        for index in (self._by_external_id, self._by_name):
+            for key in keys:
+                matches = index.get(key, [])
+                if len(matches) == 1:
+                    return matches[0], None
+                if matches:
+                    return None, AMBIGUOUS_MATCH_ERROR
+        return None, NO_MATCH_ERROR
 
 
 def _rf_status(status_str: str) -> str:
@@ -55,6 +76,19 @@ def _junit_status(tc_elem: ET.Element) -> str:
     if tc_elem.find("skipped") is not None:
         return "blocked"
     return "passed"
+
+
+def _junit_failure_comment(tc_elem: ET.Element) -> str | None:
+    failure = tc_elem.find("failure")
+    if failure is None:
+        failure = tc_elem.find("error")
+    if failure is None:
+        return None
+    message = failure.get("message", "").strip()
+    details = (failure.text or "").strip()[:MAX_FAILURE_DETAIL_CHARS]
+    if not details or details == message:
+        return message
+    return f"{message}\n\n```\n{details}\n```".strip()
 
 
 def _rf_collect_messages(kw_elem: ET.Element) -> str:
@@ -118,7 +152,7 @@ def import_junit(
     else:
         raise HTTPException(status_code=400, detail="Root element must be <testsuite> or <testsuites>")
 
-    result_index = _build_result_index(ex)
+    result_index = _ResultIndex(ex)
     created = updated = 0
     errors: list[dict] = []
     now = datetime.now(timezone.utc)
@@ -134,21 +168,13 @@ def import_junit(
             _normalize(name),
         ]
 
-        result: TestResult | None = None
-        for key in candidates:
-            if key and key in result_index:
-                result = result_index[key]
-                break
-
+        result, match_error = result_index.find([key for key in candidates if key])
         if result is None:
-            errors.append({"name": name, "classname": classname, "error": "No matching test case found"})
+            errors.append({"name": name, "classname": classname, "error": match_error})
             continue
 
         new_status = _junit_status(tc_elem)
-        failure = tc_elem.find("failure")
-        if failure is None:
-            failure = tc_elem.find("error")
-        comment = failure.get("message", "") if failure is not None else None
+        comment = _junit_failure_comment(tc_elem)
         duration_raw = tc_elem.get("time")
         duration_ms = int(float(duration_raw) * 1000) if duration_raw else None
 
@@ -203,7 +229,7 @@ def import_robotframework(
     if root.tag not in ("robot", "suite"):
         raise HTTPException(status_code=400, detail="Root element must be <robot> or <suite>")
 
-    result_index = _build_result_index(ex)
+    result_index = _ResultIndex(ex)
     created = updated = 0
     errors: list[dict] = []
     now = datetime.now(timezone.utc)
@@ -218,18 +244,9 @@ def import_robotframework(
             test_name = test_elem.get("name", "")
             full_path = f"{suite_path}.{test_name}"
 
-            candidates = [
-                _normalize(full_path),
-                _normalize(test_name),
-            ]
-            result: TestResult | None = None
-            for key in candidates:
-                if key in result_index:
-                    result = result_index[key]
-                    break
-
+            result, match_error = result_index.find([_normalize(full_path), _normalize(test_name)])
             if result is None:
-                errors.append({"name": test_name, "suite": suite_path, "error": "No matching test case found"})
+                errors.append({"name": test_name, "suite": suite_path, "error": match_error})
                 continue
 
             status_elem = test_elem.find("status")
