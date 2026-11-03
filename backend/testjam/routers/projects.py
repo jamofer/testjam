@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import (
     AuthContext,
+    authorize_project,
     get_auth_context,
     get_unscoped_user,
     require_project_access,
@@ -21,7 +22,7 @@ from testjam.schemas.project import (
     ProjectUpdate,
     TransferOwnershipRequest,
 )
-from testjam.services.permissions import accessible_project_ids, effective_role
+from testjam.services.permissions import OWNER_ROLES, accessible_project_ids, effective_role
 from testjam.services.project_events import on_project_deleted
 from testjam.services.project_export import cleanup_archive, export_project
 from testjam.services.project_ownership import transfer_ownership
@@ -78,7 +79,10 @@ def get_project(id: int, db: Session = Depends(get_db), _: User = Depends(requir
 
 
 @router.put("/{id}", response_model=ProjectOut)
-def update_project(id: int, body: ProjectUpdate, db: Session = Depends(get_db), _: User = Depends(require_project_access)):
+def update_project(
+    id: int, body: ProjectUpdate, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context),
+):
+    authorize_project(db, ctx, id, OWNER_ROLES)
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Not found")
@@ -96,7 +100,10 @@ def update_project(id: int, body: ProjectUpdate, db: Session = Depends(get_db), 
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_project(id: int, db: Session = Depends(get_db), _: User = Depends(require_project_access)):
+def delete_project(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
+    if ctx.project_scope is not None:
+        raise HTTPException(status_code=403, detail="Project API tokens cannot delete projects")
+    authorize_project(db, ctx, id, OWNER_ROLES)
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Not found")
