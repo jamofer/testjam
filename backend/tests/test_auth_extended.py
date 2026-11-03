@@ -43,26 +43,7 @@ def test_protected_route_with_invalid_token(client, setup_db):
     assert resp.status_code == 401
 
 
-def test_api_key_authentication(client, setup_db):
-    from tests.conftest import TestingSession
-    with TestingSession() as db:
-        user = _add_user(db)
-        user.api_key = "test-api-key-12345"
-        db.commit()
-
-    resp = client.get("/api/v1/users/me", headers={"X-API-Key": "test-api-key-12345"})
-
-    assert resp.status_code == 200
-    assert resp.json()["username"] == "tester"
-
-
 def test_api_key_wrong_key_rejected(client, setup_db):
-    from tests.conftest import TestingSession
-    with TestingSession() as db:
-        user = _add_user(db)
-        user.api_key = "correct-key"
-        db.commit()
-
     resp = client.get("/api/v1/users/me", headers={"X-API-Key": "wrong-key"})
 
     assert resp.status_code == 401
