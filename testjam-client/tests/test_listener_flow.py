@@ -5,7 +5,12 @@ import httpx
 import pytest
 
 from testjam_client.listener import listener as listener_module
-from testjam_client.listener.listener import MAX_CONSECUTIVE_NETWORK_FAILURES, TestjamListener
+from testjam_client.listener.listener import (
+    ABORT_MESSAGES,
+    MAX_CONSECUTIVE_NETWORK_FAILURES,
+    TestjamListener,
+)
+from testjam_client.listener.session_renewal import SessionRenewal
 
 PROJECT_NAME = "Listener Flow"
 
@@ -168,3 +173,17 @@ class InterruptibleHttp:
             self.attempts += 1
             raise httpx.ConnectError("connection refused")
         return self._http.request(method, url, **kwargs)
+
+
+class ExpiringHttp:
+    headers: dict[str, str] = {}
+
+    def __init__(self) -> None:
+        self.renewals = 0
+
+    def renew(self) -> None:
+        self.renewals += 1
+
+    def request(self, _method: str, _url: str, **_kwargs) -> httpx.Response:
+        return httpx.Response(200 if self.renewals else 401)
+

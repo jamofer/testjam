@@ -39,6 +39,14 @@ class ValidationError(TestjamError):
     pass
 
 
+class Locked(TestjamError):
+    """HTTP 423: the account or resource is temporarily locked."""
+
+
+class RateLimited(TestjamError):
+    """HTTP 429: too many requests."""
+
+
 class ServerError(TestjamError):
     pass
 
@@ -49,6 +57,8 @@ _STATUS_MAP: dict[int, type[TestjamError]] = {
     404: NotFound,
     409: Conflict,
     422: ValidationError,
+    423: Locked,
+    429: RateLimited,
 }
 
 
