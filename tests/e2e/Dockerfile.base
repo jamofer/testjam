@@ -24,7 +24,7 @@ RUN apt-get update \
 # `pip install -e` only needs the package directory to exist; later in
 # `tests/e2e/Dockerfile` the real source is copied on top of these stubs and
 # re-installed with `--no-deps` so dependency resolution is skipped.
-COPY testjam-client/pyproject.toml /testjam-client/
+COPY testjam-client/pyproject.toml testjam-client/README.md /testjam-client/
 COPY tests/e2e/pyproject.toml /tests/e2e/
 RUN mkdir -p /testjam-client/testjam_client /testjam-client/testjam_listener /tests/e2e/testjam_e2e \
  && touch /testjam-client/testjam_client/__init__.py \
