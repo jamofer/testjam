@@ -1,0 +1,54 @@
+name: Production stack
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "docker-compose.yml"
+      - "scripts/smoke_production_stack.sh"
+      - ".github/workflows/production-stack.yml"
+  pull_request:
+    branches: [master]
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "docker-compose.yml"
+      - "scripts/smoke_production_stack.sh"
+      - ".github/workflows/production-stack.yml"
+
+concurrency:
+  group: production-stack-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TESTJAM_VERSION: ci
+  POSTGRES_PASSWORD: ci-postgres-password
+  SECRET_KEY: ci-throwaway-secret-${{ github.run_id }}-${{ github.run_attempt }}
+
+jobs:
+  smoke:
+    name: docker-compose.yml smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build production images
+        run: |
+          docker build -f backend/Dockerfile.prod -t ghcr.io/jamofer/testjam-api:ci backend
+          docker build -f frontend/Dockerfile.prod -t ghcr.io/jamofer/testjam-web:ci frontend
+
+      - name: Start stack
+        run: docker compose -f docker-compose.yml up -d --wait --wait-timeout 180
+
+      - name: Smoke test
+        run: scripts/smoke_production_stack.sh
+
+      - name: Stack logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.yml logs --no-color
+
+      - name: Stop stack
+        if: always()
+        run: docker compose -f docker-compose.yml down -v

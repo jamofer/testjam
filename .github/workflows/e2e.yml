@@ -64,14 +64,21 @@ jobs:
           echo "E2E_BASE=$tag" >> $GITHUB_ENV
           echo "e2e base image tag: $tag"
 
-      - name: Ensure e2e base image is published to GHCR
+      - name: Ensure e2e base image is available
+        env:
+          # Pull requests from forks get a read-only token: build the base
+          # locally instead of failing on the push to GHCR.
+          CAN_PUBLISH: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
         run: |
           if ! docker buildx imagetools inspect "$E2E_BASE" >/dev/null 2>&1; then
-            echo "base image $E2E_BASE not in GHCR yet, building + pushing"
-            docker buildx build \
-              -f tests/e2e/Dockerfile.base \
-              --push \
-              -t "$E2E_BASE" .
+            if [ "$CAN_PUBLISH" = "true" ]; then
+              echo "base image $E2E_BASE not in GHCR yet, building + pushing"
+              output=--push
+            else
+              echo "base image $E2E_BASE not in GHCR and this fork cannot publish, building locally"
+              output=--load
+            fi
+            docker buildx build -f tests/e2e/Dockerfile.base "$output" -t "$E2E_BASE" .
           fi
 
       - name: Build images
