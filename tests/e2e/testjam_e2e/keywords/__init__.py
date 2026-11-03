@@ -26,6 +26,8 @@ from testjam_e2e.keywords.case_tags import CaseTagsMixin
 from testjam_e2e.keywords.case_step_reorder import CaseStepReorderMixin
 from testjam_e2e.keywords.case_revisions import CaseRevisionsMixin
 from testjam_e2e.keywords.case_search import CaseSearchMixin
+from testjam_e2e.keywords.coverage import CoverageMixin
+from testjam_e2e.keywords.case_copy import CaseCopyMixin
 from testjam_e2e.keywords.cleanup import CleanupMixin
 from testjam_e2e.keywords.health import HealthMixin
 from testjam_e2e.keywords.listener_runner import ListenerRunnerMixin
@@ -77,6 +79,8 @@ __all__ = [
     "CaseStepReorderMixin",
     "CaseRevisionsMixin",
     "CaseSearchMixin",
+    "CoverageMixin",
+    "CaseCopyMixin",
     "CleanupMixin",
     "HealthMixin",
     "ListenerRunnerMixin",
