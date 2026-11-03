@@ -14,6 +14,7 @@ from testjam_client.errors import (
     ServerError,
     TestjamError,
     RateLimited,
+    Redirected,
     Unauthorized,
     ValidationError,
 )
@@ -29,4 +30,5 @@ __all__ = [
     "Conflict",
     "ValidationError",
     "ServerError",
+    "Redirected",
 ]
