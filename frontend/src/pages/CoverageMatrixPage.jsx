@@ -147,7 +147,14 @@ function CaseRow({ testCase, depth, versions, cellByKey, suiteId }) {
         const glyph = CELL_GLYPH[status]
         const label = t(`common:status.${status}`, status)
         return (
-          <td key={version.id} className="border-l border-b text-center px-1 py-1">
+          <td
+            key={version.id}
+            data-testid="coverage-cell"
+            data-case-id={testCase.id}
+            data-version-id={version.id}
+            data-status={cell ? status : "none"}
+            className="border-l border-b text-center px-1 py-1"
+          >
             {cell ? (
               <Link
                 to={`/executions/${cell.execution_id}/run`}
