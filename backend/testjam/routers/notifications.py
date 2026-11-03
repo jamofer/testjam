@@ -66,7 +66,13 @@ async def notifications_ws(
 ):
     username = decode_token(token)
     user = (
-        db.query(User).filter(User.username == username, User.is_active == True).first()  # noqa: E712
+        db.query(User)
+        .filter(
+            User.username == username,
+            User.is_active == True,  # noqa: E712
+            User.deleted_at.is_(None),
+        )
+        .first()
         if username
         else None
     )

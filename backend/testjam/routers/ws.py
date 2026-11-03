@@ -49,7 +49,11 @@ def _authenticate_token(db: Session, token: str | None) -> User | None:
         return None
     return (
         db.query(User)
-        .filter(User.username == username, User.is_active == True)  # noqa: E712
+        .filter(
+            User.username == username,
+            User.is_active == True,  # noqa: E712
+            User.deleted_at.is_(None),
+        )
         .first()
     )
 
