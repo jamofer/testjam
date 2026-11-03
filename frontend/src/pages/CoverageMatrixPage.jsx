@@ -20,13 +20,8 @@ import { EmptyState } from "../components/ui/empty-state"
 import { ShortcutsDialog } from "../components/ui/shortcuts-dialog"
 import { SuiteCollapseContext } from "../components/project/SuiteRow"
 import { EMPTY_LIST } from "../lib/utils"
+import { STATUS_CONFIG } from "../lib/statusConfig"
 
-const CELL_STYLE = {
-  passed:  "bg-green-100  dark:bg-green-900/40  text-green-800  dark:text-green-200",
-  failed:  "bg-red-100    dark:bg-red-900/40    text-red-800    dark:text-red-200",
-  blocked: "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-200",
-  not_run: "bg-gray-50    dark:bg-gray-900      text-gray-500   dark:text-gray-400",
-}
 const CELL_GLYPH = { passed: "✓", failed: "✗", blocked: "⚠", not_run: "—" }
 const INDENT_PX = 16
 const BASE_PADDING = 12
@@ -110,10 +105,10 @@ function AggregatedCell({ aggregation }) {
   if (aggregation.total === 0) {
     return <span className="text-gray-400 dark:text-gray-500 text-xs">—</span>
   }
-  let bgClass = CELL_STYLE.not_run
-  if (aggregation.failed > 0) bgClass = CELL_STYLE.failed
-  else if (aggregation.blocked > 0) bgClass = CELL_STYLE.blocked
-  else if (aggregation.passed > 0 && aggregation.missing === 0) bgClass = CELL_STYLE.passed
+  let bgClass = STATUS_CONFIG.not_run.pill
+  if (aggregation.failed > 0) bgClass = STATUS_CONFIG.failed.pill
+  else if (aggregation.blocked > 0) bgClass = STATUS_CONFIG.blocked.pill
+  else if (aggregation.passed > 0 && aggregation.missing === 0) bgClass = STATUS_CONFIG.passed.pill
   return (
     <span className={`inline-flex items-center justify-center rounded text-xs w-full px-2 py-1 ${bgClass}`}>
       {aggregation.passed}/{aggregation.total}
@@ -148,7 +143,7 @@ function CaseRow({ testCase, depth, versions, cellByKey, suiteId }) {
       {versions.map(version => {
         const cell = cellByKey.get(`${testCase.id}:${version.id}`)
         const status = cell?.status ?? "not_run"
-        const style = CELL_STYLE[status]
+        const style = STATUS_CONFIG[status].pill
         const glyph = CELL_GLYPH[status]
         const label = t(`common:status.${status}`, status)
         return (
@@ -162,7 +157,7 @@ function CaseRow({ testCase, depth, versions, cellByKey, suiteId }) {
                 {glyph}
               </Link>
             ) : (
-              <span className={`inline-flex items-center justify-center rounded w-full px-2 py-1 ${CELL_STYLE.not_run}`}>—</span>
+              <span className={`inline-flex items-center justify-center rounded w-full px-2 py-1 ${STATUS_CONFIG.not_run.pill}`}>—</span>
             )}
           </td>
         )

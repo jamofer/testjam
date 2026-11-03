@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react"
 import { useParams, Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { useQuery } from "@tanstack/react-query"
-import { CheckCircle2, Archive, Circle, Save, Clock, PlayCircle, XCircle, MinusCircle, Tag, Bug as BugIcon } from "lucide-react"
+import { CheckCircle2, Archive, Circle, Save, Clock, PlayCircle, Tag, Bug as BugIcon } from "lucide-react"
 import { useProject } from "../hooks/useProjects"
 import { useVersion, useUpdateVersion } from "../hooks/useVersions"
 import { useBugs } from "../hooks/useBugs"
@@ -18,6 +18,8 @@ import { SkeletonList } from "../components/ui/skeleton"
 import { DateLabel } from "../components/ui/date-label"
 import { VersionAttachmentList } from "../components/version/VersionAttachmentList"
 import { toast } from "sonner"
+import { ExecutionStatusIcon } from "../components/execution/ExecutionStatusIcon"
+import { ResultCounts } from "../components/execution/ResultCounts"
 
 const VERSION_STATUS_STYLE = {
   active:   { icon: Circle,       badge: "default"     },
@@ -26,13 +28,6 @@ const VERSION_STATUS_STYLE = {
 }
 
 const VERSION_STATUSES = ["active", "released", "archived"]
-
-const EXECUTION_STATUS_ICON = {
-  completed:   <CheckCircle2 size={14} className="text-green-500" />,
-  in_progress: <PlayCircle size={14} className="text-blue-500" />,
-  aborted:     <XCircle size={14} className="text-red-500" />,
-  pending:     <MinusCircle size={14} className="text-gray-400 dark:text-gray-500" />,
-}
 
 function aggregateStats(executions) {
   const totals = { runs: executions.length, passed: 0, failed: 0, blocked: 0, not_run: 0 }
@@ -228,15 +223,10 @@ export function VersionDetailPage() {
                         to={`/executions/${execution.id}/run`}
                         className="font-medium text-sm text-gray-800 dark:text-gray-100 hover:underline flex items-center gap-2 min-w-0"
                       >
-                        {EXECUTION_STATUS_ICON[execution.status]}
+                        <ExecutionStatusIcon status={execution.status} />
                         <span className="truncate">{execution.title}</span>
                       </Link>
-                      <div className="flex gap-3 text-xs shrink-0">
-                        <span className="text-green-600">✓ {execution.summary?.passed ?? 0}</span>
-                        <span className="text-red-500">✗ {execution.summary?.failed ?? 0}</span>
-                        <span className="text-yellow-600">⚠ {execution.summary?.blocked ?? 0}</span>
-                        <span className="text-gray-400 dark:text-gray-500">— {execution.summary?.not_run ?? 0}</span>
-                      </div>
+                      <ResultCounts counts={execution.summary} iconSize={12} className="text-xs text-gray-600 dark:text-gray-300" />
                     </div>
                     <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 flex items-center gap-1">
                       <Clock size={10} /> <DateLabel iso={execution.started_at ?? execution.created_at} />

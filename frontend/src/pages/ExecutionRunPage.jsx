@@ -42,13 +42,8 @@ import { ContextPanel } from "../components/ui/context-panel"
 import { buildResultTree } from "../lib/buildResultTree"
 import { toastApiError } from "../lib/apiError"
 import { EMPTY_LIST } from "../lib/utils"
-
-const EXECUTION_STATUS_PILL = {
-  pending:     "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700",
-  in_progress: "bg-blue-50 text-blue-700 border-blue-200",
-  completed:   "bg-green-50 text-green-700 border-green-200",
-  aborted:     "bg-red-50 text-red-700 border-red-200",
-}
+import { EXECUTION_STATUS_CONFIG } from "../lib/executionStatus"
+import { STATUS_CONFIG } from "../lib/statusConfig"
 
 const EXECUTION_TYPE_PILL = {
   manual:    "bg-amber-50 text-amber-700 border-amber-200",
@@ -57,7 +52,7 @@ const EXECUTION_TYPE_PILL = {
 
 function StatusPill({ status }) {
   const { t } = useTranslation("common")
-  const cls = EXECUTION_STATUS_PILL[status] ?? "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700"
+  const cls = (EXECUTION_STATUS_CONFIG[status] ?? EXECUTION_STATUS_CONFIG.pending).pill
   return <span className={`inline-block text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border ${cls}`}>{status ? t(`status.${status}`, status.replace("_", " ")) : ""}</span>
 }
 
@@ -526,9 +521,9 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
               )}
             </div>
             <div className="flex items-center gap-3 mt-1.5 text-sm">
-              <span data-testid="run-summary-passed" className="text-green-600 font-medium">✓ {t("run.passed", { count: summary.passed ?? 0 })}</span>
-              <span data-testid="run-summary-failed" className="text-red-500 font-medium">✗ {t("run.failed", { count: summary.failed ?? 0 })}</span>
-              <span data-testid="run-summary-blocked" className="text-yellow-600 font-medium">⚠ {t("run.blocked", { count: summary.blocked ?? 0 })}</span>
+              <span data-testid="run-summary-passed" className={`${STATUS_CONFIG.passed.iconColor} font-medium`}>✓ {t("run.passed", { count: summary.passed ?? 0 })}</span>
+              <span data-testid="run-summary-failed" className={`${STATUS_CONFIG.failed.iconColor} font-medium`}>✗ {t("run.failed", { count: summary.failed ?? 0 })}</span>
+              <span data-testid="run-summary-blocked" className={`${STATUS_CONFIG.blocked.iconColor} font-medium`}>⚠ {t("run.blocked", { count: summary.blocked ?? 0 })}</span>
               <span className="text-gray-400 dark:text-gray-500">— {t("run.notRun", { count: summary.not_run ?? 0 })}</span>
             </div>
           </div>
