@@ -67,7 +67,6 @@ function SuiteNode({ suite, casesBySuite, loadCases, selected, onToggle, onToggl
 
   const toggleAll = (event) => {
     event.stopPropagation()
-    event.preventDefault()
     if (subtreeCaseIds.length === 0) return
     onToggleMany(subtreeCaseIds, !allSelected)
   }

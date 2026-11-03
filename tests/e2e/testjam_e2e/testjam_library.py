@@ -53,6 +53,10 @@ from testjam_e2e.keywords import (
     CommandPaletteUIMixin,
     ResponsiveUIMixin,
     SuiteTreeUIMixin,
+    NewExecutionUIMixin,
+    CoverageUIMixin,
+    PasswordResetUIMixin,
+    LocaleUIMixin,
 )
 
 
@@ -107,6 +111,10 @@ class TestjamLibrary(
     CommandPaletteUIMixin,
     ResponsiveUIMixin,
     SuiteTreeUIMixin,
+    NewExecutionUIMixin,
+    CoverageUIMixin,
+    PasswordResetUIMixin,
+    LocaleUIMixin,
 ):
     """Robot Framework library for end-to-end testing of the Testjam API."""
 

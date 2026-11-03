@@ -14,6 +14,10 @@ from testjam_e2e.keywords.ui.settings import SettingsUIMixin
 from testjam_e2e.keywords.ui.command_palette import CommandPaletteUIMixin
 from testjam_e2e.keywords.ui.responsive import ResponsiveUIMixin
 from testjam_e2e.keywords.ui.suite_tree import SuiteTreeUIMixin
+from testjam_e2e.keywords.ui.new_execution import NewExecutionUIMixin
+from testjam_e2e.keywords.ui.coverage import CoverageUIMixin
+from testjam_e2e.keywords.ui.password_reset import PasswordResetUIMixin
+from testjam_e2e.keywords.ui.locale import LocaleUIMixin
 
 __all__ = [
     "BrowserMixin",
@@ -32,4 +36,8 @@ __all__ = [
     "CommandPaletteUIMixin",
     "ResponsiveUIMixin",
     "SuiteTreeUIMixin",
+    "NewExecutionUIMixin",
+    "CoverageUIMixin",
+    "PasswordResetUIMixin",
+    "LocaleUIMixin",
 ]

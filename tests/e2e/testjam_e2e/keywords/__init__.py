@@ -48,6 +48,10 @@ from testjam_e2e.keywords.ui import (
     CommandPaletteUIMixin,
     ResponsiveUIMixin,
     SuiteTreeUIMixin,
+    NewExecutionUIMixin,
+    CoverageUIMixin,
+    PasswordResetUIMixin,
+    LocaleUIMixin,
 )
 
 __all__ = [
@@ -100,4 +104,8 @@ __all__ = [
     "CommandPaletteUIMixin",
     "ResponsiveUIMixin",
     "SuiteTreeUIMixin",
+    "NewExecutionUIMixin",
+    "CoverageUIMixin",
+    "PasswordResetUIMixin",
+    "LocaleUIMixin",
 ]
