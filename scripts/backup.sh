@@ -7,7 +7,6 @@
 # Environment:
 #   BACKUP_DIR        Where to write archives. Default: ./backups
 #   RETENTION_DAYS    Delete archives older than this. Default: 14
-#   COMPOSE_PROJECT   Docker compose project name. Optional; auto-detected.
 #   POSTGRES_USER     Used for pg_dump auth. Default: testjam
 #   POSTGRES_DB       Database name. Default: testjam
 #
@@ -18,7 +17,7 @@
 # Output:
 #   $BACKUP_DIR/testjam-YYYYMMDD-HHMMSS.tar.gz
 #       ├── dump.sql      (pg_dump --clean --if-exists)
-#       └── uploads/      (tar of /app/uploads from the api container)
+#       └── uploads.tar   (tar of /app/uploads from the api container)
 
 set -euo pipefail
 
