@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.responses import FileResponse
-from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -13,71 +12,21 @@ from testjam.auth.dependencies import (
     require_project_access,
 )
 from testjam.database import get_db
-from testjam.models.execution import TestExecution, TestResult
 from testjam.models.project import Project, ProjectMember
-from testjam.models.testcase import TestCase, TestSuite
 from testjam.models.user import User
 from testjam.schemas.project import (
     ProjectCreate,
     ProjectOut,
     ProjectUpdate,
-    RecentExecutionSummary,
     TransferOwnershipRequest,
 )
 from testjam.services.permissions import accessible_project_ids, effective_role
 from testjam.services.project_events import on_project_deleted
 from testjam.services.project_export import cleanup_archive, export_project
 from testjam.services.project_ownership import transfer_ownership
+from testjam.services.project_summaries import project_summaries, project_summary
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
-
-
-def _project_out(project: Project, db: Session) -> ProjectOut:
-    suite_count = db.query(func.count(TestSuite.id)).filter(TestSuite.project_id == project.id).scalar() or 0
-    case_count = (
-        db.query(func.count(TestCase.id))
-        .join(TestSuite, TestCase.suite_id == TestSuite.id)
-        .filter(TestSuite.project_id == project.id)
-        .scalar() or 0
-    )
-    execution_count = (
-        db.query(func.count(TestExecution.id)).filter(TestExecution.project_id == project.id).scalar() or 0
-    )
-    last_execution_at = (
-        db.query(func.max(TestExecution.created_at)).filter(TestExecution.project_id == project.id).scalar()
-    )
-    recent_rows = (
-        db.query(TestExecution)
-        .filter(TestExecution.project_id == project.id)
-        .order_by(TestExecution.created_at.desc())
-        .limit(10)
-        .all()
-    )
-    recent: list[RecentExecutionSummary] = []
-    for ex in recent_rows:
-        counts = {"passed": 0, "failed": 0, "blocked": 0, "not_run": 0}
-        for r in db.query(TestResult.status).filter(TestResult.execution_id == ex.id).all():
-            counts[r[0]] = counts.get(r[0], 0) + 1
-        recent.append(RecentExecutionSummary(
-            id=ex.id,
-            title=ex.title,
-            status=ex.status,
-            started_at=ex.started_at,
-            **counts,
-        ))
-    return ProjectOut(
-        id=project.id,
-        name=project.name,
-        description=project.description,
-        created_at=project.created_at,
-        updated_at=project.updated_at,
-        archived_at=project.archived_at,
-        suite_count=suite_count,
-        case_count=case_count,
-        execution_count=execution_count,
-        last_execution_at=last_execution_at,
-        recent_executions=recent,
-    )
 
 
 @router.get("", response_model=list[ProjectOut])
@@ -93,7 +42,7 @@ def list_projects(
         query = query.filter(Project.id.in_(accessible_project_ids(db, ctx.user.id)))
     if not include_archived:
         query = query.filter(Project.archived_at.is_(None))
-    return [_project_out(p, db) for p in query.all()]
+    return project_summaries(db, query.all())
 
 
 def _find_project_by_name(db: Session, name: str) -> Project | None:
@@ -116,7 +65,7 @@ def create_project(body: ProjectCreate, db: Session = Depends(get_db), current: 
             status_code=409, detail=f"Project '{body.name}' already exists",
         )
     db.refresh(project)
-    return _project_out(project, db)
+    return project_summary(db, project)
 
 
 @router.get("/{id}", response_model=ProjectOut)
@@ -124,7 +73,7 @@ def get_project(id: int, db: Session = Depends(get_db), _: User = Depends(requir
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Not found")
-    return _project_out(project, db)
+    return project_summary(db, project)
 
 
 @router.put("/{id}", response_model=ProjectOut)
@@ -142,7 +91,7 @@ def update_project(id: int, body: ProjectUpdate, db: Session = Depends(get_db), 
         setattr(project, field, value)
     db.commit()
     db.refresh(project)
-    return _project_out(project, db)
+    return project_summary(db, project)
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -166,7 +115,7 @@ def archive_project(id: int, db: Session = Depends(get_db), current: User = Depe
         project.archived_at = datetime.now(timezone.utc)
         db.commit()
         db.refresh(project)
-    return _project_out(project, db)
+    return project_summary(db, project)
 
 
 @router.get("/{id}/export")
@@ -197,7 +146,7 @@ def transfer_project_ownership(
     _require_owner_or_admin(project, current, db)
     transfer_ownership(db, project, body.new_owner_id)
     db.refresh(project)
-    return _project_out(project, db)
+    return project_summary(db, project)
 
 
 @router.post("/{id}/unarchive", response_model=ProjectOut)
@@ -210,7 +159,7 @@ def unarchive_project(id: int, db: Session = Depends(get_db), current: User = De
         project.archived_at = None
         db.commit()
         db.refresh(project)
-    return _project_out(project, db)
+    return project_summary(db, project)
 
 
 def _reject_if_archived(project: Project) -> None:
