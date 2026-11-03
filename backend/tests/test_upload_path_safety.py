@@ -8,7 +8,7 @@ import os
 
 import pytest
 
-from testjam.services.uploads import safe_filename, safe_join
+from testjam.services.uploads import safe_filename, safe_join, unique_path
 
 
 @pytest.mark.parametrize(
@@ -54,3 +54,34 @@ def test_bug_attachment_upload_strips_traversal(auth_client, project_id):
     assert response.status_code == 201
     body = response.json()
     assert body["filename"] == "secret.bin"
+
+
+def test_unique_path_keeps_destination_inside_directory(tmp_path):
+    target_directory = str(tmp_path)
+
+    destination = unique_path(target_directory, "../../escape.bin")
+
+    assert os.path.dirname(destination) == os.path.realpath(target_directory)
+
+
+def test_unique_path_differs_for_the_same_filename(tmp_path):
+    first = unique_path(str(tmp_path), "report.png")
+
+    second = unique_path(str(tmp_path), "report.png")
+
+    assert first != second
+
+
+def test_same_filename_does_not_overwrite_earlier_case_attachment(auth_client, case_ids):
+    case_id = case_ids[0]
+    first = auth_client.post(
+        f"/api/v1/cases/{case_id}/attachments", files={"file": ("log.txt", b"first", "text/plain")},
+    ).json()
+    auth_client.post(
+        f"/api/v1/cases/{case_id}/attachments", files={"file": ("log.txt", b"second", "text/plain")},
+    )
+
+    response = auth_client.get(f"/api/v1/cases/{case_id}/attachments/{first['id']}/download")
+
+    assert response.content == b"first"
+
