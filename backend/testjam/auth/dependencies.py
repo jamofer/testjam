@@ -1,8 +1,9 @@
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, APIKeyHeader
+from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from testjam.auth.security import decode_token, is_session_current
@@ -15,6 +16,7 @@ from testjam.services.permissions import VALID_ROLES, effective_role, is_project
 
 bearer_scheme = HTTPBearer(auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+TOKEN_LAST_USED_RESOLUTION = timedelta(minutes=1)
 
 
 @dataclass
@@ -40,11 +42,10 @@ def get_auth_context(
         token_hash = ApiToken.hash(api_key)
         token = db.query(ApiToken).filter(ApiToken.token_hash == token_hash).first()
         if token and not _is_token_expired(token):
-            token.last_used_at = datetime.now(timezone.utc)
-            db.commit()
             uid = token.user_id if token.user_id else token.created_by
             user = db.get(User, uid)
             if user and user.is_active and user.deleted_at is None:
+                _record_token_use(db, token)
                 return _build_context(user, project_scope=token.project_id, token_name=token.name)
 
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
@@ -179,7 +180,16 @@ def _reject_out_of_scope_token(ctx: AuthContext, project_id: int) -> None:
 def _is_token_expired(token: ApiToken) -> bool:
     if token.expires_at is None:
         return False
-    expires_at = token.expires_at
-    if expires_at.tzinfo is None:
-        expires_at = expires_at.replace(tzinfo=timezone.utc)
-    return expires_at <= datetime.now(timezone.utc)
+    return _as_utc(token.expires_at) <= datetime.now(timezone.utc)
+
+
+def _record_token_use(db: Session, token: ApiToken) -> None:
+    now = datetime.now(timezone.utc)
+    if token.last_used_at is not None and now - _as_utc(token.last_used_at) < TOKEN_LAST_USED_RESOLUTION:
+        return
+    db.execute(update(ApiToken).where(ApiToken.id == token.id).values(last_used_at=now))
+    db.commit()
+
+
+def _as_utc(moment: datetime) -> datetime:
+    return moment if moment.tzinfo is not None else moment.replace(tzinfo=timezone.utc)
