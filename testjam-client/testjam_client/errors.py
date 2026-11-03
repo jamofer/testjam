@@ -51,6 +51,20 @@ class ServerError(TestjamError):
     pass
 
 
+class Redirected(TestjamError):
+    """HTTP 3xx: the server lives at another URL, usually https instead of http.
+
+    Redirects are not followed because a redirected POST would lose its body;
+    point the client at ``location`` instead.
+    """
+
+    def __init__(self, status_code: int, location: str | None, response: Any = None) -> None:
+        self.location = location
+        super().__init__(
+            status_code, f"server redirected to {location}; use that URL as the base URL", response,
+        )
+
+
 _STATUS_MAP: dict[int, type[TestjamError]] = {
     401: Unauthorized,
     403: Forbidden,
@@ -64,6 +78,8 @@ _STATUS_MAP: dict[int, type[TestjamError]] = {
 
 def raise_for_status(response) -> None:
     """Raise the matching :class:`TestjamError` subclass for non-2xx responses."""
+    if 300 <= response.status_code < 400:
+        raise Redirected(response.status_code, response.headers.get("location"), response)
     if response.status_code < 400:
         return
     detail = _extract_detail(response)
