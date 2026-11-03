@@ -206,8 +206,10 @@ def list_bugs(
     if search:
         like = f"%{search.lower()}%"
         query = query.filter(func.lower(Bug.title).like(like))
-    order = _bug_sort_clause(sort_by)
-    rows = query.order_by(order).all()
+    query = query.order_by(_bug_sort_clause(sort_by))
+    if not tag and not cf_key:
+        return [_bug_out(bug) for bug in query.offset(skip).limit(limit).all()]
+    rows = query.all()
     if tag:
         rows = [bug for bug in rows if bug.tags and tag in bug.tags]
     if cf_key:

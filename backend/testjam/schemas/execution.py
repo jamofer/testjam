@@ -1,10 +1,14 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, computed_field
 from testjam.core.config import settings
 from testjam.schemas.testcase import AttachmentOut
 from testjam.schemas.user import UserOut
+
+
+ResultStatus = Literal["not_run", "running", "passed", "failed", "blocked"]
+ExecutionStatus = Literal["pending", "in_progress", "completed", "aborted"]
 
 
 class ExecutionAttachmentOut(BaseModel):
@@ -28,14 +32,14 @@ class ExecutionAttachmentOut(BaseModel):
 
 class TestStepResultCreate(BaseModel):
     step_id: int
-    status: str
+    status: ResultStatus
     comment: str | None = None
     log_output: str | None = None
     duration_ms: int | None = None
 
 
 class TestStepResultUpdate(BaseModel):
-    status: str | None = None
+    status: ResultStatus | None = None
     comment: str | None = None
     log_output: str | None = None
     duration_ms: int | None = None
@@ -73,7 +77,7 @@ class TestStepResultStartRunning(BaseModel):
 
 class TestResultCreate(BaseModel):
     test_case_id: int
-    status: str = "not_run"
+    status: ResultStatus = "not_run"
     comment: str | None = None
     executed_by: str | None = None
     executed_at: datetime | None = None
@@ -82,7 +86,7 @@ class TestResultCreate(BaseModel):
 
 
 class TestResultUpdate(BaseModel):
-    status: str | None = None
+    status: ResultStatus | None = None
     comment: str | None = None
     executed_by: str | None = None
     executed_at: datetime | None = None
@@ -143,7 +147,7 @@ class TestExecutionCreate(BaseModel):
 class TestExecutionUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
-    status: str | None = None
+    status: ExecutionStatus | None = None
     version: str | None = None
     version_id: int | None = None
     environment: str | None = None

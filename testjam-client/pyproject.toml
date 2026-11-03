@@ -47,6 +47,7 @@ dev = [
     "click-repl>=0.3",
     "platformdirs>=4.2",
     "tomli-w>=1.0",
+    "robotframework>=7.0",
 ]
 
 [project.scripts]

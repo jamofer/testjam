@@ -171,3 +171,27 @@ def test_bulk_results_rejected_on_terminal_execution(auth_client, project_with_c
     )
 
     assert resp.status_code == 409
+
+
+def test_unknown_result_status_is_rejected(auth_client, project_id, case_ids):
+    execution_id = auth_client.post(
+        f"/api/v1/projects/{project_id}/executions",
+        json={"title": "Run", "type": "manual", "test_case_ids": case_ids},
+    ).json()["id"]
+    [result] = auth_client.get(f"/api/v1/executions/{execution_id}/results").json()[:1]
+
+    response = auth_client.put(f"/api/v1/results/{result['id']}", json={"status": "banana"})
+
+    assert response.status_code == 422
+
+
+def test_unknown_execution_status_is_rejected(auth_client, project_id, case_ids):
+    execution_id = auth_client.post(
+        f"/api/v1/projects/{project_id}/executions",
+        json={"title": "Run", "type": "manual", "test_case_ids": case_ids},
+    ).json()["id"]
+
+    response = auth_client.put(f"/api/v1/executions/{execution_id}", json={"status": "banana"})
+
+    assert response.status_code == 422
+

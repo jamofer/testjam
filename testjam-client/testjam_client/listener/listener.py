@@ -16,7 +16,7 @@ from typing import Any
 import httpx
 
 from testjam_client import TestjamClient
-from testjam_client.errors import TestjamError
+from testjam_client.errors import Conflict, TestjamError
 from testjam_client.listener.circuit_breaker import NetworkCircuitBreaker
 from testjam_client.listener.log import format_log_line, isoformat_timestamp
 from testjam_client.listener.session_renewal import SessionRenewal
@@ -27,7 +27,8 @@ log = logging.getLogger("testjam.listener")
 API_ERRORS = (TestjamError, httpx.TransportError)
 MAX_CONSECUTIVE_NETWORK_FAILURES = 3
 NETWORK_RETRY_COOLDOWN_SECONDS = 60.0
-ARTEFACT_TYPES = {"log.html": "text/html", "output.xml": "application/xml"}
+# The API refuses text/html uploads; log.html is served as a download either way.
+ARTEFACT_TYPES = {"log.html": "application/octet-stream", "output.xml": "application/xml"}
 ABORT_MESSAGES = ("Execution terminated by signal", "Test execution stopped due to a fatal error")
 
 
@@ -99,7 +100,7 @@ class TestjamListener:
         self._suite_stack: list[tuple[int, str]] = []
         self._test: _TestState | None = None
         self._step: _StepState | None = None
-        self._keyword_depth = 0
+        self._body_depth = 0
 
     def start_suite(self, data: Any, _result: Any) -> None:
         if self._is_root_suite:
@@ -120,13 +121,13 @@ class TestjamListener:
 
     def start_test(self, data: Any, _result: Any) -> None:
         self._test = None
-        self._keyword_depth = 0
+        self._body_depth = 0
         suite_id, suite_path = self._suite_stack[-1] if self._suite_stack else (None, "")
         if suite_id is None:
             return
         try:
             self._test = self._begin_test(data, suite_id, suite_path)
-        except httpx.TransportError as exc:
+        except API_ERRORS as exc:
             log.warning("Skipping test %s: %s", data.name, exc)
 
     def _begin_test(self, data: Any, suite_id: int, suite_path: str) -> _TestState | None:
@@ -180,9 +181,14 @@ class TestjamListener:
             self._test = None
             self._step = None
 
-    def start_keyword(self, _data: Any, _result: Any) -> None:
-        self._keyword_depth += 1
-        if self._keyword_depth != 1:
+    def start_body_item(self, _data: Any, _result: Any) -> None:
+        """Track top-level items, each of which maps to one case step.
+
+        ``start_keyword`` would skip FOR and IF and fire for the keywords inside
+        them instead, shifting every later step.
+        """
+        self._body_depth += 1
+        if self._body_depth != 1:
             return
         test = self._test
         if test is None or test.step_cursor >= len(test.step_ids):
@@ -200,9 +206,9 @@ class TestjamListener:
             self._maybe_disable_streaming(exc)
             self._step = _StepState(step_result_id=0, step_id=step_id)
 
-    def end_keyword(self, _data: Any, result: Any) -> None:
-        depth = self._keyword_depth
-        self._keyword_depth = max(0, depth - 1)
+    def end_body_item(self, _data: Any, result: Any) -> None:
+        depth = self._body_depth
+        self._body_depth = max(0, depth - 1)
         if depth != 1:
             return
         test, step = self._test, self._step
@@ -378,8 +384,19 @@ def _find_or_create_case_by_external_id(
             external_id=external_id,
             description=description, tags=tags,
         )
-    except API_ERRORS:
-        return None
+    except Conflict:
+        return _find_case_created_concurrently(client, suite_id, name, external_id)
+
+
+def _find_case_created_concurrently(
+    client: TestjamClient, suite_id: int, name: str, external_id: str,
+) -> dict | None:
+    """A parallel worker won the race, or the name is taken under another identity."""
+    matches = (
+        client.cases.list(suite_id, external_id=external_id, include_archived=True)
+        or client.cases.list(suite_id, name=name, include_archived=True)
+    )
+    return matches[0] if matches else None
 
 
 def _refresh_case(
