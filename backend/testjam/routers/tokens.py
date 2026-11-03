@@ -1,9 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_unscoped_user, require_project_access
+from testjam.auth.dependencies import (
+    get_unscoped_user,
+    require_project_access,
+    require_project_owner,
+)
 from testjam.database import get_db
-from testjam.models.project import Project, ProjectMember
+from testjam.models.project import Project
 from testjam.models.token import ApiToken
 from testjam.models.user import User
 from testjam.schemas.token import ApiTokenCreate, ApiTokenCreated, ApiTokenOut
@@ -76,7 +80,7 @@ def list_project_tokens(
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    _require_owner(project, current, db)
+    require_project_owner(db, current, project.id)
     return db.query(ApiToken).filter(ApiToken.project_id == id).all()
 
 
@@ -90,7 +94,7 @@ def create_project_token(
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    _require_owner(project, current, db)
+    require_project_owner(db, current, project.id)
     clash = (
         db.query(ApiToken)
         .filter(ApiToken.project_id == id, ApiToken.name == body.name)
@@ -123,7 +127,7 @@ def rotate_project_token(
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    _require_owner(project, current, db)
+    require_project_owner(db, current, project.id)
     token = db.query(ApiToken).filter(ApiToken.id == token_id, ApiToken.project_id == id).first()
     if not token:
         raise HTTPException(status_code=404, detail="Token not found")
@@ -141,20 +145,13 @@ def revoke_project_token(
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    _require_owner(project, current, db)
+    require_project_owner(db, current, project.id)
     t = db.query(ApiToken).filter(ApiToken.id == token_id, ApiToken.project_id == id).first()
     if not t:
         raise HTTPException(status_code=404, detail="Token not found")
     db.delete(t)
     db.commit()
 
-
-def _require_owner(project: Project, current: User, db: Session) -> None:
-    if current.is_admin:
-        return
-    m = db.query(ProjectMember).filter_by(project_id=project.id, user_id=current.id).first()
-    if not m or m.role != "owner":
-        raise HTTPException(status_code=403, detail="Project owner or admin required")
 
 
 def _rotate_token(token: ApiToken, db: Session) -> str:

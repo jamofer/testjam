@@ -138,6 +138,16 @@ def require_project_writer(
         )
 
 
+def require_project_owner(db: Session, user: User, project_id: int) -> None:
+    """Raise 403 unless the user is admin or owns the project, directly or through a group."""
+    if user.is_admin or effective_role(db, user.id, project_id) == "owner":
+        return
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Project owner or admin required",
+    )
+
+
 def authorize_project(
     db: Session, ctx: AuthContext, project_id: int, roles: set[str] = VALID_ROLES,
 ) -> None:

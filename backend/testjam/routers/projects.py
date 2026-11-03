@@ -11,6 +11,7 @@ from testjam.auth.dependencies import (
     get_auth_context,
     get_unscoped_user,
     require_project_access,
+    require_project_owner,
 )
 from testjam.core.rate_limit import EXPORT_RATE_LIMIT, limiter
 from testjam.database import get_db
@@ -24,7 +25,7 @@ from testjam.schemas.project import (
     ProjectUpdate,
     TransferOwnershipRequest,
 )
-from testjam.services.permissions import OWNER_ROLES, accessible_project_ids, effective_role
+from testjam.services.permissions import OWNER_ROLES, accessible_project_ids
 from testjam.services.project_events import on_project_deleted
 from testjam.services.project_export import cleanup_archive, export_project
 from testjam.services.project_ownership import transfer_ownership
@@ -122,7 +123,7 @@ def archive_project(id: int, db: Session = Depends(get_db), current: User = Depe
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Not found")
-    _require_owner_or_admin(project, current, db)
+    require_project_owner(db, current, project.id)
     if project.archived_at is None:
         project.archived_at = datetime.now(UTC)
         db.commit()
@@ -157,7 +158,7 @@ def transfer_project_ownership(
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Not found")
-    _require_owner_or_admin(project, current, db)
+    require_project_owner(db, current, project.id)
     transfer_ownership(db, project, body.new_owner_id)
     db.refresh(project)
     return project_summary(db, project)
@@ -168,7 +169,7 @@ def unarchive_project(id: int, db: Session = Depends(get_db), current: User = De
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Not found")
-    _require_owner_or_admin(project, current, db)
+    require_project_owner(db, current, project.id)
     if project.archived_at is not None:
         project.archived_at = None
         db.commit()
@@ -180,10 +181,3 @@ def _reject_if_archived(project: Project) -> None:
     if project.archived_at is not None:
         raise HTTPException(status_code=409, detail="Project is archived")
 
-
-def _require_owner_or_admin(project: Project, current: User, db: Session) -> None:
-    if current.is_admin:
-        return
-    if effective_role(db, current.id, project.id) == "owner":
-        return
-    raise HTTPException(status_code=403, detail="Project owner or admin required")

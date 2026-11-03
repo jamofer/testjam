@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import require_project_access
+from testjam.auth.dependencies import require_project_access, require_project_owner
 from testjam.database import get_db
 from testjam.models.project import Project, ProjectMember
 from testjam.models.user import User
@@ -11,7 +11,6 @@ from testjam.schemas.members import (
     ProjectMemberOut,
     ProjectMemberUpdate,
 )
-from testjam.services.permissions import effective_role
 
 router = APIRouter(prefix="/projects/{id}/members", tags=["Members"])
 
@@ -26,13 +25,6 @@ def _out(m: ProjectMember) -> ProjectMemberOut:
         added_at=m.added_at,
     )
 
-
-def _require_owner(project: Project, current: User, db: Session) -> None:
-    if current.is_admin:
-        return
-    if effective_role(db, current.id, project.id) == "owner":
-        return
-    raise HTTPException(status_code=403, detail="Project owner or admin required")
 
 
 @router.get("", response_model=list[ProjectMemberOut])
@@ -53,7 +45,7 @@ def add_member(
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    _require_owner(project, current, db)
+    require_project_owner(db, current, project.id)
     if body.role not in VALID_ROLES:
         raise HTTPException(status_code=400, detail=f"Role must be one of: {', '.join(sorted(VALID_ROLES))}")
     user = db.get(User, body.user_id)
@@ -79,7 +71,7 @@ def update_member(
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    _require_owner(project, current, db)
+    require_project_owner(db, current, project.id)
     if body.role not in VALID_ROLES:
         raise HTTPException(status_code=400, detail=f"Role must be one of: {', '.join(sorted(VALID_ROLES))}")
     m = db.query(ProjectMember).filter_by(project_id=id, user_id=user_id).first()
@@ -101,7 +93,7 @@ def remove_member(
     project = db.get(Project, id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    _require_owner(project, current, db)
+    require_project_owner(db, current, project.id)
     m = db.query(ProjectMember).filter_by(project_id=id, user_id=user_id).first()
     if not m:
         raise HTTPException(status_code=404, detail="Member not found")
