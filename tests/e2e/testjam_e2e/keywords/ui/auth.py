@@ -5,7 +5,7 @@ from robot.libraries.BuiltIn import BuiltIn
 USERNAME_INPUT = 'input[name="username"]'
 PASSWORD_INPUT = 'input[name="password"]'
 SUBMIT_BUTTON = 'button[type="submit"]'
-LOGIN_ERROR_TEXT = "p.text-red-500"
+LOGIN_ERROR_TEXT = '[data-testid="login-error"]'
 PROJECTS_HEADER = 'h1:has-text("Projects")'
 TOKEN_STORAGE_KEY = "token"
 

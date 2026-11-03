@@ -118,6 +118,7 @@ function SortableCaseRow({ tc, suiteId, onDelete, selected, toggle, canWrite }) 
       </div>
       {canWrite && (
         <button
+          data-testid="delete-case"
           onClick={() => onDelete(tc)}
           className="opacity-0 group-hover:opacity-100 text-gray-400 dark:text-gray-500 hover:text-red-500 shrink-0">
           <Trash2 size={13} />
@@ -589,7 +590,7 @@ export function SuiteRow({ suite, projectId, dragHandleProps }) {
             <Plus size={13} /> {t("row.addCase")}
           </Button>
           {canWrite && (
-            <Button size="sm" variant="ghost" onClick={handleDeleteClick}>
+            <Button size="sm" variant="ghost" data-testid="delete-suite" onClick={handleDeleteClick}>
               <Trash2 size={13} />
             </Button>
           )}

@@ -61,6 +61,7 @@ function VersionRow({ version, projectId }) {
         </SelectContent>
       </Select>
       <button
+        data-testid="delete-version"
         onClick={() => deleteVersion.mutate(version.id, { onSuccess: () => toast.success(t("deleted")) })}
         className="text-gray-300 dark:text-gray-600 hover:text-red-500 shrink-0">
         <Trash2 size={13} />

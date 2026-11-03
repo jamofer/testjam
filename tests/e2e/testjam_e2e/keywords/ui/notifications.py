@@ -6,7 +6,7 @@ BELL_BUTTON = 'button[aria-haspopup="dialog"][aria-label^="Notifications"]'
 UNREAD_BADGE = '[data-testid="unread-badge"]'
 DRAWER = '[role="dialog"][aria-label="Notifications"]'
 DRAWER_ITEM = f'{DRAWER} ul > li'
-DRAWER_UNREAD = f'{DRAWER} ul > li[class*="rose-50"]'
+DRAWER_UNREAD = f'{DRAWER} ul > li[data-unread="true"]'
 MARK_ALL_BUTTON = f'{DRAWER} button:has-text("Mark all read")'
 
 

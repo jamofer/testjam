@@ -25,7 +25,7 @@ export function LoginPage() {
       <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 shadow-md rounded-xl p-8 w-80 space-y-4">
         <div className="flex justify-center pb-2"><Logo size={32} /></div>
         {login.isError && (
-          <p className="text-sm text-red-500" role="alert">
+          <p className="text-sm text-red-500" role="alert" data-testid="login-error">
             {loginErrorMessage(login.error)}
           </p>
         )}

@@ -21,7 +21,7 @@ def _case_row(name: str) -> str:
 
 
 def _case_delete(name: str) -> str:
-    return f'{_case_row(name)} button:last-child'
+    return f'{_case_row(name)} [data-testid="delete-case"]'
 
 
 class CasesUIMixin:

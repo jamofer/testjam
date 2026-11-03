@@ -495,15 +495,15 @@ export function ProfilePage() {
         <h2 className="font-semibold text-gray-700 dark:text-gray-200">{t("password.title")}</h2>
         <div className="space-y-1.5">
           <Label>{t("password.current")}</Label>
-          <Input type="password" value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} />
+          <Input type="password" data-testid="current-password" value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} />
         </div>
         <div className="space-y-1.5">
           <Label>{t("password.new")}</Label>
-          <Input type="password" value={newPassword} onChange={event => setNewPassword(event.target.value)} />
+          <Input type="password" data-testid="new-password" value={newPassword} onChange={event => setNewPassword(event.target.value)} />
         </div>
         <div className="space-y-1.5">
           <Label>{t("password.confirm")}</Label>
-          <Input type="password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} />
+          <Input type="password" data-testid="confirm-password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} />
         </div>
         <Button type="submit" loading={changePassword.isPending}>{t("password.submit")}</Button>
       </form>

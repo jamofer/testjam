@@ -526,9 +526,9 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
               )}
             </div>
             <div className="flex items-center gap-3 mt-1.5 text-sm">
-              <span className="text-green-600 font-medium">✓ {t("run.passed", { count: summary.passed ?? 0 })}</span>
-              <span className="text-red-500 font-medium">✗ {t("run.failed", { count: summary.failed ?? 0 })}</span>
-              <span className="text-yellow-600 font-medium">⚠ {t("run.blocked", { count: summary.blocked ?? 0 })}</span>
+              <span data-testid="run-summary-passed" className="text-green-600 font-medium">✓ {t("run.passed", { count: summary.passed ?? 0 })}</span>
+              <span data-testid="run-summary-failed" className="text-red-500 font-medium">✗ {t("run.failed", { count: summary.failed ?? 0 })}</span>
+              <span data-testid="run-summary-blocked" className="text-yellow-600 font-medium">⚠ {t("run.blocked", { count: summary.blocked ?? 0 })}</span>
               <span className="text-gray-400 dark:text-gray-500">— {t("run.notRun", { count: summary.not_run ?? 0 })}</span>
             </div>
           </div>
