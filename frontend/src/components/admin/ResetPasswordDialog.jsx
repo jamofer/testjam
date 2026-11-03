@@ -7,6 +7,7 @@ import { Copy } from "lucide-react"
 import { usersApi } from "../../api/users"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog"
+import { toastApiError } from "../../lib/apiError"
 
 export function ResetPasswordDialog({ user, onClose }) {
   const { t } = useTranslation("admin")
@@ -23,7 +24,7 @@ export function ResetPasswordDialog({ user, onClose }) {
         toast.success(t("users.resetPassword.emailQueued"))
       }
     },
-    onError: () => toast.error(t("users.resetPassword.failed")),
+    onError: (error) => toastApiError(error, t("users.resetPassword.failed")),
   })
 
   const copy = () => {

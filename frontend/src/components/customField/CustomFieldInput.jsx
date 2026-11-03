@@ -7,6 +7,7 @@ import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { useCustomFields } from "../../hooks/useCustomFields"
+import { toastApiError } from "../../lib/apiError"
 
 const NONE_VALUE = "__none__"
 
@@ -177,7 +178,7 @@ export function CustomFieldsEditableBody({ projectId, entityType, values, onSave
                 toast.success(t("toast.updated"))
                 setEditing(false)
               } catch (error) {
-                toast.error(error?.response?.data?.detail ?? "Failed")
+                toastApiError(error, "Failed")
               }
             }}
           >

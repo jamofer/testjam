@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { projectGroupsApi } from "../../api/projectGroups"
 import { Button } from "../ui/button"
 import { EmptyState } from "../ui/empty-state"
+import { toastApiError } from "../../lib/apiError"
 
 const ROLES = ["owner", "tester", "viewer"]
 const ROLE_BADGE = {
@@ -35,17 +36,17 @@ export function ProjectGroupsSection({ projectId }) {
   const add = useMutation({
     mutationFn: ({ groupId, role }) => projectGroupsApi.add(projectId, groupId, role),
     onSuccess: () => { invalidate(); toast.success(t("groups.assigned")) },
-    onError: (error) => toast.error(error?.response?.data?.detail ?? t("groups.assignFailed")),
+    onError: (error) => toastApiError(error, t("groups.assignFailed")),
   })
   const update = useMutation({
     mutationFn: ({ groupId, role }) => projectGroupsApi.update(projectId, groupId, role),
     onSuccess: invalidate,
-    onError: () => toast.error(t("groups.roleFailed")),
+    onError: (error) => toastApiError(error, t("groups.roleFailed")),
   })
   const remove = useMutation({
     mutationFn: (groupId) => projectGroupsApi.remove(projectId, groupId),
     onSuccess: () => { invalidate(); toast.success(t("groups.removed")) },
-    onError: () => toast.error(t("groups.removeFailed")),
+    onError: (error) => toastApiError(error, t("groups.removeFailed")),
   })
 
   const assignedIds = new Set(assignments.map(assignment => assignment.group_id))

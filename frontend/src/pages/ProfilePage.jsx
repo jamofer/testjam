@@ -19,6 +19,7 @@ import { useLocale } from "../hooks/useLocale"
 import { SUPPORTED_LOCALES } from "../i18n"
 import { Trash2, Plus, Key, Copy, Eye, EyeOff, Clock, Bell, AlertTriangle, Globe, Palette, Sun, Moon, Monitor, Languages } from "lucide-react"
 import { toast } from "sonner"
+import { toastApiError } from "../lib/apiError"
 
 function fmtDate(iso, fallback) {
   if (!iso) return fallback
@@ -61,8 +62,8 @@ function UserTokensSection() {
       const created = await create.mutateAsync({ name: name.trim() })
       setNewToken(created.token)
       setName("")
-    } catch {
-      toast.error(t("tokens.createFailed"))
+    } catch (error) {
+      toastApiError(error, t("tokens.createFailed"))
     }
   }
 
@@ -70,8 +71,8 @@ function UserTokensSection() {
     try {
       await revoke.mutateAsync(id)
       toast.success(t("tokens.revoked"))
-    } catch {
-      toast.error(t("tokens.revokeFailed"))
+    } catch (error) {
+      toastApiError(error, t("tokens.revokeFailed"))
     }
   }
 
@@ -148,7 +149,7 @@ function DatePreferencesSection() {
       await updateMe.mutateAsync({ timezone, use_relative_dates: useRelative })
       toast.success(t("dates.saved"))
     } catch (err) {
-      toast.error(err?.response?.data?.detail ?? t("dates.saveFailed"))
+      toastApiError(err, t("dates.saveFailed"))
     }
   }
 
@@ -319,8 +320,8 @@ function NotificationPreferencesSection() {
         email: next.email,
       })
       toast.success(t("notifications.saved"))
-    } catch {
-      toast.error(t("notifications.saveFailed"))
+    } catch (error) {
+      toastApiError(error, t("notifications.saveFailed"))
     }
   }
 
@@ -436,7 +437,7 @@ export function ProfilePage() {
       setNewPassword("")
       setConfirmPassword("")
     } catch (err) {
-      toast.error(err?.response?.data?.detail ?? t("password.failed"))
+      toastApiError(err, t("password.failed"))
     }
   }
 

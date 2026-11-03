@@ -23,6 +23,7 @@ import { LiveIndicator } from "../components/ui/live-indicator"
 import { SkeletonList } from "../components/ui/skeleton"
 import { EnvironmentBadge } from "../components/environment/EnvironmentBadge"
 import { ImportExecutionDialog } from "../components/execution/ImportExecutionDialog"
+import { toastApiError } from "../lib/apiError"
 
 const statusIcon = {
   completed:  <CheckCircle2 size={15} className="text-green-500" />,
@@ -79,8 +80,8 @@ export function ExecutionsPage() {
     try {
       await deleteExecution.mutateAsync(executionPendingDelete.id)
       toast.success(t("deleted"))
-    } catch {
-      toast.error(t("deleteFailed"))
+    } catch (error) {
+      toastApiError(error, t("deleteFailed"))
     } finally {
       setExecutionPendingDelete(null)
     }

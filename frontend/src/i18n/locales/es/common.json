@@ -38,6 +38,7 @@
     "goToProjects": "Ir a proyectos",
     "queryTitle": "No se pudo cargar esta sección",
     "queryDescription": "La petición falló. Comprueba tu conexión o reintenta.",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "requestFailed": "Algo ha fallado. Inténtalo de nuevo."
   }
 }

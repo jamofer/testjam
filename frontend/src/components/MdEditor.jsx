@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react"
-import { toast } from "sonner"
 
 import { useTheme } from "../hooks/useTheme"
 import { api } from "../api/client"
@@ -12,6 +11,7 @@ import {
 import { MentionAutocomplete } from "./mention/MentionAutocomplete"
 import { MentionResolveProvider } from "./mention/MentionResolveContext"
 import { rehypeMentions } from "../lib/mentions/rehypeMentions"
+import { toastApiError } from "../lib/apiError"
 
 // `@uiw/react-md-editor` ships ~400 KB (Monaco-like editor + markdown deps).
 // Lazy-load so it stays out of the initial bundle and only ships when a page
@@ -126,8 +126,8 @@ function AuthenticatedLink({ href, children, ...props }) {
       const response = await api.get(parsed.pathname + parsed.search, { responseType: "blob" })
       const fallback = parsed.pathname.split("/").pop() || "download"
       downloadBlob(response.data, fallback)
-    } catch {
-      toast.error("Download failed")
+    } catch (error) {
+      toastApiError(error, "Download failed")
     }
   }
   return <a href={href} {...props} onClick={handleClick}>{children}</a>

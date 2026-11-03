@@ -7,6 +7,7 @@ import { adminApi } from "../../api/admin"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog"
 import { Label } from "../ui/label"
+import { toastApiError } from "../../lib/apiError"
 
 export function TransferOwnershipDialog({ project, users, onClose }) {
   const { t } = useTranslation("admin")
@@ -21,7 +22,7 @@ export function TransferOwnershipDialog({ project, users, onClose }) {
       toast.success(t("projects.transfer.transferred"))
       onClose()
     },
-    onError: () => toast.error(t("projects.transfer.transferFailed")),
+    onError: (error) => toastApiError(error, t("projects.transfer.transferFailed")),
   })
 
   return (

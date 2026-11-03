@@ -38,6 +38,7 @@
     "goToProjects": "Go to projects",
     "queryTitle": "Couldn't load this section",
     "queryDescription": "The request failed. Check your connection or try again.",
-    "retry": "Retry"
+    "retry": "Retry",
+    "requestFailed": "Something went wrong. Please try again."
   }
 }

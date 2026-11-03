@@ -25,6 +25,7 @@ import { CustomFieldColumnToggle } from "../components/customField/CustomFieldCo
 import { CustomFieldValue } from "../components/customField/CustomFieldInput"
 import { useCustomFieldColumns } from "../hooks/useCustomFieldColumns"
 import { toast } from "sonner"
+import { toastApiError } from "../lib/apiError"
 
 function buildShortcutSections(t) {
   return [
@@ -81,8 +82,8 @@ function ExportProjectButton({ projectId }) {
     try {
       await projectsApi.exportZip(projectId)
       toast.success(t("exported"))
-    } catch {
-      toast.error(t("exportFailed"))
+    } catch (error) {
+      toastApiError(error, t("exportFailed"))
     } finally {
       setDownloading(false)
     }

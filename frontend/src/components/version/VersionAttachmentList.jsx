@@ -11,6 +11,7 @@ import { versionsApi } from "../../api/versions"
 import { Button } from "../ui/button"
 import { EmptyState } from "../ui/empty-state"
 import { SkeletonList } from "../ui/skeleton"
+import { toastApiError } from "../../lib/apiError"
 
 export function VersionAttachmentList({ versionId }) {
   const { t } = useTranslation("versions")
@@ -24,8 +25,8 @@ export function VersionAttachmentList({ versionId }) {
     try {
       await uploadAttachment.mutateAsync(file)
       toast.success(t("attachments.uploaded", { name: file.name }))
-    } catch {
-      toast.error(t("attachments.uploadFailed"))
+    } catch (error) {
+      toastApiError(error, t("attachments.uploadFailed"))
     }
   }
 
@@ -46,8 +47,8 @@ export function VersionAttachmentList({ versionId }) {
     try {
       await deleteAttachment.mutateAsync(attachment.id)
       toast.success(t("attachments.deleted"))
-    } catch {
-      toast.error(t("attachments.deleteFailed"))
+    } catch (error) {
+      toastApiError(error, t("attachments.deleteFailed"))
     }
   }
 

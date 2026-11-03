@@ -18,6 +18,7 @@ import { CasePicker } from "../components/ui/case-picker"
 import { EnvironmentPicker } from "../components/environment/EnvironmentPicker"
 import { CustomFieldsForm } from "../components/customField/CustomFieldInput"
 import { toast } from "sonner"
+import { toastApiError } from "../lib/apiError"
 
 export function NewExecutionPage() {
   const { t } = useTranslation(["executions", "nav", "customFields"])
@@ -82,8 +83,8 @@ export function NewExecutionPage() {
       const execution = await createExecution.mutateAsync(payload)
       toast.success(t("new.created"))
       navigate(`/executions/${execution.id}/run`)
-    } catch {
-      toast.error(t("new.createFailed"))
+    } catch (error) {
+      toastApiError(error, t("new.createFailed"))
     }
   }
 

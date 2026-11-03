@@ -22,6 +22,7 @@ import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { Textarea } from "../ui/textarea"
+import { toastApiError } from "../../lib/apiError"
 
 const ENTITY_TYPES = ["bug", "test_case", "execution"]
 const FIELD_TYPES = ["text", "number", "bool", "single_select", "multi_select", "date"]
@@ -165,7 +166,7 @@ function DefinitionRow({ definition, projectId, dragHandleProps }) {
   const handleDelete = () => {
     remove.mutate(definition.id, {
       onSuccess: () => toast.success(t("toast.deleted")),
-      onError: () => toast.error(t("toast.deleteFailed")),
+      onError: (error) => toastApiError(error, t("toast.deleteFailed")),
     })
   }
 
@@ -267,7 +268,7 @@ function CreateFieldDialog({ open, onOpenChange, projectId, defaultEntityType, o
       reset()
       onCreated()
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("errors.duplicateKey"))
+      toastApiError(error, t("errors.duplicateKey"))
     }
   }
 

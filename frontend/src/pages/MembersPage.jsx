@@ -12,6 +12,7 @@ import { EmptyState } from "../components/ui/empty-state"
 import { ErrorState } from "../components/ui/error-state"
 import { ProjectGroupsSection } from "../components/project/ProjectGroupsSection"
 import { toast } from "sonner"
+import { toastApiError } from "../lib/apiError"
 
 const ROLES = ["owner", "tester", "viewer"]
 
@@ -52,15 +53,15 @@ export function MembersPage() {
       setSelectedUserId("")
       toast.success(t("member.added"))
     } catch (err) {
-      toast.error(err?.response?.data?.detail ?? t("member.addFailed"))
+      toastApiError(err, t("member.addFailed"))
     }
   }
 
   const handleRoleChange = async (userId, role) => {
     try {
       await updateMember.mutateAsync({ userId, data: { role } })
-    } catch {
-      toast.error(t("member.roleFailed"))
+    } catch (error) {
+      toastApiError(error, t("member.roleFailed"))
     }
   }
 
@@ -68,8 +69,8 @@ export function MembersPage() {
     try {
       await removeMember.mutateAsync(userId)
       toast.success(t("member.removed"))
-    } catch {
-      toast.error(t("member.removeFailed"))
+    } catch (error) {
+      toastApiError(error, t("member.removeFailed"))
     }
   }
 

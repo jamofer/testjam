@@ -9,6 +9,7 @@ import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { toastApiError } from "../../lib/apiError"
 
 export function AddBugLinkDialog({ bugId, projectId, trigger }) {
   const { t } = useTranslation("bugs")
@@ -42,7 +43,7 @@ export function AddBugLinkDialog({ bugId, projectId, trigger }) {
       setOpen(false)
       reset()
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? "Failed")
+      toastApiError(error, "Failed")
     }
   }
 

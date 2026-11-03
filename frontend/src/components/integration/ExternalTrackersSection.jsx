@@ -18,6 +18,7 @@ import { Label } from "../ui/label"
 import { NewIntegrationDialog } from "./NewIntegrationDialog"
 import { RotateCredentialDialog } from "./RotateCredentialDialog"
 import { StatusMappingDialog } from "./StatusMappingDialog"
+import { toastApiError } from "../../lib/apiError"
 
 
 export function ExternalTrackersSection({ projectId }) {
@@ -94,7 +95,7 @@ function TrackerRow({ integration, onDelete, onRotate, onEditMapping }) {
       await test.mutateAsync(integration.id)
       toast.success(t("trackers.testOk"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("trackers.testFailed"))
+      toastApiError(error, t("trackers.testFailed"))
     }
   }
   const slug = slugForConfig(integration)
@@ -170,7 +171,7 @@ function DeleteTrackerDialog({ projectId, integration, onClose }) {
       toast.success(t("trackers.deleted"))
       onClose()
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("trackers.deleteFailed"))
+      toastApiError(error, t("trackers.deleteFailed"))
     }
   }
   return (

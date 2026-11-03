@@ -15,6 +15,7 @@ import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { Textarea } from "../ui/textarea"
 import { EmptyState } from "../ui/empty-state"
+import { toastApiError } from "../../lib/apiError"
 
 export function GeneralTab({ projectId, project }) {
   const { t } = useTranslation("projectSettings")
@@ -67,7 +68,7 @@ function ProjectInfoSection({ projectId, project }) {
       await update.mutateAsync({ id: projectId, data: { name: name.trim(), description } })
       toast.success(t("general.form.saved"))
     } catch (err) {
-      toast.error(err?.response?.data?.detail ?? t("general.form.saveFailed"))
+      toastApiError(err, t("general.form.saveFailed"))
     }
   }
 
@@ -116,8 +117,8 @@ function ExportSection({ projectId }) {
     setBusy(true)
     try {
       await projectsApi.exportZip(projectId)
-    } catch {
-      toast.error(t("general.form.saveFailed"))
+    } catch (error) {
+      toastApiError(error, t("general.form.saveFailed"))
     } finally {
       setBusy(false)
     }
@@ -176,8 +177,8 @@ function TokensSection({ projectId }) {
       const created = await create.mutateAsync({ name: name.trim() })
       setNewToken(created.token)
       setName("")
-    } catch {
-      toast.error(t("members:tokens.createFailed"))
+    } catch (error) {
+      toastApiError(error, t("members:tokens.createFailed"))
     }
   }
 
@@ -185,8 +186,8 @@ function TokensSection({ projectId }) {
     try {
       await revoke.mutateAsync(tokenId)
       toast.success(t("members:tokens.revoked"))
-    } catch {
-      toast.error(t("members:tokens.revokeFailed"))
+    } catch (error) {
+      toastApiError(error, t("members:tokens.revokeFailed"))
     }
   }
 

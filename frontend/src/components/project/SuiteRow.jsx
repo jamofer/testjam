@@ -25,6 +25,7 @@ import { toast } from "sonner"
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
+import { toastApiError } from "../../lib/apiError"
 
 function AddCaseInline({ suiteId, onDone }) {
   const { t } = useTranslation("suites")
@@ -167,7 +168,7 @@ function CaseList({ suiteId }) {
       await deleteCase.mutateAsync(casePendingDelete.id)
       toast.success(t("row.caseDeleted"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("row.caseDeleteFailed"))
+      toastApiError(error, t("row.caseDeleteFailed"))
     } finally {
       setCasePendingDelete(null)
     }
@@ -180,8 +181,8 @@ function CaseList({ suiteId }) {
       await bulkDelete.mutateAsync(ids)
       toast.success(t("row.bulkDeleted", { count: ids.length }))
       clear()
-    } catch {
-      toast.error(t("row.bulkDeleteFailed"))
+    } catch (error) {
+      toastApiError(error, t("row.bulkDeleteFailed"))
     } finally {
       setBulkDeleteOpen(false)
     }
@@ -194,8 +195,8 @@ function CaseList({ suiteId }) {
       toast.success(t("row.addedToPlan", { count: selected.size }))
       setPlanId("")
       clear()
-    } catch {
-      toast.error(t("row.addToPlanFailed"))
+    } catch (error) {
+      toastApiError(error, t("row.addToPlanFailed"))
     }
   }
 
@@ -531,7 +532,7 @@ export function SuiteRow({ suite, projectId, dragHandleProps }) {
         toast.success(t("archived"))
         setConfirmOpen(false)
       },
-      onError: () => toast.error(t("archiveFailed")),
+      onError: (error) => toastApiError(error, t("archiveFailed")),
     })
   }
   const handleDeleteConfirmed = () => {
@@ -719,7 +720,7 @@ function BulkCopyDialog({ open, onOpenChange, caseIds, currentSuiteId, suites, b
       toast.success(t("row.bulkCopySuccess", { count: caseIds.length }))
       onSuccess()
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("row.bulkCopyFailed"))
+      toastApiError(error, t("row.bulkCopyFailed"))
     }
   }
 

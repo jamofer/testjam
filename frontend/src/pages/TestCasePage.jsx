@@ -23,6 +23,7 @@ import { ContextPanel } from "../components/ui/context-panel"
 import { CustomFieldsEditableBody } from "../components/customField/CustomFieldInput"
 import { fmtDateTime } from "../lib/format"
 import { toast } from "sonner"
+import { toastApiError } from "../lib/apiError"
 
 export function TestCasePage() {
   const { t } = useTranslation(["cases", "nav", "customFields"])
@@ -305,7 +306,7 @@ function CopyCaseDialog({ open, onOpenChange, caseId, caseName, currentSuiteId, 
       toast.success(t("copy.success"))
       onOpenChange(false)
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("copy.failed"))
+      toastApiError(error, t("copy.failed"))
     }
   }
 

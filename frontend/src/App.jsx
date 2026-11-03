@@ -5,6 +5,8 @@ import { Toaster } from "sonner"
 
 import { AppLayout } from "./components/layout/AppLayout"
 import { AuthRedirector } from "./components/AuthRedirector"
+import i18n from "./i18n"
+import { toastApiError } from "./lib/apiError"
 
 const LoginPage = lazy(() => import("./pages/LoginPage").then(m => ({ default: m.LoginPage })))
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage").then(m => ({ default: m.ForgotPasswordPage })))
@@ -43,10 +45,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: { staleTime: 30_000, retry: 1 },
     mutations: {
-      onError: (err) => {
-        const msg = err?.response?.data?.detail ?? "Something went wrong"
-        import("sonner").then(({ toast }) => toast.error(msg))
-      },
+      onError: (error) => toastApiError(error, i18n.t("common:errors.requestFailed")),
     },
   },
 })

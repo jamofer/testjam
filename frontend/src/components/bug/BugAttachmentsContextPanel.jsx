@@ -11,6 +11,7 @@ import {
 } from "../../hooks/useBugs"
 import { bugsApi } from "../../api/bugs"
 import { fmtBytes } from "../../lib/format"
+import { toastApiError } from "../../lib/apiError"
 
 export function BugAttachmentsContextPanel({ bugId }) {
   const { t } = useTranslation("bugs")
@@ -28,7 +29,7 @@ export function BugAttachmentsContextPanel({ bugId }) {
       { id: bugId, file },
       {
         onError: (error) =>
-          toast.error(error?.response?.data?.detail ?? t("attachments.uploadFailed")),
+          toastApiError(error, t("attachments.uploadFailed")),
       },
     )
   }
@@ -37,8 +38,8 @@ export function BugAttachmentsContextPanel({ bugId }) {
     setBusyAttachmentId(attachment.id)
     try {
       await bugsApi.downloadAttachment(bugId, attachment.id, attachment.filename)
-    } catch {
-      toast.error(t("attachments.downloadFailed"))
+    } catch (error) {
+      toastApiError(error, t("attachments.downloadFailed"))
     } finally {
       setBusyAttachmentId(null)
     }
@@ -49,8 +50,8 @@ export function BugAttachmentsContextPanel({ bugId }) {
     try {
       await navigator.clipboard.writeText(absoluteUrl)
       toast.success(t("attachments.urlCopied"))
-    } catch {
-      toast.error(t("attachments.copyFailed"))
+    } catch (error) {
+      toastApiError(error, t("attachments.copyFailed"))
     }
   }
 
@@ -62,8 +63,8 @@ export function BugAttachmentsContextPanel({ bugId }) {
     try {
       await navigator.clipboard.writeText(markdown)
       toast.success(t("attachments.markdownCopied"))
-    } catch {
-      toast.error(t("attachments.copyFailed"))
+    } catch (error) {
+      toastApiError(error, t("attachments.copyFailed"))
     }
   }
 
@@ -72,7 +73,7 @@ export function BugAttachmentsContextPanel({ bugId }) {
       { bugId, attachmentId: attachment.id },
       {
         onError: (error) =>
-          toast.error(error?.response?.data?.detail ?? t("attachments.deleteFailed")),
+          toastApiError(error, t("attachments.deleteFailed")),
       },
     )
   }

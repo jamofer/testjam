@@ -31,6 +31,7 @@ import { CustomFieldValue } from "../components/customField/CustomFieldInput"
 import { useCustomFieldColumns } from "../hooks/useCustomFieldColumns"
 import { PublicReportDialog } from "../components/share/PublicReportDialog"
 import { SEVERITY_VARIANT, STATUS_VARIANT } from "../lib/bugConfig"
+import { toastApiError } from "../lib/apiError"
 
 const STATUS_OPTIONS = ["any", "open", "in_progress", "resolved", "closed", "wont_fix", "not_a_bug"]
 const SEVERITY_OPTIONS = ["any", "critical", "high", "medium", "low"]
@@ -124,7 +125,7 @@ export function BugsPage() {
       await deleteBug.mutateAsync(bugPendingDelete.id)
       toast.success(t("toast.deleted"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("toast.reportFailed"))
+      toastApiError(error, t("toast.reportFailed"))
     } finally {
       setBugPendingDelete(null)
     }
@@ -134,7 +135,7 @@ export function BugsPage() {
     try {
       await bugsApi.exportHtml(projectId, project?.name)
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("toast.reportFailed"))
+      toastApiError(error, t("toast.reportFailed"))
     }
   }
 
@@ -142,7 +143,7 @@ export function BugsPage() {
     try {
       await bugsApi.releaseNotesHtml(projectId, project?.name)
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("toast.reportFailed"))
+      toastApiError(error, t("toast.reportFailed"))
     }
   }
 
@@ -151,7 +152,7 @@ export function BugsPage() {
       const { exportBugsPdf } = await import("../lib/exportPdf")
       exportBugsPdf(filtered, project?.name, { username: me?.username, timezone: me?.timezone })
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("toast.reportFailed"))
+      toastApiError(error, t("toast.reportFailed"))
     }
   }
 
