@@ -13,6 +13,7 @@ import { STATUS_CONFIG } from "../../lib/statusConfig"
 import { fmtDuration, fmtTime } from "../../lib/format"
 import { StepsSection } from "./StepsSection"
 import { toast } from "sonner"
+import { toastApiError } from "../../lib/apiError"
 
 const KEEP_OPEN_STATUSES = new Set(["running", "failed", "blocked"])
 
@@ -101,8 +102,8 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
       }
       qc.invalidateQueries({ queryKey: ["results", executionId] })
       qc.invalidateQueries({ queryKey: ["executions", executionId] })
-    } catch {
-      toast.error(t("run.updateStepFailed"))
+    } catch (error) {
+      toastApiError(error, t("run.updateStepFailed"))
     }
   }
 
@@ -119,16 +120,16 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
         })
       }
       qc.invalidateQueries({ queryKey: ["results", executionId] })
-    } catch {
-      toast.error(t("run.saveNoteFailed"))
+    } catch (error) {
+      toastApiError(error, t("run.saveNoteFailed"))
     }
   }
 
   const saveComment = async () => {
     try {
       await updateResult.mutateAsync({ id: result.id, data: { comment } })
-    } catch {
-      toast.error(t("run.saveCommentFailed"))
+    } catch (error) {
+      toastApiError(error, t("run.saveCommentFailed"))
     }
   }
 
@@ -139,8 +140,8 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
       await executionsApi.uploadResultAttachment(result.id, file)
       qc.invalidateQueries({ queryKey: ["results", executionId] })
       toast.success(t("run.attachedSuccess", { name: file.name }))
-    } catch {
-      toast.error(t("run.uploadFailed"))
+    } catch (error) {
+      toastApiError(error, t("run.uploadFailed"))
     }
     event.target.value = ""
   }
@@ -150,8 +151,8 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
       await executionsApi.deleteResultAttachment(result.id, attachmentId)
       qc.invalidateQueries({ queryKey: ["results", executionId] })
       toast.success(t("run.attachmentDeleted"))
-    } catch {
-      toast.error(t("run.attachmentDeleteFailed"))
+    } catch (error) {
+      toastApiError(error, t("run.attachmentDeleteFailed"))
     }
   }
 

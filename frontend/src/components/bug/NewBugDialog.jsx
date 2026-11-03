@@ -15,6 +15,7 @@ import { Badge } from "../ui/badge"
 import { EnvironmentPicker } from "../environment/EnvironmentPicker"
 import { CustomFieldsForm } from "../customField/CustomFieldInput"
 import { SEVERITIES, SEVERITY_VARIANT } from "../../lib/bugConfig"
+import { toastApiError } from "../../lib/apiError"
 
 const VERSION_NONE = "__none__"
 
@@ -69,7 +70,7 @@ export function NewBugDialog({ projectId, trigger, prefill = {}, onCreated }) {
       reset()
       if (onCreated) onCreated(created)
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? "Could not create bug")
+      toastApiError(error, "Could not create bug")
     }
   }
 

@@ -14,6 +14,7 @@ import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { EmptyState } from "../ui/empty-state"
+import { toastApiError } from "../../lib/apiError"
 
 const DEFAULT_COLOR = "#10b981"
 const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/
@@ -49,10 +50,7 @@ function EnvironmentRow({ environment, projectId }) {
   const handleDelete = () =>
     remove.mutate(environment.id, {
       onSuccess: () => toast.success(t("toast.deleted")),
-      onError: error => {
-        const detail = error?.response?.data?.detail
-        toast.error(detail ?? t("toast.deleteFailed"))
-      },
+      onError: error => toastApiError(error, t("toast.deleteFailed")),
     })
 
   const swatch = environment.color ?? "#9ca3af"

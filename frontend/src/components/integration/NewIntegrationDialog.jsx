@@ -9,6 +9,7 @@ import { Label } from "../ui/label"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 
 import { PROVIDER_FIELDS, buildProviderConfig } from "./providerSchemas"
+import { toastApiError } from "../../lib/apiError"
 
 
 export function NewIntegrationDialog({ projectId, onClose }) {
@@ -39,7 +40,7 @@ export function NewIntegrationDialog({ projectId, onClose }) {
       toast.success(t("trackers.created"))
       onClose()
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("trackers.createFailed"))
+      toastApiError(error, t("trackers.createFailed"))
     }
   }
 

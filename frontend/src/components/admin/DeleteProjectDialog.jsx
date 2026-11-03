@@ -8,6 +8,7 @@ import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
+import { toastApiError } from "../../lib/apiError"
 
 export function DeleteProjectDialog({ project, onClose }) {
   const { t } = useTranslation("admin")
@@ -22,7 +23,7 @@ export function DeleteProjectDialog({ project, onClose }) {
       toast.success(t("projects.deleteDialog.deleted"))
       onClose()
     },
-    onError: () => toast.error(t("projects.deleteDialog.deleteFailed")),
+    onError: (error) => toastApiError(error, t("projects.deleteDialog.deleteFailed")),
   })
 
   const matches = confirmation.trim() === project.name

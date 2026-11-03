@@ -9,6 +9,7 @@ import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
+import { toastApiError } from "../../lib/apiError"
 
 
 const NORMALIZED_VALUES = ["open", "closed", "unknown"]
@@ -41,7 +42,7 @@ export function StatusMappingDialog({ projectId, integration, onClose }) {
       toast.success(t("statusMapping.saved"))
       onClose()
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("statusMapping.saveFailed"))
+      toastApiError(error, t("statusMapping.saveFailed"))
     }
   }
 

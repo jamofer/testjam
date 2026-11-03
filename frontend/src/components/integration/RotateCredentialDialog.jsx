@@ -7,6 +7,7 @@ import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
+import { toastApiError } from "../../lib/apiError"
 
 
 export function RotateCredentialDialog({ projectId, integration, onClose }) {
@@ -20,7 +21,7 @@ export function RotateCredentialDialog({ projectId, integration, onClose }) {
       toast.success(t("trackers.rotated"))
       onClose()
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("trackers.rotateFailed"))
+      toastApiError(error, t("trackers.rotateFailed"))
     }
   }
   return (

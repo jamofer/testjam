@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { EnvironmentPicker } from "../environment/EnvironmentPicker"
+import { toastApiError } from "../../lib/apiError"
 
 const FORMAT_VALUES = [
   { value: "junit", labelKey: "import.junit", accept: ".xml" },
@@ -62,7 +63,7 @@ export function ImportExecutionDialog({ projectId }) {
       navigate(`/executions/${execution.id}/run`)
     },
     onError: (error) => {
-      toast.error(t("import.failed", { message: error?.response?.data?.detail ?? error.message }))
+      toastApiError(error, error.message, message => t("import.failed", { message }))
     },
   })
 

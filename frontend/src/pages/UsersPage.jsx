@@ -17,6 +17,7 @@ import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs"
 import { ErrorState } from "../components/ui/error-state"
+import { toastApiError } from "../lib/apiError"
 
 export function UsersPage() {
   const { t } = useTranslation("admin")
@@ -38,7 +39,7 @@ export function UsersPage() {
   const restoreUser = useMutation({
     mutationFn: usersApi.restore,
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["users"] }); toast.success(t("users.restored")) },
-    onError: () => toast.error(t("users.restoreFailed")),
+    onError: (error) => toastApiError(error, t("users.restoreFailed")),
   })
 
   const deleteGroup = useMutation({
@@ -341,7 +342,7 @@ function CreateUserDialog() {
       setOpen(false)
       setForm({ username: "", email: "", password: "", full_name: "" })
     },
-    onError: () => toast.error(t("users.createFailed")),
+    onError: (error) => toastApiError(error, t("users.createFailed")),
   })
 
   const field = (key) => ({ value: form[key], onChange: event => setForm(prev => ({ ...prev, [key]: event.target.value })) })

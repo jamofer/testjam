@@ -1,6 +1,5 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { toast } from "sonner"
 
 import { MdEditor, MdViewer } from "../MdEditor"
 import { Button } from "../ui/button"
@@ -14,6 +13,7 @@ import {
   useUpdateCaseComment,
 } from "../../hooks/useSuites"
 import { useCaseLive } from "../../hooks/useCaseLive"
+import { toastApiError } from "../../lib/apiError"
 
 export function CaseDiscussion({ caseId, projectId }) {
   const { t } = useTranslation("cases")
@@ -38,7 +38,7 @@ export function CaseDiscussion({ caseId, projectId }) {
       await addComment.mutateAsync({ caseId, body })
       setDraft("")
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? "Failed")
+      toastApiError(error, "Failed")
     }
   }
 
@@ -50,7 +50,7 @@ export function CaseDiscussion({ caseId, projectId }) {
       setEditingId(null)
       setEditingBody("")
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? "Failed")
+      toastApiError(error, "Failed")
     }
   }
 
@@ -59,7 +59,7 @@ export function CaseDiscussion({ caseId, projectId }) {
     try {
       await removeComment.mutateAsync({ caseId, commentId: commentPendingDelete.id })
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? "Failed")
+      toastApiError(error, "Failed")
     } finally {
       setCommentPendingDelete(null)
     }

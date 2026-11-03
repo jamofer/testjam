@@ -10,6 +10,7 @@ import { PageHeader, PageBody } from "../components/ui/page-header"
 import { Skeleton } from "../components/ui/skeleton"
 import { EmptyState } from "../components/ui/empty-state"
 import { toast } from "sonner"
+import { toastApiError } from "../lib/apiError"
 
 const RESTORE_CONFIRM_PHRASE = "REPLACE ALL DATA"
 
@@ -134,8 +135,8 @@ export function SettingsPage() {
       await updateSettings.mutateAsync(payload)
       toast.success(t("settings.saved"))
       setForm(prev => ({ ...prev, smtp_password: "", clear_smtp_password: false }))
-    } catch {
-      toast.error(t("settings.saveFailed"))
+    } catch (error) {
+      toastApiError(error, t("settings.saveFailed"))
     }
   }
 
@@ -267,8 +268,8 @@ function BackupRestoreSection() {
     try {
       await settingsApi.downloadBackup()
       toast.success(t("settings.backup.downloaded"))
-    } catch {
-      toast.error(t("settings.backup.downloadFailed"))
+    } catch (error) {
+      toastApiError(error, t("settings.backup.downloadFailed"))
     } finally {
       setDownloading(false)
     }
@@ -286,7 +287,7 @@ function BackupRestoreSection() {
       setConfirmText("")
       if (fileInputRef.current) fileInputRef.current.value = ""
     } catch (err) {
-      toast.error(err?.response?.data?.detail || t("settings.backup.restoreFailed"))
+      toastApiError(err, t("settings.backup.restoreFailed"))
     } finally {
       setRestoring(false)
     }

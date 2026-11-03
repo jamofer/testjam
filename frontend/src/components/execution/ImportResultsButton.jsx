@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { executionsApi } from "../../api/executions"
 import { Button } from "../ui/button"
+import { toastApiError } from "../../lib/apiError"
 
 export function ImportResultsButton({ executionId }) {
   const { t } = useTranslation("executions")
@@ -31,7 +32,7 @@ export function ImportResultsButton({ executionId }) {
         console.warn("Unmatched tests:", result.errors)
       }
     } catch (error) {
-      toast.error(t("import.failed", { message: error.response?.data?.detail ?? error.message }))
+      toastApiError(error, error.message, message => t("import.failed", { message }))
     } finally {
       setImporting(false)
       if (junitRef.current) junitRef.current.value = ""

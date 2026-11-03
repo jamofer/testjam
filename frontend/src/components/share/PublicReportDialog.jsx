@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { DateLabel } from "../ui/date-label"
+import { toastApiError } from "../../lib/apiError"
 
 
 export function PublicReportDialog({
@@ -68,7 +69,7 @@ export function PublicReportDialog({
       setCreatedToken(created.token)
       toast.success(t("created"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("createFailed"))
+      toastApiError(error, t("createFailed"))
     }
   }
 
@@ -78,7 +79,7 @@ export function PublicReportDialog({
       await revokeShare.mutateAsync(sharePendingRevoke.id)
       toast.success(t("revoked"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("revokeFailed"))
+      toastApiError(error, t("revokeFailed"))
     } finally {
       setSharePendingRevoke(null)
     }
@@ -88,8 +89,8 @@ export function PublicReportDialog({
     try {
       await navigator.clipboard.writeText(text)
       toast.success(t("copied"))
-    } catch {
-      toast.error(t("copyFailed"))
+    } catch (error) {
+      toastApiError(error, t("copyFailed"))
     }
   }
 

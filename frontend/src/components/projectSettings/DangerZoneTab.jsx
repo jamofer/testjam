@@ -16,6 +16,7 @@ import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog"
+import { toastApiError } from "../../lib/apiError"
 
 export function DangerZoneTab({ projectId, project }) {
   const { t } = useTranslation("projectSettings")
@@ -64,7 +65,7 @@ function ArchiveSection({ projectId, project }) {
         toast.success(t("danger.archive.archived"))
       }
     } catch (err) {
-      toast.error(err?.response?.data?.detail ?? t("danger.archive.failed"))
+      toastApiError(err, t("danger.archive.failed"))
     }
   }
 
@@ -102,7 +103,7 @@ function TransferSection({ projectId }) {
       setSelected("")
       setConfirming(false)
     } catch (err) {
-      toast.error(err?.response?.data?.detail ?? t("danger.transfer.failed"))
+      toastApiError(err, t("danger.transfer.failed"))
     }
   }
 
@@ -175,7 +176,7 @@ function DeleteSection({ projectId, project }) {
       toast.success(t("danger.delete.success"))
       navigate("/projects", { replace: true })
     } catch (err) {
-      toast.error(err?.response?.data?.detail ?? t("danger.delete.failed"))
+      toastApiError(err, t("danger.delete.failed"))
     }
   }
 

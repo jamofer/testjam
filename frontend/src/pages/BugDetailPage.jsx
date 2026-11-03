@@ -60,6 +60,7 @@ import { BugExternalLinksPanel } from "../components/integration/BugExternalLink
 import { CustomFieldsEditableBody } from "../components/customField/CustomFieldInput"
 import { MdEditor, MdViewer } from "../components/MdEditor"
 import { SEVERITIES, SEVERITY_VARIANT, STATUS_VARIANT, STATUSES } from "../lib/bugConfig"
+import { toastApiError } from "../lib/apiError"
 
 export function BugDetailPage() {
   const { t } = useTranslation(["bugs", "nav", "customFields"])
@@ -115,7 +116,7 @@ export function BugDetailPage() {
     if (!bugId) return
     const action = isWatching ? unwatchBug : watchBug
     action.mutate(bugId, {
-      onError: (error) => toast.error(error?.response?.data?.detail ?? t("watch.failed")),
+      onError: (error) => toastApiError(error, t("watch.failed")),
     })
   }
 
@@ -179,7 +180,7 @@ export function BugDetailPage() {
       await changeStatus.mutateAsync({ id: bug.id, status })
       toast.success(t("toast.statusChanged"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("toast.statusFailed"))
+      toastApiError(error, t("toast.statusFailed"))
     }
   }
 
@@ -189,7 +190,7 @@ export function BugDetailPage() {
       await updateBug.mutateAsync({ id: bug.id, data: { severity } })
       toast.success(t("toast.severityChanged"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("toast.severityFailed"))
+      toastApiError(error, t("toast.severityFailed"))
     }
   }
 
@@ -246,7 +247,7 @@ export function BugDetailPage() {
       await updateBug.mutateAsync({ id: bug.id, data: { title: trimmed } })
       toast.success(t("toast.updated"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("toast.updateFailed"))
+      toastApiError(error, t("toast.updateFailed"))
     }
     setEditingTitle(false)
   }
@@ -257,7 +258,7 @@ export function BugDetailPage() {
       toast.success(t("toast.deleted"))
       navigate(`/projects/${bug.project_id}/bugs`)
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("toast.deleteFailed"))
+      toastApiError(error, t("toast.deleteFailed"))
     } finally {
       setDeleteBugOpen(false)
     }
@@ -277,7 +278,7 @@ export function BugDetailPage() {
       setEditingDescription(false)
       toast.success(t("toast.updated"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("toast.updateFailed"))
+      toastApiError(error, t("toast.updateFailed"))
     }
   }
 
@@ -290,7 +291,7 @@ export function BugDetailPage() {
       setCommentDraft("")
       toast.success(t("toast.commentAdded"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("toast.commentFailed"))
+      toastApiError(error, t("toast.commentFailed"))
     }
   }
 
@@ -305,7 +306,7 @@ export function BugDetailPage() {
       setEditingComment(null)
       setEditingBody("")
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("toast.commentEditFailed"))
+      toastApiError(error, t("toast.commentEditFailed"))
     }
   }
 
@@ -314,7 +315,7 @@ export function BugDetailPage() {
     try {
       await removeComment.mutateAsync({ bugId: bug.id, commentId: commentPendingDelete.id })
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("toast.commentDeleteFailed"))
+      toastApiError(error, t("toast.commentDeleteFailed"))
     } finally {
       setCommentPendingDelete(null)
     }

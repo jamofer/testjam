@@ -40,6 +40,7 @@ import { mapSuiteByCase } from "../components/ui/test-case-item"
 import { fmtDuration, fmtDateTime } from "../lib/format"
 import { ContextPanel } from "../components/ui/context-panel"
 import { buildResultTree } from "../lib/buildResultTree"
+import { toastApiError } from "../lib/apiError"
 
 const EXECUTION_STATUS_PILL = {
   pending:     "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700",
@@ -115,8 +116,8 @@ export function ExecutionRunPage() {
       await executionsApi.update(id, { status: "completed", finished_at: new Date().toISOString() })
       qc.invalidateQueries({ queryKey: ["executions", id] })
       toast.success(t("run.completed"))
-    } catch {
-      toast.error(t("run.finishFailed"))
+    } catch (error) {
+      toastApiError(error, t("run.finishFailed"))
       setFinishing(false)
     }
   }
@@ -129,7 +130,7 @@ export function ExecutionRunPage() {
       qc.invalidateQueries({ queryKey: ["results", id] })
       toast.success(t("run.reopened"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("run.reopenFailed"))
+      toastApiError(error, t("run.reopenFailed"))
     } finally {
       setReopening(false)
     }
@@ -418,8 +419,8 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
           if (!focused) return
           try {
             await updateResult.mutateAsync({ id: focused.id, data: { status } })
-          } catch {
-            toast.error(t("run.updateStatusFailed"))
+          } catch (error) {
+            toastApiError(error, t("run.updateStatusFailed"))
           }
         },
       ])

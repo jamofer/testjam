@@ -19,6 +19,7 @@ import { Badge } from "../ui/badge"
 import { DateLabel } from "../ui/date-label"
 import { EmptyState } from "../ui/empty-state"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog"
+import { toastApiError } from "../../lib/apiError"
 
 export function WebhooksTab({ projectId }) {
   const { t } = useTranslation(["projectSettings", "integrations"])
@@ -90,7 +91,7 @@ function WebhookRow({ webhook, onEdit, onViewLog, onDelete }) {
       await testMutation.mutateAsync(webhook.id)
       toast.success(t("toast.testSent"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("toast.failed"))
+      toastApiError(error, t("toast.failed"))
     }
   }
 
@@ -159,7 +160,7 @@ function WebhookDialog({ projectId, webhook, onClose }) {
         setCreatedSecret(created.secret)
       }
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("toast.failed"))
+      toastApiError(error, t("toast.failed"))
     }
   }
 
@@ -247,7 +248,7 @@ function SecretReveal({ secret, onClose }) {
       await navigator.clipboard.writeText(secret)
       toast.success(t("form.copied"))
     } catch (error) {
-      toast.error(t("toast.copyFailed"))
+      toastApiError(error, t("toast.copyFailed"))
     }
   }
   return (
@@ -336,7 +337,7 @@ function DeleteDialog({ projectId, webhook, onClose }) {
       toast.success(t("toast.deleted"))
       onClose()
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("toast.failed"))
+      toastApiError(error, t("toast.failed"))
     }
   }
   return (

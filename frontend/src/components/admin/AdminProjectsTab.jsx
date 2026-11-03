@@ -2,7 +2,6 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Archive, ArchiveRestore, Download, Trash2, UserCog } from "lucide-react"
-import { toast } from "sonner"
 
 import { adminApi } from "../../api/admin"
 import { projectsApi } from "../../api/projects"
@@ -12,6 +11,7 @@ import { DateLabel } from "../ui/date-label"
 import { SkeletonList } from "../ui/skeleton"
 import { TransferOwnershipDialog } from "./TransferOwnershipDialog"
 import { DeleteProjectDialog } from "./DeleteProjectDialog"
+import { toastApiError } from "../../lib/apiError"
 
 export function AdminProjectsTab({ users }) {
   const { t } = useTranslation("admin")
@@ -30,7 +30,7 @@ export function AdminProjectsTab({ users }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-projects"] })
     },
-    onError: () => toast.error(t("projects.archiveFailed")),
+    onError: (error) => toastApiError(error, t("projects.archiveFailed")),
   })
 
   if (isPending) return <SkeletonList count={4} />

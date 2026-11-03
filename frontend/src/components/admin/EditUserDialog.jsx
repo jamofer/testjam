@@ -10,6 +10,7 @@ import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { TimezonePicker } from "../ui/timezone-picker"
 import { ResetPasswordDialog } from "./ResetPasswordDialog"
+import { toastApiError } from "../../lib/apiError"
 
 export function EditUserDialog({ user, open, onOpenChange }) {
   const { t } = useTranslation("admin")
@@ -24,10 +25,7 @@ export function EditUserDialog({ user, open, onOpenChange }) {
       toast.success(t("users.edit.updated"))
       onOpenChange(false)
     },
-    onError: (error) => {
-      const detail = error?.response?.data?.detail
-      toast.error(typeof detail === "string" ? detail : t("users.edit.updateFailed"))
-    },
+    onError: (error) => toastApiError(error, t("users.edit.updateFailed")),
   })
 
   const handleField = (key) => (event) => {

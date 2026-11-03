@@ -13,6 +13,7 @@ import {
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { toastApiError } from "../../lib/apiError"
 
 
 export function BugExternalLinksPanel({ bug }) {
@@ -33,7 +34,7 @@ export function BugExternalLinksPanel({ bug }) {
       toast.success(t("bugLinks.pushed"))
       setSelected("")
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("bugLinks.pushFailed"))
+      toastApiError(error, t("bugLinks.pushFailed"))
     }
   }
 
@@ -42,7 +43,7 @@ export function BugExternalLinksPanel({ bug }) {
       await sync.mutateAsync(linkId)
       toast.success(t("bugLinks.synced"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("bugLinks.syncFailed"))
+      toastApiError(error, t("bugLinks.syncFailed"))
     }
   }
 
@@ -51,7 +52,7 @@ export function BugExternalLinksPanel({ bug }) {
       await remove.mutateAsync(linkId)
       toast.success(t("bugLinks.removed"))
     } catch (error) {
-      toast.error(error?.response?.data?.detail ?? t("bugLinks.removeFailed"))
+      toastApiError(error, t("bugLinks.removeFailed"))
     }
   }
 

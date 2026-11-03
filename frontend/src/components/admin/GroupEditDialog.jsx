@@ -10,6 +10,7 @@ import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
+import { toastApiError } from "../../lib/apiError"
 
 export function GroupEditDialog({ group, onClose }) {
   const { t } = useTranslation("admin")
@@ -39,17 +40,17 @@ export function GroupEditDialog({ group, onClose }) {
   const update = useMutation({
     mutationFn: () => groupsApi.update(group.id, { name, description: description || null }),
     onSuccess: () => { invalidate(); toast.success(t("groups.edit.updated")) },
-    onError: () => toast.error(t("groups.edit.updateFailed")),
+    onError: (error) => toastApiError(error, t("groups.edit.updateFailed")),
   })
   const addMember = useMutation({
     mutationFn: (userId) => groupsApi.addMember(group.id, userId),
     onSuccess: invalidate,
-    onError: (error) => toast.error(error?.response?.data?.detail ?? t("groups.edit.addMemberFailed")),
+    onError: (error) => toastApiError(error, t("groups.edit.addMemberFailed")),
   })
   const removeMember = useMutation({
     mutationFn: (userId) => groupsApi.removeMember(group.id, userId),
     onSuccess: invalidate,
-    onError: () => toast.error(t("groups.edit.removeMemberFailed")),
+    onError: (error) => toastApiError(error, t("groups.edit.removeMemberFailed")),
   })
 
   const memberIds = new Set(members.map(member => member.user_id))
