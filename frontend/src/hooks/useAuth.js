@@ -63,5 +63,8 @@ export function useUpdateMe() {
 }
 
 export function useChangePassword() {
-  return useMutation({ mutationFn: authApi.changePassword })
+  return useMutation({
+    mutationFn: authApi.changePassword,
+    onSuccess: ({ access_token }) => localStorage.setItem('token', access_token),
+  })
 }

@@ -5,7 +5,7 @@ from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, APIKeyHeader
 from sqlalchemy.orm import Session
 
-from testjam.auth.security import decode_token
+from testjam.auth.security import decode_token, is_session_current
 from testjam.core.logging import set_current_user_id
 from testjam.database import get_db
 from testjam.models.project import Project
@@ -32,19 +32,9 @@ def get_auth_context(
     db: Session = Depends(get_db),
 ) -> AuthContext:
     if credentials:
-        username = decode_token(credentials.credentials)
-        if username:
-            user = (
-                db.query(User)
-                .filter(
-                    User.username == username,
-                    User.is_active == True,
-                    User.deleted_at.is_(None),
-                )
-                .first()
-            )
-            if user:
-                return _build_context(user)
+        user = user_for_session_token(db, credentials.credentials)
+        if user:
+            return _build_context(user)
 
     if api_key:
         token_hash = ApiToken.hash(api_key)
@@ -58,6 +48,22 @@ def get_auth_context(
                 return _build_context(user, project_scope=token.project_id, token_name=token.name)
 
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+
+
+def user_for_session_token(db: Session, token: str | None) -> User | None:
+    claims = decode_token(token) if token else None
+    if claims is None:
+        return None
+    user = (
+        db.query(User)
+        .filter(
+            User.username == claims.subject,
+            User.is_active == True,  # noqa: E712
+            User.deleted_at.is_(None),
+        )
+        .first()
+    )
+    return user if user and is_session_current(user, claims) else None
 
 
 def get_current_user(ctx: AuthContext = Depends(get_auth_context)) -> User:

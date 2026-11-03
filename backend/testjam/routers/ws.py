@@ -29,7 +29,7 @@ from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.orm import Session
 
 from testjam import database
-from testjam.auth.security import decode_token
+from testjam.auth.dependencies import user_for_session_token
 from testjam.models.bug import Bug
 from testjam.models.execution import TestExecution
 from testjam.models.project import Project
@@ -39,23 +39,6 @@ from testjam.realtime import manager
 router = APIRouter(tags=["WebSocket"])
 
 HEARTBEAT_INTERVAL_SECONDS = 30
-
-
-def _authenticate_token(db: Session, token: str | None) -> User | None:
-    if not token:
-        return None
-    username = decode_token(token)
-    if not username:
-        return None
-    return (
-        db.query(User)
-        .filter(
-            User.username == username,
-            User.is_active == True,  # noqa: E712
-            User.deleted_at.is_(None),
-        )
-        .first()
-    )
 
 
 def _parse_topic(topic: str) -> tuple[str, int] | None:
@@ -176,7 +159,7 @@ async def ws_endpoint(
     token: str = Query(...),
 ):
     with database.SessionLocal() as db:
-        user = _authenticate_token(db, token)
+        user = user_for_session_token(db, token)
     if not user:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return

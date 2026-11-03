@@ -33,9 +33,9 @@ def test_each_hash_is_unique():
 def test_create_and_decode_token():
     token = create_access_token("alice")
 
-    subject = decode_token(token)
+    claims = decode_token(token)
 
-    assert subject == "alice"
+    assert claims.subject == "alice"
 
 
 def test_decode_returns_none_for_garbage():
