@@ -1,3 +1,9 @@
+from datetime import datetime, timedelta, timezone
+
+from testjam.models.testcase import TestCase
+from tests.conftest import TestingSession
+
+
 def test_get_case(auth_client, suite_id, case_ids):
     resp = auth_client.get(f"/api/v1/cases/{case_ids[0]}")
 
@@ -302,3 +308,30 @@ def test_reorder_cases_rejects_partial_set(auth_client, suite_id, case_ids):
         json={"case_ids": case_ids[:2]},
     )
     assert resp.status_code == 400
+
+
+def test_tag_filter_is_applied_before_pagination(auth_client, project_id, suite_id):
+    auth_client.post(
+        f"/api/v1/suites/{suite_id}/cases",
+        json={"name": "Tagged", "suite_id": suite_id, "tags": ["smoke"]},
+    )
+    for index in range(3):
+        auth_client.post(
+            f"/api/v1/suites/{suite_id}/cases", json={"name": f"Plain {index}", "suite_id": suite_id},
+        )
+    _spread_case_timestamps()
+
+    response = auth_client.get(
+        f"/api/v1/projects/{project_id}/cases", params={"tags": "smoke", "limit": 1},
+    )
+
+    assert [case["name"] for case in response.json()] == ["Tagged"]
+
+
+def _spread_case_timestamps() -> None:
+    with TestingSession() as db:
+        rows = db.query(TestCase).order_by(TestCase.id).all()
+        for index, row in enumerate(rows):
+            row.created_at = datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(minutes=index)
+        db.commit()
+
