@@ -18,6 +18,7 @@ from testjam.auth.lockout import (
     seconds_until_unlock,
 )
 from testjam.auth.security import create_access_token, verify_password
+from testjam.core import rate_limit
 from testjam.core.config import settings
 from testjam.core.rate_limit import LOGIN_RATE_LIMIT, limiter
 from testjam.database import get_db
@@ -47,7 +48,7 @@ class PasswordResetConfirm(BaseModel):
 @router.post("/login", response_model=TokenResponse)
 @limiter.limit(LOGIN_RATE_LIMIT)
 def login(request: Request, form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    client_ip = _client_ip(request)
+    client_ip = rate_limit.client_ip(request)
     if is_ip_locked(db, client_ip):
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
@@ -80,13 +81,6 @@ def login(request: Request, form: OAuth2PasswordRequestForm = Depends(), db: Ses
         access_token=token,
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
-
-
-def _client_ip(request: Request) -> str | None:
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.client.host if request.client else None
 
 
 @router.post("/password-reset/request", status_code=status.HTTP_204_NO_CONTENT)
