@@ -15,7 +15,7 @@ def _version_row(name: str) -> str:
 
 
 def _version_delete(name: str) -> str:
-    return f'{_version_row(name)} button:last-child'
+    return f'{_version_row(name)} [data-testid="delete-version"]'
 
 
 def _version_status_trigger(name: str) -> str:

@@ -3,9 +3,9 @@ from robot.libraries.BuiltIn import BuiltIn
 
 
 PROFILE_HEADING = 'h1:has-text("Profile")'
-CURRENT_PASSWORD_INPUT = 'form:has(h2:has-text("Change password")) input[type="password"] >> nth=0'
-NEW_PASSWORD_INPUT = 'form:has(h2:has-text("Change password")) input[type="password"] >> nth=1'
-CONFIRM_PASSWORD_INPUT = 'form:has(h2:has-text("Change password")) input[type="password"] >> nth=2'
+CURRENT_PASSWORD_INPUT = '[data-testid="current-password"]'
+NEW_PASSWORD_INPUT = '[data-testid="new-password"]'
+CONFIRM_PASSWORD_INPUT = '[data-testid="confirm-password"]'
 CHANGE_PASSWORD_BUTTON = 'form:has(h2:has-text("Change password")) button:has-text("Change password")'
 
 TOKEN_NAME_INPUT = 'form:has(input[placeholder="Token name"]) input[placeholder="Token name"]'

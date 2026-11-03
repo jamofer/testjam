@@ -101,7 +101,7 @@ export function TestPlansPage() {
               {plan.title}
               <span className="text-xs text-gray-400 dark:text-gray-500">{t("cases", { count: plan.test_case_ids?.length ?? 0 })}</span>
             </Link>
-            <Button size="icon" variant="ghost" onClick={() => deletePlan.mutate(plan.id)}>
+            <Button size="icon" variant="ghost" data-testid="delete-plan" onClick={() => deletePlan.mutate(plan.id)}>
               <Trash2 size={14} />
             </Button>
           </li>

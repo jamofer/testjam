@@ -69,6 +69,7 @@ export function AppLayout() {
           className="md:hidden fixed inset-0 z-40 bg-black/40"
           onClick={() => setMobileOpen(false)}
           aria-hidden="true"
+          data-testid="sidebar-backdrop"
         />
       )}
 

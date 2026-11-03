@@ -6,22 +6,22 @@ from testjam_e2e.eventually import eventually
 
 MEMBERS_HEADING = 'h1:has-text("Members & Access")'
 MEMBERS_SECTION = 'section:has(h2:has-text("Members"))'
-ADD_FORM = 'form:has(select)'
-USER_SELECT = f'{ADD_FORM} >> select >> nth=0'
-ROLE_SELECT = f'{ADD_FORM} >> select >> nth=1'
-ADD_BUTTON = f'{ADD_FORM} >> button:has-text("Add")'
+ADD_FORM = 'form:has([data-testid="add-member-user"])'
+USER_SELECT = '[data-testid="add-member-user"]'
+ROLE_SELECT = '[data-testid="add-member-role"]'
+ADD_BUTTON = f'{ADD_FORM} >> button[type="submit"]'
 
 
 def _member_row(username: str) -> str:
-    return f'div.flex.items-center.gap-3:has(p:text-is("@{username}"))'
+    return f'[data-testid="member-row"][data-username="{username}"]'
 
 
 def _member_remove(username: str) -> str:
-    return f'{_member_row(username)} button:last-child'
+    return f'{_member_row(username)} [data-testid="remove-member"]'
 
 
 def _member_role_select(username: str) -> str:
-    return f'{_member_row(username)} select'
+    return f'{_member_row(username)} [data-testid="member-role"]'
 
 
 class MembersUIMixin:

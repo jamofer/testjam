@@ -123,7 +123,7 @@ export function MembersPage() {
 
         <div className="divide-y divide-gray-50">
           {members.map(member => (
-            <div key={member.id} className="flex items-center gap-3 px-5 py-3">
+            <div key={member.id} data-testid="member-row" data-username={member.username} className="flex items-center gap-3 px-5 py-3">
               <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-bold shrink-0">
                 {(member.full_name ?? member.username).split(" ").map(word => word[0]).join("").slice(0, 2).toUpperCase()}
               </div>
@@ -132,13 +132,14 @@ export function MembersPage() {
                 <p className="text-xs text-gray-400 dark:text-gray-500">@{member.username}</p>
               </div>
               <select
+                data-testid="member-role"
                 value={member.role}
                 onChange={event => handleRoleChange(member.user_id, event.target.value)}
                 className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${ROLE_BADGE[member.role]}`}
               >
                 {ROLES.map(role => <option key={role} value={role}>{t(`roles.${role}`)}</option>)}
               </select>
-              <button onClick={() => handleRemove(member.user_id)}
+              <button data-testid="remove-member" onClick={() => handleRemove(member.user_id)}
                 aria-label={t("member.removeAria")}
                 className="text-gray-300 dark:text-gray-600 hover:text-red-500 transition-colors p-1 shrink-0">
                 <Trash2 size={14} />
@@ -166,6 +167,7 @@ export function MembersPage() {
         {!usersQuery.isError && addableUsers.length > 0 && (
           <form onSubmit={handleAdd} className="px-5 py-4 border-t bg-gray-50 dark:bg-gray-900 flex flex-wrap gap-2">
             <select
+              data-testid="add-member-user"
               value={selectedUserId}
               onChange={event => setSelectedUserId(event.target.value)}
               className="flex-1 text-sm border border-gray-200 dark:border-gray-700 rounded-md px-3 py-1.5 bg-white dark:bg-gray-900 focus:outline-none focus:ring-1 focus:ring-primary-400"
@@ -176,6 +178,7 @@ export function MembersPage() {
               ))}
             </select>
             <select
+              data-testid="add-member-role"
               value={selectedRole}
               onChange={event => setSelectedRole(event.target.value)}
               className="text-sm border border-gray-200 dark:border-gray-700 rounded-md px-3 py-1.5 bg-white dark:bg-gray-900 focus:outline-none focus:ring-1 focus:ring-primary-400"

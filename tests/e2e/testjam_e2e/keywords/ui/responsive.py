@@ -3,8 +3,8 @@ from robot.libraries.BuiltIn import BuiltIn
 
 
 HAMBURGER_BUTTON = 'button[aria-label="Open menu"]'
-SIDEBAR = 'aside.bg-white.border-r'
-SIDEBAR_BACKDROP = 'div[aria-hidden="true"].fixed.inset-0'
+SIDEBAR = '[data-testid="sidebar"]'
+SIDEBAR_BACKDROP = '[data-testid="sidebar-backdrop"]'
 SIDEBAR_CLOSE_BUTTON = 'button[aria-label="Close menu"]'
 
 MOBILE_WIDTH = 375

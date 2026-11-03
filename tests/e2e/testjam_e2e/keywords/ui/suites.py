@@ -11,16 +11,12 @@ SUITE_DIALOG_INPUT = 'input[placeholder="Suite name…"]'
 SUITE_DIALOG_SUBMIT = 'button:has-text("Create suite")'
 
 
-def _suite_name_span(name: str) -> str:
-    return f'span.truncate:text-is("{name}")'
-
-
 def _suite_header(name: str) -> str:
-    return f'div.cursor-pointer:has({_suite_name_span(name)})'
+    return f'[data-treeitem-kind="suite"][aria-label="{name}"]'
 
 
 def _suite_delete(name: str) -> str:
-    return f'{_suite_header(name)} button:last-child'
+    return f'{_suite_header(name)} [data-testid="delete-suite"]'
 
 
 def _suite_add_case(name: str) -> str:
@@ -81,7 +77,7 @@ class SuitesUIMixin:
 
     @keyword("I expand the suite ${name}")
     def expand_suite(self, name: str) -> None:
-        BuiltIn().run_keyword("Click", _suite_name_span(name))
+        BuiltIn().run_keyword("Click", f'{_suite_header(name)} >> span:text-is("{name}")')
 
     @keyword("the project should list the suite ${name}")
     def project_should_list_suite(self, name: str) -> None:

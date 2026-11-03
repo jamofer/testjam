@@ -17,7 +17,7 @@ def _plan_row(title: str) -> str:
 
 
 def _plan_delete(title: str) -> str:
-    return f'{_plan_row(title)} button:last-child'
+    return f'{_plan_row(title)} [data-testid="delete-plan"]'
 
 
 class PlansUIMixin:

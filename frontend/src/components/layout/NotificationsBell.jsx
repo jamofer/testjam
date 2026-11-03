@@ -105,7 +105,7 @@ function NotificationsDrawer({ open, onClose }) {
           ) : (
             <ul className="divide-y divide-gray-100 dark:divide-gray-800">
               {list.map(n => (
-                <li key={n.id} className={n.is_read ? "" : "bg-rose-50/60 dark:bg-rose-950/30"}>
+                <li key={n.id} data-unread={n.is_read ? "false" : "true"} className={n.is_read ? "" : "bg-rose-50/60 dark:bg-rose-950/30"}>
                   <div className="flex items-start gap-2 px-4 py-3">
                     <div className="flex-1 min-w-0">
                       {n.link ? (

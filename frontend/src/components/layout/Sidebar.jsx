@@ -135,6 +135,7 @@ export function Sidebar({ user, onOpenPalette, mobileOpen = false, onCloseMobile
 
   return (
     <aside
+      data-testid="sidebar"
       className={`w-56 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 dark:border-gray-800 flex flex-col h-full shrink-0 z-50
         fixed inset-y-0 left-0 transform transition-transform duration-200
         md:relative md:translate-x-0

@@ -174,6 +174,9 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
     <div ref={cardRef}
       id={`result-${result.id}`}
       data-result-id={result.id}
+      data-testid="result-card"
+      data-focused={focused ? "true" : "false"}
+      data-status={localStatus}
       className="relative border rounded-xl overflow-hidden shadow-sm transition-shadow">
       {focused && (
         <span aria-hidden="true"
@@ -184,7 +187,7 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
         <div className="flex items-center gap-3 min-w-0">
           {open ? <ChevronDown size={14} className="shrink-0" /> : <ChevronRight size={14} className="shrink-0" />}
           <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">{index + 1}/{total}</span>
-          <span className="font-medium text-gray-800 dark:text-gray-100 truncate">{result.test_case_title ?? tc?.name ?? "…"}</span>
+          <span data-testid="result-title" className="font-medium text-gray-800 dark:text-gray-100 truncate">{result.test_case_title ?? tc?.name ?? "…"}</span>
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-3">
           {result.duration_ms != null && (

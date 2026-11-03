@@ -7,7 +7,7 @@ STEP_LOG_OUTPUT = '[data-testid="step-log-output"]'
 
 
 def _result_card(case_name: str) -> str:
-    return f'div.relative.border.rounded-xl:has(span.font-medium:text-is("{case_name}"))'
+    return f'[data-testid="result-card"]:has([data-testid="result-title"]:text-is("{case_name}"))'
 
 
 class LiveUpdatesUIMixin:

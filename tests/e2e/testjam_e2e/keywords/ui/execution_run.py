@@ -3,7 +3,8 @@ from robot.libraries.BuiltIn import BuiltIn
 
 
 RUN_HEADING = 'h1'
-FOCUSED_CARD = 'div.relative.border.rounded-xl:has(> span[aria-hidden="true"].bg-red-500)'
+RESULT_CARD = '[data-testid="result-card"]'
+FOCUSED_CARD = f'{RESULT_CARD}[data-focused="true"]'
 FINISH_BUTTON = 'button:has-text("Finish")'
 
 STATUS_TO_SHORTCUT = {"passed": "p", "failed": "f", "blocked": "b", "not_run": "n"}
@@ -49,18 +50,15 @@ class ExecutionRunUIMixin:
     @keyword("the focused result should be the ${position} in the list")
     def focused_result_position(self, position: str) -> None:
         index = _ordinal_to_index(position)
-        cards = "div.relative.border.rounded-xl"
         BuiltIn().run_keyword(
-            "Wait For Elements State",
-            f'{cards} >> nth={index} >> span[aria-hidden="true"].bg-red-500',
-            "visible", "timeout=5s",
+            "Get Attribute", f"{RESULT_CARD} >> nth={index}", "data-focused", "==", "true",
         )
 
     @keyword("the focused result status should be ${status}")
     def focused_result_status(self, status: str) -> None:
         BuiltIn().run_keyword(
             "Wait For Elements State",
-            f'{FOCUSED_CARD} >> div.rounded-full:has-text("{STATUS_LABEL[status]}")',
+            f'{FOCUSED_CARD}[data-status="{status}"]',
             "visible", "timeout=5s",
         )
 
@@ -68,15 +66,15 @@ class ExecutionRunUIMixin:
     def run_summary_should_be(self, passed: str, failed: str, blocked: str) -> None:
         BuiltIn().run_keyword(
             "Wait For Elements State",
-            f'span.text-green-600:has-text("✓ {passed} passed")', "visible", "timeout=5s",
+            f'[data-testid="run-summary-passed"]:has-text("{passed} passed")', "visible", "timeout=5s",
         )
         BuiltIn().run_keyword(
             "Wait For Elements State",
-            f'span.text-red-500:has-text("✗ {failed} failed")', "visible", "timeout=5s",
+            f'[data-testid="run-summary-failed"]:has-text("{failed} failed")', "visible", "timeout=5s",
         )
         BuiltIn().run_keyword(
             "Wait For Elements State",
-            f'span.text-yellow-600:has-text("⚠ {blocked} blocked")', "visible", "timeout=5s",
+            f'[data-testid="run-summary-blocked"]:has-text("{blocked} blocked")', "visible", "timeout=5s",
         )
 
     @keyword("I finish the execution via the UI")
