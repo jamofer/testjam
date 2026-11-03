@@ -5,9 +5,14 @@ import httpx
 import pytest
 import robot
 
-from testjam_client.errors import Conflict
+from testjam_client.errors import Conflict, Locked, RateLimited, raise_for_status
 from testjam_client.listener import listener as listener_module
-from testjam_client.listener.listener import MAX_CONSECUTIVE_NETWORK_FAILURES, TestjamListener
+from testjam_client.listener.listener import (
+    ABORT_MESSAGES,
+    MAX_CONSECUTIVE_NETWORK_FAILURES,
+    TestjamListener,
+)
+from testjam_client.listener.session_renewal import SessionRenewal
 
 PROJECT_NAME = "Listener Flow"
 REPLAYED_EVENTS = {
@@ -213,6 +218,66 @@ def test_server_error_while_preparing_a_test_does_not_escape(listener, outage_wi
     assert listener._test is None
 
 
+def test_expired_session_is_renewed_and_the_call_repeated():
+    http = ExpiringHttp()
+    renewal = SessionRenewal(http, renew=http.renew)
+
+    response = renewal.request("GET", "/projects")
+
+    assert (response.status_code, http.renewals) == (200, 1)
+
+
+def test_rejected_login_is_not_renewed():
+    http = ExpiringHttp()
+    renewal = SessionRenewal(http, renew=http.renew)
+
+    response = renewal.request("POST", "/auth/login")
+
+    assert (response.status_code, http.renewals) == (401, 0)
+
+
+def test_execution_stays_completed_after_a_normal_run(listener, auth_client):
+    listener.close()
+
+    assert auth_client.executions.get(listener.execution_id)["status"] == "completed"
+
+
+@pytest.mark.parametrize("message", ABORT_MESSAGES)
+def test_interrupted_run_closes_the_execution_as_aborted(listener, auth_client, robot_file, message):
+    test = _test("Valid Login", [])
+    listener.start_suite(_suite("Login", robot_file), None)
+    listener.start_test(test, None)
+    listener.end_test(test, SimpleNamespace(status="FAIL", elapsedtime=5, message=message))
+
+    listener.close()
+
+    assert auth_client.executions.get(listener.execution_id)["status"] == "aborted"
+
+
+def test_artefacts_are_uploaded_from_the_paths_robot_reports(listener, auth_client, tmp_path):
+    log_file = tmp_path / "custom-dir" / "log.html"
+    log_file.parent.mkdir()
+    log_file.write_text("<html></html>")
+    listener.log_file(str(log_file))
+
+    listener.close()
+
+    attachments = auth_client.request("GET", f"/executions/{listener.execution_id}/attachments").json()
+    assert [attachment["filename"] for attachment in attachments] == ["log.html"]
+
+
+def test_missing_artefact_does_not_break_close(listener, tmp_path):
+    listener.output_file(str(tmp_path / "gone.xml"))
+
+    listener.close()
+
+
+@pytest.mark.parametrize("status_code,error", [(423, Locked), (429, RateLimited)])
+def test_lock_and_rate_limit_responses_have_their_own_error(status_code, error):
+    with pytest.raises(error):
+        raise_for_status(httpx.Response(status_code, json={"detail": "wait"}))
+
+
 def _run_robot(listener, auth_client, directory, body: str) -> list[dict]:
     path = directory / "flow.robot"
     path.write_text(body)
@@ -272,6 +337,19 @@ class InterruptibleHttp:
             self.attempts += 1
             raise httpx.ConnectError("connection refused")
         return self._http.request(method, url, **kwargs)
+
+
+class ExpiringHttp:
+    headers: dict[str, str] = {}
+
+    def __init__(self) -> None:
+        self.renewals = 0
+
+    def renew(self) -> None:
+        self.renewals += 1
+
+    def request(self, _method: str, _url: str, **_kwargs) -> httpx.Response:
+        return httpx.Response(200 if self.renewals else 401)
 
 
 class FailingStatusHttp:

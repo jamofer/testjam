@@ -19,6 +19,7 @@ from testjam_client import TestjamClient
 from testjam_client.errors import Conflict, TestjamError
 from testjam_client.listener.circuit_breaker import NetworkCircuitBreaker
 from testjam_client.listener.log import format_log_line, isoformat_timestamp
+from testjam_client.listener.session_renewal import SessionRenewal
 from testjam_client.listener.status import map_rf_status
 
 log = logging.getLogger("testjam.listener")
@@ -26,6 +27,9 @@ log = logging.getLogger("testjam.listener")
 API_ERRORS = (TestjamError, httpx.TransportError)
 MAX_CONSECUTIVE_NETWORK_FAILURES = 3
 NETWORK_RETRY_COOLDOWN_SECONDS = 60.0
+# The API refuses text/html uploads; log.html is served as a download either way.
+ARTEFACT_TYPES = {"log.html": "application/octet-stream", "output.xml": "application/xml"}
+ABORT_MESSAGES = ("Execution terminated by signal", "Test execution stopped due to a fatal error")
 
 
 class TestjamListener:
@@ -61,6 +65,11 @@ class TestjamListener:
                     "Set TESTJAM_API_KEY or TESTJAM_USER + TESTJAM_PASS",
                 )
             self.client.login(admin_user, admin_password)
+            self.client.wrap_http(
+                lambda http: SessionRenewal(
+                    http, renew=lambda: self.client.login(admin_user, admin_password),
+                ),
+            )
 
         project = self.client.projects.find_or_create(project_name)
         self.project_id = project["id"]
@@ -86,7 +95,8 @@ class TestjamListener:
         # on-disk layout. ``robot file.robot`` has no such wrapper: the root
         # suite is the file itself and holds the tests.
         self._is_root_suite = True
-        self._output_dir: str | None = None
+        self._is_aborted = False
+        self._artefact_paths: dict[str, str] = {}
         self._suite_stack: list[tuple[int, str]] = []
         self._test: _TestState | None = None
         self._step: _StepState | None = None
@@ -95,10 +105,7 @@ class TestjamListener:
     def start_suite(self, data: Any, _result: Any) -> None:
         if self._is_root_suite:
             self._is_root_suite = False
-            source = getattr(data, "source", None)
-            if source:
-                self._output_dir = str(Path(source).parent)
-            if not _is_file_suite(source):
+            if not _is_file_suite(getattr(data, "source", None)):
                 return
 
         parent_suite_id, parent_path = self._suite_stack[-1] if self._suite_stack else (None, "")
@@ -152,6 +159,8 @@ class TestjamListener:
         )
 
     def end_test(self, _data: Any, result: Any) -> None:
+        if str(getattr(result, "message", "")).startswith(ABORT_MESSAGES):
+            self._is_aborted = True
         test = self._test
         if test is None:
             return
@@ -242,9 +251,15 @@ class TestjamListener:
             self._maybe_disable_streaming(exc)
             step.log_buffer.append(format_log_line(level, text, timestamp))
 
+    def output_file(self, path: str) -> None:
+        self._artefact_paths["output.xml"] = path
+
+    def log_file(self, path: str) -> None:
+        self._artefact_paths["log.html"] = path
+
     def close(self) -> None:
         update_payload: dict[str, Any] = {
-            "status": "completed",
+            "status": "aborted" if self._is_aborted else "completed",
             "finished_at": datetime.now(timezone.utc).isoformat(),
         }
         if self._execution_custom_fields:
@@ -252,7 +267,7 @@ class TestjamListener:
         try:
             self.client.executions.update(self.execution_id, **update_payload)
         except API_ERRORS:
-            log.warning("Failed to mark execution %s completed", self.execution_id)
+            log.warning("Failed to close execution %s", self.execution_id)
         try:
             self._upload_artefacts()
         finally:
@@ -282,17 +297,16 @@ class TestjamListener:
             log.info("Streaming unavailable (%s); falling back to batch.", exc)
 
     def _upload_artefacts(self) -> None:
-        for filename, mime in (("log.html", "text/html"), ("output.xml", "application/xml")):
-            path = _locate_artefact(self._output_dir, filename)
-            if not path:
+        for filename, mime in ARTEFACT_TYPES.items():
+            path = self._artefact_paths.get(filename)
+            if path is None:
                 continue
             try:
-                with open(path, "rb") as file_handle:
-                    self.client.executions.upload_attachment(
-                        self.execution_id,
-                        filename=filename, content=file_handle, mime=mime,
-                    )
-            except API_ERRORS:
+                self.client.executions.upload_attachment(
+                    self.execution_id,
+                    filename=filename, content=Path(path).read_bytes(), mime=mime,
+                )
+            except (*API_ERRORS, OSError):
                 log.warning("Failed to upload %s for execution %s", filename, self.execution_id)
 
 
@@ -489,16 +503,3 @@ def _parse_cf_tags(tags: list[str]) -> dict[str, Any]:
 
 def _is_file_suite(source: Any) -> bool:
     return bool(source) and Path(source).is_file()
-
-
-def _locate_artefact(output_dir: str | None, filename: str) -> Path | None:
-    candidates: list[Path] = []
-    if output_dir:
-        candidates.append(Path(output_dir) / "results" / filename)
-        candidates.append(Path(output_dir) / filename)
-    candidates.append(Path("results") / filename)
-    candidates.append(Path(filename))
-    for candidate in candidates:
-        if candidate.exists():
-            return candidate
-    return None
