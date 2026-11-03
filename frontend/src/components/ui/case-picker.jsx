@@ -50,11 +50,11 @@ export function CasePicker({ projectId, selected, onToggle, onToggleMany, exclud
 function SuiteNode({ suite, casesBySuite, loadCases, selected, onToggle, onToggleMany, excludeIds, depth }) {
   const { t } = useTranslation("suites")
   const allCases = casesBySuite[suite.id] ?? []
-  const excluded = new Set(excludeIds)
+  const excluded = useMemo(() => new Set(excludeIds), [excludeIds])
   const visible = allCases.filter(testCase => !excluded.has(testCase.id))
   const allExcluded = allCases.length > 0 && visible.length === 0
 
-  const subtreeCaseIds = useMemo(() => collectSubtreeCaseIds(suite, excluded), [suite, excludeIds])
+  const subtreeCaseIds = useMemo(() => collectSubtreeCaseIds(suite, excluded), [suite, excluded])
   const selectedSet = useMemo(() => new Set(selected), [selected])
   const selectedSubtreeCount = subtreeCaseIds.filter(id => selectedSet.has(id)).length
   const allSelected = subtreeCaseIds.length > 0 && selectedSubtreeCount === subtreeCaseIds.length

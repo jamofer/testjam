@@ -19,6 +19,7 @@ import { SkeletonList } from "../components/ui/skeleton"
 import { EmptyState } from "../components/ui/empty-state"
 import { ShortcutsDialog } from "../components/ui/shortcuts-dialog"
 import { SuiteCollapseContext } from "../components/project/SuiteRow"
+import { EMPTY_LIST } from "../lib/utils"
 
 const CELL_STYLE = {
   passed:  "bg-green-100  dark:bg-green-900/40  text-green-800  dark:text-green-200",
@@ -183,10 +184,11 @@ function SuiteRow({ suite, depth, versions, cellByKey, query }) {
     ignoreUnlessSelfTarget: true,
   })
 
+  const descendantCases = useMemo(() => collectCases(suite), [suite])
+
   if (!suiteMatchesQuery(suite, query)) return null
 
   const isOpen = query ? true : open
-  const descendantCases = useMemo(() => collectCases(suite), [suite])
   const visibleCases = query
     ? suite.cases.filter(testCase => testCase.name.toLowerCase().includes(query))
     : suite.cases
@@ -251,9 +253,9 @@ export function CoverageMatrixPage() {
     enabled: !!projectId,
   })
 
-  const versions = data?.versions ?? []
-  const cells = data?.cells ?? []
-  const cases = data?.cases ?? []
+  const versions = data?.versions ?? EMPTY_LIST
+  const cells = data?.cells ?? EMPTY_LIST
+  const cases = data?.cases ?? EMPTY_LIST
 
   const cellByKey = useMemo(() => {
     const map = new Map()

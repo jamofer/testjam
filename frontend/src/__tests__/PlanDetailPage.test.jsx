@@ -31,7 +31,7 @@ vi.mock("../hooks/useProjects", () => ({
 }))
 
 import { plansApi } from "../api/testplans"
-import { casesApi, suitesApi } from "../api/testcases"
+import { casesApi } from "../api/testcases"
 
 const PLAN = { id: 42, title: "Sprint 12", project_id: 1, test_case_ids: [10, 11] }
 const CASES = [

@@ -10,6 +10,7 @@ export function useTopicSocket(topics, handlers, { enabled = true } = {}) {
 
   useEffect(() => { topicsRef.current = topics }, [topics])
   useEffect(() => { handlersRef.current = handlers }, [handlers])
+  const topicsKey = serialiseTopics(topics)
 
   useEffect(() => {
     if (!enabled) {
@@ -81,7 +82,7 @@ export function useTopicSocket(topics, handlers, { enabled = true } = {}) {
       setConnected(false)
       closeSocket(socket)
     }
-  }, [enabled, serialiseTopics(topics)])
+  }, [enabled, topicsKey])
 
   return { connected }
 }

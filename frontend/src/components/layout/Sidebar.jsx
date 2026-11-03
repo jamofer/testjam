@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { NavLink, Link, useMatch } from "react-router-dom"
-import { Bug, FolderKanban, Users, LogOut, UserCircle, FolderOpen, LayoutDashboard, PlayCircle, ClipboardList, ChevronLeft, Server, ListChecks, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon, Info, X } from "lucide-react"
+import { Bug, FolderKanban, Users, LogOut, UserCircle, FolderOpen, LayoutDashboard, PlayCircle, ClipboardList, ChevronLeft, Server, Shield, ChevronUp, Tag, Search, Settings as SettingsIcon, Info, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useLogout } from "../../hooks/useAuth"
 import { useProject } from "../../hooks/useProjects"

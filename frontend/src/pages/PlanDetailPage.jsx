@@ -15,6 +15,7 @@ import { EmptyState } from "../components/ui/empty-state"
 import { CasePicker } from "../components/ui/case-picker"
 import { TestCaseItem, mapSuiteByCase } from "../components/ui/test-case-item"
 import { toast } from "sonner"
+import { EMPTY_LIST } from "../lib/utils"
 
 function buildSuiteTree(groups, allSuites) {
   const order = sortSuitesHierarchically(allSuites).map(suite => suite.id)
@@ -175,7 +176,7 @@ export function PlanDetailPage() {
     enabled: !!plan,
   })
 
-  const cases = caseQueries.data ?? []
+  const cases = caseQueries.data ?? EMPTY_LIST
 
   const suiteByCase = useMemo(() => mapSuiteByCase(allSuites), [allSuites])
   const { groups, topLevelIds, childrenOf } = useMemo(() => {

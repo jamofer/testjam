@@ -89,16 +89,16 @@ export function MdViewer({ value, projectId }) {
 
 function buildViewerComponents(projectId) {
   return {
-    span: ({ node, children, ...props }) => {
+    span: ({ node: _node, children, ...props }) => {
       if (!isMentionElement(props)) {
         return <span {...sanitizeSpanProps(props)}>{children}</span>
       }
       return <MentionChip projectId={projectId} {...chipPropsFromAttributes(props)} />
     },
-    a: ({ node, children, href, ...props }) => (
+    a: ({ node: _node, children, href, ...props }) => (
       <AuthenticatedLink href={href} {...props}>{children}</AuthenticatedLink>
     ),
-    img: ({ node, src, alt, ...props }) => (
+    img: ({ node: _node, src, alt, ...props }) => (
       <AuthenticatedImage src={src} alt={alt} {...props} />
     ),
   }

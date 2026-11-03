@@ -41,6 +41,7 @@ import { fmtDuration, fmtDateTime } from "../lib/format"
 import { ContextPanel } from "../components/ui/context-panel"
 import { buildResultTree } from "../lib/buildResultTree"
 import { toastApiError } from "../lib/apiError"
+import { EMPTY_LIST } from "../lib/utils"
 
 const EXECUTION_STATUS_PILL = {
   pending:     "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700",
@@ -100,7 +101,6 @@ function PanelExecutionAttachments({ executionId, attachments = [] }) {
 export function ExecutionRunPage() {
   const { t } = useTranslation("executions")
   const { id } = useParams()
-  const { hash } = useLocation()
   const { data: execution } = useExecution(id)
   const { data: results = [] } = useExecutionResults(id)
   const navigate = useNavigate()
@@ -282,7 +282,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
 
   const focused = orderedResults.find(result => result.id === focusedResultId) ?? null
   const { data: focusedCase } = useCase(focused?.test_case_id)
-  const focusedSteps = focusedCase?.steps ?? []
+  const focusedSteps = focusedCase?.steps ?? EMPTY_LIST
 
   useEffect(() => { setFocusedStepId(null) }, [focusedResultId])
 

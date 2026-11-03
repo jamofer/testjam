@@ -205,37 +205,36 @@ export function BugDetailPage() {
     }
   }
 
-  const contextSections = useMemo(() => {
-    if (!bug) return []
-    return buildContextSections({
-      bug,
-      links,
-      linkContext,
-      affectedVersionPicker,
-      fixedInVersionPicker,
-      customFieldsSection,
-      onSeverityChange: handleSeverityChange,
-      onStatusChange: handleStatusChange,
-      onDeleteLink: canWrite
-        ? (linkId) => removeLink.mutateAsync({ bugId: bug.id, linkId })
-        : null,
-      addLinkDialog: canWrite ? (
-        <AddBugLinkDialog
-          bugId={bug.id}
-          projectId={bug.project_id}
-          trigger={(
-            <button
-              type="button"
-              className="text-[11px] text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-1"
-            >
-              <Plus size={11} /> {t("links.add")}
-            </button>
-          )}
-        />
-      ) : null,
-      t,
-    })
-  }, [bug, links, linkContext, removeLink, affectedVersionPicker, fixedInVersionPicker, customFieldsSection, canWrite, t])
+  const contextSections = bug
+    ? buildContextSections({
+        bug,
+        links,
+        linkContext,
+        affectedVersionPicker,
+        fixedInVersionPicker,
+        customFieldsSection,
+        onSeverityChange: handleSeverityChange,
+        onStatusChange: handleStatusChange,
+        onDeleteLink: canWrite
+          ? (linkId) => removeLink.mutateAsync({ bugId: bug.id, linkId })
+          : null,
+        addLinkDialog: canWrite ? (
+          <AddBugLinkDialog
+            bugId={bug.id}
+            projectId={bug.project_id}
+            trigger={(
+              <button
+                type="button"
+                className="text-[11px] text-primary-600 dark:text-primary-400 hover:underline inline-flex items-center gap-1"
+              >
+                <Plus size={11} /> {t("links.add")}
+              </button>
+            )}
+          />
+        ) : null,
+        t,
+      })
+    : []
 
   if (isLoading || !bug) {
     return (
