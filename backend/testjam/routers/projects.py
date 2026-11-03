@@ -14,6 +14,8 @@ from testjam.auth.dependencies import (
 )
 from testjam.core.rate_limit import EXPORT_RATE_LIMIT, limiter
 from testjam.database import get_db
+from testjam.models.bug import Bug
+from testjam.models.execution import TestExecution
 from testjam.models.project import Project, ProjectMember
 from testjam.models.user import User
 from testjam.schemas.project import (
@@ -108,9 +110,11 @@ def delete_project(id: int, db: Session = Depends(get_db), ctx: AuthContext = De
     if not project:
         raise HTTPException(status_code=404, detail="Not found")
     project_name = project.name
+    execution_ids = [row.id for row in db.query(TestExecution.id).filter(TestExecution.project_id == id)]
+    bug_ids = [row.id for row in db.query(Bug.id).filter(Bug.project_id == id)]
     db.delete(project)
     db.commit()
-    on_project_deleted(id, project_name)
+    on_project_deleted(id, project_name, execution_ids, bug_ids)
 
 
 @router.post("/{id}/archive", response_model=ProjectOut)

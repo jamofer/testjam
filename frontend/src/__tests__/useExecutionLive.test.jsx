@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { renderHook, act } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useExecutionLive } from "../hooks/useExecutionLive"
@@ -31,14 +31,14 @@ class FakeWebSocket {
   }
 }
 
-function setupHook(executionId) {
+function setupHook(executionId, options) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0, staleTime: Infinity } },
   })
   const wrapper = ({ children }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
-  const utils = renderHook(() => useExecutionLive(executionId), { wrapper })
+  const utils = renderHook(() => useExecutionLive(executionId, options), { wrapper })
   return { ...utils, queryClient }
 }
 
@@ -195,5 +195,25 @@ describe("useExecutionLive", () => {
     expect(queryClient.getQueryData(["executions", "42"])).toMatchObject({
       status: "completed",
     })
+  })
+
+  it("reports when the execution it shows is deleted", () => {
+    const onDeleted = vi.fn()
+    setupHook(42, { onDeleted })
+    act(() => sockets[0].open())
+
+    act(() => sockets[0].emit({ event: "execution.deleted", data: { id: 42, project_id: 3 } }))
+
+    expect(onDeleted).toHaveBeenCalledWith({ id: 42, project_id: 3 })
+  })
+
+  it("ignores the deletion of another execution", () => {
+    const onDeleted = vi.fn()
+    setupHook(42, { onDeleted })
+    act(() => sockets[0].open())
+
+    act(() => sockets[0].emit({ event: "execution.deleted", data: { id: 43, project_id: 3 } }))
+
+    expect(onDeleted).not.toHaveBeenCalled()
   })
 })

@@ -237,7 +237,8 @@
     "commentDeleteFailed": "Could not delete comment",
     "severityChanged": "Severity updated",
     "severityFailed": "Could not change severity",
-    "editConflict": "Someone else changed this while you were editing. Your text is kept; save again to overwrite it."
+    "editConflict": "Someone else changed this while you were editing. Your text is kept; save again to overwrite it.",
+    "deletedRemotely": "This bug was deleted"
   },
   "report": {
     "dialogTitle": "Report bug",

@@ -70,4 +70,15 @@ describe("useBugLive", () => {
 
     expect(client.getQueryData(["bug-activity", 42])).toHaveLength(1)
   })
+
+  it("reports when the bug it shows is deleted", () => {
+    const onDeleted = vi.fn()
+
+    renderHook(() => useBugLive(42, { onDeleted }), { wrapper: wrap(new QueryClient()) })
+    act(() => {
+      handlersRef.current["bug.deleted"]({ id: 42 })
+    })
+
+    expect(onDeleted).toHaveBeenCalledWith({ id: 42 })
+  })
 })

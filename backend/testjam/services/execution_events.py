@@ -275,13 +275,12 @@ def _block_running_artefacts(db: Session, execution_id: int) -> None:
 
 
 def on_execution_deleted(execution_id: int, project_id: int) -> None:
-    notify_project(
-        project_id,
-        {
-            "event": "execution.deleted",
-            "data": {"id": execution_id, "project_id": project_id},
-        },
-    )
+    payload = {
+        "event": "execution.deleted",
+        "data": {"id": execution_id, "project_id": project_id},
+    }
+    notify_project(project_id, payload)
+    notify_execution(execution_id, payload)
 
 
 def on_results_bulk_updated(

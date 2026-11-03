@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react"
-import { useParams, useLocation, Link } from "react-router-dom"
+import { useParams, useLocation, useNavigate, Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { ExternalLink, Clock, Keyboard, Link2, User, Download } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
@@ -103,7 +103,13 @@ export function ExecutionRunPage() {
   const { hash } = useLocation()
   const { data: execution } = useExecution(id)
   const { data: results = [] } = useExecutionResults(id)
-  const { connected: live } = useExecutionLive(id)
+  const navigate = useNavigate()
+  const { connected: live } = useExecutionLive(id, {
+    onDeleted: ({ project_id }) => {
+      toast.warning(t("run.deletedRemotely"))
+      navigate(project_id ? `/projects/${project_id}/executions` : "/projects", { replace: true })
+    },
+  })
   const qc = useQueryClient()
   const [finishing, setFinishing] = useState(false)
   const { exportPdf, exportHtml } = useExportExecution()

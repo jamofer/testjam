@@ -1,9 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTopicSocket } from './useTopicSocket'
 
-export function useExecutionLive(executionId, { enabled = true } = {}) {
+export function useExecutionLive(executionId, { enabled = true, onDeleted } = {}) {
   const queryClient = useQueryClient()
+  const onDeletedRef = useRef(onDeleted)
+  onDeletedRef.current = onDeleted
 
   const topics = useMemo(
     () => (executionId ? [`execution:${executionId}`] : []),
@@ -42,6 +44,10 @@ export function useExecutionLive(executionId, { enabled = true } = {}) {
       const entries = extractLogEntries(data)
       if (entries.length === 0) return
       appendStepResultLogs(queryClient, executionId, entries)
+    },
+    "execution.deleted": (data) => {
+      if (String(data?.id) !== String(executionId)) return
+      onDeletedRef.current?.(data)
     },
   }), [queryClient, executionId])
 

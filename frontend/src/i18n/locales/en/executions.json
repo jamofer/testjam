@@ -170,7 +170,8 @@
     "stepTypes": {
       "setup": "Setup",
       "teardown": "Teardown"
-    }
+    },
+    "deletedRemotely": "This execution was deleted"
   },
   "import": {
     "results": "Import results",

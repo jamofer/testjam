@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import {
@@ -92,7 +92,15 @@ export function BugDetailPage() {
   const { data: bug, isLoading } = useBug(bugId)
   const { data: project } = useProject(bug?.project_id)
   const { data: versions = [] } = useVersions(bug?.project_id)
-  const { connected: live } = useBugLive(bugId, { enabled: !!me && !!bugId })
+  const deletingRef = useRef(false)
+  const { connected: live } = useBugLive(bugId, {
+    enabled: !!me && !!bugId,
+    onDeleted: () => {
+      if (deletingRef.current) return
+      toast.warning(t("toast.deletedRemotely"))
+      navigate(bug?.project_id ? `/projects/${bug.project_id}/bugs` : "/projects", { replace: true })
+    },
+  })
   const { data: comments = [] } = useBugComments(bugId)
   const { data: activity = [] } = useBugActivity(bugId)
   const { data: linkContext } = useBugContext(bugId)
@@ -274,11 +282,13 @@ export function BugDetailPage() {
   }
 
   const handleDelete = async () => {
+    deletingRef.current = true
     try {
       await deleteBug.mutateAsync(bug.id)
       toast.success(t("toast.deleted"))
       navigate(`/projects/${bug.project_id}/bugs`)
     } catch (error) {
+      deletingRef.current = false
       toastApiError(error, t("toast.deleteFailed"))
     } finally {
       setDeleteBugOpen(false)
