@@ -5,12 +5,14 @@ import json
 import time
 from typing import Any
 
+import httpx
 import typer
 from rich.live import Live
 from rich.table import Table
 
 from testjam_client.cli import output, runtime
 from testjam_client.cli.state import CliState
+from testjam_client.errors import RateLimited, ServerError
 
 
 SHOW_COLUMNS = [
@@ -24,6 +26,10 @@ FAILED_RESULT_STATUSES = frozenset({"failed", "blocked"})
 ABORTED_STATUS = "aborted"
 EXIT_FAILED = 1
 EXIT_ABORTED = 2
+EXIT_TIMED_OUT = 3
+EXIT_UNREACHABLE = 4
+UNREACHABLE_GIVE_UP_SECONDS = 300.0
+TRANSIENT_ERRORS = (httpx.TransportError, ServerError, RateLimited)
 
 
 def build_app() -> typer.Typer:
@@ -81,39 +87,64 @@ def tail_run(
     interval: float = typer.Option(
         DEFAULT_POLL_SECONDS, "--interval", help="Seconds between polls.",
     ),
+    timeout: float = typer.Option(
+        0, "--timeout", help="Give up after this many seconds (exit 3). 0 waits forever.",
+    ),
 ) -> None:
     state: CliState = context.obj
-    with runtime.build_client(state) as client:
-        snapshot = _poll_until_terminal(client, execution_id, interval, state)
+    try:
+        with runtime.build_client(state) as client:
+            snapshot = _poll_until_terminal(client, execution_id, interval, timeout, state)
+    except TailStopped as stop:
+        typer.echo(str(stop), err=True)
+        raise typer.Exit(stop.exit_code) from stop
     if state.json_output:
         typer.echo(json.dumps(snapshot, indent=2, default=str))
     raise typer.Exit(_exit_code(snapshot["execution"], snapshot["results"]))
 
 
+class TailStopped(Exception):
+    """Polling ended before the execution finished."""
+
+    def __init__(self, exit_code: int, message: str) -> None:
+        super().__init__(message)
+        self.exit_code = exit_code
+
+
 def _poll_until_terminal(
-    client, execution_id: int, interval: float, state: CliState,
+    client, execution_id: int, interval: float, timeout: float, state: CliState,
 ) -> dict[str, Any]:
+    snapshots = _snapshots(client, execution_id, interval, timeout)
     if state.json_output:
-        return _poll_silent(client, execution_id, interval)
-    return _poll_live(client, execution_id, interval)
-
-
-def _poll_silent(client, execution_id: int, interval: float) -> dict[str, Any]:
-    while True:
-        snapshot = _take_snapshot(client, execution_id)
-        if snapshot["execution"]["status"] in TERMINAL_STATUSES:
-            return snapshot
-        time.sleep(interval)
-
-
-def _poll_live(client, execution_id: int, interval: float) -> dict[str, Any]:
+        return _last(snapshots)
     with Live(console=output.console, refresh_per_second=4, transient=False) as live:
-        while True:
+        return _last(snapshots, on_snapshot=lambda snapshot: live.update(_render_table(snapshot)))
+
+
+def _last(snapshots, on_snapshot=lambda _snapshot: None) -> dict[str, Any]:
+    snapshot = None
+    for snapshot in snapshots:
+        on_snapshot(snapshot)
+    return snapshot
+
+
+def _snapshots(client, execution_id: int, interval: float, timeout: float):
+    """Yield snapshots until the execution finishes, riding out transient failures."""
+    started = last_reached = time.monotonic()
+    while True:
+        try:
             snapshot = _take_snapshot(client, execution_id)
-            live.update(_render_table(snapshot))
+        except TRANSIENT_ERRORS as exc:
+            if time.monotonic() - last_reached > UNREACHABLE_GIVE_UP_SECONDS:
+                raise TailStopped(EXIT_UNREACHABLE, f"Server unreachable, giving up: {exc}") from exc
+        else:
+            last_reached = time.monotonic()
+            yield snapshot
             if snapshot["execution"]["status"] in TERMINAL_STATUSES:
-                return snapshot
-            time.sleep(interval)
+                return
+        if timeout and time.monotonic() - started >= timeout:
+            raise TailStopped(EXIT_TIMED_OUT, f"Execution {execution_id} still running after {timeout:g}s")
+        time.sleep(interval)
 
 
 def _take_snapshot(client, execution_id: int) -> dict[str, Any]:
