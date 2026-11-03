@@ -63,7 +63,8 @@ class UsersMixin:
             "/users/me/password",
             json={"current_password": current_password, "new_password": new_password},
         )
-        assert response.status_code == 204, response.text
+        assert response.status_code == 200, response.text
+        self.client.set_bearer_token(response.json()["access_token"])
         logger.info("Changed my password")
 
     @keyword("I try to change my password from ${current_password} to ${new_password}")

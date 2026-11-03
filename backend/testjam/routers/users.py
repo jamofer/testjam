@@ -2,7 +2,8 @@ from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, st
 from sqlalchemy.orm import Session
 
 from testjam.auth.dependencies import get_current_user, get_unscoped_user, require_admin
-from testjam.auth.security import hash_password, verify_password
+from testjam.auth.security import create_access_token, hash_password, set_password, verify_password
+from testjam.core.config import settings
 from testjam.database import get_db
 from testjam.models.user import User
 from testjam.schemas.user import (
@@ -10,6 +11,7 @@ from testjam.schemas.user import (
     PasswordChange,
     ResetPasswordRequest,
     ResetPasswordResponse,
+    TokenResponse,
     UserActivity,
     UserCreate,
     UserDeleteRequest,
@@ -68,13 +70,17 @@ def update_me(body: UserUpdate, db: Session = Depends(get_db), current: User = D
     return current
 
 
-@router.put("/me/password", status_code=204)
+@router.put("/me/password", response_model=TokenResponse)
 def change_my_password(body: PasswordChange, db: Session = Depends(get_db), current: User = Depends(get_unscoped_user)):
     if not verify_password(body.current_password, current.hashed_password):
         raise HTTPException(status_code=400, detail="Current password is incorrect")
-    current.hashed_password = hash_password(body.new_password)
+    set_password(current, body.new_password)
     password_reset.revoke_reset_tokens(db, current.id)
     db.commit()
+    return TokenResponse(
+        access_token=create_access_token(subject=current.username),
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
@@ -129,7 +135,7 @@ def update_user(id: int, body: AdminUserUpdate, db: Session = Depends(get_db), _
         user.locked_until = None
         user.failed_login_count = 0
     if "password" in payload:
-        user.hashed_password = hash_password(payload.pop("password"))
+        set_password(user, payload.pop("password"))
     for field, value in payload.items():
         setattr(user, field, value)
     db.commit()

@@ -5,7 +5,7 @@ from fastapi import BackgroundTasks
 from sqlalchemy.orm import Session
 
 from testjam.auth.lockout import clear_lockout
-from testjam.auth.security import hash_password
+from testjam.auth.security import set_password
 from testjam.models.password_reset import PASSWORD_RESET_TOKEN_TTL_HOURS, PasswordResetToken
 from testjam.models.user import User
 from testjam.services import email_templates
@@ -62,7 +62,7 @@ def confirm_password_reset(
     user = db.get(User, record.user_id)
     if user is None or not user.is_active or user.deleted_at is not None:
         return PasswordResetOutcome.UNKNOWN
-    user.hashed_password = hash_password(new_password)
+    set_password(user, new_password)
     revoke_reset_tokens(db, user.id)
     db.commit()
     clear_lockout(db, user)

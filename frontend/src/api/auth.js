@@ -9,7 +9,7 @@ export const authApi = {
   },
   me: () => api.get('/users/me').then(r => r.data),
   updateMe: (data) => api.put('/users/me', data).then(r => r.data),
-  changePassword: (data) => api.put('/users/me/password', data),
+  changePassword: (data) => api.put('/users/me/password', data).then(r => r.data),
   requestPasswordReset: (email) => api.post('/auth/password-reset/request', { email }),
   confirmPasswordReset: (token, newPassword) =>
     api.post('/auth/password-reset/confirm', { token, new_password: newPassword }),

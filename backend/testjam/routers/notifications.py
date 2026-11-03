@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.orm import Session
 
-from testjam.auth.dependencies import get_unscoped_user
-from testjam.auth.security import decode_token
+from testjam.auth.dependencies import get_unscoped_user, user_for_session_token
 from testjam.database import get_db
 from testjam.models.notification import Notification
 from testjam.models.user import User
@@ -64,18 +63,7 @@ async def notifications_ws(
     token: str = Query(...),
     db: Session = Depends(get_db),
 ):
-    username = decode_token(token)
-    user = (
-        db.query(User)
-        .filter(
-            User.username == username,
-            User.is_active == True,  # noqa: E712
-            User.deleted_at.is_(None),
-        )
-        .first()
-        if username
-        else None
-    )
+    user = user_for_session_token(db, token)
     if not user:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return

@@ -20,6 +20,7 @@ class User(Base):
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     failed_login_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False, server_default="0")
     locked_until: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
+    password_changed_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
     last_login_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
