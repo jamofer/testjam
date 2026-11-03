@@ -232,9 +232,9 @@ def on_bug_status_changed(
 
 
 def on_bug_deleted(project_id: int, bug_id: int) -> None:
-    notify_project(project_id, {"event": "bug.deleted", "data": {"id": bug_id}})
-
-
+    payload = {"event": "bug.deleted", "data": {"id": bug_id}}
+    notify_project(project_id, payload)
+    notify_bug(bug_id, payload)
 
 
 def on_bug_comment_added(

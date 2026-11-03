@@ -1,9 +1,11 @@
-import { useMemo } from "react"
+import { useMemo, useRef } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useTopicSocket } from "./useTopicSocket"
 
-export function useBugLive(bugId, { enabled = true } = {}) {
+export function useBugLive(bugId, { enabled = true, onDeleted } = {}) {
   const queryClient = useQueryClient()
+  const onDeletedRef = useRef(onDeleted)
+  onDeletedRef.current = onDeleted
 
   const topics = useMemo(
     () => (bugId ? [`bug:${bugId}`] : []),
@@ -58,6 +60,10 @@ export function useBugLive(bugId, { enabled = true } = {}) {
       queryClient.setQueryData(["bug-links", bugId], (rows = []) =>
         rows.filter(row => row.id !== id),
       )
+    },
+    "bug.deleted": (data) => {
+      if (String(data?.id) !== String(bugId)) return
+      onDeletedRef.current?.(data)
     },
   }), [queryClient, bugId])
 

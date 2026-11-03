@@ -237,7 +237,8 @@
     "commentDeleteFailed": "No se pudo eliminar el comentario",
     "severityChanged": "Severidad actualizada",
     "severityFailed": "No se pudo cambiar la severidad",
-    "editConflict": "Otra persona lo ha cambiado mientras editabas. Tu texto se conserva; guarda de nuevo para sobrescribirlo."
+    "editConflict": "Otra persona lo ha cambiado mientras editabas. Tu texto se conserva; guarda de nuevo para sobrescribirlo.",
+    "deletedRemotely": "Este bug se ha borrado"
   },
   "report": {
     "dialogTitle": "Reportar bug",

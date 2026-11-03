@@ -314,20 +314,23 @@ def test_assigning_to_self_is_a_noop(
     assert emails_in(background) == []
 
 
-def test_deleted_broadcasts_only(monkeypatch):
+def test_deleted_broadcasts_to_project_and_execution_topics(monkeypatch):
     pushed: list = []
     monkeypatch.setattr(
         execution_events,
         "notify_project",
-        lambda project_id, payload: pushed.append((project_id, payload)),
+        lambda project_id, payload: pushed.append(("project", project_id, payload)),
+    )
+    monkeypatch.setattr(
+        execution_events,
+        "notify_execution",
+        lambda execution_id, payload: pushed.append(("execution", execution_id, payload)),
     )
 
     execution_events.on_execution_deleted(42, 7)
 
-    assert pushed == [(7, {
-        "event": "execution.deleted",
-        "data": {"id": 42, "project_id": 7},
-    })]
+    payload = {"event": "execution.deleted", "data": {"id": 42, "project_id": 7}}
+    assert pushed == [("project", 7, payload), ("execution", 42, payload)]
 
 
 def test_result_updated_broadcasts_to_execution_topic(monkeypatch):
