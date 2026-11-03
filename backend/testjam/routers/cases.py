@@ -548,7 +548,7 @@ def upload_attachment(
     dest_dir = os.path.join(UPLOAD_DIR, str(id))
     os.makedirs(dest_dir, exist_ok=True)
     stored_filename = uploads.safe_filename(file.filename)
-    dest_path = uploads.safe_join(dest_dir, file.filename)
+    dest_path = uploads.unique_path(dest_dir, file.filename)
     with open(dest_path, "wb") as f:
         f.write(payload)
     attachment = Attachment(

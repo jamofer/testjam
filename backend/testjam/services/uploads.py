@@ -6,6 +6,7 @@ an upper bound on the byte count read from incoming UploadFile streams.
 from __future__ import annotations
 
 import os
+import uuid
 from pathlib import PurePosixPath
 
 from fastapi import HTTPException, UploadFile
@@ -39,6 +40,11 @@ def safe_join(directory: str, raw_filename: str | None) -> str:
     if not destination.startswith(root + os.sep) and destination != root:
         return os.path.join(root, FALLBACK_FILENAME)
     return destination
+
+
+def unique_path(directory: str, raw_filename: str | None) -> str:
+    """Return a path that no other upload to ``directory`` can overwrite."""
+    return safe_join(directory, f"{uuid.uuid4().hex}-{safe_filename(raw_filename)}")
 
 
 def read_bounded(file: UploadFile, max_bytes: int) -> bytes:

@@ -144,7 +144,7 @@ def upload_version_attachment(
     destination_directory = os.path.join(VERSION_UPLOAD_DIR, str(id))
     os.makedirs(destination_directory, exist_ok=True)
     stored_filename = uploads.safe_filename(file.filename)
-    destination_path = uploads.safe_join(destination_directory, file.filename)
+    destination_path = uploads.unique_path(destination_directory, file.filename)
     with open(destination_path, "wb") as handle:
         handle.write(payload)
     attachment = VersionAttachment(
