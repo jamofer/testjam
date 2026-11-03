@@ -99,6 +99,17 @@ describe("CustomFieldsForm", () => {
     expect(onChange).toHaveBeenLastCalledWith({})
   })
 
+  it("labels the empty choice of a single select as not set", () => {
+    const definitions = [buildDefinition({
+      type: "single_select", options: [{ value: "p0", label: "P0" }],
+    })]
+
+    render(<CustomFieldsForm definitions={definitions} values={{}} onChange={vi.fn()} />)
+    fireEvent.click(screen.getByRole("combobox"))
+
+    expect(screen.getByRole("option", { name: "Not set" })).toBeInTheDocument()
+  })
+
   it("marks required fields with a badge", () => {
     const definitions = [buildDefinition({ required: true })]
 

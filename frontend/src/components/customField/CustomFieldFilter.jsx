@@ -49,7 +49,7 @@ function ValueControl({ definition, value, onChange }) {
           <SelectValue placeholder={t("filter.valuePlaceholder")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="any">{t("filter.any")}</SelectItem>
+          <SelectItem value={ANY}>{t("filter.any")}</SelectItem>
           {(definition.options || []).map(option => (
             <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
           ))}
@@ -64,9 +64,9 @@ function ValueControl({ definition, value, onChange }) {
           <SelectValue placeholder={t("filter.valuePlaceholder")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="any">{t("filter.any")}</SelectItem>
-          <SelectItem value="true">True</SelectItem>
-          <SelectItem value="false">False</SelectItem>
+          <SelectItem value={ANY}>{t("filter.any")}</SelectItem>
+          <SelectItem value="true">{t("bool.yes")}</SelectItem>
+          <SelectItem value="false">{t("bool.no")}</SelectItem>
         </SelectContent>
       </Select>
     )
@@ -74,9 +74,10 @@ function ValueControl({ definition, value, onChange }) {
   return (
     <Input
       className="h-9 w-44"
-      placeholder={t("filter.valuePlaceholder")}
-      value={value === "any" ? "" : value}
-      onChange={event => onChange(event.target.value || "any")}
+      placeholder={t("filter.any")}
+      aria-label={t("filter.valuePlaceholder")}
+      value={value === ANY ? "" : value}
+      onChange={event => onChange(event.target.value || ANY)}
     />
   )
 }

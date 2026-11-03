@@ -130,7 +130,7 @@ function SingleSelectControl({ definition, value, onChange }) {
     >
       <SelectTrigger><SelectValue /></SelectTrigger>
       <SelectContent>
-        <SelectItem value={NONE_VALUE}>{t("filter.any")}</SelectItem>
+        <SelectItem value={NONE_VALUE}>{t("select.unset")}</SelectItem>
         {(definition.options || []).map(option => (
           <SelectItem key={option.value} value={option.value}>
             <span className="inline-flex items-center gap-2">
