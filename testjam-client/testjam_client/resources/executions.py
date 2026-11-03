@@ -73,8 +73,35 @@ class ExecutionsResource(Resource):
     def delete(self, execution_id: int) -> None:
         self._request("DELETE", f"/executions/{execution_id}")
 
+    def reopen(self, execution_id: int) -> dict:
+        """Move a completed or aborted execution back to in progress."""
+        return self._request("POST", f"/executions/{execution_id}/reopen").json()
+
     def list_results(self, execution_id: int) -> list[dict]:
         return self._request("GET", f"/executions/{execution_id}/results").json()
+
+    def bulk_results(self, execution_id: int, results: list[dict]) -> dict:
+        """Create or update many results in one call; returns created/updated/errors counts."""
+        return self._request(
+            "POST", f"/executions/{execution_id}/results/bulk", json={"results": results},
+        ).json()
+
+    def import_junit(self, execution_id: int, *, filename: str, content) -> dict:
+        """Apply a JUnit XML report to the execution's results."""
+        return self._import(execution_id, "junit", filename, content)
+
+    def import_robotframework(self, execution_id: int, *, filename: str, content) -> dict:
+        """Apply a Robot Framework ``output.xml`` to the execution's results."""
+        return self._import(execution_id, "robotframework", filename, content)
+
+    def export_xlsx(self, execution_id: int) -> bytes:
+        return self._request("GET", f"/executions/{execution_id}/export/xlsx").content
+
+    def export_html(self, execution_id: int) -> str:
+        return self._request("GET", f"/executions/{execution_id}/export/html").text
+
+    def list_attachments(self, execution_id: int) -> list[dict]:
+        return self._request("GET", f"/executions/{execution_id}/attachments").json()
 
     def upload_attachment(
         self,
@@ -88,4 +115,10 @@ class ExecutionsResource(Resource):
         files = {"file": (filename, content, mime)}
         return self._request(
             "POST", f"/executions/{execution_id}/attachments", files=files,
+        ).json()
+
+    def _import(self, execution_id: int, kind: str, filename: str, content) -> dict:
+        files = {"file": (filename, content, "application/xml")}
+        return self._request(
+            "POST", f"/executions/{execution_id}/results/import/{kind}", files=files,
         ).json()

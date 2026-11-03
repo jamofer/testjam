@@ -38,3 +38,11 @@ class ResultsResource(Resource):
 
     def update(self, result_id: int, **payload: Any) -> dict:
         return self._request("PUT", f"/results/{result_id}", json=payload).json()
+
+    def upload_attachment(self, result_id: int, *, filename: str, content, mime: str) -> dict:
+        """Attach a file (screenshot, log…) to one result."""
+        files = {"file": (filename, content, mime)}
+        return self._request("POST", f"/results/{result_id}/attachments", files=files).json()
+
+    def list_attachments(self, result_id: int) -> list[dict]:
+        return self._request("GET", f"/results/{result_id}/attachments").json()

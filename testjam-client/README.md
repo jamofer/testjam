@@ -107,8 +107,11 @@ Full reference: [`docs/manual/cli.md`](../docs/manual/cli.md).
   bulk reconciliation (`reconcile(suite_id, specs)`).
 - `client.versions` — CRUD + `find_or_create` keyed by name.
 - `client.environments` — CRUD + `find_or_create`.
-- `client.executions` — CRUD + `list_results`, `upload_attachment`.
-- `client.results` — `get`, `create`, `update`.
+- `client.executions` — CRUD, `reopen`, `list_results`, `bulk_results`,
+  `import_junit` / `import_robotframework`, `export_xlsx` / `export_html`,
+  `upload_attachment` / `list_attachments`.
+- `client.results` — `get`, `create`, `update`, `upload_attachment` /
+  `list_attachments`.
 - `client.step_results` — `start`, `update`, `append_log`.
 - `client.bugs` — CRUD, `get_by_number`, `change_status`, comments,
   watchers (`watch` / `unwatch` / `list_watchers`), links, activity,
