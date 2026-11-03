@@ -80,3 +80,35 @@ def test_profile_flag_does_not_leak_into_default(config_path):
 
     assert "https://ci.example" not in result.output
     assert "(empty)" in result.output
+
+
+def test_saved_config_is_private(config_path):
+    runner.invoke(app, ["config", "set", "token", "eyJsecret1234567890"])
+
+    assert config_path.stat().st_mode & 0o777 == 0o600
+
+
+def test_save_leaves_no_temporary_files(config_path):
+    runner.invoke(app, ["config", "set", "url", "https://srv.example/api/v1"])
+
+    assert [entry.name for entry in config_path.parent.iterdir()] == ["config.toml"]
+
+
+def test_unknown_profile_is_reported_with_known_ones(config_path):
+    config_path.write_text(
+        '[profiles.default]\nurl = "https://srv.example/api/v1"\n'
+        '[profiles.prod]\nurl = "https://prod.example/api/v1"\n'
+    )
+
+    result = runner.invoke(app, ["--profile", "prdo", "project", "list"])
+
+    assert result.exit_code == 2
+    assert "Unknown profile 'prdo'" in result.output
+    assert "default, prod" in result.output
+
+
+def test_reading_unknown_profile_does_not_create_it(config_path):
+    runner.invoke(app, ["--profile", "prdo", "config", "show"])
+    runner.invoke(app, ["config", "set", "url", "https://srv.example/api/v1"])
+
+    assert "prdo" not in config_path.read_text()

@@ -11,6 +11,7 @@ self-contained deployments.
 from __future__ import annotations
 
 import os
+import tempfile
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -27,6 +28,7 @@ EDITABLE_FIELDS: frozenset[str] = frozenset(
     {"url", "token", "api_key", "username", "default_project"}
 )
 FILE_PERMISSIONS = 0o600
+DIRECTORY_PERMISSIONS = 0o700
 
 
 class ConfigStore:
@@ -43,23 +45,37 @@ class ConfigStore:
     def default_profile(self) -> str:
         return self._data.get("default_profile", DEFAULT_PROFILE_NAME)
 
+    @property
+    def profile_names(self) -> list[str]:
+        return sorted(self._data.get("profiles", {}))
+
+    def has_profile(self, name: str | None = None) -> bool:
+        return (name or self.default_profile) in self._data.get("profiles", {})
+
     def profile(self, name: str | None = None) -> dict[str, Any]:
-        resolved_name = name or self.default_profile
-        profiles = self._data.setdefault("profiles", {})
-        return profiles.setdefault(resolved_name, {})
+        """Read a profile; an unknown name reads as empty and is not created."""
+        return dict(self._data.get("profiles", {}).get(name or self.default_profile, {}))
 
     def set_profile_value(self, name: str | None, key: str, value: str | None) -> None:
-        target = self.profile(name)
+        profiles = self._data.setdefault("profiles", {})
+        target = profiles.setdefault(name or self.default_profile, {})
         if value is None:
             target.pop(key, None)
             return
         target[key] = value
 
     def save(self) -> None:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        with self.path.open("wb") as handle:
-            tomli_w.dump(self._data, handle)
-        os.chmod(self.path, FILE_PERMISSIONS)
+        """Write the file atomically; it is never readable by others, not even briefly."""
+        self.path.parent.mkdir(mode=DIRECTORY_PERMISSIONS, parents=True, exist_ok=True)
+        descriptor, temporary_path = tempfile.mkstemp(dir=self.path.parent, prefix=f".{self.path.name}.")
+        try:
+            with os.fdopen(descriptor, "wb") as handle:
+                tomli_w.dump(self._data, handle)
+            os.chmod(temporary_path, FILE_PERMISSIONS)
+            os.replace(temporary_path, self.path)
+        except BaseException:
+            Path(temporary_path).unlink(missing_ok=True)
+            raise
 
 
 def default_config_path() -> Path:
