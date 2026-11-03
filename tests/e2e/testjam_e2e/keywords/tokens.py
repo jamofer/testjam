@@ -50,6 +50,13 @@ class TokensMixin:
         assert resp.status_code == 200, f"List tokens failed: {resp.text}"
         return resp.json()
 
+    @keyword("my user token ${name} should be listed by prefix only")
+    def user_token_should_be_listed_by_prefix(self, name: str) -> None:
+        listed = next((token for token in self.list_user_tokens() if token["name"] == name), None)
+        assert listed is not None, f"Token '{name}' is not listed"
+        assert listed["prefix"], f"Token '{name}' has no prefix"
+        assert "token" not in listed, f"Token '{name}' exposes its secret in the list"
+
     @keyword("I try to create a project token named ${name}")
     def try_create_project_token(self, name: str) -> None:
         resp = self.client.post(f"/projects/{self.current_project_id}/tokens", json={"name": name})
