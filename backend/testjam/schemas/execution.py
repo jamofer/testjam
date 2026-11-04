@@ -9,6 +9,7 @@ from testjam.schemas.user import UserOut
 
 ResultStatus = Literal["not_run", "running", "passed", "failed", "blocked"]
 ExecutionStatus = Literal["pending", "in_progress", "completed", "aborted"]
+RerunScope = Literal["all", "not_passed"]
 
 
 class ExecutionAttachmentOut(BaseModel):
@@ -142,6 +143,10 @@ class TestExecutionCreate(BaseModel):
     triggered_by: str | None = None
     test_case_ids: list[int] = []
     custom_fields: dict[str, Any] | None = None
+
+
+class TestExecutionRerun(BaseModel):
+    cases: RerunScope = "all"
 
 
 class TestExecutionUpdate(BaseModel):

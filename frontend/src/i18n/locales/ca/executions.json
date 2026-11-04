@@ -192,5 +192,15 @@
     "successDetail": "Importat: {{created}} creats, {{updated}} actualitzats",
     "successWithErrors": "Importat: {{created}} creats, {{updated}} actualitzats, {{errors}} sense coincidència",
     "failed": "Ha fallat la importació: {{message}}"
+  },
+  "rerun": {
+    "open": "Tornar a executar",
+    "title": "Tornar a executar l'execució",
+    "description": "Crea una execució nova amb el mateix pla, versió, entorn i responsable. Aquesta es queda com està.",
+    "all": "Tots els casos",
+    "notPassed_one": "Només el {{count}} cas que no ha passat",
+    "notPassed_other": "Només els {{count}} casos que no han passat",
+    "created": "Nova execució iniciada",
+    "failed": "No s'ha pogut tornar a executar"
   }
 }

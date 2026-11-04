@@ -192,5 +192,15 @@
     "successDetail": "Importado: {{created}} creados, {{updated}} actualizados",
     "successWithErrors": "Importado: {{created}} creados, {{updated}} actualizados, {{errors}} sen coincidencia",
     "failed": "Fallou a importación: {{message}}"
+  },
+  "rerun": {
+    "open": "Volver executar",
+    "title": "Volver executar a execución",
+    "description": "Crea unha execución nova co mesmo plan, versión, contorno e responsable. Esta queda como está.",
+    "all": "Todos os casos",
+    "notPassed_one": "Só o {{count}} caso que non pasou",
+    "notPassed_other": "Só os {{count}} casos que non pasaron",
+    "created": "Nova execución iniciada",
+    "failed": "Non se puido volver executar"
   }
 }

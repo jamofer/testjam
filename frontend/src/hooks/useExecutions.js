@@ -30,6 +30,14 @@ export function useCreateExecution(projectId) {
   })
 }
 
+export function useRerunExecution(projectId) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, cases }) => executionsApi.rerun(id, cases),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['executions', projectId] }),
+  })
+}
+
 export function useDeleteExecution(projectId) {
   const qc = useQueryClient()
   return useMutation({

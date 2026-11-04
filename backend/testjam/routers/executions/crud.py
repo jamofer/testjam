@@ -24,8 +24,10 @@ from testjam.routers.executions._helpers import (
     load_execution_full,
 )
 from testjam.schemas.execution import (
+    RerunScope,
     TestExecutionCreate,
     TestExecutionOut,
+    TestExecutionRerun,
     TestExecutionUpdate,
 )
 from testjam.services import custom_fields as custom_field_service
@@ -232,6 +234,37 @@ def reopen_execution(
     return execution_out(load_execution_full(db, ex.id))
 
 
+@executions_router.post(
+    "/{id}/rerun", response_model=TestExecutionOut, status_code=status.HTTP_201_CREATED
+)
+def rerun_execution(
+    id: int,
+    body: TestExecutionRerun,
+    background: BackgroundTasks,
+    db: Session = Depends(get_db),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    source = load_execution_full(db, id)
+    if not source:
+        raise HTTPException(status_code=404, detail="Not found")
+    authorize_project(db, ctx, source.project_id, WRITER_ROLES)
+    project = db.get(Project, source.project_id)
+    if project.archived_at is not None:
+        raise HTTPException(status_code=409, detail="Project is archived")
+    case_ids = _rerun_case_ids(source, body.cases)
+    if not case_ids:
+        raise HTTPException(status_code=409, detail="No test cases left to re-run")
+    rerun = _copy_execution(source, ctx)
+    db.add(rerun)
+    db.flush()
+    for case_id in case_ids:
+        db.add(TestResult(execution_id=rerun.id, test_case_id=case_id, status="not_run"))
+    db.flush()
+    execution_events.on_execution_created(db, rerun, ctx.user, background)
+    db.commit()
+    return execution_out(load_execution_full(db, rerun.id))
+
+
 @executions_router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_execution(id: int, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)):
     ex = db.get(TestExecution, id)
@@ -243,3 +276,36 @@ def delete_execution(id: int, db: Session = Depends(get_db), ctx: AuthContext = 
     db.delete(ex)
     db.commit()
     execution_events.on_execution_deleted(execution_id, project_id)
+
+
+def _rerun_case_ids(source: TestExecution, cases: RerunScope) -> list[int]:
+    case_ids: list[int] = []
+    for result in source.results:
+        if not _is_rerunnable(result, cases) or result.test_case_id in case_ids:
+            continue
+        case_ids.append(result.test_case_id)
+    return case_ids
+
+
+def _is_rerunnable(result: TestResult, cases: RerunScope) -> bool:
+    if result.test_case is None or result.test_case.archived_at is not None:
+        return False
+    return cases == "all" or result.status != "passed"
+
+
+def _copy_execution(source: TestExecution, ctx: AuthContext) -> TestExecution:
+    return TestExecution(
+        project_id=source.project_id,
+        test_plan_id=source.test_plan_id,
+        version_id=source.version_id,
+        title=source.title,
+        description=source.description,
+        type=source.type,
+        environment=source.environment,
+        custom_fields=dict(source.custom_fields or {}),
+        assigned_to_id=source.assigned_to_id,
+        triggered_by=ctx.user.username,
+        created_by_id=ctx.user.id,
+        token_name=ctx.token_name,
+        started_at=datetime.now(UTC),
+    )

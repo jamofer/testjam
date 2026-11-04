@@ -193,5 +193,15 @@
     "successDetail": "Imported: {{created}} created, {{updated}} updated",
     "successWithErrors": "Imported: {{created}} created, {{updated}} updated, {{errors}} unmatched",
     "failed": "Import failed: {{message}}"
+  },
+  "rerun": {
+    "open": "Re-run",
+    "title": "Re-run execution",
+    "description": "Start a new execution with the same plan, version, environment and assignee. This one stays as it is.",
+    "all": "All cases",
+    "notPassed_one": "Only the {{count}} case that did not pass",
+    "notPassed_other": "Only the {{count}} cases that did not pass",
+    "created": "New execution started",
+    "failed": "Failed to re-run"
   }
 }

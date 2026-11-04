@@ -7,6 +7,7 @@ export const executionsApi = {
   create: (projectId, data) => api.post(`/projects/${projectId}/executions`, data).then(r => r.data),
   update: (id, data) => api.put(`/executions/${id}`, data).then(r => r.data),
   reopen: (id) => api.post(`/executions/${id}/reopen`).then(r => r.data),
+  rerun: (id, cases) => api.post(`/executions/${id}/rerun`, { cases }).then(r => r.data),
   delete: (id) => api.delete(`/executions/${id}`),
 
   listResults: (executionId, params) => api.get(`/executions/${executionId}/results`, { params }).then(r => r.data),
