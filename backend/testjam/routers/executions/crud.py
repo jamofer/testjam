@@ -251,14 +251,19 @@ def rerun_execution(
     project = db.get(Project, source.project_id)
     if project.archived_at is not None:
         raise HTTPException(status_code=409, detail="Project is archived")
-    case_ids = _rerun_case_ids(source, body.cases)
-    if not case_ids:
+    assignees_by_case = _rerun_assignees_by_case(source, body.cases)
+    if not assignees_by_case:
         raise HTTPException(status_code=409, detail="No test cases left to re-run")
     rerun = _copy_execution(source, ctx)
     db.add(rerun)
     db.flush()
-    for case_id in case_ids:
-        db.add(TestResult(execution_id=rerun.id, test_case_id=case_id, status="not_run"))
+    for case_id, assigned_to_id in assignees_by_case.items():
+        db.add(TestResult(
+            execution_id=rerun.id,
+            test_case_id=case_id,
+            assigned_to_id=assigned_to_id,
+            status="not_run",
+        ))
     db.flush()
     execution_events.on_execution_created(db, rerun, ctx.user, background)
     db.commit()
@@ -278,13 +283,12 @@ def delete_execution(id: int, db: Session = Depends(get_db), ctx: AuthContext = 
     execution_events.on_execution_deleted(execution_id, project_id)
 
 
-def _rerun_case_ids(source: TestExecution, cases: RerunScope) -> list[int]:
-    case_ids: list[int] = []
+def _rerun_assignees_by_case(source: TestExecution, cases: RerunScope) -> dict[int, int | None]:
+    assignees_by_case: dict[int, int | None] = {}
     for result in source.results:
-        if not _is_rerunnable(result, cases) or result.test_case_id in case_ids:
-            continue
-        case_ids.append(result.test_case_id)
-    return case_ids
+        if _is_rerunnable(result, cases):
+            assignees_by_case.setdefault(result.test_case_id, result.assigned_to_id)
+    return assignees_by_case
 
 
 def _is_rerunnable(result: TestResult, cases: RerunScope) -> bool:

@@ -9,6 +9,7 @@ import { useExecutionLive } from "../hooks/useExecutionLive"
 import { executionsApi } from "../api/executions"
 import { useExportExecution } from "../hooks/useExportExecution"
 import { useProject } from "../hooks/useProjects"
+import { useMe } from "../hooks/useAuth"
 import { useSuitesAll, useCase } from "../hooks/useSuites"
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts"
 import { useSwipe } from "../hooks/useSwipe"
@@ -172,14 +173,21 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
   const [helpOpen, setHelpOpen] = useState(false)
   const [followLive, setFollowLive] = useState(true)
   const [expandState, setExpandState] = useState({ version: 0, desiredOpen: null })
+  const [onlyMine, setOnlyMine] = useState(false)
+  const { data: me } = useMe()
   const isAutomated = execution.type === "automatic"
   const isTerminal = TERMINAL_STATUSES.has(execution.status)
   const isLocked = isAutomated || isTerminal
 
   const suiteByCase = useMemo(() => mapSuiteByCase(allSuites), [allSuites])
+  const hasMyResults = me != null && results.some(result => result.assigned_to_id === me.id)
+  const visibleResults = useMemo(
+    () => (onlyMine && hasMyResults ? results.filter(result => result.assigned_to_id === me.id) : results),
+    [results, onlyMine, hasMyResults, me],
+  )
   const { groups, topLevelIds, childrenOf, orderedResults } = useMemo(() => {
     const groups = {}
-    results.forEach(result => {
+    visibleResults.forEach(result => {
       const suite = suiteByCase[result.test_case_id]
       const key = suite?.id ?? 0
       if (!groups[key]) groups[key] = { suite: suite ?? null, items: [] }
@@ -201,9 +209,9 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
     }
     for (const topId of topLevelIds) walk(topId)
     for (const item of (groupsFull[0]?.items ?? [])) ordered.push(item)
-    if (ordered.length === 0) ordered.push(...results)
+    if (ordered.length === 0) ordered.push(...visibleResults)
     return { groups: groupsFull, topLevelIds, childrenOf, orderedResults: ordered }
-  }, [results, allSuites, suiteByCase])
+  }, [visibleResults, allSuites, suiteByCase])
 
   const suiteOrder = useMemo(() => {
     const out = []
@@ -532,6 +540,16 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
             <Button variant="ghost" size="sm" onClick={() => setHelpOpen(true)} title={t("run.keyboardShortcuts")}>
               <Keyboard size={14} />
             </Button>
+            {hasMyResults && (
+              <Button
+                variant={onlyMine ? "default" : "outline"}
+                size="sm"
+                aria-pressed={onlyMine}
+                onClick={() => setOnlyMine(value => !value)}
+              >
+                <User size={13} /> {t("assignee.onlyMine")}
+              </Button>
+            )}
             {isAutomated && !isTerminal && (
               <ImportResultsButton executionId={id} />
             )}

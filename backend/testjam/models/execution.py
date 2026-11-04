@@ -75,9 +75,13 @@ class TestResult(Base):
     executed_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
     executed_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    assigned_to_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
 
     execution: Mapped[TestExecution] = relationship(back_populates="results")
     test_case: Mapped[TestCase | None] = relationship()
+    assigned_to: Mapped[User | None] = relationship(foreign_keys=[assigned_to_id])
     step_results: Mapped[list[TestStepResult]] = relationship(
         back_populates="test_result", cascade="all, delete-orphan"
     )

@@ -202,5 +202,11 @@
     "notPassed_other": "Gainditu ez diren {{count}} kasuak bakarrik",
     "created": "Exekuzio berria hasi da",
     "failed": "Ezin izan da berriro exekutatu"
+  },
+  "assignee": {
+    "label": "Arduraduna",
+    "unassigned": "Esleitu gabe",
+    "failed": "Ezin izan da esleitu",
+    "onlyMine": "Nireak bakarrik"
   }
 }

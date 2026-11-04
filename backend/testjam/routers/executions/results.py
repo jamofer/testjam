@@ -9,6 +9,7 @@ from testjam.auth.dependencies import AuthContext, get_auth_context
 from testjam.database import get_db
 from testjam.models.execution import TestExecution, TestResult, TestStepResult
 from testjam.models.testcase import TestCase, TestSuite
+from testjam.models.user import User
 from testjam.routers.executions import executions_router, results_router
 from testjam.routers.executions._helpers import authorized_execution, authorized_result
 from testjam.schemas.execution import (
@@ -25,11 +26,12 @@ from testjam.schemas.execution import (
     TestStepResultUpdate,
 )
 from testjam.services import execution_events
-from testjam.services.permissions import WRITER_ROLES
+from testjam.services.permissions import WRITER_ROLES, effective_role
 
 STEP_RESULT_LOG_SEPARATOR = "\n\n"
 TERMINAL_EXECUTION_STATUSES = {"completed", "aborted"}
 BULK_ITEM_SAVE_ERROR = "Could not save result"
+UNASSIGNABLE_USER = "Assignee must be an active member of the project"
 
 
 
@@ -47,6 +49,16 @@ def _reject_if_terminal(execution: TestExecution | None) -> None:
             status_code=409,
             detail=f"Execution is {execution.status}; results are read-only",
         )
+
+
+def _require_assignable(db: Session, project_id: int, user_id: int | None) -> None:
+    if user_id is None:
+        return
+    user = db.get(User, user_id)
+    if user is None or not user.is_active or user.deleted_at is not None:
+        raise HTTPException(status_code=422, detail=UNASSIGNABLE_USER)
+    if effective_role(db, user_id, project_id) is None:
+        raise HTTPException(status_code=422, detail=UNASSIGNABLE_USER)
 
 
 def _result_out(result: TestResult) -> TestResultOut:
@@ -124,7 +136,11 @@ def _resolve_execution_id(db: Session, result_id: int) -> int | None:
 
 @executions_router.get("/{id}/results", response_model=list[TestResultOut])
 def list_results(
-    id: int, status: str | None = None, db: Session = Depends(get_db), ctx: AuthContext = Depends(get_auth_context)
+    id: int,
+    status: str | None = None,
+    assigned_to_id: int | None = None,
+    db: Session = Depends(get_db),
+    ctx: AuthContext = Depends(get_auth_context),
 ):
     authorized_execution(db, ctx, id)
     q = (
@@ -137,6 +153,8 @@ def list_results(
     )
     if status:
         q = q.filter(TestResult.status == status)
+    if assigned_to_id is not None:
+        q = q.filter(TestResult.assigned_to_id == assigned_to_id)
     return [_result_out(result) for result in q.order_by(TestResult.id).all()]
 
 
@@ -231,8 +249,11 @@ def update_result(
     result = authorized_result(db, ctx, id, WRITER_ROLES)
     _reject_if_terminal(result.execution)
     previous_status = result.status
-    for field, value in body.model_dump(exclude_none=True).items():
+    for field, value in body.model_dump(exclude_none=True, exclude={"assigned_to_id"}).items():
         setattr(result, field, value)
+    if "assigned_to_id" in body.model_fields_set:
+        _require_assignable(db, result.execution.project_id, body.assigned_to_id)
+        result.assigned_to_id = body.assigned_to_id
     db.commit()
     db.refresh(result)
     out = _result_out(result)
