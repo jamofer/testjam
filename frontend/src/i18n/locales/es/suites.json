@@ -120,5 +120,18 @@
   "picker": {
     "allExcluded": "Todos los casos ya están añadidos",
     "selectAllInSuite": "Seleccionar todos los casos de {{name}}"
+  },
+  "importCsv": {
+    "open": "Importar CSV",
+    "title": "Importar casos desde CSV",
+    "description": "Una fila por caso. Solo la columna name es obligatoria; se reconocen estas columnas:",
+    "hint": "Anida suites con \"Padre / Hijo\". Escribe cada paso en su propia línea dentro de la celda steps, y su resultado esperado en la misma línea de la celda expected. Los casos que ya existen con el mismo nombre en una suite se omiten.",
+    "file": "Fichero CSV",
+    "submit": "Importar",
+    "created_one": "{{count}} caso importado",
+    "created_other": "{{count}} casos importados",
+    "rowError": "Fila {{row}} ({{name}}): {{error}}",
+    "failed": "No se pudo importar",
+    "summary": "Casos creados: {{count}} · Suites nuevas: {{suites}}"
   }
 }

@@ -20,6 +20,7 @@ import { EmptyState } from "../components/ui/empty-state"
 import { Skeleton, SkeletonList } from "../components/ui/skeleton"
 import { ShortcutsDialog } from "../components/ui/shortcuts-dialog"
 import { SuiteRow, SuiteCollapseContext } from "../components/project/SuiteRow"
+import { ImportCasesDialog } from "../components/project/ImportCasesDialog"
 import { CustomFieldFilter } from "../components/customField/CustomFieldFilter"
 import { CustomFieldColumnToggle } from "../components/customField/CustomFieldColumnToggle"
 import { CustomFieldValue } from "../components/customField/CustomFieldInput"
@@ -257,6 +258,7 @@ export function SuitesPage() {
             </div>
             <div className="flex items-center gap-2">
               <ExportProjectButton projectId={id} />
+              <ImportCasesDialog projectId={id} />
               <CreateSuiteDialog projectId={id} />
             </div>
           </div>

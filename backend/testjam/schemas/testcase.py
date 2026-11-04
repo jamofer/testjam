@@ -195,3 +195,15 @@ class CaseCommentOut(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class CaseImportError(BaseModel):
+    row: int
+    name: str
+    error: str
+
+
+class CaseImportResponse(BaseModel):
+    created: int
+    suites_created: int
+    errors: list[CaseImportError]

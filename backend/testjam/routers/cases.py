@@ -8,6 +8,7 @@ from fastapi import (
     File,
     HTTPException,
     Query,
+    Request,
     UploadFile,
     status,
 )
@@ -23,8 +24,10 @@ from testjam.auth.dependencies import (
     require_project_access,
 )
 from testjam.core.config import settings
+from testjam.core.rate_limit import IMPORT_RATE_LIMIT, limiter
 from testjam.database import get_db
 from testjam.models.case_revision import CaseRevision
+from testjam.models.project import Project
 from testjam.models.testcase import Attachment, CaseComment, TestCase, TestStep, TestSuite
 from testjam.models.user import User
 from testjam.schemas.case_revision import CaseRevisionDetail, CaseRevisionSummary
@@ -33,6 +36,7 @@ from testjam.schemas.testcase import (
     CaseCommentCreate,
     CaseCommentOut,
     CaseCommentUpdate,
+    CaseImportResponse,
     TestCaseCreate,
     TestCaseOut,
     TestCaseUpdate,
@@ -40,10 +44,11 @@ from testjam.schemas.testcase import (
     TestStepOut,
     TestStepUpdate,
 )
-from testjam.services import case_events, mention_notify, uploads
+from testjam.services import case_csv_import, case_events, mention_notify, uploads
 from testjam.services import custom_fields as custom_field_service
 from testjam.services.case_revisions import write_revision
 from testjam.services.permissions import WRITER_ROLES, effective_role
+from testjam.services.settings import get_settings as get_app_settings
 
 UPLOAD_DIR = os.path.join(settings.UPLOAD_DIR, "cases")
 
@@ -82,6 +87,25 @@ def search_project_cases(
     if cf_key:
         rows = [c for c in rows if custom_field_service.matches_value(c.custom_fields, cf_key, cf_value)]
     return rows[skip:skip + limit]
+
+
+@projects_router.post("/{id}/cases/import/csv", response_model=CaseImportResponse)
+@limiter.limit(IMPORT_RATE_LIMIT)
+def import_cases_csv(
+    id: int,
+    request: Request,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    ctx: AuthContext = Depends(get_auth_context),
+):
+    authorize_project(db, ctx, id, WRITER_ROLES)
+    project = db.get(Project, id)
+    if project.archived_at is not None:
+        raise HTTPException(status_code=409, detail="Project is archived")
+    max_bytes = get_app_settings(db).max_upload_mb * 1024 * 1024
+    report = case_csv_import.import_cases(db, id, uploads.read_bounded(file, max_bytes), ctx.user)
+    db.commit()
+    return CaseImportResponse(created=report.created, suites_created=report.suites_created, errors=report.errors)
 
 
 @suites_router.get("/{id}/cases", response_model=list[TestCaseOut])
