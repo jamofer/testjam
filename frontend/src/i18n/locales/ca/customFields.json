@@ -45,7 +45,8 @@
     "deleted": "Camp eliminat",
     "archived": "Camp arxivat",
     "unarchived": "Camp restaurat",
-    "deleteFailed": "No es pot eliminar: encara hi ha valors. Arxiva'l en lloc d'això."
+    "deleteFailed": "No es pot eliminar: encara hi ha valors. Arxiva'l en lloc d'això.",
+    "updateFailed": "No s'ha pogut actualitzar el camp"
   },
   "errors": {
     "invalidKey": "La clau ha de contenir només lletres minúscules, dígits i guions baixos",
@@ -70,5 +71,8 @@
   "columns": {
     "title": "Columnes",
     "subtitle": "Mostra camps personalitzats"
+  },
+  "options": {
+    "colorFor": "Color de {{label}}"
   }
 }

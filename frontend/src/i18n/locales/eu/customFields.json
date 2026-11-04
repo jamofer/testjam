@@ -45,7 +45,8 @@
     "deleted": "Eremua kenduta",
     "archived": "Eremua artxibatuta",
     "unarchived": "Eremua berreskuratuta",
-    "deleteFailed": "Ezin da ezabatu: balioak daude oraindik. Artxibatu horren ordez."
+    "deleteFailed": "Ezin da ezabatu: balioak daude oraindik. Artxibatu horren ordez.",
+    "updateFailed": "Ezin izan da eremua eguneratu"
   },
   "errors": {
     "invalidKey": "Gakoak letra xeheak, zifrak eta azpimarrak izan behar ditu",
@@ -70,5 +71,8 @@
   "columns": {
     "title": "Zutabeak",
     "subtitle": "Erakutsi eremu pertsonalizatuak"
+  },
+  "options": {
+    "colorFor": "{{label}} aukeraren kolorea"
   }
 }

@@ -47,7 +47,8 @@
     "deleted": "Custom field removed",
     "archived": "Custom field archived",
     "unarchived": "Custom field restored",
-    "deleteFailed": "Could not delete: values still exist. Archive instead."
+    "deleteFailed": "Could not delete: values still exist. Archive instead.",
+    "updateFailed": "Could not update the custom field"
   },
   "errors": {
     "invalidKey": "Key must be lowercase letters, digits and underscores",
@@ -81,5 +82,8 @@
   },
   "select": {
     "unset": "Not set"
+  },
+  "options": {
+    "colorFor": "Color for {{label}}"
   }
 }

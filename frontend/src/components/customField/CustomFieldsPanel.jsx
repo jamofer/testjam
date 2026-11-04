@@ -13,8 +13,10 @@ import {
   useDeleteCustomField,
   useReorderCustomFields,
   useUnarchiveCustomField,
+  useUpdateCustomField,
 } from "../../hooks/useCustomFields"
 import { coerceDefault } from "../../lib/customFieldDefaults"
+import { OptionColorList } from "./OptionColorList"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog"
 import { EmptyState } from "../ui/empty-state"
@@ -153,7 +155,18 @@ function DefinitionRow({ definition, projectId, dragHandleProps }) {
   const archive = useArchiveCustomField(projectId)
   const unarchive = useUnarchiveCustomField(projectId)
   const remove = useDeleteCustomField(projectId)
+  const update = useUpdateCustomField(projectId)
   const isArchived = definition.archived_at !== null
+
+  const handleColorChange = (optionValue, color) => {
+    const options = definition.options.map(option =>
+      option.value === optionValue ? { ...option, color } : option,
+    )
+    update.mutate({ id: definition.id, data: { options } }, {
+      onSuccess: () => toast.success(t("toast.updated")),
+      onError: (error) => toastApiError(error, t("toast.updateFailed")),
+    })
+  }
 
   const handleArchiveToggle = () => {
     const mutation = isArchived ? unarchive : archive
@@ -199,9 +212,7 @@ function DefinitionRow({ definition, projectId, dragHandleProps }) {
           )}
         </div>
         {definition.options && definition.options.length > 0 && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
-            {definition.options.map(option => option.label).join(", ")}
-          </p>
+          <OptionColorList options={definition.options} onColorChange={handleColorChange} />
         )}
       </div>
       <button
