@@ -119,5 +119,18 @@
   },
   "picker": {
     "allExcluded": "Kasu guztiak gehituta daude jada"
+  },
+  "importCsv": {
+    "open": "Inportatu CSV",
+    "title": "Inportatu kasuak CSV batetik",
+    "description": "Errenkada bat kasu bakoitzeko. name zutabea bakarrik da derrigorrezkoa; zutabe hauek ezagutzen dira:",
+    "hint": "Habiaratu suiteak \"Gurasoa / Umea\" erabiliz. Idatzi urrats bakoitza bere lerroan steps gelaxkan, eta espero den emaitza lerro berean expected gelaxkan. Suite batean izen bera duten kasuak saltatu egiten dira.",
+    "file": "CSV fitxategia",
+    "submit": "Inportatu",
+    "created_one": "Kasu {{count}} inportatu da",
+    "created_other": "{{count}} kasu inportatu dira",
+    "rowError": "{{row}}. errenkada ({{name}}): {{error}}",
+    "failed": "Ezin izan da inportatu",
+    "summary": "Sortutako kasuak: {{count}} · Suite berriak: {{suites}}"
   }
 }

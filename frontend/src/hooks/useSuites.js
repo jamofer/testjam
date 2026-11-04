@@ -258,3 +258,16 @@ export function useReorderSuiteSteps(projectId) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["suites-list", projectId] }),
   })
 }
+
+export function useImportCasesCsv(projectId) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (file) => casesApi.importCsv(projectId, file),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["suites-list", projectId] })
+      qc.invalidateQueries({ queryKey: ["suites-list-all", projectId] })
+      qc.invalidateQueries({ queryKey: ["cases-list"] })
+      qc.invalidateQueries({ queryKey: ["projects", projectId] })
+    },
+  })
+}

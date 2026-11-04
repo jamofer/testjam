@@ -119,5 +119,18 @@
   },
   "picker": {
     "allExcluded": "Todos os casos xa están engadidos"
+  },
+  "importCsv": {
+    "open": "Importar CSV",
+    "title": "Importar casos desde CSV",
+    "description": "Unha fila por caso. Só a columna name é obrigatoria; recoñécense estas columnas:",
+    "hint": "Aniña suites con \"Pai / Fillo\". Escribe cada paso na súa propia liña dentro da cela steps, e o seu resultado esperado na mesma liña da cela expected. Os casos que xa existen co mesmo nome nunha suite omítense.",
+    "file": "Ficheiro CSV",
+    "submit": "Importar",
+    "created_one": "{{count}} caso importado",
+    "created_other": "{{count}} casos importados",
+    "rowError": "Fila {{row}} ({{name}}): {{error}}",
+    "failed": "Non se puido importar",
+    "summary": "Casos creados: {{count}} · Suites novas: {{suites}}"
   }
 }

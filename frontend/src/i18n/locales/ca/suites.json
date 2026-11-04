@@ -119,5 +119,18 @@
   },
   "picker": {
     "allExcluded": "Tots els casos ja estan afegits"
+  },
+  "importCsv": {
+    "open": "Importa CSV",
+    "title": "Importa casos des d'un CSV",
+    "description": "Una fila per cas. Només la columna name és obligatòria; es reconeixen aquestes columnes:",
+    "hint": "Niua suites amb \"Pare / Fill\". Escriu cada pas en una línia pròpia dins la cel·la steps, i el resultat esperat a la mateixa línia de la cel·la expected. Els casos que ja existeixen amb el mateix nom en una suite s'ometen.",
+    "file": "Fitxer CSV",
+    "submit": "Importa",
+    "created_one": "{{count}} cas importat",
+    "created_other": "{{count}} casos importats",
+    "rowError": "Fila {{row}} ({{name}}): {{error}}",
+    "failed": "No s'ha pogut importar",
+    "summary": "Casos creats: {{count}} · Suites noves: {{suites}}"
   }
 }

@@ -38,6 +38,11 @@ export const casesApi = {
     }).then(r => r.data),
   get: (id) => api.get(`/cases/${id}`).then(r => r.data),
   create: (suiteId, data) => api.post(`/suites/${suiteId}/cases`, data).then(r => r.data),
+  importCsv: (projectId, file) => {
+    const form = new FormData()
+    form.append("file", file)
+    return api.post(`/projects/${projectId}/cases/import/csv`, form).then(r => r.data)
+  },
   update: (id, data) => api.put(`/cases/${id}`, data).then(r => r.data),
   delete: (id) => api.delete(`/cases/${id}`),
   bulkDelete: (ids) => api.post('/cases/bulk-delete', { ids }).then(r => r.data),

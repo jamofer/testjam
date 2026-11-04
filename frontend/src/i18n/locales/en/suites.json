@@ -120,5 +120,18 @@
   "picker": {
     "allExcluded": "All cases already added",
     "selectAllInSuite": "Select all cases in {{name}}"
+  },
+  "importCsv": {
+    "open": "Import CSV",
+    "title": "Import test cases from CSV",
+    "description": "One row per test case. Only the name column is required; these columns are recognized:",
+    "hint": "Nest suites with \"Parent / Child\". Put each step on its own line inside the steps cell, and its expected result on the same line number of the expected cell. Existing cases with the same name in a suite are skipped.",
+    "file": "CSV file",
+    "submit": "Import",
+    "created_one": "{{count}} test case imported",
+    "created_other": "{{count}} test cases imported",
+    "rowError": "Row {{row}} ({{name}}): {{error}}",
+    "failed": "Import failed",
+    "summary": "Test cases created: {{count}} · New suites: {{suites}}"
   }
 }
