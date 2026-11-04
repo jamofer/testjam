@@ -203,5 +203,11 @@
     "notPassed_other": "Only the {{count}} cases that did not pass",
     "created": "New execution started",
     "failed": "Failed to re-run"
+  },
+  "assignee": {
+    "label": "Assignee",
+    "unassigned": "Unassigned",
+    "failed": "Failed to assign",
+    "onlyMine": "Only mine"
   }
 }

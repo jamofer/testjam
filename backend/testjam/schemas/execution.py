@@ -92,6 +92,7 @@ class TestResultUpdate(BaseModel):
     executed_by: str | None = None
     executed_at: datetime | None = None
     duration_ms: int | None = None
+    assigned_to_id: int | None = None
 
 
 class TestResultOut(BaseModel):
@@ -104,6 +105,7 @@ class TestResultOut(BaseModel):
     executed_by: str | None
     executed_at: datetime | None
     duration_ms: int | None
+    assigned_to_id: int | None = None
     step_results: list[TestStepResultOut] = []
     attachments: list[AttachmentOut] = []
 

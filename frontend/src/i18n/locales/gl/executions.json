@@ -202,5 +202,11 @@
     "notPassed_other": "Só os {{count}} casos que non pasaron",
     "created": "Nova execución iniciada",
     "failed": "Non se puido volver executar"
+  },
+  "assignee": {
+    "label": "Responsable",
+    "unassigned": "Sen asignar",
+    "failed": "Non se puido asignar",
+    "onlyMine": "Só os meus"
   }
 }

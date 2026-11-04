@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useContext, createContext } from "react"
 import { useTranslation } from "react-i18next"
 import { useQueryClient } from "@tanstack/react-query"
-import { Bug, ChevronDown, ChevronRight, Trash2, Copy, ExternalLink, Upload, Clock } from "lucide-react"
+import { Bug, ChevronDown, ChevronRight, Trash2, Copy, ExternalLink, Upload, Clock, User as UserIcon } from "lucide-react"
 import { useCase } from "../../hooks/useSuites"
 import { useExecution, useUpdateResult } from "../../hooks/useExecutions"
 import { NewBugDialog } from "../bug/NewBugDialog"
@@ -12,6 +12,7 @@ import { Badge } from "../ui/badge"
 import { STATUS_CONFIG } from "../../lib/statusConfig"
 import { fmtDuration, fmtTime } from "../../lib/format"
 import { StepsSection } from "./StepsSection"
+import { ResultAssigneeSelect, useAssigneeName } from "./ResultAssigneeSelect"
 import { toast } from "sonner"
 import { toastApiError } from "../../lib/apiError"
 
@@ -68,6 +69,7 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
     return () => card.removeEventListener("result-toggle", handler)
   }, [])
 
+  const assigneeName = useAssigneeName(execution?.project_id, result.assigned_to_id)
   const config = STATUS_CONFIG[localStatus]
   const Icon = config.icon
   const commentDirty = comment !== (result.comment ?? "")
@@ -190,6 +192,11 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
           <span data-testid="result-title" className="font-medium text-gray-800 dark:text-gray-100 truncate">{result.test_case_title ?? tc?.name ?? "…"}</span>
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-3">
+          {assigneeName && (
+            <span data-testid="result-assignee" className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+              <UserIcon size={10} />{assigneeName}
+            </span>
+          )}
           {result.duration_ms != null && (
             <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
               <Clock size={10} />{fmtDuration(result.duration_ms)}
@@ -221,6 +228,12 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
 
           {!isAutomated && (
             <>
+              {execution?.project_id && (
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t("assignee.label")}</p>
+                  <ResultAssigneeSelect result={result} executionId={executionId} projectId={execution.project_id} />
+                </div>
+              )}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t("run.commentLabel")}</p>
