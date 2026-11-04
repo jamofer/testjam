@@ -45,7 +45,8 @@
     "deleted": "Campo eliminado",
     "archived": "Campo arquivado",
     "unarchived": "Campo restaurado",
-    "deleteFailed": "Non se pode eliminar: aínda hai valores. Arquívao no seu lugar."
+    "deleteFailed": "Non se pode eliminar: aínda hai valores. Arquívao no seu lugar.",
+    "updateFailed": "Non se puido actualizar o campo"
   },
   "errors": {
     "invalidKey": "A clave debe conter só letras minúsculas, díxitos e guións baixos",
@@ -70,5 +71,8 @@
   "columns": {
     "title": "Columnas",
     "subtitle": "Mostrar campos personalizados"
+  },
+  "options": {
+    "colorFor": "Cor de {{label}}"
   }
 }
