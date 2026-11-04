@@ -192,5 +192,15 @@
     "successDetail": "Inportatuta: {{created}} sortuta, {{updated}} eguneratuta",
     "successWithErrors": "Inportatuta: {{created}} sortuta, {{updated}} eguneratuta, {{errors}} parekatu gabe",
     "failed": "Inportazioak huts egin du: {{message}}"
+  },
+  "rerun": {
+    "open": "Berriro exekutatu",
+    "title": "Exekuzioa berriro exekutatu",
+    "description": "Plan, bertsio, ingurune eta arduradun berdinekin exekuzio berri bat sortzen du. Hau dagoen bezala geratzen da.",
+    "all": "Kasu guztiak",
+    "notPassed_one": "Gainditu ez den kasu {{count}} bakarrik",
+    "notPassed_other": "Gainditu ez diren {{count}} kasuak bakarrik",
+    "created": "Exekuzio berria hasi da",
+    "failed": "Ezin izan da berriro exekutatu"
   }
 }

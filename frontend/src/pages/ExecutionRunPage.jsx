@@ -20,6 +20,7 @@ import { ResultCard, ResultExpandContext } from "../components/execution/ResultC
 import { RunSuiteGroup } from "../components/execution/RunSuiteGroup"
 import { EnvironmentBadge } from "../components/environment/EnvironmentBadge"
 import { ImportResultsButton } from "../components/execution/ImportResultsButton"
+import { RerunExecutionDialog } from "../components/execution/RerunExecutionDialog"
 import { ShortcutHelpDialog, SHORTCUT_TO_STATUS } from "../components/execution/ShortcutHelpDialog"
 import { PublicReportDialog } from "../components/share/PublicReportDialog"
 
@@ -551,6 +552,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
               )}
             />
 
+            {isTerminal && <RerunExecutionDialog execution={execution} />}
             {isTerminal ? (
               <Button
                 variant="outline"
