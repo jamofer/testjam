@@ -103,10 +103,14 @@ testjam case create "Login flow" --suite 17 --steps -
 # submit valid credentials => dashboard loads
 # ^D
 
+testjam case import cases.csv --project "Web App"
+
 testjam plan create "Release 4.2" --description "smoke before 4.2 cut"
 
 testjam run start "Nightly smoke" --plan 5 --type automatic --yes
 testjam run start "Manual sweep" --cases 308,309,310
+testjam run rerun 91                  # every case of a finished run, confirms
+testjam run rerun 91 --not-passed     # only the cases that did not pass
 
 testjam bug create "Login redirect broken" --severity high --tags auth,login
 testjam bug update 1240 --severity critical --assigned-to 7
@@ -129,6 +133,8 @@ testjam -y bug status change 1240 resolved
 
 - **Plain lines** — one step per line. `action => expected` splits into action + expected result.
 - **JSON list** — `[{"action": "...", "expected_result": "..."}]` if the input starts with `[` or `{`.
+
+`case import PATH` reads a CSV with a `name` column plus optional `suite` (`Parent / Child`), `description`, `preconditions`, `tags`, `external_id`, `steps` and `expected` (one step per line). It prints how many cases and suites it created, lists the rows it skipped, and exits `1` if any row failed.
 
 `bug comment add` takes the body inline, from `--file PATH`, or from stdin via `-`.
 

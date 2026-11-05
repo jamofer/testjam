@@ -1,4 +1,4 @@
-"""`testjam case list|show|create`."""
+"""`testjam case list|show|create|import`."""
 from __future__ import annotations
 
 import json
@@ -14,6 +14,8 @@ from testjam_client.cli.state import CliState
 LIST_COLUMNS = ["id", "name", "external_id", "archived_at"]
 SHOW_COLUMNS = ["id", "name", "description", "external_id", "suite_id", "archived_at"]
 STEP_SEPARATOR = " => "
+IMPORT_ERROR_COLUMNS = ["row", "name", "error"]
+EXIT_IMPORT_ERRORS = 1
 
 
 def build_app() -> typer.Typer:
@@ -25,6 +27,7 @@ def build_app() -> typer.Typer:
     app.command("list", help="List cases under a suite.")(list_cases)
     app.command("show", help="Show one case by id.")(show_case)
     app.command("create", help="Create a test case (optionally with steps).")(create_case)
+    app.command("import", help="Create test cases from a CSV file, one row per case.")(import_cases)
     return app
 
 
@@ -73,6 +76,31 @@ def create_case(
             client.cases.replace_steps(payload["id"], steps)
             payload = client.cases.get(payload["id"])
     output.render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
+
+
+def import_cases(
+    context: typer.Context,
+    csv_file: Path = typer.Argument(..., exists=True, dir_okay=False, help="CSV with a 'name' column."),
+    project: str | None = typer.Option(None, "--project", help="Override the active project."),
+) -> None:
+    state: CliState = context.obj
+    with runtime.build_client(state) as client:
+        project_id = runtime.resolve_project_id(client, state, project)
+        report = client.cases.import_csv(
+            project_id, filename=csv_file.name, content=csv_file.read_bytes(),
+        )
+    if state.json_output:
+        output.render(report, columns=[], json_mode=True)
+    else:
+        _print_import_report(report)
+    if report["errors"]:
+        raise typer.Exit(EXIT_IMPORT_ERRORS)
+
+
+def _print_import_report(report: dict) -> None:
+    typer.echo(f"Created {report['created']} cases and {report['suites_created']} suites.")
+    if report["errors"]:
+        output.render(report["errors"], columns=IMPORT_ERROR_COLUMNS, json_mode=False)
 
 
 def _load_steps(source: str | None) -> list[dict]:

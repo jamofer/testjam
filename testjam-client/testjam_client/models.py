@@ -25,6 +25,19 @@ class Project(TypedDict, total=False):
     recent_executions: list[dict[str, Any]]
 
 
+class User(TypedDict, total=False):
+    id: int
+    username: str
+    email: str
+    full_name: str | None
+    is_active: bool
+    is_admin: bool
+    created_at: str
+    last_login_at: str | None
+    timezone: str | None
+    locale: str | None
+
+
 class Suite(TypedDict, total=False):
     id: int
     project_id: int
@@ -114,6 +127,7 @@ class Result(TypedDict, total=False):
     executed_by: str | None
     executed_at: str | None
     duration_ms: int | None
+    assigned_to_id: int | None
     step_results: list[StepResult]
     attachments: list[Attachment]
 
@@ -122,3 +136,15 @@ class BulkResultResponse(TypedDict):
     created: int
     updated: int
     errors: list[dict[str, Any]]
+
+
+class CaseImportError(TypedDict):
+    row: int
+    name: str
+    error: str
+
+
+class CaseImportReport(TypedDict):
+    created: int
+    suites_created: int
+    errors: list[CaseImportError]

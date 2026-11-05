@@ -1,4 +1,4 @@
-"""`testjam run start|tail` — kick off and follow test executions."""
+"""`testjam run start|tail|rerun` — kick off, follow and repeat test executions."""
 from __future__ import annotations
 
 import json
@@ -14,6 +14,7 @@ from testjam_client import statuses
 from testjam_client.cli import output, runtime
 from testjam_client.cli.state import CliState
 from testjam_client.errors import RateLimited, ServerError
+from testjam_client.resources.executions import RERUN_ALL, RERUN_NOT_PASSED
 
 
 SHOW_COLUMNS = [
@@ -38,6 +39,7 @@ def build_app() -> typer.Typer:
     )
     app.command("start", help="Create + start a new test execution.")(start_run)
     app.command("tail", help="Poll an execution until it finishes (exit code = outcome).")(tail_run)
+    app.command("rerun", help="Start a new run from a finished one.")(rerun)
     return app
 
 
@@ -76,6 +78,21 @@ def start_run(
             environment=environment,
             assigned_to_id=assigned_to_id,
         )
+    output.render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
+
+
+def rerun(
+    context: typer.Context,
+    execution_id: int = typer.Argument(..., help="Finished execution numeric id."),
+    not_passed: bool = typer.Option(
+        False, "--not-passed", help="Only the cases that did not pass (default: every case).",
+    ),
+) -> None:
+    state: CliState = context.obj
+    cases = RERUN_NOT_PASSED if not_passed else RERUN_ALL
+    with runtime.build_client(state) as client:
+        runtime.confirm_or_abort(f"Re-run execution {execution_id} ({cases})?", state)
+        payload = client.executions.rerun(execution_id, cases=cases)
     output.render(payload, columns=SHOW_COLUMNS, json_mode=state.json_output)
 
 
