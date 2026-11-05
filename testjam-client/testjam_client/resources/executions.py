@@ -6,6 +6,9 @@ from typing import Any
 from testjam_client.models import Attachment, BulkResultResponse, Execution, Result
 from testjam_client.resources._base import Resource
 
+RERUN_ALL = "all"
+RERUN_NOT_PASSED = "not_passed"
+
 
 class ExecutionsResource(Resource):
     def list(
@@ -78,8 +81,15 @@ class ExecutionsResource(Resource):
         """Move a completed or aborted execution back to in progress."""
         return self._request("POST", f"/executions/{execution_id}/reopen").json()
 
-    def list_results(self, execution_id: int) -> list[Result]:
-        return self._request("GET", f"/executions/{execution_id}/results").json()
+    def rerun(self, execution_id: int, *, cases: str = RERUN_ALL) -> Execution:
+        """Start a new execution from a finished one: every case (``all``) or only ``not_passed``."""
+        return self._request(
+            "POST", f"/executions/{execution_id}/rerun", json={"cases": cases},
+        ).json()
+
+    def list_results(self, execution_id: int, *, assigned_to_id: int | None = None) -> list[Result]:
+        params = {"assigned_to_id": assigned_to_id} if assigned_to_id is not None else None
+        return self._request("GET", f"/executions/{execution_id}/results", params=params).json()
 
     def bulk_results(self, execution_id: int, results: list[dict]) -> BulkResultResponse:
         """Create or update many results in one call; returns created/updated/errors counts."""

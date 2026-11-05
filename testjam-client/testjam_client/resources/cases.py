@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 from testjam_client.errors import Conflict
-from testjam_client.models import Attachment, Suite, TestCase
+from testjam_client.models import Attachment, CaseImportReport, Suite, TestCase
 from testjam_client.resources._base import Resource
 
 
@@ -61,6 +61,13 @@ class CasesResource(Resource):
         if custom_fields is not None:
             body["custom_fields"] = custom_fields
         return self._request("POST", f"/suites/{suite_id}/cases", json=body).json()
+
+    def import_csv(self, project_id: int, *, filename: str, content) -> CaseImportReport:
+        """Create cases (and their ``Parent / Child`` suites) from a CSV, one row per case."""
+        files = {"file": (filename, content, "text/csv")}
+        return self._request(
+            "POST", f"/projects/{project_id}/cases/import/csv", files=files,
+        ).json()
 
     def update(self, case_id: int, **payload: Any) -> TestCase:
         return self._request("PUT", f"/cases/{case_id}", json=payload).json()

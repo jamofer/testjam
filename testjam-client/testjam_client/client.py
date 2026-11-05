@@ -34,6 +34,7 @@ from testjam_client.resources.step_results import StepResultsResource
 from testjam_client.resources.suites import SuitesResource
 from testjam_client.resources.testplans import TestPlansResource
 from testjam_client.resources.tokens import TokensResource
+from testjam_client.resources.users import UsersResource
 from testjam_client.resources.versions import VersionsResource
 from testjam_client.resources.webhooks import WebhooksResource
 
@@ -84,6 +85,7 @@ class TestjamClient:
         self.plans = TestPlansResource(self)
         self.webhooks = WebhooksResource(self)
         self.tokens = TokensResource(self)
+        self.users = UsersResource(self)
         self.mentions = MentionsResource(self)
         self.public_reports = PublicReportsResource(self)
         self.backup = BackupResource(self)

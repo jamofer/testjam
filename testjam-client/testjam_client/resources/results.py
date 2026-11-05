@@ -40,6 +40,10 @@ class ResultsResource(Resource):
     def update(self, result_id: int, **payload: Any) -> Result:
         return self._request("PUT", f"/results/{result_id}", json=payload).json()
 
+    def assign(self, result_id: int, user_id: int | None) -> Result:
+        """Assign the result to a project member; ``None`` unassigns it."""
+        return self.update(result_id, assigned_to_id=user_id)
+
     def upload_attachment(self, result_id: int, *, filename: str, content, mime: str) -> Attachment:
         """Attach a file (screenshot, log…) to one result."""
         files = {"file": (filename, content, mime)}

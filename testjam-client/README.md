@@ -78,8 +78,10 @@ testjam config set default_project "Web"  # avoid repeating --project
 
 testjam project list
 testjam case create "Login" --suite 17 --steps -
+testjam case import cases.csv           # one row per case; exit 1 on row errors
 testjam run start "Nightly" --plan 5 --type automatic --yes
 testjam run tail 91 --timeout 3600        # exit 0/1/2/3/4 = passed/failed/aborted/timed out/server unreachable
+testjam run rerun 91 --not-passed --yes   # new run with the cases that did not pass
 
 # Pipeline-friendly output:
 testjam --json bug list --status open | jq '.[].title'
@@ -108,13 +110,14 @@ live in `testjam_client.statuses`.
 - `client.cases` — CRUD, steps (`list_steps`, `add_step`, `update_step`,
   `delete_step`, `reorder_steps`, `replace_steps`,
   `delete_steps_by_type`), archive (`archive`, `unarchive`),
-  bulk reconciliation (`reconcile(suite_id, specs)`).
+  bulk reconciliation (`reconcile(suite_id, specs)`), `import_csv`.
 - `client.versions` — CRUD + `find_or_create` keyed by name.
 - `client.environments` — CRUD + `find_or_create`.
-- `client.executions` — CRUD, `reopen`, `list_results`, `bulk_results`,
+- `client.executions` — CRUD, `reopen`, `rerun`, `list_results` (filter by
+  `assigned_to_id`), `bulk_results`,
   `import_junit` / `import_robotframework`, `export_xlsx` / `export_html`,
   `upload_attachment` / `list_attachments`.
-- `client.results` — `get`, `create`, `update`, `upload_attachment` /
+- `client.results` — `get`, `create`, `update`, `assign`, `upload_attachment` /
   `list_attachments`.
 - `client.step_results` — `start`, `update`, `append_log`.
 - `client.bugs` — CRUD, `get_by_number`, `change_status`, comments,
@@ -129,6 +132,7 @@ live in `testjam_client.statuses`.
 - `client.integrations` — provider catalogue, project integrations,
   bug external links, `report_from_result`.
 - `client.public_reports` — `create`, `list`, `revoke`, `fetch_html`.
+- `client.users` — `me`.
   Generates anonymous share tokens for bug or execution reports.
 
 ## Errors

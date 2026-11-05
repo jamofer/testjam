@@ -248,6 +248,45 @@ def test_bug_watch_and_unwatch(cli_state):
     assert "no longer" in unwatch_result.output.lower()
 
 
+def test_run_rerun_not_passed_creates_execution_with_failed_cases(cli_state):
+    client = cli_state["client"]
+    passed = client.cases.create(cli_state["suite"]["id"], name="passed case")
+    failed = client.cases.create(cli_state["suite"]["id"], name="failed case")
+    execution = client.executions.create(
+        cli_state["project"]["id"], title="Nightly", test_case_ids=[passed["id"], failed["id"]],
+    )
+    for result in client.executions.list_results(execution["id"]):
+        client.results.update(result["id"], status="passed" if result["test_case_id"] == passed["id"] else "failed")
+    client.executions.update(execution["id"], status="completed")
+
+    result = runner.invoke(app, ["--yes", "--json", "run", "rerun", str(execution["id"]), "--not-passed"])
+
+    assert result.exit_code == 0
+    rerun_id = json.loads(result.output)["id"]
+    titles = [row["test_case_title"] for row in client.executions.list_results(rerun_id)]
+    assert titles == ["failed case"]
+
+
+def test_case_import_creates_cases(cli_state):
+    csv_file = cli_state["tmp_path"] / "cases.csv"
+    csv_file.write_text("suite,name\nImported suite,Checkout\n")
+
+    result = runner.invoke(app, ["case", "import", str(csv_file)])
+
+    assert result.exit_code == 0
+    assert "Created 1 cases and 1 suites" in result.output
+
+
+def test_case_import_with_row_errors_exits_one(cli_state):
+    csv_file = cli_state["tmp_path"] / "cases.csv"
+    csv_file.write_text("suite,name,tags\nImported suite,,smoke\n")
+
+    result = runner.invoke(app, ["case", "import", str(csv_file)])
+
+    assert result.exit_code == 1
+    assert "Name is empty" in result.output
+
+
 def _extract_id(output: str, cli_state: dict) -> int:
     cases = cli_state["client"].cases.list(cli_state["suite"]["id"])
     return cases[-1]["id"]
