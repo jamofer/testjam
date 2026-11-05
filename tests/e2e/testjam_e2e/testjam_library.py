@@ -34,6 +34,9 @@ from testjam_e2e.keywords import (
     CaseSearchMixin,
     CoverageMixin,
     CaseCopyMixin,
+    CaseCsvImportMixin,
+    ExecutionRerunMixin,
+    ResultAssigneeMixin,
     CleanupMixin,
     HealthMixin,
     ListenerRunnerMixin,
@@ -92,6 +95,9 @@ class TestjamLibrary(
     CaseSearchMixin,
     CoverageMixin,
     CaseCopyMixin,
+    CaseCsvImportMixin,
+    ExecutionRerunMixin,
+    ResultAssigneeMixin,
     CleanupMixin,
     HealthMixin,
     ListenerRunnerMixin,
@@ -141,6 +147,7 @@ class TestjamLibrary(
         self.current_group_id: int | None = None
         self.last_status_code: int | None = None
         self.last_import_summary: dict | None = None
+        self.last_case_import: dict | None = None
         self.websocket = None
         self.last_websocket_frame: dict | None = None
         self.last_bulk_response: dict | None = None

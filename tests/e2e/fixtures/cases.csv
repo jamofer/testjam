@@ -1,0 +1,7 @@
+suite,name,tags,steps,expected
+Checkout / Payments,Pay with card,"smoke, payments","Open the cart
+Pay with card","Cart is shown
+Order is confirmed"
+Checkout / Payments,Pay with voucher,payments,Apply a voucher,Total is reduced
+Login,Log in with valid credentials,smoke,,
+,,smoke,,
