@@ -16,7 +16,7 @@ vi.mock("../api/executions", () => ({
 }))
 vi.mock("../hooks/useAuth", () => ({ useMe: () => ({ data: { id: 7, username: "alice" } }) }))
 vi.mock("../hooks/useMembers", () => ({
-  useMembers: () => ({ data: [{ user_id: 7, username: "alice" }, { user_id: 8, username: "bob" }] }),
+  useEffectiveMembers: () => ({ data: [{ user_id: 7, username: "alice" }, { user_id: 8, username: "bob" }] }),
 }))
 vi.mock("../hooks/useExecutionLive", () => ({ useExecutionLive: () => ({ connected: false }) }))
 vi.mock("../hooks/useProjects", () => ({ useProject: () => ({ data: { id: 1, name: "Acme" } }) }))

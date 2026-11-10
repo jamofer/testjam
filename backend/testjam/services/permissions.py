@@ -42,6 +42,21 @@ def effective_role(db: Session, user_id: int, project_id: int) -> str | None:
     return max(candidates, key=lambda role: ROLE_PRIORITY[role])
 
 
+def effective_roles(db: Session, project_id: int) -> dict[int, str]:
+    """Every user with access to the project, direct or through a group, mapped to their highest role."""
+    direct = db.query(ProjectMember.user_id, ProjectMember.role).filter(ProjectMember.project_id == project_id)
+    via_group = (
+        db.query(GroupMember.user_id, ProjectGroup.role)
+        .join(ProjectGroup, ProjectGroup.group_id == GroupMember.group_id)
+        .filter(ProjectGroup.project_id == project_id)
+    )
+    roles: dict[int, str] = {}
+    for user_id, role in [*direct.all(), *via_group.all()]:
+        if _outranks(role, roles.get(user_id)):
+            roles[user_id] = role
+    return roles
+
+
 def accessible_project_ids(db: Session, user_id: int) -> set[int]:
     direct_ids = {
         row[0]
@@ -54,3 +69,9 @@ def accessible_project_ids(db: Session, user_id: int) -> set[int]:
     )
     via_group_ids = {row[0] for row in db.execute(via_group_stmt).all()}
     return direct_ids | via_group_ids
+
+
+def _outranks(role: str, current: str | None) -> bool:
+    if role not in ROLE_PRIORITY:
+        return False
+    return current is None or ROLE_PRIORITY[role] > ROLE_PRIORITY[current]

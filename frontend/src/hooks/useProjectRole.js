@@ -1,6 +1,7 @@
 // Derive the current user's effective role on a project from cached
-// `useMe` + `useMembers` data. Provides the two role booleans every
-// destructive button in the project surface should respect:
+// `useMe` + `useEffectiveMembers` data, so group access counts too. Provides
+// the two role booleans every destructive button in the project surface
+// should respect:
 //
 //   canWrite  → owner / tester / admin (covers create/edit/link/comment
 //               delete and anything `_require_writer` gates server-side)
@@ -12,13 +13,13 @@
 // loading so we never flash a destructive button to a viewer.
 
 import { useMe } from "./useAuth"
-import { useMembers } from "./useMembers"
+import { useEffectiveMembers } from "./useMembers"
 
 const WRITER_ROLES = new Set(["owner", "tester"])
 
 export function useProjectRole(projectId) {
   const { data: me } = useMe()
-  const { data: members = [], isLoading } = useMembers(projectId)
+  const { data: members = [], isLoading } = useEffectiveMembers(projectId)
 
   if (!projectId || !me) {
     return { role: null, canWrite: false, canDelete: false, isLoading: !!projectId && (!me || isLoading) }

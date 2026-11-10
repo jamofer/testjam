@@ -14,7 +14,7 @@ vi.mock("../hooks/useExecutions", () => ({
   useCreateExecution: () => ({ mutateAsync: createExecution, isPending: false }),
 }))
 vi.mock("../hooks/useVersions", () => ({ useVersions: () => ({ data: [] }) }))
-vi.mock("../hooks/useMembers", () => ({ useMembers: () => ({ data: [] }) }))
+vi.mock("../hooks/useMembers", () => ({ useEffectiveMembers: () => ({ data: [] }) }))
 vi.mock("../hooks/useProjects", () => ({ useProject: () => ({ data: { id: 1, name: "Acme" } }) }))
 vi.mock("../hooks/useCustomFields", () => ({ useCustomFields: () => ({ data: [] }) }))
 vi.mock("../api/testplans", () => ({ plansApi: { list: () => Promise.resolve([]) } }))

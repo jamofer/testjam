@@ -31,7 +31,10 @@ export function ProjectGroupsSection({ projectId }) {
     queryFn: () => api.get("/groups").then(response => response.data),
   })
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey })
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey })
+    queryClient.invalidateQueries({ queryKey: ["members", projectId, "effective"] })
+  }
 
   const add = useMutation({
     mutationFn: ({ groupId, role }) => projectGroupsApi.add(projectId, groupId, role),

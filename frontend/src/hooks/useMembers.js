@@ -9,6 +9,16 @@ export function useMembers(projectId) {
   })
 }
 
+// Everyone with access to the project, direct or through a group, with their highest role.
+// Keyed under ['members', projectId] so member mutations refresh it too.
+export function useEffectiveMembers(projectId) {
+  return useQuery({
+    queryKey: ['members', projectId, 'effective'],
+    queryFn: () => membersApi.listEffective(projectId),
+    enabled: !!projectId,
+  })
+}
+
 export function useAddMember(projectId) {
   const qc = useQueryClient()
   return useMutation({
