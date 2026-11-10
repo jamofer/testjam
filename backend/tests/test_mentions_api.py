@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from testjam.auth.security import hash_password
 from testjam.main import app
 from testjam.models.project import ProjectMember
-from testjam.models.user import User
+from testjam.models.user import GroupMember, User
 from tests.conftest import TestingSession
 
 
@@ -18,7 +18,7 @@ def _login(username: str, password: str = "pw") -> TestClient:
     return client
 
 
-def _seed_member(project_id: int, username: str, role: str = "tester") -> int:
+def _seed_user(username: str) -> int:
     with TestingSession() as db:
         user = User(
             username=username,
@@ -29,10 +29,25 @@ def _seed_member(project_id: int, username: str, role: str = "tester") -> int:
         )
         db.add(user)
         db.commit()
-        db.refresh(user)
-        db.add(ProjectMember(project_id=project_id, user_id=user.id, role=role))
-        db.commit()
         return user.id
+
+
+def _seed_member(project_id: int, username: str, role: str = "tester") -> int:
+    user_id = _seed_user(username)
+    with TestingSession() as db:
+        db.add(ProjectMember(project_id=project_id, user_id=user_id, role=role))
+        db.commit()
+    return user_id
+
+
+def _seed_group_user(client: TestClient, project_id: int, username: str) -> int:
+    user_id = _seed_user(username)
+    group_id = client.post("/api/v1/groups", json={"name": f"{username}-group"}).json()["id"]
+    with TestingSession() as db:
+        db.add(GroupMember(group_id=group_id, user_id=user_id, role="member"))
+        db.commit()
+    client.post(f"/api/v1/projects/{project_id}/groups", json={"group_id": group_id, "role": "viewer"})
+    return user_id
 
 
 @pytest.fixture
@@ -121,6 +136,26 @@ def test_search_users_by_name(auth_client, project_id):
     ).json()
 
     assert [hit["slug"] for hit in response["hits"]] == ["alice"]
+
+
+def test_search_users_includes_group_access(auth_client, project_id):
+    _seed_group_user(auth_client, project_id, "alice")
+
+    response = auth_client.get(
+        f"/api/v1/projects/{project_id}/mentions/search?kind=user&q=ali",
+    ).json()
+
+    assert [hit["slug"] for hit in response["hits"]] == ["alice"]
+
+
+def test_search_users_skips_users_without_access(auth_client, project_id):
+    _seed_user("alice")
+
+    response = auth_client.get(
+        f"/api/v1/projects/{project_id}/mentions/search?kind=user&q=ali",
+    ).json()
+
+    assert response["hits"] == []
 
 
 def test_search_bugs_by_number_or_title(auth_client, project_id):
