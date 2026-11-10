@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 
 import { useUpdateResult } from "../../hooks/useExecutions"
-import { useMembers } from "../../hooks/useMembers"
+import { useEffectiveMembers } from "../../hooks/useMembers"
 import { toastApiError } from "../../lib/apiError"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 
@@ -9,7 +9,7 @@ const UNASSIGNED = "__none__"
 
 export function ResultAssigneeSelect({ result, executionId, projectId }) {
   const { t } = useTranslation("executions")
-  const { data: members = [] } = useMembers(projectId)
+  const { data: members = [] } = useEffectiveMembers(projectId)
   const updateResult = useUpdateResult(executionId)
 
   const assign = value => {
@@ -36,6 +36,6 @@ export function ResultAssigneeSelect({ result, executionId, projectId }) {
 }
 
 export function useAssigneeName(projectId, assignedToId) {
-  const { data: members = [] } = useMembers(projectId)
+  const { data: members = [] } = useEffectiveMembers(projectId)
   return members.find(member => member.user_id === assignedToId)?.username ?? null
 }

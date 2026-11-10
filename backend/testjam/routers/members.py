@@ -7,10 +7,12 @@ from testjam.models.project import Project, ProjectMember
 from testjam.models.user import User
 from testjam.schemas.members import (
     VALID_ROLES,
+    EffectiveMemberOut,
     ProjectMemberAdd,
     ProjectMemberOut,
     ProjectMemberUpdate,
 )
+from testjam.services import permissions
 
 router = APIRouter(prefix="/projects/{id}/members", tags=["Members"])
 
@@ -33,6 +35,23 @@ def list_members(id: int, db: Session = Depends(get_db), _: User = Depends(requi
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return [_out(m) for m in project.members]
+
+
+@router.get("/effective", response_model=list[EffectiveMemberOut])
+def list_effective_members(id: int, db: Session = Depends(get_db), _: User = Depends(require_project_access)):
+    if not db.get(Project, id):
+        raise HTTPException(status_code=404, detail="Project not found")
+    roles = permissions.effective_roles(db, id)
+    users = (
+        db.query(User)
+        .filter(User.id.in_(roles), User.is_active.is_(True), User.deleted_at.is_(None))
+        .order_by(User.username)
+        .all()
+    )
+    return [
+        EffectiveMemberOut(user_id=user.id, username=user.username, full_name=user.full_name, role=roles[user.id])
+        for user in users
+    ]
 
 
 @router.post("", response_model=ProjectMemberOut, status_code=status.HTTP_201_CREATED)

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { useCreateExecution } from "../hooks/useExecutions"
 import { useVersions } from "../hooks/useVersions"
-import { useMembers } from "../hooks/useMembers"
+import { useEffectiveMembers } from "../hooks/useMembers"
 import { useProject } from "../hooks/useProjects"
 import { useCustomFields } from "../hooks/useCustomFields"
 import { useQuery } from "@tanstack/react-query"
@@ -28,7 +28,7 @@ export function NewExecutionPage() {
   const { data: project } = useProject(projectId)
   const { data: versions = [] } = useVersions(projectId)
   const activeVersions = versions.filter(version => version.status === "active")
-  const { data: members = [] } = useMembers(projectId)
+  const { data: members = [] } = useEffectiveMembers(projectId)
   const { data: customFieldDefs = [] } = useCustomFields(projectId, "execution")
 
   const [title, setTitle] = useState("")

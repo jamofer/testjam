@@ -14,6 +14,13 @@ class ProjectMemberUpdate(BaseModel):
     role: str
 
 
+class EffectiveMemberOut(BaseModel):
+    user_id: int
+    username: str
+    full_name: str | None
+    role: str
+
+
 class ProjectMemberOut(BaseModel):
     id: int
     user_id: int

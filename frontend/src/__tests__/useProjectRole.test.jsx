@@ -8,7 +8,7 @@ vi.mock("../hooks/useAuth", () => ({
   useMe: () => mockMe(),
 }))
 vi.mock("../hooks/useMembers", () => ({
-  useMembers: () => mockMembers(),
+  useEffectiveMembers: () => mockMembers(),
 }))
 
 let mockMeImpl
