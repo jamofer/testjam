@@ -2,7 +2,7 @@
 
 Returns up to ``limit`` candidates per kind, matched against either the
 numeric id or the name/title (case-insensitive substring). Users are scoped to
-project members; bugs / executions / cases are scoped to the current project.
+anyone with access to the project, direct or through a group; bugs / executions / cases are scoped to the current project.
 """
 from __future__ import annotations
 
@@ -11,18 +11,15 @@ from sqlalchemy.orm import Session, selectinload
 
 from testjam.models.bug import Bug
 from testjam.models.execution import TestExecution, TestResult
-from testjam.models.project import ProjectMember
 from testjam.models.testcase import TestCase, TestStep, TestSuite
 from testjam.models.user import User
 from testjam.schemas.mention import MentionSearchHit
+from testjam.services import permissions
 
 
 def search_users(db: Session, project_id: int, query: str, limit: int) -> list[MentionSearchHit]:
-    base = (
-        db.query(User)
-        .join(ProjectMember, ProjectMember.user_id == User.id)
-        .filter(ProjectMember.project_id == project_id, User.is_active == True)  # noqa: E712
-    )
+    user_ids = list(permissions.effective_roles(db, project_id))
+    base = db.query(User).filter(User.id.in_(user_ids), User.is_active.is_(True), User.deleted_at.is_(None))
     rows = _apply_text_filter(base, [User.username, User.full_name], query).limit(limit).all()
     return [
         MentionSearchHit(
