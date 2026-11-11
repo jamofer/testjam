@@ -1,20 +1,23 @@
 """Listener event flow against the in-process backend."""
 from types import SimpleNamespace
 
+import threading
+
 import httpx
 import pytest
 import robot
 
 from testjam_client.errors import Conflict, Locked, RateLimited, raise_for_status
+from testjam_client.listener import events as events_module
 from testjam_client.listener import listener as listener_module
-from testjam_client.listener.listener import (
-    ABORT_MESSAGES,
-    MAX_CONSECUTIVE_NETWORK_FAILURES,
-    TestjamListener,
-)
+from testjam_client.listener import reporter as reporter_module
+from testjam_client.listener.listener import MAX_CONSECUTIVE_NETWORK_FAILURES, TestjamListener
+from testjam_client.listener.outbox import WORKER_NAME
+from testjam_client.listener.reporter import ABORT_MESSAGES
 from testjam_client.listener.session_renewal import SessionRenewal
 
 PROJECT_NAME = "Listener Flow"
+ROBOT_FINISHED_AT = "2026-01-02T03:04:05"
 REPLAYED_EVENTS = {
     "start_suite", "end_suite", "start_test", "end_test",
     "start_body_item", "end_body_item", "log_message",
@@ -46,7 +49,9 @@ def listener(auth_client, monkeypatch):
     monkeypatch.setenv("TESTJAM_API_KEY", "unused-by-the-in-process-client")
     monkeypatch.setenv("TESTJAM_PROJECT", PROJECT_NAME)
     monkeypatch.setattr(listener_module, "TestjamClient", lambda *args, **kwargs: auth_client)
-    return TestjamListener()
+    listener = TestjamListener()
+    yield listener
+    listener.close()
 
 
 @pytest.fixture
@@ -61,6 +66,13 @@ def outage_with_status(auth_client):
     failing = FailingStatusHttp(auth_client._http)
     auth_client.wrap_http(lambda _http: failing)
     return failing
+
+
+@pytest.fixture
+def recorded_threads(auth_client):
+    recording = ThreadRecordingHttp(auth_client._http)
+    auth_client.wrap_http(lambda _http: recording)
+    return recording
 
 
 @pytest.fixture
@@ -92,13 +104,14 @@ def test_directory_root_suite_is_not_reported(listener, auth_client, robot_file)
 
     _run_suite(listener, _suite("Login", robot_file), _test("Valid Login", ["Open App"]), "PASS")
     listener.end_suite(directory_suite, None)
+    listener.flush()
 
     suites = auth_client.suites.list(listener.project_id)
     assert [suite["name"] for suite in suites] == ["Login"]
 
 
 def test_batch_fallback_keeps_final_test_status(listener, auth_client, robot_file):
-    listener.streaming_enabled = False
+    listener.reporter.streaming_enabled = False
     listener.start_suite(_suite("Suites", robot_file.parent), None)
 
     _run_suite(listener, _suite("Login", robot_file), _test("Valid Login", ["Open App"]), "FAIL")
@@ -114,7 +127,7 @@ def test_outage_does_not_break_the_robot_run(outage, listener, robot_file):
 
     _run_suite(listener, _suite("Login", robot_file), _test("Valid Login", ["Open App"]), "PASS")
 
-    assert listener._test is None
+    assert listener.reporter.current_test is None
 
 
 def test_outage_stops_calling_the_server(outage, listener, robot_file):
@@ -131,15 +144,18 @@ def test_outage_on_step_start_falls_back_to_batch(outage, listener, auth_client,
     test = _test("Valid Login", ["Open App"])
     listener.start_suite(_suite("Login", robot_file), None)
     listener.start_test(test, None)
+    listener.flush()
     outage.active = True
     listener.start_body_item(test.body[0], None)
+    listener.flush()
     outage.active = False
 
     listener.end_body_item(test.body[0], _outcome("FAIL"))
     listener.end_test(test, _outcome("FAIL"))
+    listener.flush()
 
     [result] = auth_client.executions.list_results(listener.execution_id)
-    assert (listener.streaming_enabled, [step["status"] for step in result["step_results"]]) == (
+    assert (listener.reporter.streaming_enabled, [step["status"] for step in result["step_results"]]) == (
         False, ["failed"],
     )
 
@@ -153,9 +169,11 @@ def test_tests_of_unreachable_suite_are_not_reported_under_its_parent(
     outage.active = True
     child = _suite("Child", robot_file.parent)
     listener.start_suite(child, None)
+    listener.flush()
     outage.active = False
 
     listener.start_test(_test("Valid Login", []), None)
+    listener.flush()
 
     assert auth_client.executions.list_results(listener.execution_id) == []
 
@@ -192,7 +210,7 @@ def test_logs_of_nested_keywords_stay_on_their_step(listener, auth_client, tmp_p
 def test_case_created_by_a_parallel_worker_is_reused():
     cases = RacingCases(winner={"id": 7, "name": "Valid Login"})
 
-    case = listener_module._find_or_create_case_by_external_id(
+    case = reporter_module._find_or_create_case_by_external_id(
         SimpleNamespace(cases=cases), 1, "Valid Login", external_id="Login.Valid Login",
     )
 
@@ -202,7 +220,7 @@ def test_case_created_by_a_parallel_worker_is_reused():
 def test_case_is_skipped_when_conflict_cannot_be_resolved():
     cases = RacingCases(winner=None)
 
-    case = listener_module._find_or_create_case_by_external_id(
+    case = reporter_module._find_or_create_case_by_external_id(
         SimpleNamespace(cases=cases), 1, "Valid Login", external_id="Login.Valid Login",
     )
 
@@ -211,11 +229,13 @@ def test_case_is_skipped_when_conflict_cannot_be_resolved():
 
 def test_server_error_while_preparing_a_test_does_not_escape(listener, outage_with_status, robot_file):
     listener.start_suite(_suite("Login", robot_file), None)
+    listener.flush()
     outage_with_status.status_code = 500
 
     listener.start_test(_test("Valid Login", []), None)
+    listener.flush()
 
-    assert listener._test is None
+    assert listener.reporter.current_test is None
 
 
 def test_expired_session_is_renewed_and_the_call_repeated():
@@ -272,6 +292,40 @@ def test_missing_artefact_does_not_break_close(listener, tmp_path):
     listener.close()
 
 
+def test_events_are_reported_off_the_robot_thread(listener, recorded_threads, robot_file):
+    _run_suite(listener, _suite("Login", robot_file), _test("Valid Login", ["Open App"]), "PASS")
+
+    assert recorded_threads.thread_names == {WORKER_NAME}
+
+
+def test_close_reports_events_still_queued(listener, auth_client, robot_file):
+    test = _test("Valid Login", [])
+    listener.start_suite(_suite("Login", robot_file), None)
+    listener.start_test(test, None)
+    listener.end_test(test, _outcome("PASS"))
+
+    listener.close()
+
+    [result] = auth_client.executions.list_results(listener.execution_id)
+    assert result["status"] == "passed"
+
+
+def test_result_keeps_the_time_robot_finished_the_test(
+    listener, auth_client, robot_file, monkeypatch,
+):
+    test = _test("Valid Login", [])
+    listener.start_suite(_suite("Login", robot_file), None)
+    listener.start_test(test, None)
+
+    with monkeypatch.context() as frozen:
+        frozen.setattr(events_module, "now_isoformat", lambda: ROBOT_FINISHED_AT)
+        listener.end_test(test, _outcome("PASS"))
+    listener.flush()
+
+    [result] = auth_client.executions.list_results(listener.execution_id)
+    assert result["executed_at"].startswith(ROBOT_FINISHED_AT)
+
+
 @pytest.mark.parametrize("status_code,error", [(423, Locked), (429, RateLimited)])
 def test_lock_and_rate_limit_responses_have_their_own_error(status_code, error):
     with pytest.raises(error):
@@ -284,6 +338,7 @@ def _run_robot(listener, auth_client, directory, body: str) -> list[dict]:
     recorder = RobotEventRecorder()
     robot.run(str(path), listener=recorder, output=None, log=None, report=None, console="none")
     recorder.replay_into(listener)
+    listener.flush()
     return auth_client.executions.list_results(listener.execution_id)
 
 
@@ -305,6 +360,7 @@ def _run_suite(listener: TestjamListener, suite, test, status: str) -> None:
         listener.end_body_item(keyword, _outcome(status))
     listener.end_test(test, _outcome(status))
     listener.end_suite(suite, None)
+    listener.flush()
 
 
 def _suite(name: str, source) -> SimpleNamespace:
@@ -336,6 +392,20 @@ class InterruptibleHttp:
         if self.active:
             self.attempts += 1
             raise httpx.ConnectError("connection refused")
+        return self._http.request(method, url, **kwargs)
+
+
+class ThreadRecordingHttp:
+    def __init__(self, http) -> None:
+        self._http = http
+        self.thread_names: set[str] = set()
+
+    @property
+    def headers(self):
+        return self._http.headers
+
+    def request(self, method: str, url: str, **kwargs):
+        self.thread_names.add(threading.current_thread().name)
         return self._http.request(method, url, **kwargs)
 
 
