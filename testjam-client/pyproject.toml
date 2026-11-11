@@ -7,7 +7,8 @@ name = "testjam-client"
 version = "1.1.1"
 description = "Python SDK and Robot Framework listener for the Testjam test management server."
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.12"
 classifiers = [
     "Framework :: Robot Framework",
@@ -19,6 +20,11 @@ classifiers = [
 dependencies = [
     "httpx>=0.27",
 ]
+
+[project.urls]
+Homepage = "https://github.com/jamofer/testjam"
+Source = "https://github.com/jamofer/testjam/tree/master/testjam-client"
+Issues = "https://github.com/jamofer/testjam/issues"
 
 [project.optional-dependencies]
 cli = [
