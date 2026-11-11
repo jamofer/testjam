@@ -21,6 +21,9 @@ from testjam.models.user import User
 from testjam.services.settings import get_settings as get_app_settings
 from testjam.services.timezones import user_zone, user_zone_label
 
+STEP_STATUS_GLYPHS = {"passed": "✓", "failed": "✗", "blocked": "⚠", "not_run": "—"}
+UNLABELLED_STEP_TYPE = "action"
+
 
 def load_execution_for_report(db: Session, execution_id: int) -> TestExecution | None:
     return (
@@ -67,6 +70,11 @@ def render_html(
         local = value.astimezone(user_tz)
         ms = local.microsecond // 1000
         return local.strftime("%-d %b %Y, %H:%M:%S") + f".{ms:03d}"
+
+    def fmt_time(value):
+        if not value:
+            return ""
+        return value.astimezone(user_tz).strftime("%H:%M:%S")
 
     def fmt_dur(ms):
         if ms is None:
@@ -174,8 +182,16 @@ def render_html(
             log = sr.log_output if sr else None
             comment = sr.comment if sr else None
             dur = fmt_dur(sr.duration_ms) if sr else ""
-            step_meta_parts = [p for p in [dur, fmt_date(result.executed_at)] if p and p != "—"]
-            step_meta = " · ".join(step_meta_parts)
+            started = fmt_time(sr.started_at) if sr else ""
+            dur_html = f'<span class="sdur">{e(dur)}</span>' if dur else ""
+            started_html = f'<span class="stime">{e(started)}</span>' if started else ""
+            step_meta = dur_html + started_html
+            glyph = STEP_STATUS_GLYPHS.get(st, STEP_STATUS_GLYPHS["not_run"])
+            type_html = (
+                f'<span class="kpill kp-type">{e(step.step_type.capitalize())}</span>'
+                if step.step_type != UNLABELLED_STEP_TYPE
+                else ""
+            )
             has_body = step.expected_result or comment or log
             open_attr = 'open data-error="1"' if is_step_error else ""
             expected_html = (
@@ -192,10 +208,11 @@ def render_html(
                 f"""<details class="step {e(st)}" {open_attr}>
         <summary class="step-hd">
           <span class="schev">▶</span>
+          <span class="sglyph sg-{e(st)}" title="{e(st)}">{glyph}</span>
           <span class="snum">{step.order}.</span>
-          <span class="kpill kp-{e(st)}">{e(step.step_type.capitalize())}</span>
+          {type_html}
           <span class="saction">{e(step.action)}</span>
-          {f'<span class="tmeta">{e(step_meta)}</span>' if step_meta else ''}
+          {f'<span class="smeta">{step_meta}</span>' if step_meta else ''}
         </summary>
         {body_html}
       </details>"""
@@ -336,6 +353,7 @@ main{{max-width:920px;margin:20px auto;padding:0 24px 48px}}
 .kp-failed{{background:#fee2e2;color:#991b1b}}
 .kp-blocked{{background:#fef3c7;color:#92400e}}
 .kp-not_run{{background:#f3f4f6;color:#6b7280}}
+.kp-type{{background:#eef2ff;color:#4338ca;font-size:10px;padding:1px 6px}}
 details.suite{{background:#fff;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:16px;overflow:hidden}}
 details.suite.suite-err{{border-color:#fca5a5}}
 summary.suite-hd{{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;list-style:none;background:#f9fafb}}
@@ -344,7 +362,7 @@ details.suite.suite-err>summary.suite-hd{{background:#fff5f5}}
 details.suite[open]>summary.suite-hd{{border-bottom:1px solid #e5e7eb}}
 .suite-chev{{color:#9ca3af;font-size:10px;transition:transform .15s;flex-shrink:0;pointer-events:none}}
 details.suite[open]>summary .suite-chev{{transform:rotate(90deg)}}
-.suite-name{{flex:1;font-size:14px;font-weight:700;color:#1f2937}}
+.suite-name{{flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px;font-weight:700;color:#1f2937}}
 .suite-counts{{display:flex;gap:5px;flex-shrink:0}}
 .suite-meta{{font-size:11px;color:#9ca3af;white-space:nowrap}}
 .suite-body{{padding:10px 12px;display:flex;flex-direction:column;gap:5px}}
@@ -357,28 +375,55 @@ summary.thd::-webkit-details-marker{{display:none}}
 summary.thd:hover{{background:#f9fafb}}
 .chevron{{color:#d1d5db;font-size:10px;transition:transform .15s;flex-shrink:0;pointer-events:none}}
 details[open]>summary .chevron{{transform:rotate(90deg)}}
-.tname{{flex:1;font-weight:500;font-size:13px}}
+.tname{{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:500;font-size:13px}}
 .tmeta{{font-size:12px;color:#9ca3af;white-space:nowrap}}
 .tbody{{border-top:1px solid #f3f4f6;background:#fafafa;padding:10px 14px;display:flex;flex-direction:column;gap:8px}}
 .comment{{background:#fef3c7;border-left:3px solid #f59e0b;padding:6px 10px;font-size:12px;border-radius:0 4px 4px 0;color:#78350f}}
-.steps{{display:flex;flex-direction:column;gap:4px}}
+.steps{{display:flex;flex-direction:column;gap:3px}}
 details.step{{border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;background:#fff}}
 details.step.failed{{border-color:#fca5a5}}
 details.step.blocked{{border-color:#fcd34d}}
-summary.step-hd{{display:flex;align-items:center;gap:7px;padding:6px 10px;cursor:pointer;list-style:none}}
+summary.step-hd{{display:flex;align-items:baseline;gap:6px;padding:4px 10px;cursor:pointer;list-style:none}}
 summary.step-hd::-webkit-details-marker{{display:none}}
 details.step.failed>summary.step-hd{{background:#fff5f5}}
 details.step.blocked>summary.step-hd{{background:#fffbeb}}
 .schev{{color:#d1d5db;font-size:9px;transition:transform .15s;flex-shrink:0;pointer-events:none}}
 details.step[open] .schev{{transform:rotate(90deg)}}
-.snum{{font-size:11px;color:#9ca3af;min-width:18px;flex-shrink:0}}
-.saction{{flex:1;font-size:13px;color:#1f2937}}
+.snum{{font-size:11px;color:#9ca3af;min-width:18px;flex-shrink:0;font-variant-numeric:tabular-nums}}
+.sglyph{{font-size:11px;font-weight:700;width:12px;text-align:center;flex-shrink:0}}
+.sg-passed{{color:#059669}}
+.sg-failed{{color:#dc2626}}
+.sg-blocked{{color:#d97706}}
+.sg-not_run{{color:#9ca3af}}
+.saction{{flex:1;min-width:0;overflow-wrap:anywhere;font-size:12.5px;line-height:1.4;color:#1f2937}}
+.smeta{{font-size:11px;color:#9ca3af;white-space:nowrap;flex-shrink:0;display:flex}}
+.sdur+.stime::before{{content:"·";margin:0 6px;color:#cbd5e1}}
 .sbody{{border-top:1px solid #f3f4f6}}
 .sexpected{{padding:6px 12px 6px 34px;font-size:12px;color:#4b5563;background:#f9fafb;display:flex;gap:6px}}
 .slabel{{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0;padding-top:2px}}
 .scomment{{padding:6px 12px 6px 34px;font-size:12px;color:#92400e;background:#fffbeb;border-top:1px solid #fef3c7}}
-.slog{{margin:0;padding:10px 14px;background:#f8fafc;color:#334155;font-family:'Monaco','Consolas','Liberation Mono',monospace;font-size:11px;white-space:pre-wrap;overflow-x:auto;border-top:1px solid #e2e8f0;line-height:1.65}}
+.slog{{margin:0;padding:8px 12px;background:#f8fafc;color:#334155;font-family:'Monaco','Consolas','Liberation Mono',monospace;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere;overflow-x:auto;border-top:1px solid #e2e8f0;line-height:1.55}}
 footer{{text-align:center;padding:20px;font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;margin-top:16px}}
+@media (max-width:640px){{
+header{{padding:16px 14px 14px}}
+header h1{{font-size:18px;overflow-wrap:anywhere}}
+.hs{{font-size:12px;padding:4px 10px}}
+main{{margin:12px auto;padding:0 8px 32px}}
+.toolbar{{justify-content:flex-start;flex-wrap:wrap}}
+details.suite{{margin-bottom:10px;border-radius:8px}}
+summary.suite-hd{{flex-wrap:wrap;gap:6px 8px;padding:9px 10px}}
+.suite-name{{flex:1 1 60%}}
+.suite-meta{{white-space:normal}}
+.suite-body{{padding:6px}}
+summary.thd{{flex-wrap:wrap;gap:3px 8px;padding:8px 10px}}
+.tname{{flex:1 1 60%}}
+.thd .tmeta{{flex-basis:100%;padding-left:19px;white-space:normal;font-size:11px}}
+.tbody{{padding:8px}}
+summary.step-hd{{padding:5px 8px}}
+.stime{{display:none}}
+.sexpected,.scomment{{padding-left:12px}}
+.slog{{padding:8px 10px}}
+}}
 </style>
 </head>
 <body>

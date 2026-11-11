@@ -184,17 +184,17 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
         <span aria-hidden="true"
           className="absolute left-0 top-0 bottom-0 w-[3px] bg-red-500 pointer-events-none z-10" />
       )}
-      <div className={`flex items-center justify-between px-4 py-3 cursor-pointer ${config.bg} border-b`}
+      <div className={`flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 cursor-pointer ${config.bg} border-b`}
         onClick={() => { setOpen(value => !value); onFocus?.() }}>
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {open ? <ChevronDown size={14} className="shrink-0" /> : <ChevronRight size={14} className="shrink-0" />}
           <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">{index + 1}/{total}</span>
-          <span data-testid="result-title" className="font-medium text-gray-800 dark:text-gray-100 truncate">{result.test_case_title ?? tc?.name ?? "…"}</span>
+          <span data-testid="result-title" className="font-medium text-sm sm:text-base text-gray-800 dark:text-gray-100 break-words sm:truncate">{result.test_case_title ?? tc?.name ?? "…"}</span>
         </div>
-        <div className="flex items-center gap-2 shrink-0 ml-3">
+        <div className="flex items-center gap-2 shrink-0 ml-2 sm:ml-3">
           {assigneeName && (
-            <span data-testid="result-assignee" className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-              <UserIcon size={10} />{assigneeName}
+            <span data-testid="result-assignee" className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 max-w-[5rem] sm:max-w-none">
+              <UserIcon size={10} className="shrink-0" /><span className="truncate">{assigneeName}</span>
             </span>
           )}
           {result.duration_ms != null && (
@@ -205,12 +205,14 @@ export function ResultCard({ result, executionId, index, total, isAutomated, foc
           {result.executed_at && (
             <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:block">{fmtTime(result.executed_at)}</span>
           )}
-          <Badge variant={config.badgeVariant}><Icon size={11} className="mr-1" />{statusLabel(localStatus)}</Badge>
+          <Badge variant={config.badgeVariant} title={statusLabel(localStatus)}>
+            <Icon size={11} className="sm:mr-1" /><span className="sr-only sm:not-sr-only">{statusLabel(localStatus)}</span>
+          </Badge>
         </div>
       </div>
 
       {open && (
-        <div className="p-4 space-y-4 bg-white dark:bg-gray-900">
+        <div className="p-2 sm:p-4 space-y-4 bg-white dark:bg-gray-900">
           {tc?.steps?.length > 0 && (
             <div className="space-y-2">
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t("run.stepsLabel")}</p>
