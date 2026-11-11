@@ -1,5 +1,5 @@
 """Listener should not rewrite a case's steps when they already match."""
-from testjam_client.listener.listener import _steps_match
+from testjam_client.listener.reporter import _steps_match
 
 
 def _payload(actions: list[tuple[str, str]]) -> list[dict]:
