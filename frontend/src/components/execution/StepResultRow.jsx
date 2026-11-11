@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { Clock } from "lucide-react"
+import { Clock, ScrollText } from "lucide-react"
 import { MdViewer } from "../MdEditor"
 import { STATUS_CONFIG } from "../../lib/statusConfig"
 import { fmtDuration, fmtTime } from "../../lib/format"
@@ -63,20 +63,28 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
   }
 
   const hasMeta = stepResult?.duration_ms != null || stepResult?.started_at
+  const hasLog = Boolean(stepResult?.log_output)
+  const StatusIcon = config.icon
 
   return (
-    <div ref={rowRef} id={`step-${step.id}`} data-step-id={step.id}
-      className={`relative border rounded-lg overflow-hidden ${config.bg} ${focused ? "ring-2 ring-red-400" : ""}`}>
-      <div className="flex items-start gap-3 p-3">
-        <span className="text-xs font-mono text-gray-400 dark:text-gray-500 mt-0.5 w-5 shrink-0">{step.order}.</span>
+    <div ref={rowRef} id={`step-${step.id}`} data-step-id={step.id} data-testid="step-row" data-status={localStatus}
+      className={`relative border rounded-md overflow-hidden ${config.bg} ${focused ? "ring-2 ring-red-400" : ""}`}>
+      <div className="flex flex-wrap items-start gap-x-2 gap-y-1 px-2.5 py-1.5">
+        {isAutomated && (
+          <StatusIcon size={14} className={`${config.iconColor} shrink-0 mt-[3px]`} aria-label={statusLabel(localStatus)} />
+        )}
+        <span className="text-xs font-mono tabular-nums text-gray-400 dark:text-gray-500 min-w-[1.25rem] mt-px shrink-0">{step.order}.</span>
         <div className="flex-1 min-w-0">
-          <div className="prose prose-sm"><MdViewer value={step.action} /></div>
+          <div className="md-compact"><MdViewer value={step.action} /></div>
           {step.expected_result && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">{t("run.step.expected")} <MdViewer value={step.expected_result} /></p>
+            <div className="md-compact md-compact-muted flex gap-1 mt-0.5 italic">
+              <span className="shrink-0">{t("run.step.expected")}</span>
+              <div className="min-w-0"><MdViewer value={step.expected_result} /></div>
+            </div>
           )}
 
           {!isAutomated && (
-            <div className="mt-2">
+            <div className="mt-1">
               {editComment ? (
                 <div className="space-y-1">
                   <textarea
@@ -100,7 +108,7 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
                 </div>
               ) : comment ? (
                 <button onClick={() => setEditComment(true)} className="text-left w-full group">
-                  <p className="text-xs text-gray-700 dark:text-gray-200 bg-black/5 rounded px-2 py-1 border border-black/10 group-hover:border-black/20 transition-colors">
+                  <p className="text-xs text-gray-700 dark:text-gray-200 bg-black/5 rounded px-2 py-1 border border-black/10 group-hover:border-black/20 transition-colors break-words">
                     {comment}
                   </p>
                 </button>
@@ -112,56 +120,51 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
               )}
             </div>
           )}
-
-          {stepResult?.log_output && (
-            <button onClick={() => setShowLog(value => !value)}
-              className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 mt-1 underline block">
-              {showLog ? t("run.step.hideLog") : t("run.step.showLog")}
-            </button>
-          )}
         </div>
 
-        {hasMeta && (
-          <div className="flex items-center gap-2 text-[11px] text-gray-400 dark:text-gray-500 shrink-0 self-center whitespace-nowrap">
+        {(hasMeta || hasLog) && (
+          <div className="flex items-center gap-1.5 text-[11px] text-gray-400 dark:text-gray-500 shrink-0 whitespace-nowrap mt-0.5">
             {stepResult?.duration_ms != null && (
               <span className="flex items-center gap-1"><Clock size={10} />{fmtDuration(stepResult.duration_ms)}</span>
             )}
             {stepResult?.started_at && (
-              <>
-                {stepResult?.duration_ms != null && <span>·</span>}
-                <span>{fmtTime(stepResult.started_at)}</span>
-              </>
+              <span className="hidden sm:inline">{fmtTime(stepResult.started_at)}</span>
+            )}
+            {hasLog && (
+              <button type="button" onClick={() => setShowLog(value => !value)}
+                data-testid="step-log-toggle"
+                aria-expanded={showLog}
+                aria-label={showLog ? t("run.step.hideLog") : t("run.step.showLog")}
+                title={showLog ? t("run.step.hideLog") : t("run.step.showLog")}
+                className={`p-1 -my-1 rounded hover:text-gray-700 dark:hover:text-gray-200 hover:bg-black/5 ${showLog ? "text-gray-700 dark:text-gray-200" : ""}`}>
+                <ScrollText size={13} />
+              </button>
             )}
           </div>
         )}
 
         {!isAutomated && (
-          <div className="flex gap-1 shrink-0 self-center">
+          <div className="flex gap-1 shrink-0 basis-full justify-end sm:basis-auto">
             {Object.entries(STATUS_CONFIG).map(([status, cfg]) => {
               const Ic = cfg.icon
               return (
                 <button key={status}
                   onClick={() => handleStatus(status)}
                   title={statusLabel(status)}
-                  className={`p-1 rounded transition-opacity ${localStatus === status ? "opacity-100" : "opacity-25 hover:opacity-70"}`}>
+                  className={`p-1.5 sm:p-1 rounded transition-opacity ${localStatus === status ? "opacity-100" : "opacity-25 hover:opacity-70"}`}>
                   <Ic size={16} className={cfg.iconColor} />
                 </button>
               )
             })}
           </div>
         )}
-        {isAutomated && (
-          <div className="shrink-0 self-center">
-            {(() => { const Ic = config.icon; return <Ic size={16} className={config.iconColor} /> })()}
-          </div>
-        )}
       </div>
 
-      {showLog && stepResult?.log_output && (
+      {showLog && hasLog && (
         <div
           ref={logRef}
           data-testid="step-log-output"
-          className="px-4 pb-3 border-t border-gray-100 dark:border-gray-800 bg-gray-900 text-gray-100 text-xs font-mono whitespace-pre-wrap rounded-b-lg max-h-48 overflow-y-auto"
+          className="px-3 py-2 border-t border-gray-100 dark:border-gray-800 bg-gray-900 text-gray-100 text-[11px] leading-relaxed font-mono whitespace-pre-wrap break-words max-h-48 overflow-y-auto"
         >
           {stepResult.log_output}
         </div>

@@ -483,7 +483,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
 
   return (
     <>
-      <PageHeader crumbs={[
+      <PageHeader className="static md:sticky" crumbs={[
         { label: t("nav:global.projects"), to: "/projects" },
         { label: project?.name ?? "…", to: `/projects/${execution.project_id}` },
         { label: t("title"), to: `/projects/${execution.project_id}/executions` },
@@ -529,7 +529,7 @@ function ExecutionRunBody({ execution, results, id, summary, done, totalMs, fini
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-3 mt-1.5 text-sm">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1.5 text-sm whitespace-nowrap">
               <span data-testid="run-summary-passed" className={`${STATUS_CONFIG.passed.iconColor} font-medium`}>✓ {t("run.passed", { count: summary.passed ?? 0 })}</span>
               <span data-testid="run-summary-failed" className={`${STATUS_CONFIG.failed.iconColor} font-medium`}>✗ {t("run.failed", { count: summary.failed ?? 0 })}</span>
               <span data-testid="run-summary-blocked" className={`${STATUS_CONFIG.blocked.iconColor} font-medium`}>⚠ {t("run.blocked", { count: summary.blocked ?? 0 })}</span>

@@ -113,6 +113,14 @@ html.dark .dark\:placeholder\:text-gray-500::placeholder { color: var(--tj-subtl
 }
 
 .md { font-size: 0.875rem; line-height: 1.625; color: var(--md-fg); }
+
+/* Dense one-line-ish markdown for step rows in a run: the library defaults to 16px body text. */
+.md-compact .md, .md-compact .md .wmde-markdown { font-size: 0.8125rem; line-height: 1.4; overflow-wrap: anywhere; }
+.md-compact .md p { line-height: 1.4; }
+.md-compact .md > * + *, .md-compact .md .wmde-markdown > * + * { margin-top: 0.25rem; }
+.md-compact .md .wmde-markdown > :last-child { margin-bottom: 0; }
+.md-compact-muted .md, .md-compact-muted .md .wmde-markdown { font-size: 0.75rem; color: var(--md-fg-muted); }
+.md-compact-muted { font-size: 0.75rem; color: #6b7280; }
 .md > * + * { margin-top: 0.75rem; }
 .md h1 { font-size: 1.5rem; font-weight: 700; color: var(--md-fg-strong); margin-top: 1.5rem; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid var(--md-border); }
 .md h2 { font-size: 1.25rem; font-weight: 600; color: var(--md-fg-strong); margin-top: 1.25rem; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid var(--md-border); }

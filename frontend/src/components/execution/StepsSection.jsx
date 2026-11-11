@@ -3,8 +3,8 @@ import { StepResultRow } from "./StepResultRow"
 
 const STEP_TYPE_HEADER_COLOR = { setup: "text-blue-600 bg-blue-50", teardown: "text-orange-600 bg-orange-50" }
 const STEP_TYPE_GROUP_BORDER = {
-  setup: "border-l-4 border-blue-300 pl-3",
-  teardown: "border-l-4 border-orange-300 pl-3",
+  setup: "border-l-2 border-blue-300 pl-2",
+  teardown: "border-l-2 border-orange-300 pl-2",
 }
 
 export function StepsSection({ steps, stepResults, onUpdate, onSaveComment, isAutomated, focusedStepId = null, followLive = false }) {
@@ -14,7 +14,7 @@ export function StepsSection({ steps, stepResults, onUpdate, onSaveComment, isAu
   steps.forEach(step => { (byType[step.step_type] ?? byType.action).push(step) })
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2.5">
       {["setup", "action", "teardown"].map(type => {
         const typeSteps = byType[type]
         if (!typeSteps.length) return null
@@ -24,11 +24,11 @@ export function StepsSection({ steps, stepResults, onUpdate, onSaveComment, isAu
         return (
           <div key={type} className={groupBorder}>
             {label && (
-              <p className={`text-xs font-semibold uppercase tracking-wide px-2 py-1 rounded mb-2 w-fit ${headerColor}`}>
+              <p className={`text-[11px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded mb-1 w-fit ${headerColor}`}>
                 {label} <span className="font-normal opacity-70">({typeSteps.length})</span>
               </p>
             )}
-            <div className="space-y-2">
+            <div className="space-y-1">
               {typeSteps.map(step => {
                 const stepResult = stepResults.find(sr => sr.step_id === step.id)
                 return (
