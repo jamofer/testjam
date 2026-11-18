@@ -105,6 +105,9 @@ class TestStepResult(Base):
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     started_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
     log_output: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Keyword arguments as written in the source (``${PASSWORD}``, never its
+    # value), so automated steps show how they were called without leaking secrets.
+    arguments: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
 
     test_result: Mapped[TestResult] = relationship(back_populates="step_results")
     step: Mapped[TestStep | None] = relationship()

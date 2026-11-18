@@ -1,6 +1,8 @@
 """Live step-result endpoints: running state + log streaming."""
 from __future__ import annotations
 
+import re
+
 import pytest
 
 from testjam.services import execution_events
@@ -25,6 +27,20 @@ def test_start_step_result_persists_running_state(auth_client, execution_with_st
     assert body["status"] == "running"
     assert body["step_id"] == step_id
     assert body["started_at"] is not None
+
+
+def test_start_step_result_stores_the_keyword_arguments(auth_client, execution_with_step):
+    execution_id, result_id, step_id = execution_with_step
+
+    auth_client.post(
+        f"/api/v1/results/{result_id}/step-results",
+        json={"step_id": step_id, "arguments": ["admin", "${PASSWORD}"]},
+    )
+
+    [step_result] = auth_client.get(
+        f"/api/v1/executions/{execution_id}/results",
+    ).json()[0]["step_results"]
+    assert step_result["arguments"] == ["admin", "${PASSWORD}"]
 
 
 def test_start_step_result_is_idempotent_on_same_step(auth_client, execution_with_step):
@@ -56,7 +72,7 @@ def test_log_append_creates_first_entry(auth_client, execution_with_step):
 
     response = auth_client.post(
         f"/api/v1/results/{result_id}/step-results/{step_result_id}/log",
-        json={"level": "INFO", "message": "logging in"},
+        json={"level": "INFO", "message": "logging in", "ts": "2026-11-18T10:15:02.123456+01:00"},
     )
 
     assert response.status_code == 200
@@ -68,7 +84,7 @@ def test_log_append_creates_first_entry(auth_client, execution_with_step):
         ).json()[0]["step_results"]
         if sr["id"] == step_result_id
     )
-    assert step_result["log_output"] == "**[INFO]** logging in"
+    assert step_result["log_output"] == "2026-11-18T09:15:02.123Z [INFO] logging in"
 
 
 def test_log_append_concatenates_entries_with_separator(auth_client, execution_with_step):
@@ -79,11 +95,11 @@ def test_log_append_concatenates_entries_with_separator(auth_client, execution_w
 
     auth_client.post(
         f"/api/v1/results/{result_id}/step-results/{step_result_id}/log",
-        json={"level": "INFO", "message": "first"},
+        json={"level": "INFO", "message": "first", "ts": "2026-11-18T09:00:00Z"},
     )
     auth_client.post(
         f"/api/v1/results/{result_id}/step-results/{step_result_id}/log",
-        json={"level": "WARN", "message": "second"},
+        json={"level": "WARN", "message": "second", "ts": "2026-11-18T09:00:01.5Z"},
     )
 
     step_result = next(
@@ -92,7 +108,31 @@ def test_log_append_concatenates_entries_with_separator(auth_client, execution_w
         ).json()[0]["step_results"]
         if sr["id"] == step_result_id
     )
-    assert step_result["log_output"] == "**[INFO]** first\n\n**[WARN]** second"
+    assert step_result["log_output"] == (
+        "2026-11-18T09:00:00.000Z [INFO] first\n\n2026-11-18T09:00:01.500Z [WARN] second"
+    )
+
+
+def test_log_append_stamps_entries_sent_without_timestamp(auth_client, execution_with_step):
+    execution_id, result_id, step_id = execution_with_step
+    step_result_id = auth_client.post(
+        f"/api/v1/results/{result_id}/step-results", json={"step_id": step_id},
+    ).json()["id"]
+
+    auth_client.post(
+        f"/api/v1/results/{result_id}/step-results/{step_result_id}/log",
+        json={"level": "INFO", "message": "no clock"},
+    )
+
+    step_result = next(
+        sr for sr in auth_client.get(
+            f"/api/v1/executions/{execution_id}/results",
+        ).json()[0]["step_results"]
+        if sr["id"] == step_result_id
+    )
+    assert re.fullmatch(
+        r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z \[INFO\] no clock", step_result["log_output"],
+    )
 
 
 def test_log_append_404_for_missing_step_result(auth_client, execution_with_step):

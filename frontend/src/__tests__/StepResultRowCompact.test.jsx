@@ -46,6 +46,64 @@ describe("StepResultRow compact layout", () => {
     expect(screen.queryByTestId("step-log-output")).not.toBeInTheDocument()
   })
 
+  it("opens and closes the log by clicking anywhere on the row", () => {
+    renderRow()
+
+    fireEvent.click(screen.getByText("Login"))
+    expect(screen.getByTestId("step-log-output")).toHaveTextContent("done")
+
+    fireEvent.click(screen.getByText("Login"))
+    expect(screen.queryByTestId("step-log-output")).not.toBeInTheDocument()
+  })
+
+  it("does not toggle the log when the click ends a text selection", () => {
+    renderRow()
+    const getSelection = vi.spyOn(window, "getSelection").mockReturnValue({ toString: () => "Login" })
+
+    fireEvent.click(screen.getByText("Login"))
+
+    expect(screen.queryByTestId("step-log-output")).not.toBeInTheDocument()
+    getSelection.mockRestore()
+  })
+
+  it("does not toggle the log from clicks inside the log itself", () => {
+    renderRow()
+    fireEvent.click(screen.getByText("Login"))
+
+    fireEvent.click(screen.getByTestId("step-log-output"))
+
+    expect(screen.getByTestId("step-log-output")).toBeInTheDocument()
+  })
+
+  it("does not make a row without log clickable", () => {
+    renderRow({ stepResult: { id: 9, step_id: 1, status: "passed", duration_ms: 75 } })
+
+    expect(screen.getByTestId("step-row-header")).not.toHaveClass("cursor-pointer")
+  })
+
+  it("shows each log entry with its time and level", () => {
+    renderRow({ stepResult: { ...PASSED_WITH_LOG, log_output: "2026-11-18T09:15:02.123Z [WARN] slow" } })
+    fireEvent.click(screen.getByText("Login"))
+
+    const [entry] = screen.getAllByTestId("step-log-entry")
+    expect(entry.querySelector("time")).toHaveAttribute("dateTime", "2026-11-18T09:15:02.123Z")
+    expect(entry).toHaveTextContent("WARN")
+    expect(entry).toHaveTextContent("slow")
+  })
+
+  it("shows the keyword arguments under the action", () => {
+    renderRow({ stepResult: { ...PASSED_WITH_LOG, arguments: ["admin", "${PASSWORD}"] } })
+
+    const args = screen.getByTestId("step-arguments")
+    expect([...args.querySelectorAll("code")].map(node => node.textContent)).toEqual(["admin", "${PASSWORD}"])
+  })
+
+  it("shows no argument line for a step without arguments", () => {
+    renderRow()
+
+    expect(screen.queryByTestId("step-arguments")).not.toBeInTheDocument()
+  })
+
   it("offers no log toggle when the step has no log", () => {
     renderRow({ stepResult: { id: 9, step_id: 1, status: "passed", duration_ms: 75 } })
 

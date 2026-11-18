@@ -199,6 +199,8 @@ def render_html(
                 if step.expected_result
                 else ""
             )
+            arguments = (sr.arguments if sr else None) or []
+            args_html = "".join(f'<code class="sarg">{e(arg)}</code>' for arg in arguments)
             comment_html = f'<div class="scomment">💬 {e(comment)}</div>' if comment else ""
             log_html = f'<pre class="slog">{e(log)}</pre>' if log else ""
             body_html = (
@@ -211,7 +213,7 @@ def render_html(
           <span class="sglyph sg-{e(st)}" title="{e(st)}">{glyph}</span>
           <span class="snum">{step.order}.</span>
           {type_html}
-          <span class="saction">{e(step.action)}</span>
+          <span class="saction">{e(step.action)}{args_html}</span>
           {f'<span class="smeta">{step_meta}</span>' if step_meta else ''}
         </summary>
         {body_html}
@@ -396,6 +398,7 @@ details.step[open] .schev{{transform:rotate(90deg)}}
 .sg-blocked{{color:#d97706}}
 .sg-not_run{{color:#9ca3af}}
 .saction{{flex:1;min-width:0;overflow-wrap:anywhere;font-size:12.5px;line-height:1.4;color:#1f2937}}
+.sarg{{margin-left:6px;padding:0 4px;border-radius:3px;background:#f1f5f9;color:#475569;font-family:'Monaco','Consolas','Liberation Mono',monospace;font-size:11px}}
 .smeta{{font-size:11px;color:#9ca3af;white-space:nowrap;flex-shrink:0;display:flex}}
 .sdur+.stime::before{{content:"·";margin:0 6px;color:#cbd5e1}}
 .sbody{{border-top:1px solid #f3f4f6}}

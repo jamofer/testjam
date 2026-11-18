@@ -1,12 +1,16 @@
-import { useState, useEffect, useRef } from "react"
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Clock, ScrollText } from "lucide-react"
 import { MdViewer } from "../MdEditor"
 import { STATUS_CONFIG } from "../../lib/statusConfig"
 import { fmtDuration, fmtTime } from "../../lib/format"
+import { LOG_LEVEL_CLASS, fmtLogDateTime, fmtLogTime, parseStepLog } from "../../lib/stepLog"
+
+// Clicks on these keep their own meaning instead of toggling the log.
+const INTERACTIVE_SELECTOR = "a, button, input, textarea, select, label, [role='button']"
 
 export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAutomated, focused = false, followLive = false }) {
-  const { t } = useTranslation(["executions", "common"])
+  const { t, i18n } = useTranslation(["executions", "common"])
   const [localStatus, setLocalStatus] = useState(stepResult?.status ?? "not_run")
   const [comment, setComment] = useState(stepResult?.comment ?? "")
   const [editComment, setEditComment] = useState(false)
@@ -66,16 +70,35 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
   const hasLog = Boolean(stepResult?.log_output)
   const StatusIcon = config.icon
 
+  const handleRowClick = (event) => {
+    if (!hasLog) return
+    if (event.target.closest?.(INTERACTIVE_SELECTOR)) return
+    // Selecting text (to copy a step action) ends in a click; leave it alone.
+    if (window.getSelection?.()?.toString()) return
+    setShowLog(value => !value)
+  }
+
   return (
     <div ref={rowRef} id={`step-${step.id}`} data-step-id={step.id} data-testid="step-row" data-status={localStatus}
       className={`relative border rounded-md overflow-hidden ${config.bg} ${focused ? "ring-2 ring-red-400" : ""}`}>
-      <div className="flex flex-wrap items-start gap-x-2 gap-y-1 px-2.5 py-1.5">
+      <div onClick={handleRowClick} data-testid="step-row-header"
+        className={`flex flex-wrap items-start gap-x-2 gap-y-1 px-2.5 py-1.5 ${hasLog ? "cursor-pointer hover:bg-black/[0.03] dark:hover:bg-white/[0.03]" : ""}`}>
         {isAutomated && (
           <StatusIcon size={14} className={`${config.iconColor} shrink-0 mt-[3px]`} aria-label={statusLabel(localStatus)} />
         )}
         <span className="text-xs font-mono tabular-nums text-gray-400 dark:text-gray-500 min-w-[1.25rem] mt-px shrink-0">{step.order}.</span>
         <div className="flex-1 min-w-0">
           <div className="md-compact"><MdViewer value={step.action} /></div>
+          {stepResult?.arguments?.length > 0 && (
+            <div data-testid="step-arguments" className="flex flex-wrap gap-1 mt-0.5">
+              {stepResult.arguments.map((argument, index) => (
+                <code key={index}
+                  className="px-1 rounded bg-black/5 dark:bg-white/10 text-[11px] font-mono text-gray-600 dark:text-gray-300 break-all">
+                  {argument}
+                </code>
+              ))}
+            </div>
+          )}
           {step.expected_result && (
             <div className="md-compact md-compact-muted flex gap-1 mt-0.5 italic">
               <span className="shrink-0">{t("run.step.expected")}</span>
@@ -161,14 +184,37 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
       </div>
 
       {showLog && hasLog && (
-        <div
-          ref={logRef}
-          data-testid="step-log-output"
-          className="px-3 py-2 border-t border-gray-100 dark:border-gray-800 bg-gray-900 text-gray-100 text-[11px] leading-relaxed font-mono whitespace-pre-wrap break-words max-h-48 overflow-y-auto"
-        >
-          {stepResult.log_output}
-        </div>
+        <StepLogPanel ref={logRef} text={stepResult.log_output} locale={i18n.language} />
       )}
     </div>
   )
 }
+
+
+const StepLogPanel = forwardRef(function StepLogPanel({ text, locale }, ref) {
+  const entries = useMemo(() => parseStepLog(text), [text])
+  return (
+    <div
+      ref={ref}
+      data-testid="step-log-output"
+      className="py-1.5 border-t border-gray-100 dark:border-gray-800 bg-gray-900 text-gray-100 text-[11px] leading-relaxed font-mono max-h-64 overflow-y-auto"
+    >
+      {entries.map((entry, index) => (
+        <div key={index} data-testid="step-log-entry" className="flex gap-2 px-3 hover:bg-white/5">
+          {entry.ts && (
+            <time dateTime={entry.ts} title={fmtLogDateTime(entry.ts, locale)}
+              className="shrink-0 tabular-nums text-gray-500 select-none">
+              {fmtLogTime(entry.ts, locale)}
+            </time>
+          )}
+          {entry.level && (
+            <span className={`shrink-0 w-[5ch] ${LOG_LEVEL_CLASS[entry.level] ?? "text-sky-300"}`}>{entry.level}</span>
+          )}
+          <span className={`min-w-0 whitespace-pre-wrap break-words ${entry.level === "FAIL" || entry.level === "ERROR" ? "text-red-200" : ""}`}>
+            {entry.message}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+})

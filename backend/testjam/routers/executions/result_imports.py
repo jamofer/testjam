@@ -19,6 +19,7 @@ from testjam.schemas.execution import BulkResultResponse
 from testjam.services import execution_events, uploads
 from testjam.services.permissions import WRITER_ROLES
 from testjam.services.settings import get_settings as get_app_settings
+from testjam.services.step_logs import format_log_entry
 
 MAX_FAILURE_DETAIL_CHARS = 20_000
 NO_MATCH_ERROR = "No matching test case found"
@@ -98,8 +99,39 @@ def _rf_collect_messages(kw_elem: ET.Element) -> str:
         level = msg.get("level", "INFO")
         text = (msg.text or "").strip()
         if text:
-            lines.append(f"**[{level}]** {text}")
+            lines.append(format_log_entry(level, text, _rf_msg_timestamp(msg)))
     return "\n\n".join(lines)
+
+
+def _rf_kw_arguments(kw_elem: ET.Element) -> list[str] | None:
+    """The keyword's own ``<arg>`` children, as written in the source.
+
+    Older schemas wrap them in ``<arguments>``; nested keywords' args are not ours.
+    """
+    container = kw_elem.find("arguments")
+    parent = container if container is not None else kw_elem
+    arguments = [arg.text or "" for arg in parent.findall("arg")]
+    return arguments or None
+
+
+RF_LEGACY_TIMESTAMP_FORMAT = "%Y%m%d %H:%M:%S.%f"
+
+
+def _rf_msg_timestamp(msg: ET.Element) -> datetime | None:
+    """``time`` (RF 7, ISO) or ``timestamp`` (RF 6 and older), runner-local."""
+    raw = msg.get("time")
+    if raw:
+        try:
+            return datetime.fromisoformat(raw)
+        except ValueError:
+            return None
+    raw = msg.get("timestamp")
+    if raw:
+        try:
+            return datetime.strptime(raw, RF_LEGACY_TIMESTAMP_FORMAT)
+        except ValueError:
+            return None
+    return None
 
 
 def _rf_kw_duration_ms(kw_elem: ET.Element) -> int | None:
@@ -298,6 +330,7 @@ def import_robotframework(
                     kw_new_status = _rf_status(kw_rf_status)
                     log_output = _rf_collect_messages(kw)
                     kw_duration = _rf_kw_duration_ms(kw)
+                    kw_arguments = _rf_kw_arguments(kw)
 
                     existing_sr = (
                         db.query(TestStepResult)
@@ -308,6 +341,7 @@ def import_robotframework(
                         existing_sr.status = kw_new_status
                         existing_sr.log_output = log_output or None
                         existing_sr.duration_ms = kw_duration
+                        existing_sr.arguments = kw_arguments
                     else:
                         db.add(TestStepResult(
                             test_result_id=result.id,
@@ -315,6 +349,7 @@ def import_robotframework(
                             status=kw_new_status,
                             log_output=log_output or None,
                             duration_ms=kw_duration,
+                            arguments=kw_arguments,
                         ))
 
             if is_new:

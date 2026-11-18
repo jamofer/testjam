@@ -20,6 +20,8 @@ RF_OUTPUT = b"""<?xml version="1.0" encoding="UTF-8"?>
         <status status="PASS" starttime="20240101 12:00:00.000" endtime="20240101 12:00:01.000"/>
       </kw>
       <kw name="Input Credentials">
+        <arg>admin</arg>
+        <arg>${PASSWORD}</arg>
         <msg timestamp="20240101 12:00:01.100" level="INFO">Entering admin/pass</msg>
         <status status="PASS" starttime="20240101 12:00:01.000" endtime="20240101 12:00:01.500"/>
       </kw>
@@ -163,7 +165,30 @@ def test_rf_import_populates_step_log_output(auth_client, project_id, suite_id):
 
     sr = next((s for s in result_detail["step_results"] if s["step_id"] == step_id), None)
     assert sr is not None
-    assert "Opening Chrome" in (sr["log_output"] or "")
+    assert "2024-01-01T12:00:00.100 [INFO] Opening Chrome" in (sr["log_output"] or "")
+
+
+def test_rf_import_keeps_keyword_arguments_as_written(auth_client, project_id, suite_id):
+    case_ids = _setup_rf_cases(auth_client, project_id, suite_id)
+    open_step, input_step = (
+        auth_client.post(f"/api/v1/cases/{case_ids[0]}/steps", json={
+            "action": action, "order": order, "step_type": "action",
+        }).json()["id"]
+        for order, action in enumerate(["Open Browser", "Input Credentials"], start=1)
+    )
+    exec_id = _create_execution(auth_client, project_id, case_ids)
+    auth_client.post(
+        f"/api/v1/executions/{exec_id}/results/import/robotframework",
+        files={"file": ("output.xml", io.BytesIO(RF_OUTPUT), "application/xml")},
+    )
+
+    result = next(
+        r for r in auth_client.get(f"/api/v1/executions/{exec_id}/results").json()
+        if r["test_case_title"] == "Valid Login"
+    )
+    by_step = {sr["step_id"]: sr for sr in auth_client.get(f"/api/v1/results/{result['id']}").json()["step_results"]}
+    assert by_step[open_step]["arguments"] is None
+    assert by_step[input_step]["arguments"] == ["admin", "${PASSWORD}"]
 
 
 XML_BILLION_LAUGHS = b"""<?xml version="1.0"?>

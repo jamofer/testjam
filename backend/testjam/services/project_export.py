@@ -236,6 +236,7 @@ def _execution_dict(
                         "comment": sr.comment,
                         "duration_ms": sr.duration_ms,
                         "log_output": sr.log_output,
+                        "arguments": sr.arguments,
                     }
                     for sr in step_results_by_result.get(r.id, [])
                 ],

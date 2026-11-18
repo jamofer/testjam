@@ -14,8 +14,14 @@ import httpx
 
 from testjam_client import TestjamClient, statuses
 from testjam_client.errors import Conflict, TestjamError
-from testjam_client.listener.events import LogEvent, OutcomeEvent, SuiteEvent, TestEvent
-from testjam_client.listener.log import format_log_line, isoformat_timestamp
+from testjam_client.listener.events import (
+    BodyItemEvent,
+    LogEvent,
+    OutcomeEvent,
+    SuiteEvent,
+    TestEvent,
+)
+from testjam_client.listener.log import format_log_line
 from testjam_client.listener.status import map_rf_status
 
 log = logging.getLogger("testjam.listener")
@@ -88,7 +94,7 @@ class Reporter:
             self.current_test = None
             self.current_step = None
 
-    def start_body_item(self) -> None:
+    def start_body_item(self, item: BodyItemEvent) -> None:
         """Track top-level items, each of which maps to one case step.
 
         ``start_keyword`` would skip FOR and IF and fire for the keywords inside
@@ -102,7 +108,8 @@ class Reporter:
             self.current_step = None
             return
         _step_type, step_id = test.step_ids[test.step_cursor]
-        self.current_step = self._start_step(test, step_id)
+        arguments = list(item.arguments) if item.arguments else None
+        self.current_step = self._start_step(test, step_id, arguments)
 
     def end_body_item(self, outcome: OutcomeEvent) -> None:
         depth = self._body_depth
@@ -113,14 +120,17 @@ class Reporter:
         if test is None or step is None:
             return
         payload = _final_step_result_payload(outcome, step.log_buffer)
+        batched = {"step_id": step.step_id, **payload}
+        if step.arguments:
+            batched["arguments"] = step.arguments
         try:
             if self.streaming_enabled and step.step_result_id:
                 self.client.step_results.update(test.result_id, step.step_result_id, **payload)
             else:
-                test.pending_step_results.append({"step_id": step.step_id, **payload})
+                test.pending_step_results.append(batched)
         except API_ERRORS as exc:
             self._maybe_disable_streaming(exc)
-            test.pending_step_results.append({"step_id": step.step_id, **payload})
+            test.pending_step_results.append(batched)
         finally:
             self.current_step = None
             test.step_cursor += 1
@@ -137,7 +147,7 @@ class Reporter:
             self.client.step_results.append_log(
                 test.result_id, step.step_result_id,
                 level=message.level, message=message.message,
-                ts=isoformat_timestamp(message.timestamp),
+                ts=message.timestamp.isoformat(),
             )
         except API_ERRORS as exc:
             self._maybe_disable_streaming(exc)
@@ -179,15 +189,17 @@ class Reporter:
         self._safe_update_result(created["id"], status="running", executed_at=test.started_at)
         return _TestState(result_id=created["id"], case_id=case["id"], step_ids=step_ids)
 
-    def _start_step(self, test: _TestState, step_id: int) -> _StepState:
+    def _start_step(
+        self, test: _TestState, step_id: int, arguments: list[str] | None,
+    ) -> _StepState:
         if not self.streaming_enabled:
-            return _StepState(step_result_id=0, step_id=step_id)
+            return _StepState(step_result_id=0, step_id=step_id, arguments=arguments)
         try:
-            row = self.client.step_results.start(test.result_id, step_id)
+            row = self.client.step_results.start(test.result_id, step_id, arguments=arguments)
         except API_ERRORS as exc:
             self._maybe_disable_streaming(exc)
-            return _StepState(step_result_id=0, step_id=step_id)
-        return _StepState(step_result_id=row["id"], step_id=step_id)
+            return _StepState(step_result_id=0, step_id=step_id, arguments=arguments)
+        return _StepState(step_result_id=row["id"], step_id=step_id, arguments=arguments)
 
     def _create_batched_result(self, test: _TestState) -> None:
         try:
@@ -247,11 +259,12 @@ class _TestState:
 
 
 class _StepState:
-    __slots__ = ("step_result_id", "step_id", "log_buffer")
+    __slots__ = ("step_result_id", "step_id", "arguments", "log_buffer")
 
-    def __init__(self, *, step_result_id: int, step_id: int) -> None:
+    def __init__(self, *, step_result_id: int, step_id: int, arguments: list[str] | None) -> None:
         self.step_result_id = step_result_id
         self.step_id = step_id
+        self.arguments = arguments
         self.log_buffer: list[str] = []
 
 

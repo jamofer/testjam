@@ -115,15 +115,15 @@ describe("useExecutionLive", () => {
 
     act(() => sockets[0].emit({
       event: "step_result.log_appended",
-      data: { step_result_id: 9, level: "INFO", message: "logging in" },
+      data: { step_result_id: 9, level: "INFO", message: "logging in", ts: "2026-11-18T09:15:02.123456+00:00" },
     }))
     act(() => sockets[0].emit({
       event: "step_result.log_appended",
-      data: { step_result_id: 9, level: "FAIL", message: "boom" },
+      data: { step_result_id: 9, level: "FAIL", message: "boom", ts: "2026-11-18T10:15:03.5+01:00" },
     }))
 
     const log = queryClient.getQueryData(["results", "42"])[0].step_results[0].log_output
-    expect(log).toBe("**[INFO]** logging in\n\n**[FAIL]** boom")
+    expect(log).toBe("2026-11-18T09:15:02.123Z [INFO] logging in\n\n2026-11-18T09:15:03.500Z [FAIL] boom")
   })
 
   it("appends a batched entries array on step_result.log_appended", () => {
@@ -151,7 +151,7 @@ describe("useExecutionLive", () => {
     }))
 
     const log = queryClient.getQueryData(["results", "42"])[0].step_results[0].log_output
-    expect(log).toBe("**[INFO]** first\n\n**[WARN]** second\n\n**[FAIL]** third")
+    expect(log).toBe("[INFO] first\n\n[WARN] second\n\n[FAIL] third")
   })
 
   it("groups entries from a batched payload by step_result_id", () => {
@@ -179,8 +179,8 @@ describe("useExecutionLive", () => {
     }))
 
     const stepResults = queryClient.getQueryData(["results", "42"])[0].step_results
-    expect(stepResults.find(sr => sr.id === 9).log_output).toBe("**[INFO]** for-9")
-    expect(stepResults.find(sr => sr.id === 10).log_output).toBe("**[INFO]** for-10")
+    expect(stepResults.find(sr => sr.id === 9).log_output).toBe("[INFO] for-9")
+    expect(stepResults.find(sr => sr.id === 10).log_output).toBe("[INFO] for-10")
   })
 
   it("stores the updated execution under ['executions', id]", () => {
