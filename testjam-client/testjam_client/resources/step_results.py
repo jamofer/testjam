@@ -8,10 +8,14 @@ from testjam_client.resources._base import Resource
 
 
 class StepResultsResource(Resource):
-    def start(self, result_id: int, step_id: int) -> StepResult:
+    def start(
+        self, result_id: int, step_id: int, *, arguments: list[str] | None = None,
+    ) -> StepResult:
+        body: dict[str, Any] = {"step_id": step_id}
+        if arguments is not None:
+            body["arguments"] = arguments
         return self._request(
-            "POST", f"/results/{result_id}/step-results",
-            json={"step_id": step_id},
+            "POST", f"/results/{result_id}/step-results", json=body,
         ).json()
 
     def update(self, result_id: int, step_result_id: int, **payload: Any) -> StepResult:

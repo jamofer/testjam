@@ -46,7 +46,7 @@ def test_log_endpoint_broadcasts_to_subscribed_client(auth_client, execution_wit
     with _subscribed(auth_client, f"execution:{execution_id}") as ws:
         auth_client.post(
             f"/api/v1/results/{result_id}/step-results/{step_result_id}/log",
-            json={"level": "INFO", "message": "logging in"},
+            json={"level": "INFO", "message": "logging in", "ts": "2026-11-18T09:15:02.123000+00:00"},
         )
         frame = ws.receive_json()
 
@@ -55,7 +55,7 @@ def test_log_endpoint_broadcasts_to_subscribed_client(auth_client, execution_wit
         "step_result_id": step_result_id,
         "level": "INFO",
         "message": "logging in",
-        "ts": None,
+        "ts": "2026-11-18T09:15:02.123000+00:00",
     }]
 
 

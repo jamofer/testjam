@@ -89,6 +89,16 @@ export function StepResultRow({ step, stepResult, onUpdate, onSaveComment, isAut
         <span className="text-xs font-mono tabular-nums text-gray-400 dark:text-gray-500 min-w-[1.25rem] mt-px shrink-0">{step.order}.</span>
         <div className="flex-1 min-w-0">
           <div className="md-compact"><MdViewer value={step.action} /></div>
+          {stepResult?.arguments?.length > 0 && (
+            <div data-testid="step-arguments" className="flex flex-wrap gap-1 mt-0.5">
+              {stepResult.arguments.map((argument, index) => (
+                <code key={index}
+                  className="px-1 rounded bg-black/5 dark:bg-white/10 text-[11px] font-mono text-gray-600 dark:text-gray-300 break-all">
+                  {argument}
+                </code>
+              ))}
+            </div>
+          )}
           {step.expected_result && (
             <div className="md-compact md-compact-muted flex gap-1 mt-0.5 italic">
               <span className="shrink-0">{t("run.step.expected")}</span>

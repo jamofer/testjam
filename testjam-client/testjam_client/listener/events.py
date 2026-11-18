@@ -57,6 +57,28 @@ class TestEvent:
         )
 
 
+MAX_ARGUMENT_CHARS = 200
+KEYWORD_ITEM_TYPES = {"KEYWORD", "SETUP", "TEARDOWN"}
+
+
+@dataclass(frozen=True)
+class BodyItemEvent:
+    """A body item about to run, with its arguments as written in the source.
+
+    ``data.args`` are the unresolved arguments (``${PASSWORD}``, not its value),
+    so secrets held in variables never leave the runner.
+    """
+
+    arguments: tuple[str, ...] | None
+
+    @classmethod
+    def from_robot(cls, data: Any) -> BodyItemEvent:
+        if getattr(data, "type", "KEYWORD") not in KEYWORD_ITEM_TYPES:
+            return cls(arguments=None)
+        args = getattr(data, "args", None) or ()
+        return cls(arguments=tuple(_shorten(str(arg)) for arg in args) or None)
+
+
 @dataclass(frozen=True)
 class OutcomeEvent:
     status: str
@@ -88,6 +110,12 @@ class LogEvent:
             message=getattr(message, "message", ""),
             timestamp=to_utc(getattr(message, "timestamp", None)),
         )
+
+
+def _shorten(text: str) -> str:
+    if len(text) <= MAX_ARGUMENT_CHARS:
+        return text
+    return text[:MAX_ARGUMENT_CHARS - 1] + "…"
 
 
 def now_isoformat() -> str:

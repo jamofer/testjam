@@ -20,6 +20,7 @@ from typing import Any
 from testjam_client import TestjamClient
 from testjam_client.listener.circuit_breaker import NetworkCircuitBreaker
 from testjam_client.listener.events import (
+    BodyItemEvent,
     LogEvent,
     OutcomeEvent,
     SuiteEvent,
@@ -107,8 +108,8 @@ class TestjamListener:
     def end_test(self, _data: Any, result: Any) -> None:
         self._outbox.submit(self.reporter.end_test, OutcomeEvent.from_robot(result))
 
-    def start_body_item(self, _data: Any, _result: Any) -> None:
-        self._outbox.submit(self.reporter.start_body_item)
+    def start_body_item(self, data: Any, _result: Any) -> None:
+        self._outbox.submit(self.reporter.start_body_item, BodyItemEvent.from_robot(data))
 
     def end_body_item(self, _data: Any, result: Any) -> None:
         self._outbox.submit(self.reporter.end_body_item, OutcomeEvent.from_robot(result))

@@ -118,6 +118,8 @@ def _upsert_bulk_item(db: Session, execution_id: int, item: BulkResultItem) -> t
         if existing_step_result:
             existing_step_result.status = step_result.status
             existing_step_result.comment = step_result.comment
+            if step_result.arguments is not None:
+                existing_step_result.arguments = step_result.arguments
             if step_result.duration_ms is not None:
                 existing_step_result.duration_ms = step_result.duration_ms
         else:
@@ -182,6 +184,8 @@ def create_result(
             existing_sr.status = sr.status
             existing_sr.comment = sr.comment
             existing_sr.log_output = sr.log_output
+            if sr.arguments is not None:
+                existing_sr.arguments = sr.arguments
             if sr.duration_ms is not None:
                 existing_sr.duration_ms = sr.duration_ms
         else:
@@ -285,6 +289,8 @@ def start_step_result(
     if existing:
         existing.status = "running"
         existing.started_at = now
+        if body.arguments is not None:
+            existing.arguments = body.arguments
         step_result = existing
     else:
         step_result = TestStepResult(
@@ -292,6 +298,7 @@ def start_step_result(
             step_id=body.step_id,
             status="running",
             started_at=now,
+            arguments=body.arguments,
         )
         db.add(step_result)
     result_promoted = False

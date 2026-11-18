@@ -34,6 +34,17 @@ With Control
     END
     Log    after loop
 """
+ARGUMENTS_TEST = """*** Variables ***
+${SECRET}    hunter2
+
+*** Test Cases ***
+With Arguments
+    Log    ${SECRET}    level=DEBUG
+    FOR    ${item}    IN    1    2
+        Log    ${item}
+    END
+    No Operation
+"""
 FAILING_TEST = """*** Test Cases ***
 Fails Midway
     Log    first
@@ -213,6 +224,25 @@ def test_streamed_log_lines_carry_their_timestamp(listener, auth_client, tmp_pat
 
     first_step_log = _ordered_steps(auth_client, result)[0]["log_output"]
     assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z \[INFO\] first", first_step_log)
+
+
+def test_steps_keep_their_arguments_as_written(listener, auth_client, tmp_path):
+    [result] = _run_robot(listener, auth_client, tmp_path, ARGUMENTS_TEST)
+
+    assert [step["arguments"] for step in _ordered_steps(auth_client, result)] == [
+        ["${SECRET}", "level=DEBUG"], None, None,
+    ]
+
+
+def test_batch_fallback_keeps_the_step_arguments(listener, auth_client, robot_file):
+    listener.reporter.streaming_enabled = False
+    test = _test("Valid Login", ["Open App"])
+    test.body[0].args = ("https://example.test",)
+
+    _run_suite(listener, _suite("Login", robot_file), test, "PASS")
+
+    [result] = auth_client.executions.list_results(listener.execution_id)
+    assert [step["arguments"] for step in result["step_results"]] == [["https://example.test"]]
 
 
 def test_case_created_by_a_parallel_worker_is_reused():

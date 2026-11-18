@@ -37,6 +37,7 @@ class TestStepResultCreate(BaseModel):
     comment: str | None = None
     log_output: str | None = None
     duration_ms: int | None = None
+    arguments: list[str] | None = None
 
 
 class TestStepResultUpdate(BaseModel):
@@ -57,6 +58,7 @@ class TestStepResultOut(BaseModel):
     duration_ms: int | None = None
     started_at: datetime | None = None
     log_output: str | None = None
+    arguments: list[str] | None = None
 
     model_config = {"from_attributes": True}
 
@@ -74,6 +76,7 @@ class StepResultLogAppendResponse(BaseModel):
 
 class TestStepResultStartRunning(BaseModel):
     step_id: int
+    arguments: list[str] | None = None
 
 
 class TestResultCreate(BaseModel):

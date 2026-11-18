@@ -29,6 +29,20 @@ def test_start_step_result_persists_running_state(auth_client, execution_with_st
     assert body["started_at"] is not None
 
 
+def test_start_step_result_stores_the_keyword_arguments(auth_client, execution_with_step):
+    execution_id, result_id, step_id = execution_with_step
+
+    auth_client.post(
+        f"/api/v1/results/{result_id}/step-results",
+        json={"step_id": step_id, "arguments": ["admin", "${PASSWORD}"]},
+    )
+
+    [step_result] = auth_client.get(
+        f"/api/v1/executions/{execution_id}/results",
+    ).json()[0]["step_results"]
+    assert step_result["arguments"] == ["admin", "${PASSWORD}"]
+
+
 def test_start_step_result_is_idempotent_on_same_step(auth_client, execution_with_step):
     _, result_id, step_id = execution_with_step
 

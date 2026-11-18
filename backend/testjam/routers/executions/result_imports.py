@@ -103,6 +103,17 @@ def _rf_collect_messages(kw_elem: ET.Element) -> str:
     return "\n\n".join(lines)
 
 
+def _rf_kw_arguments(kw_elem: ET.Element) -> list[str] | None:
+    """The keyword's own ``<arg>`` children, as written in the source.
+
+    Older schemas wrap them in ``<arguments>``; nested keywords' args are not ours.
+    """
+    container = kw_elem.find("arguments")
+    parent = container if container is not None else kw_elem
+    arguments = [arg.text or "" for arg in parent.findall("arg")]
+    return arguments or None
+
+
 RF_LEGACY_TIMESTAMP_FORMAT = "%Y%m%d %H:%M:%S.%f"
 
 
@@ -319,6 +330,7 @@ def import_robotframework(
                     kw_new_status = _rf_status(kw_rf_status)
                     log_output = _rf_collect_messages(kw)
                     kw_duration = _rf_kw_duration_ms(kw)
+                    kw_arguments = _rf_kw_arguments(kw)
 
                     existing_sr = (
                         db.query(TestStepResult)
@@ -329,6 +341,7 @@ def import_robotframework(
                         existing_sr.status = kw_new_status
                         existing_sr.log_output = log_output or None
                         existing_sr.duration_ms = kw_duration
+                        existing_sr.arguments = kw_arguments
                     else:
                         db.add(TestStepResult(
                             test_result_id=result.id,
@@ -336,6 +349,7 @@ def import_robotframework(
                             status=kw_new_status,
                             log_output=log_output or None,
                             duration_ms=kw_duration,
+                            arguments=kw_arguments,
                         ))
 
             if is_new:

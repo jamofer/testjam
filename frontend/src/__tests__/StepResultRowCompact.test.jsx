@@ -91,6 +91,19 @@ describe("StepResultRow compact layout", () => {
     expect(entry).toHaveTextContent("slow")
   })
 
+  it("shows the keyword arguments under the action", () => {
+    renderRow({ stepResult: { ...PASSED_WITH_LOG, arguments: ["admin", "${PASSWORD}"] } })
+
+    const args = screen.getByTestId("step-arguments")
+    expect([...args.querySelectorAll("code")].map(node => node.textContent)).toEqual(["admin", "${PASSWORD}"])
+  })
+
+  it("shows no argument line for a step without arguments", () => {
+    renderRow()
+
+    expect(screen.queryByTestId("step-arguments")).not.toBeInTheDocument()
+  })
+
   it("offers no log toggle when the step has no log", () => {
     renderRow({ stepResult: { id: 9, step_id: 1, status: "passed", duration_ms: 75 } })
 
