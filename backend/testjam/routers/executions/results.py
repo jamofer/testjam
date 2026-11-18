@@ -27,6 +27,7 @@ from testjam.schemas.execution import (
 )
 from testjam.services import execution_events
 from testjam.services.permissions import WRITER_ROLES, effective_role
+from testjam.services.step_logs import format_log_entry
 
 STEP_RESULT_LOG_SEPARATOR = "\n\n"
 TERMINAL_EXECUTION_STATUSES = {"completed", "aborted"}
@@ -63,10 +64,6 @@ def _require_assignable(db: Session, project_id: int, user_id: int | None) -> No
 
 def _result_out(result: TestResult) -> TestResultOut:
     return TestResultOut.model_validate(result)
-
-
-def _format_log_entry(level: str, message: str) -> str:
-    return f"**[{level}]** {message}"
 
 
 def _append_log_output(step_result: TestStepResult, entry: str) -> None:
@@ -371,7 +368,8 @@ def append_step_result_log(
     execution_id_pre = _resolve_execution_id(db, id)
     _reject_if_terminal(db.get(TestExecution, execution_id_pre) if execution_id_pre else None)
 
-    entry = _format_log_entry(body.level, body.message)
+    logged_at = body.ts or datetime.now(UTC)
+    entry = format_log_entry(body.level, body.message, logged_at)
     _append_log_output(step_result, entry)
     db.commit()
 
@@ -383,7 +381,7 @@ def append_step_result_log(
                 "step_result_id": step_result_id,
                 "level": body.level,
                 "message": body.message,
-                "ts": body.ts.isoformat() if body.ts else None,
+                "ts": logged_at.isoformat(),
             },
         )
     return StepResultLogAppendResponse(step_result_id=step_result_id, appended=1)

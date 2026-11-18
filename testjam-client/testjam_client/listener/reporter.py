@@ -15,7 +15,7 @@ import httpx
 from testjam_client import TestjamClient, statuses
 from testjam_client.errors import Conflict, TestjamError
 from testjam_client.listener.events import LogEvent, OutcomeEvent, SuiteEvent, TestEvent
-from testjam_client.listener.log import format_log_line, isoformat_timestamp
+from testjam_client.listener.log import format_log_line
 from testjam_client.listener.status import map_rf_status
 
 log = logging.getLogger("testjam.listener")
@@ -137,7 +137,7 @@ class Reporter:
             self.client.step_results.append_log(
                 test.result_id, step.step_result_id,
                 level=message.level, message=message.message,
-                ts=isoformat_timestamp(message.timestamp),
+                ts=message.timestamp.isoformat(),
             )
         except API_ERRORS as exc:
             self._maybe_disable_streaming(exc)

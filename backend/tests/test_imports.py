@@ -163,7 +163,7 @@ def test_rf_import_populates_step_log_output(auth_client, project_id, suite_id):
 
     sr = next((s for s in result_detail["step_results"] if s["step_id"] == step_id), None)
     assert sr is not None
-    assert "Opening Chrome" in (sr["log_output"] or "")
+    assert "2024-01-01T12:00:00.100 [INFO] Opening Chrome" in (sr["log_output"] or "")
 
 
 XML_BILLION_LAUGHS = b"""<?xml version="1.0"?>

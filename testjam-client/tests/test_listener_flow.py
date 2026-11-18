@@ -1,4 +1,5 @@
 """Listener event flow against the in-process backend."""
+import re
 from types import SimpleNamespace
 
 import threading
@@ -205,6 +206,13 @@ def test_logs_of_nested_keywords_stay_on_their_step(listener, auth_client, tmp_p
 
     logs = [step["log_output"] or "" for step in _ordered_steps(auth_client, result)]
     assert "inside if" in logs[1] and "after loop" in logs[3]
+
+
+def test_streamed_log_lines_carry_their_timestamp(listener, auth_client, tmp_path):
+    [result] = _run_robot(listener, auth_client, tmp_path, CONTROL_STRUCTURES_TEST)
+
+    first_step_log = _ordered_steps(auth_client, result)[0]["log_output"]
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z \[INFO\] first", first_step_log)
 
 
 def test_case_created_by_a_parallel_worker_is_reused():

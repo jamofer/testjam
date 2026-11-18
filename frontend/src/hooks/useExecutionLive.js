@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTopicSocket } from './useTopicSocket'
+import { formatStepLogLine } from '../lib/stepLog'
 
 export function useExecutionLive(executionId, { enabled = true, onDeleted } = {}) {
   const queryClient = useQueryClient()
@@ -124,7 +125,7 @@ function mergeLogEntries(result, byStepResultId) {
     return {
       ...stepResult,
       log_output: entriesForStep.reduce(
-        (acc, entry) => appendLogLine(acc, entry.level, entry.message),
+        (acc, entry) => appendLogLine(acc, entry),
         stepResult.log_output,
       ),
     }
@@ -132,7 +133,7 @@ function mergeLogEntries(result, byStepResultId) {
   return touched ? { ...result, step_results: nextStepResults } : result
 }
 
-function appendLogLine(existing, level, message) {
-  const entry = `**[${level}]** ${message}`
-  return existing ? `${existing}\n\n${entry}` : entry
+function appendLogLine(existing, { level, message, ts }) {
+  const line = formatStepLogLine(level, message, ts)
+  return existing ? `${existing}\n\n${line}` : line
 }

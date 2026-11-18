@@ -19,6 +19,7 @@ from testjam.schemas.execution import BulkResultResponse
 from testjam.services import execution_events, uploads
 from testjam.services.permissions import WRITER_ROLES
 from testjam.services.settings import get_settings as get_app_settings
+from testjam.services.step_logs import format_log_entry
 
 MAX_FAILURE_DETAIL_CHARS = 20_000
 NO_MATCH_ERROR = "No matching test case found"
@@ -98,8 +99,28 @@ def _rf_collect_messages(kw_elem: ET.Element) -> str:
         level = msg.get("level", "INFO")
         text = (msg.text or "").strip()
         if text:
-            lines.append(f"**[{level}]** {text}")
+            lines.append(format_log_entry(level, text, _rf_msg_timestamp(msg)))
     return "\n\n".join(lines)
+
+
+RF_LEGACY_TIMESTAMP_FORMAT = "%Y%m%d %H:%M:%S.%f"
+
+
+def _rf_msg_timestamp(msg: ET.Element) -> datetime | None:
+    """``time`` (RF 7, ISO) or ``timestamp`` (RF 6 and older), runner-local."""
+    raw = msg.get("time")
+    if raw:
+        try:
+            return datetime.fromisoformat(raw)
+        except ValueError:
+            return None
+    raw = msg.get("timestamp")
+    if raw:
+        try:
+            return datetime.strptime(raw, RF_LEGACY_TIMESTAMP_FORMAT)
+        except ValueError:
+            return None
+    return None
 
 
 def _rf_kw_duration_ms(kw_elem: ET.Element) -> int | None:

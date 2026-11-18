@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
+from testjam_client.listener.log import to_utc
+
 
 @dataclass(frozen=True)
 class SuiteEvent:
@@ -77,14 +79,14 @@ class OutcomeEvent:
 class LogEvent:
     level: str
     message: str
-    timestamp: Any
+    timestamp: datetime
 
     @classmethod
     def from_robot(cls, message: Any) -> LogEvent:
         return cls(
             level=getattr(message, "level", "INFO"),
             message=getattr(message, "message", ""),
-            timestamp=getattr(message, "timestamp", None),
+            timestamp=to_utc(getattr(message, "timestamp", None)),
         )
 
 
